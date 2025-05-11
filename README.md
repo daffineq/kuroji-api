@@ -4,7 +4,7 @@
   </a>
 </p>
 
-# <p align="center">Kuroji API - Modern Anime API and Content Hub</p>
+# <p align="center">Kuroji API - Anime API</p>
 
 <p align="center">
   <a href="https://nestjs.com" target="_blank"><img src="https://img.shields.io/badge/Built%20with-NestJS-ea2845" alt="Built with NestJS"></a>
