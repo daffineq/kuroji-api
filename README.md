@@ -65,7 +65,7 @@ $ yarn start:dev
 
 ## 🏁 Getting Started
 
-> **Important**: This API requires PostgreSQL and Redis to be running. Make sure both services are properly configured in your `.env` file.
+> **Important**: This API requires PostgreSQL to be running. Redis is optional and can be turned off in the `.env` file (enabled by default). Make sure these services are properly configured in your `.env` file.
 
 ### 🐳 Quick Start with Docker
 
