@@ -1,3 +1,12 @@
+# [0.2.0](https://github.com/veaquer/kuroji-api/compare/v0.1.11...v0.2.0) (2025-05-11)
+
+
+### Features
+
+* redis caching impoved ([88a2560](https://github.com/veaquer/kuroji-api/commit/88a25600206dd603bad6915aed3897893a4b9e85))
+
+
+
 ## [0.1.11](https://github.com/veaquer/kuroji-api/compare/v0.1.10...v0.1.11) (2025-05-11)
 
 
@@ -11,10 +20,6 @@
 
 
 ## [0.1.8](https://github.com/veaquer/kuroji-api/compare/v0.1.7...v0.1.8) (2025-05-11)
-
-
-
-## [0.1.7](https://github.com/veaquer/kuroji-api/compare/v0.1.6...v0.1.7) (2025-05-11)
 
 
 
