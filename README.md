@@ -699,10 +699,6 @@ id: number
 **Example**: `https://api.example.com/console/errors`
 </details>
 
-## Cloudinary
-
-Cloudinary functionality is available as an internal service for image handling. It's primarily used by other endpoints rather than exposing direct API endpoints.
-
 ## TMDB
 
 <details>
