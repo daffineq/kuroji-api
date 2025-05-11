@@ -9,9 +9,6 @@ import { UpdateType } from '../../../shared/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service';
 import { AnimeKaiHelper } from '../utils/animekai-helper';
 import { TmdbService } from '../../tmdb/service/tmdb.service'
-import { InjectRedis } from '@nestjs-modules/ioredis'
-import Redis from 'ioredis'
-import Config from '../../../configs/Config'
 
 export interface BasicAnimekai {
   id: string;
@@ -37,8 +34,7 @@ export class AnimekaiService {
     private readonly anilistService: AnilistService,
     private readonly tmdbService: TmdbService,
     private readonly customHttpService: CustomHttpService,
-    private readonly helper: AnimeKaiHelper,
-    @InjectRedis() private readonly redis: Redis,
+    private readonly helper: AnimeKaiHelper
   ) {}
 
   async getAnimekaiByAnilist(id: number): Promise<AnimekaiWithRelations> {
@@ -56,22 +52,9 @@ export class AnimekaiService {
   }
 
   async getSources(episodeId: string, dub: boolean): Promise<Source> {
-    const key = `animekai:sources:${episodeId}:${dub ? 'dub' : 'sub'}`
-    const cached = await this.redis.get(key)
-    if (cached) {
-      return JSON.parse(cached) as Source
-    }
-
     const animekai = await this.customHttpService.getResponse(
       UrlConfig.ANIMEKAI + 'watch/' + episodeId + '?dub=' + dub
     )
-
-    await this.redis.set(
-      key,
-      JSON.stringify(animekai),
-      'EX',
-      Config.SOURCES_REDIS_TIME
-    );
 
     return animekai as Source
   }

@@ -8,6 +8,10 @@ import { AnilistService } from '../../anilist/service/anilist.service'
 import { TmdbService } from '../../tmdb/service/tmdb.service'
 import { AnimekaiEpisode, AnimepaheEpisode, EpisodeZoro } from '@prisma/client'
 import { Source } from '../model/Source'
+import { InjectRedis } from '@nestjs-modules/ioredis'
+import Redis from 'ioredis'
+import Config from '../../../configs/Config'
+import e from 'express'
 
 export interface Episode {
   title: string | null
@@ -35,11 +39,21 @@ export class StreamService {
     private readonly animekai: AnimekaiService,
     private readonly animepahe: AnimepaheService,
     private readonly anilist: AnilistService,
-    private readonly tmdb: TmdbService
+    private readonly tmdb: TmdbService,
+    @InjectRedis() private readonly redis: Redis,
   ) {}
 
   async getEpisodes(id: number): Promise<Episode[]> {
     try {
+      const key = `anime:episodes:${id}`;
+
+      if (Config.REDIS) {
+        const cached = await this.redis.get(key)
+        if (cached) {
+          return JSON.parse(cached) as Episode[]
+        }
+      }
+
       const [aniwatch, season, anilist] = await Promise.all([
         this.aniwatch.getZoroByAnilist(id).catch(() => null),
         this.tmdb.getTmdbSeasonByAnilist(id).catch(() => null),
@@ -87,6 +101,13 @@ export class StreamService {
         }
       })
 
+      Config.REDIS && await this.redis.set(
+        key,
+        JSON.stringify(episodes),
+        'EX',
+        Config.REDIS_TIME
+      );
+
       return episodes
     } catch (e) {
       throw new Error(String(e))
@@ -97,68 +118,70 @@ export class StreamService {
     return (await this.getEpisodes(id)).find(e => e.number === ep) as Episode;
   }
 
-  private isEpisodeAvailable(aniwatch: ZoroWithRelations, episodeNumber: number, isSub: boolean): boolean {
-    const episodes = aniwatch?.episodes;
-    if (!episodes) {
-      return false;
-    }
-
-    const episode = episodes.find(e => e.number === episodeNumber);
-    if (!episode) {
-      return false;
-    }
-
-    if (isSub) {
-      return episode.isSubbed || false;
-    } else {
-      return episode.isDubbed || false;
-    }
-  }
-
   async getProvidersSingle(id: number, ep: number): Promise<ProviderInfo[]> {
-    const providers: ProviderInfo[] = []
+    try {
+      const key = `anime:providers:${id}:${ep}`
 
-    const [zoro, pahe, kai] = await Promise.all([
-      this.aniwatch.getZoroByAnilist(id).catch(() => null),
-      this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
-      this.animekai.getAnimekaiByAnilist(id).catch(() => null),
-    ])
+      if (Config.REDIS) {
+        const cached = await this.redis.get(key)
+        if (cached) {
+          return JSON.parse(cached) as ProviderInfo[]
+        }
+      }
 
-    const pushProvider = (
-      id: string,
-      filler: boolean,
-      provider: Provider,
-      type: SourceType
-    ) => {
-      providers.push({ id, filler, provider, type })
+      const providers: ProviderInfo[] = []
+
+      const [zoro, pahe, kai] = await Promise.all([
+        this.aniwatch.getZoroByAnilist(id).catch(() => null),
+        this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
+        this.animekai.getAnimekaiByAnilist(id).catch(() => null),
+      ])
+
+      const pushProvider = (
+        id: string,
+        filler: boolean,
+        provider: Provider,
+        type: SourceType
+      ) => {
+        providers.push({ id, filler, provider, type })
+      }
+
+      const zoroEp = zoro?.episodes?.find((e: EpisodeZoro, idx: number) =>
+        e.number === ep || idx + 1 === ep
+      )
+      if (zoroEp) {
+        const { id, isFiller, isSubbed, isDubbed } = zoroEp
+        if (isSubbed) pushProvider(id, isFiller || false, Provider.ANIWATCH, SourceType.SOFT_SUB)
+        if (isDubbed) pushProvider(id, isFiller || false, Provider.ANIWATCH, SourceType.DUB)
+      }
+
+      const paheEp = pahe?.episodes?.find((e: AnimepaheEpisode, idx: number) =>
+        e.number === ep || idx + 1 === ep
+      )
+      if (paheEp) {
+        pushProvider(paheEp.id, zoroEp?.isFiller || false, Provider.ANIMEPAHE, SourceType.BOTH)
+      }
+
+      const kaiEp = kai?.episodes?.find((e: AnimekaiEpisode, idx: number) =>
+        e.number === ep || idx + 1 === ep
+      )
+      if (kaiEp) {
+        const { id, isFiller, isSubbed, isDubbed } = kaiEp
+        if (isSubbed) pushProvider(id, isFiller || false, Provider.ANIMEKAI, SourceType.HARD_SUB)
+        if (isDubbed) pushProvider(id, isFiller || false, Provider.ANIMEKAI, SourceType.DUB)
+      }
+
+      Config.REDIS && await this.redis.set(
+        key,
+        JSON.stringify(providers),
+        'EX',
+        Config.REDIS_TIME
+      );
+
+      return providers
+    } catch (e) {
+      throw new Error(String(e))
     }
-
-    const zoroEp = zoro?.episodes?.find((e: EpisodeZoro, idx: number) =>
-      e.number === ep || idx + 1 === ep
-    )
-    if (zoroEp) {
-      const { id, isFiller, isSubbed, isDubbed } = zoroEp
-      if (isSubbed) pushProvider(id, isFiller || false, Provider.ANIWATCH, SourceType.SOFT_SUB)
-      if (isDubbed) pushProvider(id, isFiller || false, Provider.ANIWATCH, SourceType.DUB)
-    }
-
-    const paheEp = pahe?.episodes?.find((e: AnimepaheEpisode, idx: number) =>
-      e.number === ep || idx + 1 === ep
-    )
-    if (paheEp) {
-      pushProvider(paheEp.id, zoroEp?.isFiller || false, Provider.ANIMEPAHE, SourceType.BOTH)
-    }
-
-    const kaiEp = kai?.episodes?.find((e: AnimekaiEpisode, idx: number) =>
-      e.number === ep || idx + 1 === ep
-    )
-    if (kaiEp) {
-      const { id, isFiller, isSubbed, isDubbed } = kaiEp
-      if (isSubbed) pushProvider(id, isFiller || false, Provider.ANIMEKAI, SourceType.HARD_SUB)
-      if (isDubbed) pushProvider(id, isFiller || false, Provider.ANIMEKAI, SourceType.DUB)
-    }
-
-    return providers
   }
 
   async getProvidersMultiple(id: number): Promise<(Episode & { providers: ProviderInfo[] })[]> {
@@ -177,7 +200,16 @@ export class StreamService {
     return enrichedEpisodes
   }
 
-  async getSources(provider: Provider, ep: number, alId: number, dub: boolean): Promise<Source> {
+  async getSources(provider: Provider, ep: number, alId: number, dub: boolean = false): Promise<Source> {
+    const key = `anime:sources:${provider}:${alId}:${ep}:${dub}`
+
+    if (Config.REDIS) {
+      const cached = await this.redis.get(key)
+      if (cached) {
+        return JSON.parse(cached) as Source
+      }
+    }
+
     const providers = await this.getProvidersSingle(alId, ep)
     const epId = providers.find(p => p.provider === provider)?.id
     if (!epId) throw new Error("Episode not found for provider")
@@ -192,7 +224,16 @@ export class StreamService {
     if (!fetchFn) throw new Error("Invalid provider")
 
     try {
-      return await fetchFn()
+      const data = fetchFn();
+
+      Config.REDIS && await this.redis.set(
+        key,
+        JSON.stringify(data),
+        'EX',
+        Config.REDIS_TIME
+      );
+
+      return data;
     } catch {
       throw new Error("No sources found")
     }
