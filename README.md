@@ -46,7 +46,7 @@ Kuroji API is built on NestJS and TypeScript, providing a robust and scalable so
 
 ```bash
 # Clone the repository
-$ git clone https://github.com/yourusername/kuroji-api.git
+$ git clone https://github.com/veaquer/kuroji-api.git
 $ cd kuroji-api
 
 # Install dependencies
