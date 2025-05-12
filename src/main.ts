@@ -10,6 +10,7 @@ import { RootPathBlockerMiddleware } from './shared/RootPathBlockerMiddleware'
 import * as express from 'express'
 import { join } from 'path'
 import Config from './configs/Config'
+import { ThrottlerGuard } from '@nestjs/throttler'
 
 config();
 

@@ -13,6 +13,9 @@ import { UpdateModule } from './update/update.module';
 import { ExceptionsModule } from './exception/module/exceptions.module'
 import { ConsoleModule } from './console/module/console.module'
 import { Redis } from './shared/redis.module'
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
+import Config from './configs/Config'
+import { APP_GUARD } from '@nestjs/core'
 
 @Module({
   imports: [
@@ -30,9 +33,23 @@ import { Redis } from './shared/redis.module'
       envFilePath: '.env',
       isGlobal: true,
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          limit: Config.RATE_LIMIT,
+          ttl: Config.RATE_LIMIT_TTL,
+        },
+      ],
+    }),
     Redis
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

@@ -21,4 +21,7 @@ export default class Config {
   public static readonly REDIS_TIME = process.env.REDIS_TIME ? parseInt(process.env.REDIS_TIME) : 3600;
 
   public static readonly CORS: string[] = (process.env.CORS ?? '').split(',').map(s => s.trim()).filter(Boolean);
+
+  public static readonly RATE_LIMIT: number = process.env.RATE_LIMIT ? parseInt(process.env.RATE_LIMIT) : 0;
+  public static readonly RATE_LIMIT_TTL: number = (process.env.RATE_LIMIT_TTL ? parseInt(process.env.RATE_LIMIT_TTL) : 60) * 1000;
 }

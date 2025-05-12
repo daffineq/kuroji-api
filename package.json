@@ -29,6 +29,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/schedule": "^5.0.1",
+    "@nestjs/throttler": "^6.4.0",
     "@prisma/client": "^6.5.0",
     "axios": "^1.8.4",
     "class-transformer": "^0.5.1",
