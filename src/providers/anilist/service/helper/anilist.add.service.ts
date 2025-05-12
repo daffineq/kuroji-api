@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BasicIdAni, AnilistCharacter } from '@prisma/client'
 import { ApiResponse, PageInfo } from '../../../../api/ApiResponse'
 import { TMDB } from '../../../../configs/tmdb.config'
-import { MediaSort } from '../../graphql/types/MediaEnums'
+import { MediaSort } from '../../filter/Filter'
 import { BasicAnilistSmall, BasicAnilist } from '../../model/BasicAnilist'
 import { FilterDto } from '../../model/FilterDto'
 import { PrismaService } from '../../../../prisma.service'

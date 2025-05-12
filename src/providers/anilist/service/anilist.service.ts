@@ -4,7 +4,7 @@ import { PrismaService } from '../../../prisma.service';
 import { UpdateType } from '../../../shared/UpdateType';
 import { AnilistHelper } from '../utils/anilist-helper';
 import { AnilistFetchService } from './helper/anilist.fetch.service'
-import { MediaType } from '../graphql/types/MediaEnums'
+import { MediaType } from '../filter/Filter'
 import { AnilistWithRelations, AnilistResponse } from '../model/AnilistModels'
 import { AnilistUtilService } from './helper/anilist.util.service'
 

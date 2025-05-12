@@ -75,36 +75,3 @@ export enum MediaSort {
   UPDATED_AT = 'updated_at',
   UPDATED_AT_DESC = 'updated_at_desc',
 }
-
-export enum MediaTrendSort {
-  ID = 'id',
-  ID_DESC = 'id_desc',
-  MEDIA_ID = 'media_id',
-  MEDIA_ID_DESC = 'media_id_desc',
-  DATE = 'date',
-  DATE_DESC = 'date_desc',
-  SCORE = 'score',
-  SCORE_DESC = 'score_desc',
-  POPULARITY = 'popularity',
-  POPULARITY_DESC = 'popularity_desc',
-  TRENDING = 'trending',
-  TRENDING_DESC = 'trending_desc',
-}
-
-export enum MediaRelation {
-  ADAPTATION = 'ADAPTATION',
-  PREQUEL = 'PREQUEL',
-  SEQUEL = 'SEQUEL',
-  PARENT = 'PARENT',
-  SIDE_STORY = 'SIDE_STORY',
-  CHARACTER = 'CHARACTER',
-  SPIN_OFF = 'SPIN_OFF',
-  SUMMARY = 'SUMMARY',
-  ALTERNATIVE = 'ALTERNATIVE',
-  OTHER = 'OTHER',
-}
-
-export enum MediaExternalLinkType {
-  INFO = 'INFO',
-  STREAMING = 'STREAMING',
-}

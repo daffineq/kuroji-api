@@ -1,5 +1,4 @@
 import { AnilistCover, AnilistNextAiringEpisode, AnilistTitle, ShikimoriPoster, StartDate } from '@prisma/client'
-import { JsonValue } from '@prisma/client/runtime/library'
 
 export interface BasicShikimori {
   id?: string;

@@ -1,6 +1,5 @@
 import Dimens from '../../../../configs/Dimens';
-import { Filter } from '../../model/Filter'
-import { MediaSort } from '../types/MediaEnums';
+import { MediaSort } from '../../filter/Filter';
 
 type FlexibleField = string | number | boolean | object | null | undefined;
 

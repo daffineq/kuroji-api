@@ -14,7 +14,7 @@ import {
   MediaStatus,
   MediaType,
   MediaSource,
-} from '../graphql/types/MediaEnums'
+} from '../filter/Filter'
 
 const TransformToArray = () =>
   Transform(({ value }) => (Array.isArray(value) ? value : [value]))

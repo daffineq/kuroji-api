@@ -1,5 +1,4 @@
 import { Anilist, AnilistTitle, AnilistCover, StartDate, EndDate, AnilistTrailer, AnilistCharacter, AnilistStudio, AnilistAiringSchedule, AnilistNextAiringEpisode, AnilistTag, AnilistExternalLink, AnilistStreamingEpisode, Shikimori, AnilistRanking, AnilistScoreDistribution, AnilistStatusDistribution } from '@prisma/client'
-import { JsonValue } from '@prisma/client/runtime/library'
 import { PageInfo } from '../graphql/types/PageInfo'
 import { BasicAnilistSmall } from './BasicAnilist'
 

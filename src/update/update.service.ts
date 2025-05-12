@@ -10,7 +10,7 @@ import { TmdbService, TmdbStatus } from '../providers/tmdb/service/tmdb.service'
 import { UpdateType } from '../shared/UpdateType'
 import { ZoroService } from '../providers/zoro/service/zoro.service'
 import Config from '../configs/Config'
-import { MediaStatus, MediaType } from '../providers/anilist/graphql/types/MediaEnums'
+import { MediaStatus } from '../providers/anilist/filter/Filter'
 import { TvdbService, TvdbStatus } from '../providers/tvdb/service/tvdb.service'
 
 interface IProvider {

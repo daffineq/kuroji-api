@@ -1,6 +1,3 @@
-import { AiringSchedulesQueryBuilder } from './query/AiringSchedulesQueryBuilder';
-import AnilistQueryBuilder from './query/AnilistQueryBuilder';
-
 type FieldTypeMap = { [key: string]: string };
 
 export default class AnilistQL {
@@ -97,47 +94,6 @@ export default class AnilistQL {
     `;
 
     return query.trim();
-  }
-
-  public static getQueryBasic(variables: AnilistQueryBuilder): string {
-    const fields = this.buildBasicFields();
-    return JSON.stringify({
-      query: `query(${this.buildVariablesString(variables.build())}) { Page(page: $page, perPage: $perPage) { media(${this.buildMediaVariablesString(variables.buildMedia())}) { ${fields} } pageInfo { total perPage currentPage lastPage hasNextPage } }`,
-      variables: variables.build(),
-    });
-  }
-
-  public static getScheduleQuery(
-    variables: AiringSchedulesQueryBuilder,
-  ): string {
-    const fields = this.buildScheduleFields();
-    return JSON.stringify({
-      query: `query(${this.buildVariablesString(variables.build())}) { Page(page: $page, perPage: $perPage) { airingSchedules(${this.buildMediaVariablesString(variables.buildMedia())}) { ${fields} } pageInfo { total perPage currentPage lastPage hasNextPage } }`,
-      variables: variables.build(),
-    });
-  }
-
-  private static buildMediaVariablesString(mediaVariables: {
-    [key: string]: any;
-  }): string {
-    return Object.entries(mediaVariables)
-      .filter(([, value]) => value !== null)
-      .map(([key]) => `${key}: $${key}`)
-      .join(', ');
-  }
-
-  private static buildVariablesString(variables: {
-    [key: string]: any;
-  }): string {
-    return Object.entries(variables)
-      .map(([key]) => `$${key}: ${this.getGraphQLType(key)}`)
-      .join(', ');
-  }
-
-  private static buildScheduleFields(): string {
-    return ['id', 'airingAt', 'timeUntilAiring', 'episode', 'mediaId'].join(
-      ' ',
-    );
   }
 
   private static buildFullFields(): string {
@@ -305,23 +261,4 @@ export default class AnilistQL {
       bannerImage
     `.replace(/\s+/g, ' ').trim();
   }  
-
-  private static buildBasicFields(): string {
-    return [
-      'id',
-      'idMal',
-      'title{romaji english}',
-      'type',
-      'format',
-      'status',
-      'description',
-      'startDate{year month}',
-      'season',
-      'episodes',
-      'duration',
-      'averageScore',
-      'meanScore',
-      'coverImage{large}'
-    ].join(' ');
-  }
 }

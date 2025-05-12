@@ -4,7 +4,7 @@ import AnilistQL from '../../graphql/AnilistQL'
 import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder'
 import { CustomHttpService } from '../../../../http/http.service'
 import { AnilistResponse, MoreInfoResponse } from '../../model/AnilistModels'
-import { MediaType } from '../../graphql/types/MediaEnums'
+import { MediaType } from '../../filter/Filter'
 
 @Injectable()
 export class AnilistFetchService {
