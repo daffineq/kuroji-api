@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://github.com/veaquer/kuroji-api">
+  <a href="https://github.com/daffineq/kuroji-api">
     <img src="https://raw.githubusercontent.com/veaquer/kuroji-api/main/public/img/logo.svg" alt="Logo" width="100%" style="max-height: 300px; object-fit: cover; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);" />
   </a>
 </p>
@@ -46,7 +46,7 @@ Kuroji API is built on NestJS and TypeScript, providing a robust and scalable so
 
 ```bash
 # Clone the repository
-$ git clone https://github.com/veaquer/kuroji-api.git
+$ git clone https://github.com/daffineq/kuroji-api.git
 $ cd kuroji-api
 
 # Install dependencies
