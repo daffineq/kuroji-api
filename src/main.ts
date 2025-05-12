@@ -9,6 +9,7 @@ import { PrismaService } from './prisma.service'
 import { RootPathBlockerMiddleware } from './shared/RootPathBlockerMiddleware'
 import * as express from 'express'
 import { join } from 'path'
+import Config from './configs/Config'
 
 config();
 
@@ -24,11 +25,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(new RootPathBlockerMiddleware().use)
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'https://veanime.cc',
-      'https://www.veanime.cc',
-    ],
+    origin: Config.CORS,
     credentials: true,
   });
   app.useGlobalPipes(
@@ -42,6 +39,6 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   const prismaService = app.get(PrismaService)
   app.useGlobalFilters(new ExceptionsHandler(prismaService));
-  await app.listen(process.env.PORT ?? 4000);
+  await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

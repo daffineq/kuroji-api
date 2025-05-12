@@ -67,16 +67,51 @@ $ yarn start:dev
 
 > **Important**: This API requires PostgreSQL to be running. Redis is optional and can be turned off in the `.env` file (enabled by default). Make sure these services are properly configured in your `.env` file.
 
+### 🔒 CORS Configuration
+
+You can configure Cross-Origin Resource Sharing (CORS) by setting the `CORS` environment variable in your `.env` file. This variable should contain a comma-separated list of allowed origins:
+
+```
+# Allow specific domains
+CORS=http://localhost:3000,https://your-app-domain.com
+
+# Allow all origins (not recommended for production)
+CORS=*
+```
+
 ### 🐳 Quick Start with Docker
 
-You can quickly start both PostgreSQL and Redis using Docker:
+You can quickly start the entire application stack (App, PostgreSQL, and Redis) using Docker:
 
 ```bash
-# Start PostgreSQL and Redis in detached mode
+# Start all services in detached mode
 $ docker-compose up -d
 ```
 
-> **Note**: This requires Docker to be installed and running on your system. The above command will start PostgreSQL and Redis with the configuration specified in the docker-compose.yml file.
+The API will be available at: http://localhost:3000
+
+> **Note**: This requires Docker to be installed and running on your system. The above command will start the Kuroji API server along with PostgreSQL and Redis with the configuration specified in the docker-compose.yml file.
+
+### 💻 Development Setup
+
+For a quicker development workflow, you can run just the PostgreSQL and Redis services using the basic Docker Compose file:
+
+```bash
+# Start only PostgreSQL and Redis
+$ docker-compose -f docker-compose.basic.yml up -d
+```
+
+Then run the API locally with:
+
+```bash
+# For development with hot-reload
+$ yarn start:dev
+
+# Or for production mode
+$ yarn start
+```
+
+This approach is faster for development as it avoids rebuilding the Docker container for the API when you make code changes.
 
 ### 📊 Database Indexing
 

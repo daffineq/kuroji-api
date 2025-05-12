@@ -1,18 +1,16 @@
-# Base image
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
 
 COPY . .
 
-RUN npx prisma generate --schema=./prisma/schema.prisma
+RUN yarn prisma generate --schema=./prisma/schema.prisma
 
 RUN chmod +x ./entrypoint.sh
 
-# build only, no migrate yet
-RUN npm run build
+RUN yarn build
 
 CMD ["./entrypoint.sh"]

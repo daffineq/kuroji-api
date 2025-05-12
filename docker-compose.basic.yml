@@ -19,22 +19,5 @@ services:
     ports:
       - "6379:6379"
 
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: kuroji-api
-    restart: always
-    environment:
-      - DATABASE_URL=postgresql://prisma:postgres@postgres:5432/kuroji?schema=public
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - PORT=3000
-    ports:
-      - "3000:3000"
-    depends_on:
-      - postgres
-      - redis
-
 volumes:
   postgres_data:

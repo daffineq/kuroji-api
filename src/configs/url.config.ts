@@ -6,8 +6,7 @@ function withTrailingSlash(url: string): string {
 
 export class UrlConfig {
   // 🔧 Base values
-  public static readonly BASE = withTrailingSlash(Config.BASE || 'http://localhost:4000');
-  public static VERIFY_URL_BASE = `${UrlConfig.BASE}api/auth/verify`;
+  public static readonly BASE = withTrailingSlash(Config.BASE || 'http://localhost:3000');
 
   // 🌐 API Base URLs
   public static readonly CONSUMET_BASE = withTrailingSlash(Config.CONSUMET || '');
