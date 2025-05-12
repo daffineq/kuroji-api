@@ -108,7 +108,8 @@ The API will only return information for anime that have been indexed in your da
 - [TMDB](#tmdb)
 - [TVDB](#tvdb)
 
-## Anime
+<details>
+<summary><h2>Anime</h2></summary>
 
 <details>
 <summary><h3>Get Anime Details</h3></summary>
@@ -473,8 +474,10 @@ sleep: number
 
 **Example**: `https://api.example.com/api/anime/index/unschedule`
 </details>
+</details>
 
-## Shikimori
+<details>
+<summary><h2>Shikimori</h2></summary>
 
 <details>
 <summary><h3>Get Shikimori Anime Info</h3></summary>
@@ -535,12 +538,15 @@ franchise: string
 franchise: string
 ```
 </details>
+</details>
 
-## Streaming Sources
+<details>
+<summary><h2>Streaming Sources</h2></summary>
 
 > **Note**: The streaming providers share common endpoint patterns. Make sure to use the correct provider ID when making requests.
 
-#### AnimePahe
+<details>
+<summary><h3>AnimePahe</h3></summary>
 
 <details>
 <summary><h3>Get AnimePahe Anime Info</h3></summary>
@@ -571,8 +577,10 @@ id: number (Anilist ID)
 id: string (AnimePahe ID)
 ```
 </details>
+</details>
 
-#### AnimeKai
+<details>
+<summary><h3>AnimeKai</h3></summary>
 
 <details>
 <summary><h3>Get AnimeKai Anime Info</h3></summary>
@@ -608,8 +616,10 @@ id: string (AnimeKai ID)
 dub?: boolean (default: false)
 ```
 </details>
+</details>
 
-#### Zoro
+<details>
+<summary><h3>Zoro</h3></summary>
 
 <details>
 <summary><h3>Get Zoro Anime Info</h3></summary>
@@ -645,8 +655,11 @@ id: string (Zoro ID)
 dub?: boolean (default: false)
 ```
 </details>
+</details>
+</details>
 
-## Exceptions
+<details>
+<summary><h2>Exceptions</h2></summary>
 
 <details>
 <summary><h3>Get All Exceptions</h3></summary>
@@ -692,8 +705,10 @@ dub?: boolean (default: false)
 id: number
 ```
 </details>
+</details>
 
-## Console
+<details>
+<summary><h2>Console</h2></summary>
 
 <details>
 <summary><h3>Get Console Logs</h3></summary>
@@ -724,8 +739,10 @@ id: number
 
 **Example**: `https://api.example.com/api/console/errors`
 </details>
+</details>
 
-## TMDB
+<details>
+<summary><h2>TMDB</h2></summary>
 
 <details>
 <summary><h3>Get TMDB Info by Anilist ID</h3></summary>
@@ -756,8 +773,10 @@ id: number
 id: number
 ```
 </details>
+</details>
 
-## TVDB
+<details>
+<summary><h2>TVDB</h2></summary>
 
 <details>
 <summary><h3>Get TVDB Info by Anilist ID</h3></summary>
@@ -808,6 +827,7 @@ language: string
 **Description**: Update the list of available TVDB languages
 
 **Example**: `https://api.example.com/api/anime/tvdb/languages`
+</details>
 </details>
 
 ## 🤝 Contributing
