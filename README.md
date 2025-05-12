@@ -33,6 +33,12 @@
 
 Kuroji API is built on NestJS and TypeScript, providing a robust and scalable solution for anime-related applications. The API allows you to access anime information, streaming sources, and more from various providers in a unified interface.
 
+> **Public API Instance**: A public instance is available at https://138.68.111.93
+> 
+> ⚠️ **Rate Limit**: 4 requests per minute
+> 
+> ⚠️ **Warning**: This public instance is not recommended for use in production applications.
+
 ## ✨ Features
 
 - 🔍 **Comprehensive Anime Data**: Search and retrieve detailed anime information
