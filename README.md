@@ -141,189 +141,40 @@ The API will only return information for anime that have been indexed in your da
 ## 📘 API Documentation
 
 ### Endpoints Overview
-- [Anime](#anime)
-- [Shikimori](#shikimori)
-- [Streaming Sources](#streaming-sources)
-- [Exceptions](#exceptions)
-- [Console](#console)
-- [TMDB](#tmdb)
-- [TVDB](#tvdb)
+- [Anime](#anime-endpoints)
+- [Shikimori](#shikimori-endpoints)
+- [Streaming Sources](#streaming-sources-endpoints)
+- [Exceptions](#exceptions-endpoints)
+- [Console](#console-endpoints)
+- [TMDB](#tmdb-endpoints)
+- [TVDB](#tvdb-endpoints)
+
+### Anime Endpoints
+
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/api/anime/info/:id` | `GET` | Get detailed anime information | `id`: Anime ID |
+| `/api/anime/info/:id/recommendations` | `GET` | Get recommendations based on anime | `id`: Anime ID<br>`page`: Page number (default: 1)<br>`perPage`: Results per page (default: 20) |
+| `/api/anime/info/:id/characters` | `GET` | Get characters from an anime | `id`: Anime ID<br>`page`: Page number (default: 1)<br>`perPage`: Results per page (default: 20) |
+| `/api/anime/info/:id/chronology` | `GET` | Get chronological order of related anime | `id`: Anime ID<br>`page`: Page number (default: 1)<br>`perPage`: Results per page (default: 20) |
+| `/api/anime/info/:id/episodes` | `GET` | Get episode list for an anime | `id`: Anime ID |
+| `/api/anime/info/:id/episodes/:number` | `GET` | Get details of a specific episode | `id`: Anime ID<br>`number`: Episode number |
+| `/api/anime/info/:id/providers/:number` | `GET` | Get available streaming providers for an episode | `id`: Anime ID<br>`number`: Episode number |
+| `/api/anime/info/:id/providers` | `GET` | Get all streaming providers for all episodes | `id`: Anime ID |
+| `/api/anime/watch/:id/episodes/:number` | `GET` | Get streaming sources for a specific episode | `id`: Anime ID<br>`number`: Episode number<br>`provider`: Provider name (default: "ANIWATCH")<br>`dub`: Boolean (default: false) |
+| `/api/anime/filter` | `GET` | Filter anime list by various criteria | See [Filter Parameters](#filter-parameters) |
+| `/api/anime/search/:q` | `GET` | Search anime by query string | `q`: Search query |
+| `/api/anime/schedule` | `GET` | Get currently airing anime schedule | - |
+| `/api/anime/franchise/:franchise` | `GET` | Get information about an anime franchise | `franchise`: Franchise name<br>`page`: Page number (default: 1)<br>`perPage`: Results per page (default: 20) |
+| `/api/anime/index` | `PUT` | Start the anime indexing process | `delay`: Delay between requests (default: 10) |
+| `/api/anime/index/stop` | `PUT` | Stop the anime indexing process | - |
+| `/api/anime/index/sleep/:sleep` | `PUT` | Set sleep time between indexing operations | `sleep`: Sleep time in seconds |
+| `/api/anime/index/schedule` | `PUT` | Schedule periodic indexing | - |
+| `/api/anime/index/unschedule` | `PUT` | Cancel scheduled indexing | - |
 
 <details>
-<summary><h2>Anime</h2></summary>
+<summary><b>Filter Parameters</b></summary>
 
-<details>
-<summary><h3>Get Anime Details</h3></summary>
-
-**URL**: `/api/anime/info/:id`  
-**Method**: `GET`  
-**Description**: Get detailed information about an anime by ID
-
-**Example**: `https://api.example.com/api/anime/info/1`
-
-**Path Parameters**:
-```
-id: number
-```
-</details>
-
-<details>
-<summary><h3>Get Anime Recommendations</h3></summary>
-
-**URL**: `/api/anime/info/:id/recommendations`  
-**Method**: `GET`  
-**Description**: Get anime recommendations based on an anime ID
-
-**Example**: `https://api.example.com/api/anime/info/1/recommendations?page=1&perPage=10`
-
-**Path Parameters**:
-```
-id: number
-```
-
-**Query Parameters**:
-```
-perPage?: number (default: 20)
-page?: number (default: 1)
-```
-</details>
-
-<details>
-<summary><h3>Get Anime Characters</h3></summary>
-
-**URL**: `/api/anime/info/:id/characters`  
-**Method**: `GET`  
-**Description**: Get characters from an anime
-
-**Example**: `https://api.example.com/api/anime/info/1/characters?page=1&perPage=20`
-
-**Path Parameters**:
-```
-id: number
-```
-
-**Query Parameters**:
-```
-perPage?: number (default: 20)
-page?: number (default: 1)
-```
-</details>
-
-<details>
-<summary><h3>Get Anime Chronology</h3></summary>
-
-**URL**: `/api/anime/info/:id/chronology`  
-**Method**: `GET`  
-**Description**: Get chronological order of related anime
-
-**Example**: `https://api.example.com/api/anime/info/1/chronology?page=1&perPage=10`
-
-**Path Parameters**:
-```
-id: number
-```
-
-**Query Parameters**:
-```
-perPage?: number (default: 20)
-page?: number (default: 1)
-```
-</details>
-
-<details>
-<summary><h3>Get Anime Episodes</h3></summary>
-
-**URL**: `/api/anime/info/:id/episodes`  
-**Method**: `GET`  
-**Description**: Get episode list for an anime
-
-**Example**: `https://api.example.com/api/anime/info/1/episodes`
-
-**Path Parameters**:
-```
-id: number
-```
-</details>
-
-<details>
-<summary><h3>Get Specific Episode</h3></summary>
-
-**URL**: `/api/anime/info/:id/episodes/:number`  
-**Method**: `GET`  
-**Description**: Get details of a specific episode
-
-**Example**: `https://api.example.com/api/anime/info/1/episodes/5`
-
-**Path Parameters**:
-```
-id: number
-number: number
-```
-</details>
-
-<details>
-<summary><h3>Get Episode Providers</h3></summary>
-
-**URL**: `/api/anime/info/:id/providers/:number`  
-**Method**: `GET`  
-**Description**: Get available streaming providers for a specific episode
-
-**Example**: `https://api.example.com/api/anime/info/1/providers/5`
-
-**Path Parameters**:
-```
-id: number
-number: number
-```
-</details>
-
-<details>
-<summary><h3>Get All Providers for Anime</h3></summary>
-
-**URL**: `/api/anime/info/:id/providers`  
-**Method**: `GET`  
-**Description**: Get all available streaming providers for all episodes of an anime
-
-**Example**: `https://api.example.com/api/anime/info/1/providers`
-
-**Path Parameters**:
-```
-id: number
-```
-</details>
-
-<details>
-<summary><h3>Get Streaming Sources</h3></summary>
-
-**URL**: `/api/anime/watch/:id/episodes/:number`  
-**Method**: `GET`  
-**Description**: Get streaming sources for a specific episode
-
-**Example**: `https://api.example.com/api/anime/watch/1/episodes/5?provider=ANIWATCH&dub=false`
-
-**Path Parameters**:
-```
-id: number
-number: number
-```
-
-**Query Parameters**:
-```
-provider?: string (default: "ANIWATCH")
-dub?: boolean (default: false)
-```
-</details>
-
-<details>
-<summary><h3>Filter Anime List</h3></summary>
-
-**URL**: `/api/anime/filter`  
-**Method**: `GET`  
-**Description**: Filter anime list based on various criteria
-
-**Example**: `https://api.example.com/api/anime/filter?page=1&perPage=20&genre=action,romance&season=FALL&year=2023`
-
-**Query Parameters**:
 ```typescript
 // FilterDto
 {
@@ -410,308 +261,50 @@ dub?: boolean (default: false)
 ```
 </details>
 
-<details>
-<summary><h3>Search Anime</h3></summary>
+### Shikimori Endpoints
 
-**URL**: `/api/anime/search/:q`  
-**Method**: `GET`  
-**Description**: Search for anime by query string
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/api/shikimori/info/:id` | `GET` | Get anime information from Shikimori | `id`: Anime ID |
+| `/api/shikimori/info/:id` | `PUT` | Update anime information from Shikimori | `id`: Anime ID |
+| `/api/shikimori/franchise/:franchise` | `GET` | Get franchise information from Shikimori | `franchise`: Franchise name |
+| `/api/shikimori/franchiseId/:franchise` | `GET` | Get list of IDs in a franchise | `franchise`: Franchise name |
 
-**Example**: `https://api.example.com/api/anime/search/attack%20on%20titan`
+### Streaming Sources Endpoints
 
-**Path Parameters**:
-```
-q: string
-```
-</details>
+> **Note**: The streaming providers share common endpoint patterns. Use the correct provider ID when making requests.
 
-<details>
-<summary><h3>Get Anime Schedule</h3></summary>
+#### AnimePahe
 
-**URL**: `/api/anime/schedule`  
-**Method**: `GET`  
-**Description**: Get currently airing anime schedule
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/api/anime/info/:id/animepahe` | `GET` | Get anime information from AnimePahe | `id`: Anilist ID |
+| `/api/anime/watch/:id` | `GET` | Get streaming sources from AnimePahe | `id`: AnimePahe ID |
 
-**Example**: `https://api.example.com/api/anime/schedule`
-</details>
+#### AnimeKai
 
-<details>
-<summary><h3>Get Franchise Info</h3></summary>
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/api/anime/info/:id/animekai` | `GET` | Get anime information from AnimeKai | `id`: Anilist ID |
+| `/api/anime/watch/:id` | `GET` | Get streaming sources from AnimeKai | `id`: AnimeKai ID<br>`dub`: Boolean (default: false) |
 
-**URL**: `/api/anime/franchise/:franchise`  
-**Method**: `GET`  
-**Description**: Get information about an anime franchise
+#### Zoro
 
-**Example**: `https://api.example.com/api/anime/franchise/fate?page=1&perPage=20`
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/api/anime/info/:id/zoro` | `GET` | Get anime information from Zoro | `id`: Anilist ID |
+| `/api/anime/watch/:id` | `GET` | Get streaming sources from Zoro | `id`: Zoro ID<br>`dub`: Boolean (default: false) |
 
-**Path Parameters**:
-```
-franchise: string
-```
+### Exceptions Endpoints
 
-**Query Parameters**:
-```
-perPage?: number (default: 20)
-page?: number (default: 1)
-```
-</details>
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/api/exceptions` | `GET` | Get all logged exceptions | See [Exception Parameters](#exception-parameters) |
+| `/api/exceptions/delete/:id` | `DELETE` | Delete a logged exception | `id`: Exception ID |
 
 <details>
-<summary><h3>Start Indexing</h3></summary>
+<summary><b>Exception Parameters</b></summary>
 
-**URL**: `/api/anime/index`  
-**Method**: `PUT`  
-**Description**: Start the anime indexing process
-
-**Example**: `https://api.example.com/api/anime/index?delay=10`
-
-**Query Parameters**:
-```
-delay?: number (default: 10)
-```
-</details>
-
-<details>
-<summary><h3>Stop Indexing</h3></summary>
-
-**URL**: `/api/anime/index/stop`  
-**Method**: `PUT`  
-**Description**: Stop the anime indexing process
-
-**Example**: `https://api.example.com/api/anime/index/stop`
-</details>
-
-<details>
-<summary><h3>Set Indexer Sleep Time</h3></summary>
-
-**URL**: `/api/anime/index/sleep/:sleep`  
-**Method**: `PUT`  
-**Description**: Set the sleep time between indexing operations
-
-**Example**: `https://api.example.com/api/anime/index/sleep/60`
-
-**Path Parameters**:
-```
-sleep: number
-```
-</details>
-
-<details>
-<summary><h3>Schedule Indexing</h3></summary>
-
-**URL**: `/api/anime/index/schedule`  
-**Method**: `PUT`  
-**Description**: Schedule periodic indexing
-
-**Example**: `https://api.example.com/api/anime/index/schedule`
-</details>
-
-<details>
-<summary><h3>Unschedule Indexing</h3></summary>
-
-**URL**: `/api/anime/index/unschedule`  
-**Method**: `PUT`  
-**Description**: Cancel scheduled indexing
-
-**Example**: `https://api.example.com/api/anime/index/unschedule`
-</details>
-</details>
-
-<details>
-<summary><h2>Shikimori</h2></summary>
-
-<details>
-<summary><h3>Get Shikimori Anime Info</h3></summary>
-
-**URL**: `/api/shikimori/info/:id`  
-**Method**: `GET`  
-**Description**: Get anime information from Shikimori
-
-**Example**: `https://api.example.com/api/shikimori/info/1`
-
-**Path Parameters**:
-```
-id: number
-```
-</details>
-
-<details>
-<summary><h3>Update Shikimori Anime Info</h3></summary>
-
-**URL**: `/api/shikimori/info/:id`  
-**Method**: `PUT`  
-**Description**: Update anime information from Shikimori
-
-**Example**: `https://api.example.com/api/shikimori/info/1`
-
-**Path Parameters**:
-```
-id: number
-```
-</details>
-
-<details>
-<summary><h3>Get Shikimori Franchise</h3></summary>
-
-**URL**: `/api/shikimori/franchise/:franchise`  
-**Method**: `GET`  
-**Description**: Get franchise information from Shikimori
-
-**Example**: `https://api.example.com/api/shikimori/franchise/fate`
-
-**Path Parameters**:
-```
-franchise: string
-```
-</details>
-
-<details>
-<summary><h3>Get Franchise IDs</h3></summary>
-
-**URL**: `/api/shikimori/franchiseId/:franchise`  
-**Method**: `GET`  
-**Description**: Get list of IDs in a franchise
-
-**Example**: `https://api.example.com/api/shikimori/franchiseId/fate`
-
-**Path Parameters**:
-```
-franchise: string
-```
-</details>
-</details>
-
-<details>
-<summary><h2>Streaming Sources</h2></summary>
-
-> **Note**: The streaming providers share common endpoint patterns. Make sure to use the correct provider ID when making requests.
-
-<details>
-<summary><h3>AnimePahe</h3></summary>
-
-<details>
-<summary><h3>Get AnimePahe Anime Info</h3></summary>
-
-**URL**: `/api/anime/info/:id/animepahe`  
-**Method**: `GET`  
-**Description**: Get anime information from AnimePahe
-
-**Example**: `https://api.example.com/api/anime/info/1/animepahe`
-
-**Path Parameters**:
-```
-id: number (Anilist ID)
-```
-</details>
-
-<details>
-<summary><h3>Get AnimePahe Streaming Sources</h3></summary>
-
-**URL**: `/api/anime/watch/:id`  
-**Method**: `GET`  
-**Description**: Get streaming sources from AnimePahe
-
-**Example**: `https://api.example.com/api/anime/watch/ep_12345`
-
-**Path Parameters**:
-```
-id: string (AnimePahe ID)
-```
-</details>
-</details>
-
-<details>
-<summary><h3>AnimeKai</h3></summary>
-
-<details>
-<summary><h3>Get AnimeKai Anime Info</h3></summary>
-
-**URL**: `/api/anime/info/:id/animekai`  
-**Method**: `GET`  
-**Description**: Get anime information from AnimeKai
-
-**Example**: `https://api.example.com/api/anime/info/1/animekai`
-
-**Path Parameters**:
-```
-id: number (Anilist ID)
-```
-</details>
-
-<details>
-<summary><h3>Get AnimeKai Streaming Sources</h3></summary>
-
-**URL**: `/api/anime/watch/:id`  
-**Method**: `GET`  
-**Description**: Get streaming sources from AnimeKai
-
-**Example**: `https://api.example.com/api/anime/watch/ep_12345?dub=false`
-
-**Path Parameters**:
-```
-id: string (AnimeKai ID)
-```
-
-**Query Parameters**:
-```
-dub?: boolean (default: false)
-```
-</details>
-</details>
-
-<details>
-<summary><h3>Zoro</h3></summary>
-
-<details>
-<summary><h3>Get Zoro Anime Info</h3></summary>
-
-**URL**: `/api/anime/info/:id/zoro`  
-**Method**: `GET`  
-**Description**: Get anime information from Zoro using Anilist ID
-
-**Example**: `https://api.example.com/api/anime/info/1/zoro`
-
-**Path Parameters**:
-```
-id: number (Anilist ID)
-```
-</details>
-
-<details>
-<summary><h3>Get Zoro Streaming Sources</h3></summary>
-
-**URL**: `/api/anime/watch/:id`  
-**Method**: `GET`  
-**Description**: Get streaming sources from Zoro
-
-**Example**: `https://api.example.com/api/anime/watch/ep_12345?dub=false`
-
-**Path Parameters**:
-```
-id: string (Zoro ID)
-```
-
-**Query Parameters**:
-```
-dub?: boolean (default: false)
-```
-</details>
-</details>
-</details>
-
-<details>
-<summary><h2>Exceptions</h2></summary>
-
-<details>
-<summary><h3>Get All Exceptions</h3></summary>
-
-**URL**: `/api/exceptions`  
-**Method**: `GET`  
-**Description**: Get all logged exceptions
-
-**Example**: `https://api.example.com/api/exceptions?page=1&perPage=20&statusCode=500`
-
-**Query Parameters**:
 ```typescript
 // ExceptionFilterDto
 {
@@ -732,144 +325,29 @@ dub?: boolean (default: false)
 ```
 </details>
 
-<details>
-<summary><h3>Delete Exception</h3></summary>
+### Console Endpoints
 
-**URL**: `/api/exceptions/delete/:id`  
-**Method**: `DELETE`  
-**Description**: Delete a logged exception
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/api/console/logs` | `GET` | Get all console logs | - |
+| `/api/console/warns` | `GET` | Get all console warnings | - |
+| `/api/console/errors` | `GET` | Get all console errors | - |
 
-**Example**: `https://api.example.com/api/exceptions/delete/1`
+### TMDB Endpoints
 
-**Path Parameters**:
-```
-id: number
-```
-</details>
-</details>
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/api/anime/info/:id/tmdb` | `GET` | Get TMDB information using Anilist ID | `id`: Anilist ID |
+| `/api/anime/info/:id/tmdb/season` | `GET` | Get TMDB season information for an anime | `id`: Anilist ID |
 
-<details>
-<summary><h2>Console</h2></summary>
+### TVDB Endpoints
 
-<details>
-<summary><h3>Get Console Logs</h3></summary>
-
-**URL**: `/api/console/logs`  
-**Method**: `GET`  
-**Description**: Get all console logs
-
-**Example**: `https://api.example.com/api/console/logs`
-</details>
-
-<details>
-<summary><h3>Get Console Warnings</h3></summary>
-
-**URL**: `/api/console/warns`  
-**Method**: `GET`  
-**Description**: Get all console warnings
-
-**Example**: `https://api.example.com/api/console/warns`
-</details>
-
-<details>
-<summary><h3>Get Console Errors</h3></summary>
-
-**URL**: `/api/console/errors`  
-**Method**: `GET`  
-**Description**: Get all console errors
-
-**Example**: `https://api.example.com/api/console/errors`
-</details>
-</details>
-
-<details>
-<summary><h2>TMDB</h2></summary>
-
-<details>
-<summary><h3>Get TMDB Info by Anilist ID</h3></summary>
-
-**URL**: `/api/anime/info/:id/tmdb`  
-**Method**: `GET`  
-**Description**: Get TMDB information using Anilist ID
-
-**Example**: `https://api.example.com/api/anime/info/1/tmdb`
-
-**Path Parameters**:
-```
-id: number
-```
-</details>
-
-<details>
-<summary><h3>Get TMDB Season Info</h3></summary>
-
-**URL**: `/api/anime/info/:id/tmdb/season`  
-**Method**: `GET`  
-**Description**: Get TMDB season information for an anime
-
-**Example**: `https://api.example.com/api/anime/info/1/tmdb/season`
-
-**Path Parameters**:
-```
-id: number
-```
-</details>
-</details>
-
-<details>
-<summary><h2>TVDB</h2></summary>
-
-<details>
-<summary><h3>Get TVDB Info by Anilist ID</h3></summary>
-
-**URL**: `/api/anime/info/:id/tvdb`  
-**Method**: `GET`  
-**Description**: Get TVDB information using Anilist ID
-
-**Example**: `https://api.example.com/api/anime/info/1/tvdb`
-
-**Path Parameters**:
-```
-id: number
-```
-</details>
-
-<details>
-<summary><h3>Get TVDB Translations</h3></summary>
-
-**URL**: `/api/anime/info/:id/tvdb/translations/:language`  
-**Method**: `GET`  
-**Description**: Get TVDB translations for a specific language
-
-**Example**: `https://api.example.com/api/anime/info/1/tvdb/translations/en`
-
-**Path Parameters**:
-```
-id: number
-language: string
-```
-</details>
-
-<details>
-<summary><h3>Get TVDB Available Languages</h3></summary>
-
-**URL**: `/api/anime/tvdb/languages`  
-**Method**: `GET`  
-**Description**: Get list of available languages in TVDB
-
-**Example**: `https://api.example.com/api/anime/tvdb/languages`
-</details>
-
-<details>
-<summary><h3>Update TVDB Languages</h3></summary>
-
-**URL**: `/api/anime/tvdb/languages`  
-**Method**: `PUT`  
-**Description**: Update the list of available TVDB languages
-
-**Example**: `https://api.example.com/api/anime/tvdb/languages`
-</details>
-</details>
+| Endpoint | Method | Description | Parameters |
+|----------|--------|-------------|------------|
+| `/api/anime/info/:id/tvdb` | `GET` | Get TVDB information using Anilist ID | `id`: Anilist ID |
+| `/api/anime/info/:id/tvdb/translations/:language` | `GET` | Get TVDB translations for a specific language | `id`: Anilist ID<br>`language`: Language code |
+| `/api/anime/tvdb/languages` | `GET` | Get list of available languages in TVDB | - |
+| `/api/anime/tvdb/languages` | `PUT` | Update the list of available TVDB languages | - |
 
 ## 🤝 Contributing
 
