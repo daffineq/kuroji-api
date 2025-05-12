@@ -168,7 +168,6 @@ The API will only return information for anime that have been indexed in your da
 | `/api/anime/franchise/:franchise` | `GET` | Get information about an anime franchise | `franchise`: Franchise name<br>`page`: Page number (default: 1)<br>`perPage`: Results per page (default: 20) |
 | `/api/anime/index` | `PUT` | Start the anime indexing process | `delay`: Delay between requests (default: 10) |
 | `/api/anime/index/stop` | `PUT` | Stop the anime indexing process | - |
-| `/api/anime/index/sleep/:sleep` | `PUT` | Set sleep time between indexing operations | `sleep`: Sleep time in seconds |
 | `/api/anime/index/schedule` | `PUT` | Schedule periodic indexing | - |
 | `/api/anime/index/unschedule` | `PUT` | Cancel scheduled indexing | - |
 
@@ -182,14 +181,14 @@ The API will only return information for anime that have been indexed in your da
   page?: number;            // Page number for results
   perPage?: number;         // Number of results per page
   
-  // Search and query
-  query?: string;           // Text search query
-  
   // Basic filters
   id?: number;              // Filter by Anilist ID
   idIn?: number[];          // Filter by multiple Anilist IDs
   idNot?: number;           // Exclude specific Anilist ID
   idNotIn?: number[];       // Exclude multiple Anilist IDs
+  
+  // Search and query
+  query?: string;           // Text search query
   
   // MAL-specific filters
   idMal?: number;           // Filter by MyAnimeList ID
@@ -197,8 +196,11 @@ The API will only return information for anime that have been indexed in your da
   idMalNot?: number;        // Exclude specific MAL ID
   idMalNotIn?: number[];    // Exclude multiple MAL IDs
   
+  // Type filter
+  type?: "ANIME" | "MANGA"; // Media type
+  
   // Format filters
-  format?: "TV" | "TV_SHORT" | "MOVIE" | "SPECIAL" | "OVA" | "ONA" | "MUSIC";
+  format?: "TV" | "TV_SHORT" | "MOVIE" | "SPECIAL" | "OVA" | "ONA" | "MUSIC" | "MANGA" | "NOVEL" | "ONE_SHOT";
   formatIn?: string[];      // Include multiple formats
   formatNot?: string;       // Exclude specific format
   formatNotIn?: string[];   // Exclude multiple formats
@@ -225,8 +227,8 @@ The API will only return information for anime that have been indexed in your da
   startDateGreater?: string; // After this date (YYYY-MM-DD)
   startDateLesser?: string;  // Before this date (YYYY-MM-DD)
   startDateLike?: string;    // Similar to this date
-  endDateGreater?: string;   // After this date
-  endDateLesser?: string;    // Before this date
+  endDateGreater?: string;   // After this date (YYYY-MM-DD)
+  endDateLesser?: string;    // Before this date (YYYY-MM-DD)
   endDateLike?: string;      // Similar to this date
   
   // Number filters
@@ -236,28 +238,42 @@ The API will only return information for anime that have been indexed in your da
   durationLesser?: number;  // Shorter than this (minutes)
   
   // Popularity/score filters
-  popularityGreater?: number;
-  popularityLesser?: number;
-  popularityNot?: number;
-  scoreGreater?: number;
-  scoreLesser?: number;
-  scoreNot?: number;
+  popularityGreater?: number; // Higher popularity than this
+  popularityLesser?: number;  // Lower popularity than this
+  popularityNot?: number;     // Not this popularity value
+  scoreGreater?: number;      // Higher score than this
+  scoreLesser?: number;       // Lower score than this
+  scoreNot?: number;          // Not this score value
+  
+  // People filters
+  characterIn?: string[];     // Include anime with these characters
+  voiceActorIn?: string[];    // Include anime with these voice actors
+  studioIn?: string[];        // Include anime by these studios
   
   // Tag/genre filters
-  genreIn?: string[];       // Include these genres
-  genreNotIn?: string[];    // Exclude these genres
-  tagIn?: string[];         // Include these tags
-  tagNotIn?: string[];      // Exclude these tags
-  tagCategoryIn?: string[]; // Include these tag categories
+  genreIn?: string[];         // Include these genres
+  genreNotIn?: string[];      // Exclude these genres
+  tagIn?: string[];           // Include these tags
+  tagNotIn?: string[];        // Exclude these tags
+  tagsIn?: string[];          // Include these tags (alternative)
+  tagsNotIn?: string[];       // Exclude these tags (alternative)
+  tagCategoryIn?: string[];   // Include these tag categories
   tagCategoryNotIn?: string[]; // Exclude these tag categories
   
-  // License filters
-  licensedByIn?: string[];  // Include these licensors
-  licensedByIdIn?: string[]; // Include these licensor IDs
-  
-  // Additional filters
-  sort?: string[];          // Sort options
+  // Sort options
+  sort?: string[];           // Sort options
+                             // Available options: id, id_desc, title_romaji, title_romaji_desc,
+                             // title_english, title_english_desc, title_native, title_native_desc,
+                             // type, type_desc, format, format_desc, start_date, start_date_desc,
+                             // end_date, end_date_desc, score, score_desc, popularity, popularity_desc,
+                             // trending, trending_desc, episodes, episodes_desc, duration, duration_desc,
+                             // status, status_desc, updated_at, updated_at_desc
 }
+```
+
+**Example**: 
+```
+GET /api/anime/filter?format=TV&season=FALL&year=2023&genreIn=action,romance&sort=popularity_desc&page=1&perPage=20
 ```
 </details>
 

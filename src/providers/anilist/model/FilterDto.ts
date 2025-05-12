@@ -84,18 +84,6 @@ export class FilterDto {
   @IsArray()
   @TransformToArray()
   @Type(() => String)
-  licensedByIdIn?: string[]
-
-  @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @Type(() => String)
-  licensedByIn?: string[]
-
-  @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @Type(() => String)
   tagCategoryNotIn?: string[]
 
   @IsOptional()
