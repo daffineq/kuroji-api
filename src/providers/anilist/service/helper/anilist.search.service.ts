@@ -42,7 +42,7 @@ export class AnilistSearchService {
       !!b.shikimori?.franchise && b.shikimori.franchise.trim().length > 0
     )
 
-    const franchise = await this.add.getFranchise(firstBasicFranchise?.shikimori?.franchise || '', 3, 1) as FranchiseResponse<BasicAnilist[]>
+    const franchise = await this.add.getFranchise(firstBasicFranchise?.shikimori?.franchise || '', new FilterDto({perPage: 3, page: 1})) as FranchiseResponse<BasicAnilist[]>
 
     return {
       pageInfo: response.pageInfo,

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { BasicIdAni, AnilistCharacter, AnilistTag } from '@prisma/client'
 import { ApiResponse, PageInfo } from '../../../../api/ApiResponse'
 import { TMDB } from '../../../../configs/tmdb.config'
-import { MediaSort } from '../../filter/Filter'
 import { BasicAnilistSmall, BasicAnilist } from '../../model/BasicAnilist'
 import { FilterDto } from '../../model/FilterDto'
 import { PrismaService } from '../../../../prisma.service'
@@ -23,17 +22,15 @@ export class AnilistAddService {
     private readonly shikimori: ShikimoriService,
   ) {}
 
-  async getChronology(id: number, perPage: number, page: number): Promise<ApiResponse<BasicAnilistSmall[]>> {
+  async getChronology(id: number, filter: FilterDto): Promise<ApiResponse<BasicAnilistSmall[]>> {
     const existingAnilist = await this.prisma.anilist.findUnique({
       where: { id },
     }) as AnilistWithRelations
 
     const chronologyRaw = await this.shikimori.getChronology(String(existingAnilist.idMal));
     const chronologyIds = chronologyRaw.map(c => Number(c.malId));
-
-    const chronology = await this.search.getAnilists(
-      new FilterDto({ idMalIn: chronologyIds, perPage, page })
-    );
+    filter.idMalIn = [...(filter.idMalIn ?? []), ...chronologyIds];
+    const chronology = await this.search.getAnilists(filter);
 
     const basicChronology = this.helper.mapToSmall(chronology.data);
 
@@ -43,7 +40,7 @@ export class AnilistAddService {
     } as ApiResponse<BasicAnilistSmall[]>;
   }
 
-  async getRecommendations(id: number, perPage: number, page: number): Promise<ApiResponse<BasicAnilistSmall[]>> {
+  async getRecommendations(id: number, filter: FilterDto): Promise<ApiResponse<BasicAnilistSmall[]>> {
     const existingAnilist = await this.prisma.anilist.findUnique({
       where: { id },
       include: { recommendations: true }
@@ -53,11 +50,8 @@ export class AnilistAddService {
     }
 
     const recommendationIds = existingAnilist.recommendations.map(r => Number(r.idMal));
-
-    const recommendations = await this.search.getAnilists(
-      new FilterDto({ idMalIn: recommendationIds, perPage, page, sort: [MediaSort.SCORE_DESC] })
-    );
-
+    filter.idMalIn = [...(filter.idMalIn ?? []), ...recommendationIds];
+    const recommendations = await this.search.getAnilists(filter);
     const basicRecommendations = this.helper.mapToSmall(recommendations.data);
 
     return {
@@ -130,14 +124,12 @@ export class AnilistAddService {
     return response
   }
 
-  async getFranchise(franchiseName: string, perPage: number, page: number): Promise<FranchiseResponse<BasicAnilist[]>> {
+  async getFranchise(franchiseName: string, filter: FilterDto): Promise<FranchiseResponse<BasicAnilist[]>> {
     const franchiseBasic = await this.shikimori.getFranchiseIds(franchiseName);
   
     const franchiseIds = franchiseBasic.map(r => Number(r.malId));
-
-    const franchises = await this.search.getAnilists(
-      new FilterDto({ idMalIn: franchiseIds, perPage, page, sort: [MediaSort.START_DATE] })
-    );
+    filter.idMalIn = [...(filter.idMalIn ?? []), ...franchiseIds];
+    const franchises = await this.search.getAnilists(filter);
 
     const firstFranchise = franchises.data?.[0];
     

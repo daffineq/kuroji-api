@@ -28,10 +28,9 @@ export class AnilistController {
   @Get('info/:id/recommendations')
   async getRecommendations(
     @Param('id', ParseIntPipe) id: number, 
-    @Query('perPage') perPage: number = Dimens.PER_PAGE, 
-    @Query('page') page: number = 1
+    @Query() filter: FilterDto
   ) {
-    return this.add.getRecommendations(id, perPage, page);
+    return this.add.getRecommendations(id, filter);
   }
 
   @Get('info/:id/characters')
@@ -46,10 +45,9 @@ export class AnilistController {
   @Get('info/:id/chronology')
   async getChronology(
     @Param('id', ParseIntPipe) id: number,
-    @Query('perPage') perPage: number = Dimens.PER_PAGE,
-    @Query('page') page: number = 1
+    @Query() filter: FilterDto
   ) {
-    return this.add.getChronology(id, perPage, page);
+    return this.add.getChronology(id, filter);
   }
 
   @Get('info/:id/episodes')
@@ -108,10 +106,22 @@ export class AnilistController {
   @Get('franchise/:franchise')
   async getFranchise(
     @Param('franchise') franchise: string,
+    @Query() filter: FilterDto
+  ) {
+    return this.add.getFranchise(franchise, filter);
+  }
+
+  @Get('genres')
+  async getGenres() {
+    return this.add.getAllGenres();
+  }
+
+  @Get('tags')
+  async getTags(
     @Query('perPage') perPage: number = Dimens.PER_PAGE,
     @Query('page') page: number = 1
   ) {
-    return this.add.getFranchise(franchise, perPage, page);
+    return this.add.getAllTags(page, perPage);
   }
 
   @Put('index')

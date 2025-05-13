@@ -166,13 +166,12 @@ Get anime recommendations based on an anime ID.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/recommendations?page=1&perPage=10
+GET https://138.68.111.93/api/anime/info/21/recommendations?page=1&perPage=10&sort=popularity_desc
 ```
 
 **Parameters:**
 - `id` (path): Anime ID (required)
-- `page` (query): Page number (default: 1)
-- `perPage` (query): Results per page (default: 20)
+- Plus all [Filter Parameters](#filter-anime)
 </details>
 
 <details>
@@ -198,13 +197,12 @@ Get chronological order of related anime.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/chronology?page=1&perPage=10
+GET https://138.68.111.93/api/anime/info/21/chronology?page=1&perPage=10&sort=start_date
 ```
 
 **Parameters:**
 - `id` (path): Anime ID (required)
-- `page` (query): Page number (default: 1)
-- `perPage` (query): Results per page (default: 20)
+- Plus all [Filter Parameters](#filter-anime)
 </details>
 
 <details>
@@ -425,11 +423,38 @@ Get information about an anime franchise.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/franchise/fate?page=1&perPage=20
+GET https://138.68.111.93/api/anime/franchise/fate?page=1&perPage=20&sort=popularity_desc&format=TV
 ```
 
 **Parameters:**
 - `franchise` (path): Franchise name (required)
+- Plus all [Filter Parameters](#filter-anime)
+</details>
+
+<details>
+<summary><b>Get All Genres</b> - <code>GET /api/anime/genres</code></summary>
+
+Get a list of all available anime genres.
+
+**Example:**
+```
+GET https://138.68.111.93/api/anime/genres
+```
+
+**Parameters:** None
+</details>
+
+<details>
+<summary><b>Get All Tags</b> - <code>GET /api/anime/tags</code></summary>
+
+Get a list of all available anime tags.
+
+**Example:**
+```
+GET https://138.68.111.93/api/anime/tags?page=1&perPage=20
+```
+
+**Parameters:**
 - `page` (query): Page number (default: 1)
 - `perPage` (query): Results per page (default: 20)
 </details>
