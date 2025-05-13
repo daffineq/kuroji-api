@@ -33,12 +33,6 @@
 
 Kuroji API is built on NestJS and TypeScript, providing a robust and scalable solution for anime-related applications. The API allows you to access anime information, streaming sources, and more from various providers in a unified interface.
 
-> **Public API Instance**: A public instance is available at https://138.68.111.93
-> 
-> ⚠️ **Rate Limit**: 4 requests per minute
-> 
-> ⚠️ **Warning**: This public instance is not recommended for use in production applications.
-
 ## ✨ Features
 
 - 🔍 **Comprehensive Anime Data**: Search and retrieve detailed anime information
@@ -152,7 +146,7 @@ Get detailed information about an anime by its ID.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21
+GET https://api.example.com/api/anime/info/21
 ```
 
 **Parameters:**
@@ -166,7 +160,7 @@ Get anime recommendations based on an anime ID.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/recommendations?page=1&perPage=10&sort=popularity_desc
+GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&sort=popularity_desc
 ```
 
 **Parameters:**
@@ -277,7 +271,7 @@ Get characters from an anime.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/characters?page=1&perPage=20
+GET https://api.example.com/api/anime/info/21/characters?page=1&perPage=20
 ```
 
 **Parameters:**
@@ -293,7 +287,7 @@ Get chronological order of related anime.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/chronology?page=1&perPage=10&sort=start_date
+GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=start_date
 ```
 
 **Parameters:**
@@ -404,7 +398,7 @@ Get episode list for an anime.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/episodes
+GET https://api.example.com/api/anime/info/21/episodes
 ```
 
 **Parameters:**
@@ -418,7 +412,7 @@ Get details of a specific episode.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/episodes/1
+GET https://api.example.com/api/anime/info/21/episodes/1
 ```
 
 **Parameters:**
@@ -433,7 +427,7 @@ Get available streaming providers for a specific episode.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/providers/1
+GET https://api.example.com/api/anime/info/21/providers/1
 ```
 
 **Parameters:**
@@ -448,7 +442,7 @@ Get all available streaming providers for all episodes of an anime.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/providers
+GET https://api.example.com/api/anime/info/21/providers
 ```
 
 **Parameters:**
@@ -462,7 +456,7 @@ Get streaming sources for a specific episode.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/watch/21/episodes/1?provider=ANIWATCH&dub=false
+GET https://api.example.com/api/anime/watch/21/episodes/1?provider=ANIWATCH&dub=false
 ```
 
 **Parameters:**
@@ -481,7 +475,7 @@ Filter anime list based on various criteria.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/filter?format=TV&season=FALL&year=2023&genreIn=action,romance&sort=popularity_desc&page=1&perPage=20
+GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&genreIn=action,romance&sort=popularity_desc&page=1&perPage=20
 ```
 
 **Parameters:**
@@ -590,7 +584,7 @@ Search for anime by query string.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/search/one%20piece
+GET https://api.example.com/api/anime/search/one%20piece
 ```
 
 **Parameters:**
@@ -604,7 +598,7 @@ Get currently airing anime schedule.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/schedule
+GET https://api.example.com/api/anime/schedule
 ```
 
 **Parameters:** None
@@ -617,7 +611,7 @@ Get information about an anime franchise.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/franchise/fate?page=1&perPage=20&sort=popularity_desc&format=TV
+GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popularity_desc&format=TV
 ```
 
 **Parameters:**
@@ -728,7 +722,7 @@ Get a list of all available anime genres.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/genres
+GET https://api.example.com/api/anime/genres
 ```
 
 **Parameters:** None
@@ -741,7 +735,7 @@ Get a list of all available anime tags.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/tags?page=1&perPage=20
+GET https://api.example.com/api/anime/tags?page=1&perPage=20
 ```
 
 **Parameters:**
@@ -756,7 +750,7 @@ Start the anime indexing process.
 
 **Example:**
 ```
-PUT https://138.68.111.93/api/anime/index?delay=10
+PUT https://api.example.com/api/anime/index?delay=10
 ```
 
 **Parameters:**
@@ -770,7 +764,7 @@ Stop the anime indexing process.
 
 **Example:**
 ```
-PUT https://138.68.111.93/api/anime/index/stop
+PUT https://api.example.com/api/anime/index/stop
 ```
 
 **Parameters:** None
@@ -783,7 +777,7 @@ Schedule periodic indexing.
 
 **Example:**
 ```
-PUT https://138.68.111.93/api/anime/index/schedule
+PUT https://api.example.com/api/anime/index/schedule
 ```
 
 **Parameters:** None
@@ -796,7 +790,7 @@ Cancel scheduled indexing.
 
 **Example:**
 ```
-PUT https://138.68.111.93/api/anime/index/unschedule
+PUT https://api.example.com/api/anime/index/unschedule
 ```
 
 **Parameters:** None
@@ -813,7 +807,7 @@ Get anime information from Shikimori.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/shikimori/info/21
+GET https://api.example.com/api/shikimori/info/21
 ```
 
 **Parameters:**
@@ -827,7 +821,7 @@ Update anime information from Shikimori.
 
 **Example:**
 ```
-PUT https://138.68.111.93/api/shikimori/info/21
+PUT https://api.example.com/api/shikimori/info/21
 ```
 
 **Parameters:**
@@ -841,7 +835,7 @@ Get franchise information from Shikimori.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/shikimori/franchise/fate
+GET https://api.example.com/api/shikimori/franchise/fate
 ```
 
 **Parameters:**
@@ -855,7 +849,7 @@ Get list of IDs in a franchise.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/shikimori/franchiseId/fate
+GET https://api.example.com/api/shikimori/franchiseId/fate
 ```
 
 **Parameters:**
@@ -875,7 +869,7 @@ Get anime information from AnimePahe.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/animepahe
+GET https://api.example.com/api/anime/info/21/animepahe
 ```
 
 **Parameters:**
@@ -889,7 +883,7 @@ Get streaming sources from AnimePahe.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/watch/ep_12345
+GET https://api.example.com/api/anime/watch/ep_12345
 ```
 
 **Parameters:**
@@ -903,7 +897,7 @@ Get anime information from AnimeKai.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/animekai
+GET https://api.example.com/api/anime/info/21/animekai
 ```
 
 **Parameters:**
@@ -917,7 +911,7 @@ Get streaming sources from AnimeKai.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/watch/ep_12345?dub=false
+GET https://api.example.com/api/anime/watch/ep_12345?dub=false
 ```
 
 **Parameters:**
@@ -932,7 +926,7 @@ Get anime information from Zoro.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/zoro
+GET https://api.example.com/api/anime/info/21/zoro
 ```
 
 **Parameters:**
@@ -946,7 +940,7 @@ Get streaming sources from Zoro.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/watch/ep_12345?dub=false
+GET https://api.example.com/api/anime/watch/ep_12345?dub=false
 ```
 
 **Parameters:**
@@ -965,7 +959,7 @@ Get all logged exceptions.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/exceptions?page=1&perPage=20&statusCode=500
+GET https://api.example.com/api/exceptions?page=1&perPage=20&statusCode=500
 ```
 
 **Parameters:**
@@ -996,7 +990,7 @@ Delete a logged exception.
 
 **Example:**
 ```
-DELETE https://138.68.111.93/api/exceptions/delete/1
+DELETE https://api.example.com/api/exceptions/delete/1
 ```
 
 **Parameters:**
@@ -1014,7 +1008,7 @@ Get all console logs.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/console/logs
+GET https://api.example.com/api/console/logs
 ```
 
 **Parameters:** None
@@ -1027,7 +1021,7 @@ Get all console warnings.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/console/warns
+GET https://api.example.com/api/console/warns
 ```
 
 **Parameters:** None
@@ -1040,7 +1034,7 @@ Get all console errors.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/console/errors
+GET https://api.example.com/api/console/errors
 ```
 
 **Parameters:** None
@@ -1057,7 +1051,7 @@ Get TMDB information using Anilist ID.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/tmdb
+GET https://api.example.com/api/anime/info/21/tmdb
 ```
 
 **Parameters:**
@@ -1071,7 +1065,7 @@ Get TMDB season information for an anime.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/tmdb/season
+GET https://api.example.com/api/anime/info/21/tmdb/season
 ```
 
 **Parameters:**
@@ -1089,7 +1083,7 @@ Get TVDB information using Anilist ID.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/tvdb
+GET https://api.example.com/api/anime/info/21/tvdb
 ```
 
 **Parameters:**
@@ -1103,7 +1097,7 @@ Get TVDB translations for a specific language.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/info/21/tvdb/translations/en
+GET https://api.example.com/api/anime/info/21/tvdb/translations/en
 ```
 
 **Parameters:**
@@ -1118,7 +1112,7 @@ Get list of available languages in TVDB.
 
 **Example:**
 ```
-GET https://138.68.111.93/api/anime/tvdb/languages
+GET https://api.example.com/api/anime/tvdb/languages
 ```
 
 **Parameters:** None
@@ -1131,7 +1125,7 @@ Update the list of available TVDB languages.
 
 **Example:**
 ```
-PUT https://138.68.111.93/api/anime/tvdb/languages
+PUT https://api.example.com/api/anime/tvdb/languages
 ```
 
 **Parameters:** None
