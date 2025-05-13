@@ -5,7 +5,7 @@ import { UpdateType } from '../../../../shared/UpdateType'
 import { FilterDto } from '../../model/FilterDto'
 import { PrismaService } from '../../../../prisma.service'
 import { AnilistHelper } from '../../utils/anilist-helper'
-import { getPageInfo } from '../../../../shared/utils'
+import { firstUpper, firstUpperList, getPageInfo } from '../../../../shared/utils'
 
 @Injectable()
 export class AnilistFilterService {
@@ -49,8 +49,8 @@ export class AnilistFilterService {
     }
 
     // ========== Array Filters ==========
-    if (filter.genreIn) conditions.push({ genres: { hasEvery: filter.genreIn } })
-    if (filter.genreNotIn) conditions.push({ genres: { hasNone: filter.genreNotIn } })
+    if (filter.genreIn) conditions.push({ genres: { hasEvery: firstUpperList(filter.genreIn) } })
+    if (filter.genreNotIn) conditions.push({ genres: { hasNone: firstUpperList(filter.genreNotIn) } })
     if (filter.idIn) conditions.push({ id: { in: filter.idIn } })
     if (filter.idNotIn) conditions.push({ id: { notIn: filter.idNotIn } })
     if (filter.idNot != null) conditions.push({ id: { not: filter.idNot } })

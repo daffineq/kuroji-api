@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BasicIdAni, AnilistCharacter } from '@prisma/client'
+import { BasicIdAni, AnilistCharacter, AnilistTag } from '@prisma/client'
 import { ApiResponse, PageInfo } from '../../../../api/ApiResponse'
 import { TMDB } from '../../../../configs/tmdb.config'
 import { MediaSort } from '../../filter/Filter'
@@ -186,5 +186,34 @@ export class AnilistAddService {
         shikimori: (shikimori as any) || null,
       } as AnilistWithRelations
     });
+  }
+
+  async getAllGenres(): Promise<string[]> {
+    const results = await this.prisma.anilist.findMany({
+      select: { genres: true },
+    })
+
+    const flatGenres = results.flatMap((entry) => entry.genres)
+    const uniqueGenres = [...new Set(flatGenres)].sort()
+
+    return uniqueGenres
+  }
+
+  async getAllTags(page: number, perPage: number): Promise<ApiResponse<AnilistTag[]>> {
+    const [data, total] = await Promise.all([
+      this.prisma.anilistTag.findMany({
+        skip: (page - 1) * perPage,
+        take: perPage,
+        orderBy: { rank: 'desc' },
+      }),
+      this.prisma.anilistTag.count(),
+    ])
+
+    const pageInfo = getPageInfo(total, perPage, page)
+
+    return {
+      pageInfo,
+      data,
+    }
   }
 }

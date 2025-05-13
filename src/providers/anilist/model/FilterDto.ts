@@ -17,7 +17,11 @@ import {
 } from '../filter/Filter'
 
 const TransformToArray = () =>
-  Transform(({ value }) => (Array.isArray(value) ? value : [value]))
+  Transform(({ value }) => {
+    if (Array.isArray(value)) return value
+    if (typeof value === 'string') return value.split(',')
+    return [value]
+  })
 
 const TransformToBoolean = () =>
   Transform(({ value }) => value === 'true')
