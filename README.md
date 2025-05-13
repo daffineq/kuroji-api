@@ -470,6 +470,8 @@ GET https://138.68.111.93/api/anime/watch/21/episodes/1?provider=ANIWATCH&dub=fa
 - `number` (path): Episode number (required)
 - `provider` (query): Provider name (default: "ANIWATCH")
 - `dub` (query): Boolean for dubbed version (default: false)
+
+> **💡 Tip**: It's better to make requests directly to Consumet from your application rather than making requests to this API. This will decrease response time and eliminate an extra hop in the request chain.
 </details>
 
 <details>
