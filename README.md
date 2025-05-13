@@ -171,7 +171,103 @@ GET https://138.68.111.93/api/anime/info/21/recommendations?page=1&perPage=10&so
 
 **Parameters:**
 - `id` (path): Anime ID (required)
-- Plus all [Filter Parameters](#filter-anime)
+- 
+```typescript
+// FilterDto
+{
+  // Pagination
+  page?: number;            // Page number for results
+  perPage?: number;         // Number of results per page
+  
+  // Basic filters
+  id?: number;              // Filter by Anilist ID
+  idIn?: number[];          // Filter by multiple Anilist IDs
+  idNot?: number;           // Exclude specific Anilist ID
+  idNotIn?: number[];       // Exclude multiple Anilist IDs
+  
+  // Search and query
+  query?: string;           // Text search query
+  
+  // MAL-specific filters
+  idMal?: number;           // Filter by MyAnimeList ID
+  idMalIn?: number[];       // Filter by multiple MAL IDs
+  idMalNot?: number;        // Exclude specific MAL ID
+  idMalNotIn?: number[];    // Exclude multiple MAL IDs
+  
+  // Type filter
+  type?: "ANIME" | "MANGA"; // Media type
+  
+  // Format filters
+  format?: "TV" | "TV_SHORT" | "MOVIE" | "SPECIAL" | "OVA" | "ONA" | "MUSIC" | "MANGA" | "NOVEL" | "ONE_SHOT";
+  formatIn?: string[];      // Include multiple formats
+  formatNot?: string;       // Exclude specific format
+  formatNotIn?: string[];   // Exclude multiple formats
+  
+  // Status filters
+  status?: "FINISHED" | "RELEASING" | "NOT_YET_RELEASED" | "CANCELLED" | "HIATUS";
+  statusIn?: string[];      // Include multiple statuses
+  statusNot?: string;       // Exclude specific status
+  statusNotIn?: string[];   // Exclude multiple statuses
+  
+  // Season filters
+  season?: "WINTER" | "SPRING" | "SUMMER" | "FALL";
+  
+  // Source material filters
+  sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" | 
+              "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
+  
+  // Content filters
+  isAdult?: boolean;        // Filter adult content
+  isLicensed?: boolean;     // Filter licensed content
+  countryOfOrigin?: string; // Filter by country code
+  
+  // Date filters
+  startDateGreater?: string; // After this date (YYYY-MM-DD)
+  startDateLesser?: string;  // Before this date (YYYY-MM-DD)
+  startDateLike?: string;    // Similar to this date
+  endDateGreater?: string;   // After this date (YYYY-MM-DD)
+  endDateLesser?: string;    // Before this date (YYYY-MM-DD)
+  endDateLike?: string;      // Similar to this date
+  
+  // Number filters
+  episodesGreater?: number; // More than this many episodes
+  episodesLesser?: number;  // Less than this many episodes
+  durationGreater?: number; // Longer than this (minutes)
+  durationLesser?: number;  // Shorter than this (minutes)
+  
+  // Popularity/score filters
+  popularityGreater?: number; // Higher popularity than this
+  popularityLesser?: number;  // Lower popularity than this
+  popularityNot?: number;     // Not this popularity value
+  scoreGreater?: number;      // Higher score than this
+  scoreLesser?: number;       // Lower score than this
+  scoreNot?: number;          // Not this score value
+  
+  // People filters
+  characterIn?: string[];     // Include anime with these characters
+  voiceActorIn?: string[];    // Include anime with these voice actors
+  studioIn?: string[];        // Include anime by these studios
+  
+  // Tag/genre filters
+  genreIn?: string[];         // Include these genres
+  genreNotIn?: string[];      // Exclude these genres
+  tagIn?: string[];           // Include these tags
+  tagNotIn?: string[];        // Exclude these tags
+  tagsIn?: string[];          // Include these tags (alternative)
+  tagsNotIn?: string[];       // Exclude these tags (alternative)
+  tagCategoryIn?: string[];   // Include these tag categories
+  tagCategoryNotIn?: string[]; // Exclude these tag categories
+  
+  // Sort options
+  sort?: string[];           // Sort options
+                             // Available options: id, id_desc, title_romaji, title_romaji_desc,
+                             // title_english, title_english_desc, title_native, title_native_desc,
+                             // type, type_desc, format, format_desc, start_date, start_date_desc,
+                             // end_date, end_date_desc, score, score_desc, popularity, popularity_desc,
+                             // trending, trending_desc, episodes, episodes_desc, duration, duration_desc,
+                             // status, status_desc, updated_at, updated_at_desc
+}
+```
 </details>
 
 <details>
@@ -202,7 +298,103 @@ GET https://138.68.111.93/api/anime/info/21/chronology?page=1&perPage=10&sort=st
 
 **Parameters:**
 - `id` (path): Anime ID (required)
-- Plus all [Filter Parameters](#filter-anime)
+- 
+```typescript
+// FilterDto
+{
+  // Pagination
+  page?: number;            // Page number for results
+  perPage?: number;         // Number of results per page
+  
+  // Basic filters
+  id?: number;              // Filter by Anilist ID
+  idIn?: number[];          // Filter by multiple Anilist IDs
+  idNot?: number;           // Exclude specific Anilist ID
+  idNotIn?: number[];       // Exclude multiple Anilist IDs
+  
+  // Search and query
+  query?: string;           // Text search query
+  
+  // MAL-specific filters
+  idMal?: number;           // Filter by MyAnimeList ID
+  idMalIn?: number[];       // Filter by multiple MAL IDs
+  idMalNot?: number;        // Exclude specific MAL ID
+  idMalNotIn?: number[];    // Exclude multiple MAL IDs
+  
+  // Type filter
+  type?: "ANIME" | "MANGA"; // Media type
+  
+  // Format filters
+  format?: "TV" | "TV_SHORT" | "MOVIE" | "SPECIAL" | "OVA" | "ONA" | "MUSIC" | "MANGA" | "NOVEL" | "ONE_SHOT";
+  formatIn?: string[];      // Include multiple formats
+  formatNot?: string;       // Exclude specific format
+  formatNotIn?: string[];   // Exclude multiple formats
+  
+  // Status filters
+  status?: "FINISHED" | "RELEASING" | "NOT_YET_RELEASED" | "CANCELLED" | "HIATUS";
+  statusIn?: string[];      // Include multiple statuses
+  statusNot?: string;       // Exclude specific status
+  statusNotIn?: string[];   // Exclude multiple statuses
+  
+  // Season filters
+  season?: "WINTER" | "SPRING" | "SUMMER" | "FALL";
+  
+  // Source material filters
+  sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" | 
+              "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
+  
+  // Content filters
+  isAdult?: boolean;        // Filter adult content
+  isLicensed?: boolean;     // Filter licensed content
+  countryOfOrigin?: string; // Filter by country code
+  
+  // Date filters
+  startDateGreater?: string; // After this date (YYYY-MM-DD)
+  startDateLesser?: string;  // Before this date (YYYY-MM-DD)
+  startDateLike?: string;    // Similar to this date
+  endDateGreater?: string;   // After this date (YYYY-MM-DD)
+  endDateLesser?: string;    // Before this date (YYYY-MM-DD)
+  endDateLike?: string;      // Similar to this date
+  
+  // Number filters
+  episodesGreater?: number; // More than this many episodes
+  episodesLesser?: number;  // Less than this many episodes
+  durationGreater?: number; // Longer than this (minutes)
+  durationLesser?: number;  // Shorter than this (minutes)
+  
+  // Popularity/score filters
+  popularityGreater?: number; // Higher popularity than this
+  popularityLesser?: number;  // Lower popularity than this
+  popularityNot?: number;     // Not this popularity value
+  scoreGreater?: number;      // Higher score than this
+  scoreLesser?: number;       // Lower score than this
+  scoreNot?: number;          // Not this score value
+  
+  // People filters
+  characterIn?: string[];     // Include anime with these characters
+  voiceActorIn?: string[];    // Include anime with these voice actors
+  studioIn?: string[];        // Include anime by these studios
+  
+  // Tag/genre filters
+  genreIn?: string[];         // Include these genres
+  genreNotIn?: string[];      // Exclude these genres
+  tagIn?: string[];           // Include these tags
+  tagNotIn?: string[];        // Exclude these tags
+  tagsIn?: string[];          // Include these tags (alternative)
+  tagsNotIn?: string[];       // Exclude these tags (alternative)
+  tagCategoryIn?: string[];   // Include these tag categories
+  tagCategoryNotIn?: string[]; // Exclude these tag categories
+  
+  // Sort options
+  sort?: string[];           // Sort options
+                             // Available options: id, id_desc, title_romaji, title_romaji_desc,
+                             // title_english, title_english_desc, title_native, title_native_desc,
+                             // type, type_desc, format, format_desc, start_date, start_date_desc,
+                             // end_date, end_date_desc, score, score_desc, popularity, popularity_desc,
+                             // trending, trending_desc, episodes, episodes_desc, duration, duration_desc,
+                             // status, status_desc, updated_at, updated_at_desc
+}
+```
 </details>
 
 <details>
@@ -428,7 +620,103 @@ GET https://138.68.111.93/api/anime/franchise/fate?page=1&perPage=20&sort=popula
 
 **Parameters:**
 - `franchise` (path): Franchise name (required)
-- Plus all [Filter Parameters](#filter-anime)
+- 
+```typescript
+// FilterDto
+{
+  // Pagination
+  page?: number;            // Page number for results
+  perPage?: number;         // Number of results per page
+  
+  // Basic filters
+  id?: number;              // Filter by Anilist ID
+  idIn?: number[];          // Filter by multiple Anilist IDs
+  idNot?: number;           // Exclude specific Anilist ID
+  idNotIn?: number[];       // Exclude multiple Anilist IDs
+  
+  // Search and query
+  query?: string;           // Text search query
+  
+  // MAL-specific filters
+  idMal?: number;           // Filter by MyAnimeList ID
+  idMalIn?: number[];       // Filter by multiple MAL IDs
+  idMalNot?: number;        // Exclude specific MAL ID
+  idMalNotIn?: number[];    // Exclude multiple MAL IDs
+  
+  // Type filter
+  type?: "ANIME" | "MANGA"; // Media type
+  
+  // Format filters
+  format?: "TV" | "TV_SHORT" | "MOVIE" | "SPECIAL" | "OVA" | "ONA" | "MUSIC" | "MANGA" | "NOVEL" | "ONE_SHOT";
+  formatIn?: string[];      // Include multiple formats
+  formatNot?: string;       // Exclude specific format
+  formatNotIn?: string[];   // Exclude multiple formats
+  
+  // Status filters
+  status?: "FINISHED" | "RELEASING" | "NOT_YET_RELEASED" | "CANCELLED" | "HIATUS";
+  statusIn?: string[];      // Include multiple statuses
+  statusNot?: string;       // Exclude specific status
+  statusNotIn?: string[];   // Exclude multiple statuses
+  
+  // Season filters
+  season?: "WINTER" | "SPRING" | "SUMMER" | "FALL";
+  
+  // Source material filters
+  sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" | 
+              "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
+  
+  // Content filters
+  isAdult?: boolean;        // Filter adult content
+  isLicensed?: boolean;     // Filter licensed content
+  countryOfOrigin?: string; // Filter by country code
+  
+  // Date filters
+  startDateGreater?: string; // After this date (YYYY-MM-DD)
+  startDateLesser?: string;  // Before this date (YYYY-MM-DD)
+  startDateLike?: string;    // Similar to this date
+  endDateGreater?: string;   // After this date (YYYY-MM-DD)
+  endDateLesser?: string;    // Before this date (YYYY-MM-DD)
+  endDateLike?: string;      // Similar to this date
+  
+  // Number filters
+  episodesGreater?: number; // More than this many episodes
+  episodesLesser?: number;  // Less than this many episodes
+  durationGreater?: number; // Longer than this (minutes)
+  durationLesser?: number;  // Shorter than this (minutes)
+  
+  // Popularity/score filters
+  popularityGreater?: number; // Higher popularity than this
+  popularityLesser?: number;  // Lower popularity than this
+  popularityNot?: number;     // Not this popularity value
+  scoreGreater?: number;      // Higher score than this
+  scoreLesser?: number;       // Lower score than this
+  scoreNot?: number;          // Not this score value
+  
+  // People filters
+  characterIn?: string[];     // Include anime with these characters
+  voiceActorIn?: string[];    // Include anime with these voice actors
+  studioIn?: string[];        // Include anime by these studios
+  
+  // Tag/genre filters
+  genreIn?: string[];         // Include these genres
+  genreNotIn?: string[];      // Exclude these genres
+  tagIn?: string[];           // Include these tags
+  tagNotIn?: string[];        // Exclude these tags
+  tagsIn?: string[];          // Include these tags (alternative)
+  tagsNotIn?: string[];       // Exclude these tags (alternative)
+  tagCategoryIn?: string[];   // Include these tag categories
+  tagCategoryNotIn?: string[]; // Exclude these tag categories
+  
+  // Sort options
+  sort?: string[];           // Sort options
+                             // Available options: id, id_desc, title_romaji, title_romaji_desc,
+                             // title_english, title_english_desc, title_native, title_native_desc,
+                             // type, type_desc, format, format_desc, start_date, start_date_desc,
+                             // end_date, end_date_desc, score, score_desc, popularity, popularity_desc,
+                             // trending, trending_desc, episodes, episodes_desc, duration, duration_desc,
+                             // status, status_desc, updated_at, updated_at_desc
+}
+```
 </details>
 
 <details>
