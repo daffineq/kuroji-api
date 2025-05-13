@@ -201,15 +201,6 @@ export class StreamService {
   }
 
   async getSources(provider: Provider, ep: number, alId: number, dub: boolean = false): Promise<Source> {
-    const key = `anime:sources:${provider}:${alId}:${ep}:${dub}`
-
-    if (Config.REDIS) {
-      const cached = await this.redis.get(key)
-      if (cached) {
-        return JSON.parse(cached) as Source
-      }
-    }
-
     const providers = await this.getProvidersSingle(alId, ep)
     const epId = providers.find(p => p.provider === provider)?.id
     if (!epId) throw new Error("Episode not found for provider")
@@ -224,16 +215,7 @@ export class StreamService {
     if (!fetchFn) throw new Error("Invalid provider")
 
     try {
-      const data = fetchFn();
-
-      Config.REDIS && await this.redis.set(
-        key,
-        JSON.stringify(data),
-        'EX',
-        Config.REDIS_TIME
-      );
-
-      return data;
+      return fetchFn();
     } catch {
       throw new Error("No sources found")
     }
