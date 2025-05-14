@@ -34,20 +34,28 @@ export class AnilistIndexerService {
     }
 
     this.isRunning = true
+
     const ids = await this.getIds()
 
-    for (const id of ids) {
+    const existingIdsRaw = await this.prisma.releaseIndex.findMany({
+      where: {
+        id: { in: ids.map(id => id.toString()) },
+      },
+      select: { id: true },
+    })
+
+    const existingIdsSet = new Set(existingIdsRaw.map(e => e.id))
+
+    const newIds = ids.filter(id => !existingIdsSet.has(id.toString()))
+
+    console.log(`Found ${newIds.length} new releases to index.`)
+
+    for (const id of newIds) {
       if (!this.isRunning) {
         console.log('Indexing manually stopped 🚫')
         this.isRunning = false
         return
       }
-
-      const existing = await this.prisma.releaseIndex.findUnique({
-        where: { id: id.toString() },
-      })
-
-      if (existing) continue
 
       try {
         console.log(`Indexing new release: ${id}`)

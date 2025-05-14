@@ -73,7 +73,7 @@ export class ExceptionsService {
       const datePlusTime = new Date(
         exception.date.getFullYear(),
         exception.date.getMonth(),
-        exception.date.getDate() + 7,
+        exception.date.getDate() + 3,
       )
 
       if (datePlusTime.getTime() < now.getTime()) {
