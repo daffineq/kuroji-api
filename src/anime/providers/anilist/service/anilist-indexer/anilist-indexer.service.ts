@@ -61,14 +61,18 @@ export class AnilistIndexerService {
 
       try {
         await this.safeGetAnilist(id)
+      } catch (e: any) {
+        console.warn(`Failed to fetch Anilist for ${id}:`, e.message ?? e)
+      }
 
+      try {
         await this.prisma.releaseIndex.upsert({
           where: { id: id.toString() },
           update: {},
           create: { id: id.toString() },
         })
       } catch (e: any) {
-        console.warn(`Failed processing ${id}:`, e.message ?? e)
+        console.error(`Failed to save ID ${id} to DB:`, e.message ?? e)
       }
 
       const wait = this.getRandomInt(delay, delay + 25)
