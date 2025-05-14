@@ -57,17 +57,25 @@ export class AnilistIndexerService {
         return
       }
 
-      try {
-        console.log(`Indexing new release: ${id}`)
-        await this.safeGetAnilist(id)
+      console.log(`Indexing new release: ${id}`)
 
-        await this.prisma.releaseIndex.create({
-          data: { id: id.toString() },
+      try {
+        await this.safeGetAnilist(id)
+      } catch (e) {
+        console.warn(`Failed to fetch Anilist for ${id}`)
+        continue
+      }
+
+      try {
+        await this.prisma.releaseIndex.upsert({
+          where: { id: id.toString() },
+          update: {},
+          create: { id: id.toString() },
         })
 
         await sleep(this.getRandomInt(delay, delay + 25))
       } catch (e: any) {
-        console.error('Failed index update:', e)
+        console.error('Failed index:', e)
       }
     }
 
