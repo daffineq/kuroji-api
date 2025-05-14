@@ -109,16 +109,16 @@ export class AnilistIndexerService {
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const data = await this.service.getAnilist(id, true)
+        const data = await this.service.getAnilist(+id, true)
         if (!data) {
           console.warn(`⚠️ Anilist returned no data for ID ${id}`)
           return
         }
 
         const providers = [
-          { name: 'Zoro', fn: () => this.zoro.getZoroByAnilist(id) },
-          { name: 'Animekai', fn: () => this.animekai.getAnimekaiByAnilist(id) },
-          { name: 'Animepahe', fn: () => this.animepahe.getAnimepaheByAnilist(id) },
+          { name: 'Zoro', fn: () => this.zoro.getZoroByAnilist(+id) },
+          { name: 'Animekai', fn: () => this.animekai.getAnimekaiByAnilist(+id) },
+          { name: 'Animepahe', fn: () => this.animepahe.getAnimepaheByAnilist(+id) },
         ]
 
         for (const provider of providers) {

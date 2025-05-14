@@ -27,7 +27,7 @@ export class AnilistService {
       return await this.util.adjustAnilist(existingAnilist);
     }
 
-    const data = await this.fetch.fetchAnilistFromGraphQL(id);
+    const data = await this.fetch.fetchAnilistFromGraphQL(id, isMal);
     if (!data.Page?.media || data.Page.media.length === 0) {
       throw new Error('No media found');
     }
