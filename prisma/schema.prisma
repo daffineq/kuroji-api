@@ -55,6 +55,13 @@ model Anilist {
   streamingEpisodes  AnilistStreamingEpisode[]   @relation("AnilistStreamingEpisodes")
   scoreDistribution  AnilistScoreDistribution[]  @relation("AnilistScoreDistribution")
   statusDistribution AnilistStatusDistribution[] @relation("AnilistStatusDistribution")
+  
+  // New relations for promo and music videos
+  promoVideos        AnilistPromoVideo[]         @relation("AnilistPromoVideos")
+  musicVideos        AnilistMusicVideo[]         @relation("AnilistMusicVideos")
+  
+  // Jikan episodes
+  jikanEpisodes      AnilistJikanEpisode[]       @relation("AnilistJikanEpisodes")
 }
 
 model AnilistTitle {
@@ -289,6 +296,75 @@ model BasicIdAni {
   idMal Int?
 
   Anilist Anilist[] @relation("AnilistRecs")
+}
+
+// New models for promotional videos
+model AnilistPromoVideo {
+  anilistId   Int
+  title       String?
+  youtubeId   String  @id @unique
+  url         String?
+  embedUrl    String?
+  
+  // Video images
+  images      AnilistVideoImages?
+  
+  anilist     Anilist  @relation("AnilistPromoVideos", fields: [anilistId], references: [id])
+}
+
+model AnilistMusicVideo {
+  anilistId   Int
+  title       String?
+  youtubeId   String  @id @unique
+  url         String?
+  embedUrl    String?
+  
+  // Video images
+  images      AnilistVideoImages?
+  
+  // Metadata
+  meta        AnilistVideoMeta?
+  
+  anilist     Anilist  @relation("AnilistMusicVideos", fields: [anilistId], references: [id])
+}
+
+model AnilistVideoImages {
+  id              Int     @id @default(autoincrement())
+  imageUrl        String?
+  smallImageUrl   String?
+  mediumImageUrl  String?
+  largeImageUrl   String?
+  maximumImageUrl String?
+  
+  // Relations to parent videos
+  promoVideo      AnilistPromoVideo? @relation(fields: [promoVideoYoutubeId], references: [youtubeId])
+  promoVideoYoutubeId  String?      @unique
+  
+  musicVideo      AnilistMusicVideo? @relation(fields: [musicVideoYoutubeId], references: [youtubeId]) 
+  musicVideoYoutubeId  String?      @unique
+}
+
+model AnilistVideoMeta {
+  id          Int     @id @default(autoincrement())
+  title       String?
+  author      String?
+  
+  // Relation to parent music video
+  musicVideo   AnilistMusicVideo @relation(fields: [musicVideoYoutubeId], references: [youtubeId])
+  musicVideoYoutubeId String    @unique
+}
+
+// Model for Jikan Episodes
+model AnilistJikanEpisode {
+  id          Int      @id @default(autoincrement())
+  anilistId   Int
+  malId       Int?
+  url         String?
+  title       String?
+  episode     String?
+  imageUrl    String?
+  
+  anilist     Anilist  @relation("AnilistJikanEpisodes", fields: [anilistId], references: [id])
 }
 
 // Animekai.prisma

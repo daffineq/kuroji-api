@@ -2,16 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { LastUpdated } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
-import { AnilistService } from '../providers/anilist/service/anilist.service';
-import { AnimekaiService } from '../providers/animekai/service/animekai.service';
-import { AnimepaheService } from '../providers/animepahe/service/animepahe.service';
-import { ShikimoriService } from '../providers/shikimori/service/shikimori.service';
-import { TmdbService, TmdbStatus } from '../providers/tmdb/service/tmdb.service';
+import { AnilistService } from '../anime/providers/anilist/service/anilist.service';
+import { AnimekaiService } from '../anime/providers/animekai/service/animekai.service';
+import { AnimepaheService } from '../anime/providers/animepahe/service/animepahe.service';
+import { ShikimoriService } from '../anime/providers/shikimori/service/shikimori.service';
+import { TmdbService, TmdbStatus } from '../anime/providers/tmdb/service/tmdb.service';
 import { UpdateType } from '../shared/UpdateType'
-import { ZoroService } from '../providers/zoro/service/zoro.service'
+import { ZoroService } from '../anime/providers/zoro/service/zoro.service'
 import Config from '../configs/Config'
-import { MediaStatus } from '../providers/anilist/filter/Filter'
-import { TvdbService, TvdbStatus } from '../providers/tvdb/service/tvdb.service'
+import { MediaStatus } from '../anime/providers/anilist/filter/Filter'
+import { TvdbService, TvdbStatus } from '../anime/providers/tvdb/service/tvdb.service'
 
 interface IProvider {
   update: (id: any) => any;

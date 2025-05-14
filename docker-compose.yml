@@ -28,6 +28,7 @@ services:
     env_file:
       - .env
     environment:
+      - REDIS_HOST=redis
       - DATABASE_URL=postgresql://prisma:postgres@postgres:5432/kuroji?schema=public
     ports:
       - "3000:3000"

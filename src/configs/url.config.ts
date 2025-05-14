@@ -13,8 +13,8 @@ export class UrlConfig {
   public static readonly SHIKIMORI = withTrailingSlash(Config.SHIKIMORI || 'https://shikimori.one');
   public static readonly JIKAN = withTrailingSlash(Config.JIKAN || 'https://api.jikan.moe/v4');
   public static readonly ANILIST_GRAPHQL = Config.ANILIST || 'https://graphql.anilist.co';
-  public static readonly TMDB: string = Config.TMDB || 'https://api.themoviedb.org/3/';
-  public static readonly TVDB: string = Config.TVDB || 'https://api4.thetvdb.com/v4/';
+  public static readonly TMDB: string = withTrailingSlash(Config.TMDB || 'https://api.themoviedb.org/3/');
+  public static readonly TVDB: string = withTrailingSlash(Config.TVDB || 'https://api4.thetvdb.com/v4/');
 
   // 📡 External Links
   public static readonly MAL = 'https://myanimelist.net/anime/';
