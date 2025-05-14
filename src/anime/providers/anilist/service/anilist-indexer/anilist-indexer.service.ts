@@ -61,22 +61,18 @@ export class AnilistIndexerService {
 
       try {
         await this.safeGetAnilist(id)
-      } catch (e) {
-        console.warn(`Failed to fetch Anilist for ${id}`)
-        continue
-      }
 
-      try {
         await this.prisma.releaseIndex.upsert({
           where: { id: id.toString() },
           update: {},
           create: { id: id.toString() },
         })
-
-        await sleep(this.getRandomInt(delay, delay + 25))
       } catch (e: any) {
-        console.error('Failed index:', e)
+        console.warn(`Failed processing ${id}:`, e.message ?? e)
       }
+
+      const wait = this.getRandomInt(delay, delay + 25)
+      await sleep(wait)
     }
 
     this.isRunning = false
