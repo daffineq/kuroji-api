@@ -90,94 +90,104 @@ export class AnilistHelper {
       genres: anime.genres,
       synonyms: anime.synonyms,
       recommendations: {
-        connectOrCreate: anime.recommendations?.edges?.map((edge: any) => ({
-          where: { id: edge?.node?.mediaRecommendation.id },
-          create: {
-            id: edge?.node?.mediaRecommendation.id ?? null,
-            idMal: edge?.node?.mediaRecommendation.idMal ?? null
-          }
-        })) ?? []
+        connectOrCreate: anime.recommendations?.edges
+          ?.filter((edge: any) => edge?.node?.mediaRecommendation?.id != null)
+          .map((edge: any) => ({
+            where: { id: edge.node.mediaRecommendation.id },
+            create: {
+              id: edge.node.mediaRecommendation.id,
+              idMal: edge.node.mediaRecommendation.idMal ?? null
+            }
+          })) ?? []
       },
       characters: {
-        connectOrCreate: anime.characters?.edges?.map((edge: any) => ({
-          where: { id: edge?.id },
-          create: {
-            id: edge?.id,
-            role: edge?.role ?? null,
-            character: {
-              connectOrCreate: {
-                where: { id: edge?.node?.id },
-                create: {
-                  id: edge?.node?.id,
-                  name: {
-                    create: {
-                      full: edge?.node?.name?.full ?? null,
-                      native: edge?.node?.name?.native ?? null,
-                      alternative: edge?.node?.name?.alternative ?? []
-                    }
-                  },
-                  image: {
-                    create: {
-                      large: edge?.node?.image?.large ?? null,
-                      medium: edge?.node?.image?.medium ?? null
-                    }
-                  },
-                }
-              }
-            },
-            voiceActors: {
-              connectOrCreate: edge?.voiceActors?.map((va: any) => ({
-                where: { id: va.id },
-                create: {
-                  id: va.id,
-                  language: va?.languageV2 ?? null,
-                  name: {
-                    create: {
-                      full: va.name?.full ?? null,
-                      native: va.name?.native ?? null,
-                      alternative: va.name?.alternative ?? []
-                    }
-                  },
-                  image: {
-                    create: {
-                      large: va.image?.large ?? null,
-                      medium: va.image?.medium ?? null
-                    }
+        connectOrCreate: anime.characters?.edges
+          ?.filter((edge: any) => edge?.id && edge?.node?.id)
+          .map((edge: any) => ({
+            where: { id: edge.id },
+            create: {
+              id: edge.id,
+              role: edge.role ?? null,
+              character: {
+                connectOrCreate: {
+                  where: { id: edge.node.id },
+                  create: {
+                    id: edge.node.id,
+                    name: edge.node.name ? {
+                      create: {
+                        full: edge.node.name.full ?? null,
+                        native: edge.node.name.native ?? null,
+                        alternative: edge.node.name.alternative ?? []
+                      }
+                    } : undefined,
+                    image: edge.node.image ? {
+                      create: {
+                        large: edge.node.image.large ?? null,
+                        medium: edge.node.image.medium ?? null
+                      }
+                    } : undefined,
                   }
                 }
-              })) ?? []
+              },
+              voiceActors: {
+                connectOrCreate: edge.voiceActors
+                  ?.filter((va: any) => va?.id)
+                  .map((va: any) => ({
+                    where: { id: va.id },
+                    create: {
+                      id: va.id,
+                      language: va.languageV2 ?? null,
+                      name: va.name ? {
+                        create: {
+                          full: va.name.full ?? null,
+                          native: va.name.native ?? null,
+                          alternative: va.name.alternative ?? []
+                        }
+                      } : undefined,
+                      image: va.image ? {
+                        create: {
+                          large: va.image.large ?? null,
+                          medium: va.image.medium ?? null
+                        }
+                      } : undefined
+                    }
+                  })) ?? []
+              }
             }
-          }
-        })) ?? []
+          })) ?? []
       },
       studios: {
-        connectOrCreate: anime.studios?.edges?.map((edge: any) => ({
-          where: { id: edge?.id },
-          create: {
-            id: edge?.id,
-            isMain: edge?.isMain ?? false,
-            studio: {
-              connectOrCreate: {
-                where: { id: edge?.node?.id },
-                create: {
-                  id: edge?.node?.id,
-                  name: edge?.node?.name ?? null
+        connectOrCreate: anime.studios?.edges
+          ?.filter((edge: any) => edge?.id && edge?.node?.id)
+          .map((edge: any) => ({
+            where: { id: edge.id },
+            create: {
+              id: edge.id,
+              isMain: edge.isMain ?? false,
+              studio: {
+                connectOrCreate: {
+                  where: { id: edge.node.id },
+                  create: {
+                    id: edge.node.id,
+                    name: edge.node.name ?? null
+                  }
                 }
               }
             }
-          }
-        })) ?? []
+          })) ?? []
       },
       airingSchedule: {
-        connectOrCreate: anime.airingSchedule?.edges?.map((edge: any) => ({
-          where: { id: edge?.node?.id },
-          create: {
-            id: edge?.node?.id ?? null,
-            episode: edge?.node?.episode ?? null,
-            airingAt: edge?.node?.airingAt ?? null,
-            timeUntilAiring: edge?.node?.timeUntilAiring ?? null
-          }
-        })) ?? []
+        connectOrCreate: anime.airingSchedule?.edges
+          ?.filter((edge: any) => edge?.node?.id)
+          .map((edge: any) => ({
+            where: { id: edge.node.id },
+            create: {
+              id: edge.node.id,
+              episode: edge.node.episode ?? null,
+              airingAt: edge.node.airingAt ?? null,
+              timeUntilAiring: edge.node.timeUntilAiring ?? null
+            }
+          })) ?? []
       },
       nextAiringEpisode: anime.nextAiringEpisode ? {
         connectOrCreate: {
