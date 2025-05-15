@@ -260,5 +260,24 @@ export default class AnilistQL {
       }
       bannerImage
     `.replace(/\s+/g, ' ').trim();
-  }  
+  }
+
+  public static getSimplePageQuery(): string {
+    return `
+    query Page($page: Int, $perPage: Int) {
+      Page(page: $page, perPage: $perPage) {
+        pageInfo {
+          total
+          perPage
+          currentPage
+          lastPage
+          hasNextPage
+        }
+        media {
+          id
+        }
+      }
+    }
+  `.trim()
+  }
 }

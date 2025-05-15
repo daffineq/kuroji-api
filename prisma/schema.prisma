@@ -451,6 +451,13 @@ model Exception {
   headers         String?
 }
 
+// Indexer.prisma
+model AnilistIndexerState {
+  id               String   @id @default("anime")
+  lastFetchedPage  Int
+  updatedAt        DateTime @updatedAt
+}
+
 // LastUpdated.prisma
 model LastUpdated {
   id        Int   @id @default(autoincrement())

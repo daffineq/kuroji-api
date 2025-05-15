@@ -8,10 +8,27 @@ import { AnimekaiService } from '../../../animekai/service/animekai.service'
 import { AnimepaheService } from '../../../animepahe/service/animepahe.service'
 import Config from '../../../../../configs/Config'
 import { sleep } from '../../../../../shared/utils'
+import { PageInfo } from '../../graphql/types/PageInfo'
+import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder'
+import { UrlConfig } from '../../../../../configs/url.config'
+import { MediaType } from '../../filter/Filter'
+import AnilistQL from '../../graphql/AnilistQL'
+import { AnilistResponse } from '../../model/AnilistModels'
 
 export interface Ids {
   sfw: number[]
   nsfw: number[]
+}
+
+export interface AnilistPageResponse {
+  Page: {
+    pageInfo: PageInfo
+    media: MediaItem[]
+  }  
+}
+
+export interface MediaItem {
+  id: number
 }
 
 @Injectable()
@@ -34,53 +51,53 @@ export class AnilistIndexerService {
     }
 
     this.isRunning = true
+    let page = await this.getLastFetchedPage()
+    const perPage = 50
 
-    const ids = await this.getIds()
+    while (this.isRunning) {
+      console.log(`Fetching ids page ${page}`)
 
-    const existingIdsRaw = await this.prisma.releaseIndex.findMany({
-      where: {
-        id: { in: ids.map(id => id.toString()) },
-      },
-      select: { id: true },
-    })
+      const response = await this.getIdsGraphql(page, perPage)
+      const ids = response.Page.media.map(m => m.id)
+      const hasNextPage = response.Page.pageInfo.hasNextPage
 
-    const existingIdsSet = new Set(existingIdsRaw.map(e => e.id))
+      const existingIdsRaw = await this.prisma.releaseIndex.findMany({
+        where: {
+          id: { in: ids.map(id => id.toString()) },
+        },
+        select: { id: true },
+      })
 
-    const newIds = ids.filter(id => !existingIdsSet.has(id.toString()))
+      const existingIdsSet = new Set(existingIdsRaw.map(e => e.id))
+      const newIds = ids.filter(id => !existingIdsSet.has(id.toString()))
 
-    console.log(`Found ${newIds.length} new releases to index.`)
+      for (const id of newIds) {
+        if (!this.isRunning) {
+          console.log('Indexing manually stopped')
+          this.isRunning = false
+          return
+        }
 
-    for (const id of newIds) {
-      if (!this.isRunning) {
-        console.log('Indexing manually stopped 🚫')
-        this.isRunning = false
-        return
-      }
+        console.log(`Indexing new release: ${id}`)
 
-      console.log(`Indexing new release: ${id}`)
-
-      try {
         await this.safeGetAnilist(id)
-      } catch (e: any) {
-        console.warn(`Failed to fetch Anilist for ${id}:`, e.message ?? e)
-      }
-
-      try {
         await this.prisma.releaseIndex.upsert({
           where: { id: id.toString() },
           update: {},
           create: { id: id.toString() },
         })
-      } catch (e: any) {
-        console.error(`Failed to save ID ${id} to DB:`, e.message ?? e)
+
+        await sleep(this.getRandomInt(delay, delay + 25))
       }
 
-      const wait = this.getRandomInt(delay, delay + 25)
-      await sleep(wait)
+      await this.setLastFetchedPage(page)
+
+      if (!hasNextPage) break
+      page++
     }
 
     this.isRunning = false
-    console.log('Indexing complete, shutting it down 🛑')
+    console.log('Indexing complete, shutting it down')
   }
 
   public stop(): void {
@@ -104,28 +121,56 @@ export class AnilistIndexerService {
     return [...ids.sfw, ...ids.nsfw]
   }
 
+  private async getIdsGraphql(page: number, perPage: number = 50): Promise<AnilistPageResponse> {
+    const builder = new AnilistQueryBuilder().setPage(page).setPerPage(perPage);
+    builder.setType(MediaType.ANIME);
+
+    const query = AnilistQL.getSimplePageQuery()
+
+    return await this.httpService.getGraphQL<AnilistPageResponse>(
+      UrlConfig.ANILIST_GRAPHQL,
+      query,
+      builder.build(),
+    )
+  }
+
+  private async getLastFetchedPage(): Promise<number> {
+    const state = await this.prisma.anilistIndexerState.findUnique({
+      where: { id: 'anime' },
+    })
+    return state?.lastFetchedPage ?? 1
+  }
+
+  private async setLastFetchedPage(page: number): Promise<void> {
+    await this.prisma.anilistIndexerState.upsert({
+      where: { id: 'anime' },
+      update: { lastFetchedPage: page },
+      create: { id: 'anime', lastFetchedPage: page },
+    })
+  }
+
   private async safeGetAnilist(id: number, retries = 3): Promise<void> {
     let lastError: any = null
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const data = await this.service.getAnilist(+id, true)
+        const data = await this.service.getAnilist(id)
         if (!data) {
-          console.warn(`⚠️ Anilist returned no data for ID ${id}`)
+          console.warn(`Anilist returned no data for ID ${id}`)
           return
         }
 
         const providers = [
-          { name: 'Zoro', fn: () => this.zoro.getZoroByAnilist(+id) },
-          { name: 'Animekai', fn: () => this.animekai.getAnimekaiByAnilist(+id) },
-          { name: 'Animepahe', fn: () => this.animepahe.getAnimepaheByAnilist(+id) },
+          { name: 'Zoro', fn: () => this.zoro.getZoroByAnilist(id) },
+          { name: 'Animekai', fn: () => this.animekai.getAnimekaiByAnilist(id) },
+          { name: 'Animepahe', fn: () => this.animepahe.getAnimepaheByAnilist(id) },
         ]
 
         for (const provider of providers) {
           try {
             await provider.fn()
           } catch (e) {
-            console.warn(`⚠️ ${provider.name} failed for ID ${id}:`, e.message ?? e)
+            console.warn(`${provider.name} failed for ID ${id}:`, e.message ?? e)
           }
         }
 
@@ -138,10 +183,10 @@ export class AnilistIndexerService {
             ? parseInt(e.response.headers['retry-after'], 10)
             : this.getRandomInt(30, 60)
 
-          console.warn(`⚠️ 429 hit - Attempt ${attempt}/${retries}. Sleeping ${retryAfter}s`)
+          console.warn(`429 hit - Attempt ${attempt}/${retries}. Sleeping ${retryAfter}s`)
           await sleep(retryAfter)
         } else {
-          console.warn(`❌ Attempt ${attempt} failed:`, e.message ?? e)
+          console.warn(`Attempt ${attempt} failed:`, e.message ?? e)
           break
         }
       }
