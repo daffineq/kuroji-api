@@ -163,15 +163,17 @@ export class AnilistAddService {
 
   async addShikimori(data: AnilistWithRelations[]): Promise<AnilistWithRelations[]> {
     const malIds = data
-      .map((anilist) => anilist.idMal?.toString() || '')
-      .join(',')
+      .map((anilist) => anilist.idMal)
+      .filter((id): id is number => id != null)
+      .map((id) => id.toString())
+      .join(',');
     const shikimoriData =
       await this.shikimori.saveMultipleShikimori(malIds);
 
     return data.map((anilist) => {
       const malId = anilist.idMal?.toString() || ''
       const shikimori = shikimoriData.find(
-        (data) => data.malId?.toString() === malId,
+        (data) => data.malId?.toString() == malId,
       )
       return {
         ...anilist,
