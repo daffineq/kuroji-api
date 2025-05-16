@@ -44,7 +44,7 @@ export class AnilistIndexerService {
     private readonly httpService: CustomHttpService,
   ) { }
 
-  public async index(delay: number = 10): Promise<void> {
+  public async index(delay: number = 10, range: number = 25): Promise<void> {
     if (this.isRunning) {
       console.log('Already running, skip this round.')
       return
@@ -91,7 +91,7 @@ export class AnilistIndexerService {
           throw e;
         }
 
-        await sleep(this.getRandomInt(delay, delay + 25))
+        await sleep(this.getRandomInt(delay, delay + range))
       }
 
       await this.setLastFetchedPage(page)
@@ -188,7 +188,7 @@ export class AnilistIndexerService {
             : this.getRandomInt(30, 60)
 
           console.warn(`429 hit - Attempt ${attempt}/${retries}. Sleeping ${retryAfter}s`)
-          await sleep(retryAfter)
+          await sleep(retryAfter + 1)
         } else {
           console.warn(`Attempt ${attempt} failed:`, e.message ?? e)
           break

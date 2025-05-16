@@ -196,7 +196,7 @@ export class AnilistAddService {
       this.prisma.anilistTag.findMany({
         skip: (page - 1) * perPage,
         take: perPage,
-        orderBy: { rank: 'desc' },
+        orderBy: { name: 'asc' },
       }),
       this.prisma.anilistTag.count(),
     ])

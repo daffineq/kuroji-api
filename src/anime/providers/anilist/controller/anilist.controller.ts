@@ -125,8 +125,8 @@ export class AnilistController {
   }
 
   @Put('index')
-  index(@Query('delay') delay: number = 10) {
-    this.indexer.index(delay)
+  index(@Query('delay') delay: number = 10, @Query('range') range: number = 25) {
+    this.indexer.index(delay, range)
       .catch((err) => console.error('Indexer failed:', err)); // just in case it blows up
 
     return {

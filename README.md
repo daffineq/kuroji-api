@@ -755,6 +755,7 @@ PUT https://api.example.com/api/anime/index?delay=10
 
 **Parameters:**
 - `delay` (query): Delay between requests in seconds (default: 10)
+- `range` (query): Range of request delay (default: 25)
 </details>
 
 <details>
@@ -765,32 +766,6 @@ Stop the anime indexing process.
 **Example:**
 ```
 PUT https://api.example.com/api/anime/index/stop
-```
-
-**Parameters:** None
-</details>
-
-<details>
-<summary><b>Schedule Indexing</b> - <code>PUT /api/anime/index/schedule</code></summary>
-
-Schedule periodic indexing.
-
-**Example:**
-```
-PUT https://api.example.com/api/anime/index/schedule
-```
-
-**Parameters:** None
-</details>
-
-<details>
-<summary><b>Unschedule Indexing</b> - <code>PUT /api/anime/index/unschedule</code></summary>
-
-Cancel scheduled indexing.
-
-**Example:**
-```
-PUT https://api.example.com/api/anime/index/unschedule
 ```
 
 **Parameters:** None
