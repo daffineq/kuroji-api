@@ -14,7 +14,7 @@ export class AnilistUtilService {
   async adjustAnilist(anilist: Anilist): Promise<AnilistWithRelations> {
     const shikimori = await this.shikimori.getShikimori(
       anilist.idMal?.toString() || '',
-    );
+    ).catch(() => null);
     
     const AnilistWithRelations = {
       ...anilist,

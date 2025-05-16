@@ -33,6 +33,10 @@ export class ShikimoriService {
   ) { }
 
   async getShikimori(id: string): Promise<ShikimoriWithRelations> {
+    if (!id || id == '') {
+      throw new Error('Shikimori id is empty')
+    }
+
     const existing = await this.findById(id)
     if (existing) return this.adjustScreenshots(existing)
 
