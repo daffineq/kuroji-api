@@ -1,23 +1,30 @@
-import { Controller, Get, Param, ParseIntPipe, Put, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { AnilistService } from '../service/anilist.service';
-import { AnilistIndexerService } from '../service/anilist-indexer/anilist-indexer.service'
-import { StreamService } from '../../stream/service/stream.service'
-import { Provider } from '../../stream/model/Provider'
-import { FilterDto } from '../model/FilterDto'
-import { AnilistAddService } from '../service/helper/anilist.add.service'
-import { AnilistScheduleService } from '../service/helper/anilist.schedule.service'
-import Dimens from '../../../../configs/Dimens'
-import { AnilistSearchService } from '../service/helper/anilist.search.service'
+import { AnilistIndexerService } from '../service/anilist-indexer/anilist-indexer.service';
+import { StreamService } from '../../stream/service/stream.service';
+import { Provider } from '../../stream/model/Provider';
+import { FilterDto } from '../model/FilterDto';
+import { AnilistAddService } from '../service/helper/anilist.add.service';
+import { AnilistScheduleService } from '../service/helper/anilist.schedule.service';
+import Dimens from '../../../../configs/Dimens';
+import { AnilistSearchService } from '../service/helper/anilist.search.service';
 
 @Controller('anime')
 export class AnilistController {
   constructor(
-    private readonly service: AnilistService, 
+    private readonly service: AnilistService,
     private readonly add: AnilistAddService,
     private readonly search: AnilistSearchService,
     private readonly schedule: AnilistScheduleService,
-    private readonly stream: StreamService, 
-    private readonly indexer: AnilistIndexerService
+    private readonly stream: StreamService,
+    private readonly indexer: AnilistIndexerService,
   ) {}
 
   @Get('info/:id')
@@ -27,8 +34,8 @@ export class AnilistController {
 
   @Get('info/:id/recommendations')
   async getRecommendations(
-    @Param('id', ParseIntPipe) id: number, 
-    @Query() filter: FilterDto
+    @Param('id', ParseIntPipe) id: number,
+    @Query() filter: FilterDto,
   ) {
     return this.add.getRecommendations(id, filter);
   }
@@ -37,7 +44,7 @@ export class AnilistController {
   async getCharacters(
     @Param('id', ParseIntPipe) id: number,
     @Query('perPage') perPage: number = Dimens.PER_PAGE,
-    @Query('page') page: number = 1
+    @Query('page') page: number = 1,
   ) {
     return this.add.getCharacters(id, perPage, page);
   }
@@ -45,7 +52,7 @@ export class AnilistController {
   @Get('info/:id/chronology')
   async getChronology(
     @Param('id', ParseIntPipe) id: number,
-    @Query() filter: FilterDto
+    @Query() filter: FilterDto,
   ) {
     return this.add.getChronology(id, filter);
   }
@@ -57,8 +64,8 @@ export class AnilistController {
 
   @Get('info/:id/providers/:number')
   async getProvidersSingle(
-    @Param('id', ParseIntPipe) id: number, 
-    @Param('number', ParseIntPipe) number: number
+    @Param('id', ParseIntPipe) id: number,
+    @Param('number', ParseIntPipe) number: number,
   ) {
     return this.stream.getProvidersSingle(id, number);
   }
@@ -70,8 +77,8 @@ export class AnilistController {
 
   @Get('info/:id/episodes/:number')
   async getEpisode(
-    @Param('id', ParseIntPipe) id: number, 
-    @Param('number', ParseIntPipe) number: number
+    @Param('id', ParseIntPipe) id: number,
+    @Param('number', ParseIntPipe) number: number,
   ) {
     return this.stream.getEpisode(id, number);
   }
@@ -81,9 +88,11 @@ export class AnilistController {
     @Param('id', ParseIntPipe) id: number,
     @Param('number', ParseIntPipe) number: number,
     @Query('provider') provider: string = Provider.ANIWATCH,
-    @Query('dub') dub: boolean = false
+    @Query('dub') dub: boolean = false,
   ) {
-    const providerEnum = Provider[provider.toUpperCase() as keyof typeof Provider] || Provider.ANIWATCH;
+    const providerEnum =
+      Provider[provider.toUpperCase() as keyof typeof Provider] ||
+      Provider.ANIWATCH;
 
     return this.stream.getSources(providerEnum, number, id, dub);
   }
@@ -103,10 +112,15 @@ export class AnilistController {
     return this.schedule.getSchedule();
   }
 
+  @Get('random')
+  async getRandom() {
+    return this.add.getRandom();
+  }
+
   @Get('franchise/:franchise')
   async getFranchise(
     @Param('franchise') franchise: string,
-    @Query() filter: FilterDto
+    @Query() filter: FilterDto,
   ) {
     return this.add.getFranchise(franchise, filter);
   }
@@ -119,14 +133,18 @@ export class AnilistController {
   @Get('tags')
   async getTags(
     @Query('perPage') perPage: number = Dimens.PER_PAGE,
-    @Query('page') page: number = 1
+    @Query('page') page: number = 1,
   ) {
     return this.add.getAllTags(page, perPage);
   }
 
   @Put('index')
-  index(@Query('delay') delay: number = 10, @Query('range') range: number = 25) {
-    this.indexer.index(delay, range)
+  index(
+    @Query('delay') delay: number = 10,
+    @Query('range') range: number = 25,
+  ) {
+    this.indexer
+      .index(delay, range)
       .catch((err) => console.error('Indexer failed:', err)); // just in case it blows up
 
     return {
