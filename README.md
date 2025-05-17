@@ -592,6 +592,19 @@ GET https://api.example.com/api/anime/search/one%20piece
 </details>
 
 <details>
+<summary><b>Get Random</b> - <code>GET /api/anime/random</code></summary>
+
+Get random anime.
+
+**Example:**
+```
+GET https://api.example.com/api/anime/random
+```
+
+**Parameters:** None
+</details>
+
+<details>
 <summary><b>Get Anime Schedule</b> - <code>GET /api/anime/schedule</code></summary>
 
 Get currently airing anime schedule.
