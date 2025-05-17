@@ -10,7 +10,7 @@ export class AnimepaheController {
     return this.service.getAnimepaheByAnilist(id);
   }
 
-  @Get('watch/:id')
+  @Get('watch/:id/animepahe')
   async getSources(@Param('id') id: string) {
     return this.service.getSources(id);
   }

@@ -852,13 +852,13 @@ GET https://api.example.com/api/anime/info/21/animepahe
 </details>
 
 <details>
-<summary><b>AnimePahe Streaming Sources</b> - <code>GET /api/anime/watch/:id</code></summary>
+<summary><b>AnimePahe Streaming Sources</b> - <code>GET /api/anime/watch/animepahe/:id</code></summary>
 
 Get streaming sources from AnimePahe.
 
 **Example:**
 ```
-GET https://api.example.com/api/anime/watch/ep_12345
+GET https://api.example.com/api/anime/watch/animepahe/ep_12345
 ```
 
 **Parameters:**
@@ -880,13 +880,13 @@ GET https://api.example.com/api/anime/info/21/animekai
 </details>
 
 <details>
-<summary><b>AnimeKai Streaming Sources</b> - <code>GET /api/anime/watch/:id</code></summary>
+<summary><b>AnimeKai Streaming Sources</b> - <code>GET /api/anime/watch/animekai/:id</code></summary>
 
 Get streaming sources from AnimeKai.
 
 **Example:**
 ```
-GET https://api.example.com/api/anime/watch/ep_12345?dub=false
+GET https://api.example.com/api/anime/watch/animekai/ep_12345?dub=false
 ```
 
 **Parameters:**
@@ -909,13 +909,13 @@ GET https://api.example.com/api/anime/info/21/zoro
 </details>
 
 <details>
-<summary><b>Zoro Streaming Sources</b> - <code>GET /api/anime/watch/:id</code></summary>
+<summary><b>Zoro Streaming Sources</b> - <code>GET /api/anime/watch/zoro/:id</code></summary>
 
 Get streaming sources from Zoro.
 
 **Example:**
 ```
-GET https://api.example.com/api/anime/watch/ep_12345?dub=false
+GET https://api.example.com/api/anime/watch/zoro/ep_12345?dub=false
 ```
 
 **Parameters:**
