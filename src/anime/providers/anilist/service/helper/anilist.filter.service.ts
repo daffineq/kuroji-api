@@ -75,7 +75,7 @@ export class AnilistFilterService {
           some: {
             character: {
               name: {
-                full: { in: filter.voiceActorIn },
+                full: { in: filter.characterIn },
               },
             },
           },
@@ -107,8 +107,10 @@ export class AnilistFilterService {
       ['episodes', 'lt', filter.episodesLesser],
       ['popularity', 'gt', filter.popularityGreater],
       ['popularity', 'lt', filter.popularityLesser],
+      ['popularity', 'not', filter.popularityNot],
       ['score', 'gt', filter.scoreGreater],
       ['score', 'lt', filter.scoreLesser],
+      ['score', 'not', filter.scoreNot],
     ]
     for (const [field, op, val] of numericFields) {
       if (val != null) conditions.push({ [field as any]: { [op as any]: val } })
@@ -122,21 +124,34 @@ export class AnilistFilterService {
       ['status', 'in', filter.statusIn],
       ['status', 'notIn', filter.statusNotIn],
       ['status', 'not', filter.statusNot],
+      ['source', 'in', filter.sourceIn],
     ]
     for (const [field, op, val] of enumFilters) {
       if (val) conditions.push({ [field as any]: { [op as any]: val } })
     }
 
     // ========== Tags Filters ==========
-    if (filter.tagsIn) {
+    if (filter.tagIn) {
       conditions.push({
-        tags: { some: { name: { in: filter.tagsIn } } },
+        tags: { some: { name: { in: filter.tagIn } } },
       })
     }
-    if (filter.tagsNotIn) {
+    if (filter.tagNotIn) {
       conditions.push({
         NOT: {
-          tags: { some: { name: { in: filter.tagsNotIn } } },
+          tags: { some: { name: { in: filter.tagNotIn } } },
+        },
+      } as any)
+    }
+    if (filter.tagCategoryIn) {
+      conditions.push({
+        tags: { some: { category: { in: filter.tagCategoryIn } } },
+      })
+    }
+    if (filter.tagCategoryNotIn) {
+      conditions.push({
+        NOT: {
+          tags: { some: { category: { in: filter.tagCategoryNotIn } } },
         },
       } as any)
     }

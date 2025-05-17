@@ -139,18 +139,6 @@ export class FilterDto {
   genreIn?: string[]
 
   @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @Type(() => String)
-  tagsNotIn?: string[]
-
-  @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @Type(() => String)
-  tagsIn?: string[]
-
-  @IsOptional()
   @IsNumber()
   @Type(() => Number)
   durationLesser?: number

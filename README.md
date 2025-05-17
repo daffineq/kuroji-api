@@ -247,8 +247,6 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
   genreNotIn?: string[];      // Exclude these genres
   tagIn?: string[];           // Include these tags
   tagNotIn?: string[];        // Exclude these tags
-  tagsIn?: string[];          // Include these tags (alternative)
-  tagsNotIn?: string[];       // Exclude these tags (alternative)
   tagCategoryIn?: string[];   // Include these tag categories
   tagCategoryNotIn?: string[]; // Exclude these tag categories
   
@@ -374,8 +372,6 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
   genreNotIn?: string[];      // Exclude these genres
   tagIn?: string[];           // Include these tags
   tagNotIn?: string[];        // Exclude these tags
-  tagsIn?: string[];          // Include these tags (alternative)
-  tagsNotIn?: string[];       // Exclude these tags (alternative)
   tagCategoryIn?: string[];   // Include these tag categories
   tagCategoryNotIn?: string[]; // Exclude these tag categories
   
@@ -560,8 +556,6 @@ GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&gen
   genreNotIn?: string[];      // Exclude these genres
   tagIn?: string[];           // Include these tags
   tagNotIn?: string[];        // Exclude these tags
-  tagsIn?: string[];          // Include these tags (alternative)
-  tagsNotIn?: string[];       // Exclude these tags (alternative)
   tagCategoryIn?: string[];   // Include these tag categories
   tagCategoryNotIn?: string[]; // Exclude these tag categories
   
