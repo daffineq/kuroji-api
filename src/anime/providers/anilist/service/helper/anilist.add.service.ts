@@ -59,14 +59,14 @@ export class AnilistAddService {
       where: { id },
       include: { recommendations: true },
     })) as {
-      idMal: number;
+      id: number;
       recommendations: BasicIdAni[];
     };
 
     const recommendationIds = existingAnilist.recommendations.map((r) =>
-      Number(r.idMal),
+      Number(r.id),
     );
-    filter.idMalIn = [...(filter.idMalIn ?? []), ...recommendationIds];
+    filter.idIn = [...(filter.idIn ?? []), ...recommendationIds];
     const recommendations = await this.search.getAnilists(filter);
     const basicRecommendations = this.helper.mapToSmall(recommendations.data);
 

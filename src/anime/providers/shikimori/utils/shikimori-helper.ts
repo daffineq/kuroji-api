@@ -44,22 +44,28 @@ export class ShikimoriHelper {
 
       airedOn: anime.airedOn
         ? {
-          create: {
-            year: anime.airedOn.year,
-            month: anime.airedOn.month,
-            day: anime.airedOn.day,
-            date: anime.airedOn.date,
+          connectOrCreate: {
+            where: { shikimoriId: anime.id },
+            create: {
+              year: anime.airedOn.year,
+              month: anime.airedOn.month,
+              day: anime.airedOn.day,
+              date: anime.airedOn.date,
+            }
           },
         }
         : undefined,
 
       releasedOn: anime.releasedOn
         ? {
-          create: {
-            year: anime.airedOn.year,
-            month: anime.airedOn.month,
-            day: anime.airedOn.day,
-            date: anime.airedOn.date,
+          connectOrCreate: {
+            where: { shikimoriId: anime.id },
+            create: {
+              year: anime.airedOn.year,
+              month: anime.airedOn.month,
+              day: anime.airedOn.day,
+              date: anime.airedOn.date,
+            }
           },
         }
         : undefined,

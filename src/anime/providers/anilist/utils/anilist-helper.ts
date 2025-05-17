@@ -393,6 +393,8 @@ export class AnilistHelper {
       malId: shikimori.malId ?? undefined,
       russian: shikimori.russian ?? undefined,
       licenseNameRu: shikimori.licenseNameRu ?? undefined,
+      episodes: shikimori.episodes ?? undefined,
+      episodesAired: shikimori.episodesAired ?? undefined,
       url: shikimori.url ?? undefined,
       franchise: shikimori.franchise ?? undefined,
       poster: shikimori.poster ?? undefined

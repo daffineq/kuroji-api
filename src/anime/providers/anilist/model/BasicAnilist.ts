@@ -5,6 +5,8 @@ export interface BasicShikimori {
   malId?: string;
   russian?: string;
   licenseNameRu?: string;
+  episodes?: number,
+  episodesAired?: number,
   url?: string;
   franchise?: string;
   poster?: ShikimoriPoster;
