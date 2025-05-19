@@ -61,6 +61,8 @@ export class AnilistIndexerService {
       const ids = response.Page.media.map(m => m.id)
       const hasNextPage = response.Page.pageInfo.hasNextPage
 
+      console.log(JSON.stringify(ids))
+
       const existingIdsRaw = await this.prisma.releaseIndex.findMany({
         where: {
           id: { in: ids.map(id => id.toString()) },
@@ -127,10 +129,9 @@ export class AnilistIndexerService {
   }
 
   private async getIdsGraphql(page: number, perPage: number = 50): Promise<AnilistPageResponse> {
-    const builder = new AnilistQueryBuilder().setPage(page).setPerPage(perPage);
-    builder.setType(MediaType.ANIME);
+    const builder = new AnilistQueryBuilder().setPage(page).setPerPage(perPage).setType(MediaType.ANIME);
 
-    const query = AnilistQL.getSimplePageQuery()
+    const query = AnilistQL.getSimplePageQuery(builder)
 
     return await this.httpService.getGraphQL<AnilistPageResponse>(
       UrlConfig.ANILIST_GRAPHQL,

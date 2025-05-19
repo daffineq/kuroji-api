@@ -25,7 +25,7 @@ export class AnilistFetchService {
 
     queryBuilder.setType(MediaType.ANIME);
 
-    const query = AnilistQL.getQuery()
+    const query = AnilistQL.getQuery(queryBuilder)
 
     return await this.customHttpService.getGraphQL<AnilistResponse>(
       UrlConfig.ANILIST_GRAPHQL,

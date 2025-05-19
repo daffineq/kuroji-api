@@ -1,3 +1,5 @@
+import AnilistQueryBuilder from './query/AnilistQueryBuilder'
+
 type FieldTypeMap = { [key: string]: string };
 
 export default class AnilistQL {
@@ -74,12 +76,23 @@ export default class AnilistQL {
     return this.FIELD_TYPE_MAP[fieldName] || 'String';
   }
 
-  public static getQuery(): string {
+  public static getQuery(builder: AnilistQueryBuilder): string {
     const fields = this.buildFullFields();
+    const allVariables = builder.build();
+    const mediaVariables = builder.buildMedia();
+    
+    const variables = Object.keys(allVariables)
+      .map((key) => `$${key}: ${this.getGraphQLType(key)}`)
+      .join(', ');
+    
+    const mediaAssignments = Object.keys(mediaVariables)
+      .map((key) => `${key}: $${key}`)
+      .join(', ');
+
     const query = `
-      query ($page: Int, $perPage: Int, $id: Int) {
+      query (${variables}) {
         Page(page: $page, perPage: $perPage) {
-          media(id: $id) {
+          media(${mediaAssignments}) {
             ${fields}
           }
           pageInfo {
@@ -262,9 +275,16 @@ export default class AnilistQL {
     `.replace(/\s+/g, ' ').trim();
   }
 
-  public static getSimplePageQuery(): string {
+  public static getSimplePageQuery(builder: AnilistQueryBuilder): string {
+    const variables = Object.keys(builder.buildMedia())
+      .map((key) => `$${key}: ${this.getGraphQLType(key)}`)
+      .join(', ');
+    const variableAssignments = Object.keys(builder.buildMedia())
+      .map((key) => `${key}: $${key}`)
+      .join(', ');
+
     return `
-    query Page($page: Int, $perPage: Int) {
+    query Page($page: Int, $perPage: Int, ${variables}) {
       Page(page: $page, perPage: $perPage) {
         pageInfo {
           total
@@ -273,11 +293,11 @@ export default class AnilistQL {
           lastPage
           hasNextPage
         }
-        media {
+        media(${variableAssignments}) {
           id
         }
       }
     }
-  `.trim()
+  `.trim();
   }
 }
