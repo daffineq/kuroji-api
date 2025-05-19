@@ -61,8 +61,6 @@ export class AnilistIndexerService {
       const ids = response.Page.media.map(m => m.id)
       const hasNextPage = response.Page.pageInfo.hasNextPage
 
-      console.log(JSON.stringify(ids))
-
       const existingIdsRaw = await this.prisma.releaseIndex.findMany({
         where: {
           id: { in: ids.map(id => id.toString()) },
@@ -90,8 +88,7 @@ export class AnilistIndexerService {
             create: { id: id.toString() },
           })
         } catch (e) {
-          console.error(`Release throwed error: ${e}`)
-          await sleep(60)
+          throw e
         }
 
         await sleep(this.getRandomInt(delay, delay + range))
