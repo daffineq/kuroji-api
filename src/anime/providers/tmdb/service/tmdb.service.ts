@@ -214,7 +214,7 @@ export class TmdbService {
       const tmdbSeason = await this.fetchTmdbSeason(id, season.season_number || 1);
       await this.saveTmdbSeason(tmdbSeason);
 
-      sleep(5);
+      await sleep(5);
     }
 
     return tmdb;

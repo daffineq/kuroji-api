@@ -88,7 +88,8 @@ export class AnilistIndexerService {
             create: { id: id.toString() },
           })
         } catch (e) {
-          throw e;
+          console.error(`Release throwed error: ${e}`)
+          await sleep(60)
         }
 
         await sleep(this.getRandomInt(delay, delay + range))
