@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Anilist } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnilistHelper } from '../utils/anilist-helper';

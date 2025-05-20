@@ -3,7 +3,7 @@ import { Animepahe, AnimepaheEpisode, AnimepaheExternalLink } from '@prisma/clie
 import { UrlConfig } from '../../../../configs/url.config';
 import { CustomHttpService } from '../../../../http/http.service';
 import { PrismaService } from '../../../../prisma.service';
-import { findBestMatch, ScrapeHelper } from '../../../../scrapper/scrape-helper';
+import { findBestMatch } from '../../../../mapper/mapper.helper';
 import { Source } from '../../stream/model/Source';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service';

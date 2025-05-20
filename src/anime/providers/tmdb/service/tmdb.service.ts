@@ -9,7 +9,7 @@ import {
 import { TMDB } from '../../../../configs/tmdb.config';
 import { CustomHttpService } from '../../../../http/http.service';
 import { PrismaService } from '../../../../prisma.service';
-import { ScrapeHelper } from '../../../../scrapper/scrape-helper';
+import { sanitizeTitle, findBestMatch, ExpectAnime } from '../../../../mapper/mapper.helper';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service';
 import { TmdbHelper } from '../utils/tmdb-helper';
@@ -50,12 +50,12 @@ export enum TmdbStatus {
 export class TmdbService {
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(forwardRef(() => AnilistService))
     private readonly anilistService: AnilistService,
     private readonly customHttpService: CustomHttpService,
     private readonly helper: TmdbHelper,
   ) {}
 
+  // Core TMDB Methods
   async getTmdb(id: number): Promise<TmdbWithRelations> {
     const existingTmdb = await this.prisma.tmdb.findUnique({
       where: { id },
@@ -73,7 +73,7 @@ export class TmdbService {
     return await this.findTmdb(id);
   }
 
-  async getTmdbSeasonByAnilist(id: number, formatEpisodes = true): Promise<TmdbSeasonWithRelations> {
+  async getTmdbSeasonByAnilist(id: number): Promise<TmdbSeasonWithRelations> {
     const anilist = await this.anilistService.getAnilist(id)
     const tmdb = await this.findTmdb(id);
 
@@ -136,13 +136,7 @@ export class TmdbService {
       const today = new Date().toISOString().split('T')[0]
 
       for (let i = startIndex; i < episodes.length; i++) {
-        let ep;
-
-        if (formatEpisodes) {
-          ep = { ...episodes[i], episode_number: trimmedEpisodes.length + 1 }
-        } else {
-          ep = { ...episodes[i] }
-        }
+        const ep = { ...episodes[i], episode_number: trimmedEpisodes.length + 1 }
 
         if (ep.air_date && ep.air_date > today) break
 
@@ -164,6 +158,53 @@ export class TmdbService {
     throw new Error('Not found');
   }  
 
+  // Data Fetching Methods
+  async fetchTmdb(id: number, type: string): Promise<TmdbWithRelations> {
+    const url =
+      type === 'tv' ? TMDB.getTvDetails(id) : TMDB.getMovieDetails(id);
+    return this.customHttpService.getResponse(url);
+  }
+
+  async fetchTmdbSeason(id: number, seasonNumber: number): Promise<TmdbSeasonWithRelations> {
+    const seasonData: TmdbSeasonWithRelations = await this.customHttpService.getResponse(
+      TMDB.getSeasonDetails(id, seasonNumber),
+    );
+    return this.filterSeasonEpisodes(seasonData);
+  }
+
+  async fetchTmdbByAnilist(id: number): Promise<TmdbWithRelations> {
+    const anilist = await this.anilistService.getAnilist(id);
+
+    let searchResults = await this.searchTmdb(
+      sanitizeTitle(anilist.title?.romaji ?? anilist.title?.english ?? '') || '',
+    );
+
+    let bestMatch = this.findBestMatchFromSearch(
+      anilist,
+      searchResults.results,
+    );
+    if (!bestMatch && (anilist.title as { english: string }).english) {
+      searchResults = await this.searchTmdb(
+        (anilist.title as { english: string }).english,
+      );
+      bestMatch = this.findBestMatchFromSearch(anilist, searchResults.results);
+    }
+    if (!bestMatch) {
+      throw new Error('No matching TMDb entry found');
+    }
+    const fetchedTmdb = await this.fetchTmdb(
+      bestMatch.id,
+      bestMatch.media_type,
+    );
+    fetchedTmdb.media_type = bestMatch.media_type;
+    return await this.saveTmdb(fetchedTmdb);
+  }
+
+  async searchTmdb(query: string): Promise<TmdbResponse> {
+    return this.customHttpService.getResponse(TMDB.multiSearch(query));
+  }
+
+  // Database Operations
   async saveTmdb(tmdb: TmdbWithRelations): Promise<TmdbWithRelations> {
     await this.prisma.lastUpdated.create({
       data: {
@@ -193,6 +234,7 @@ export class TmdbService {
     });
   }
 
+  // Update Methods
   async update(id: number): Promise<TmdbWithRelations> {
     const tmdb = await this.fetchTmdb(id, await this.detectType(id));
     await this.saveTmdb(tmdb);
@@ -220,17 +262,100 @@ export class TmdbService {
     return tmdb;
   }
 
-  async fetchTmdb(id: number, type: string): Promise<TmdbWithRelations> {
-    const url =
-      type === 'tv' ? TMDB.getTvDetails(id) : TMDB.getMovieDetails(id);
-    return this.customHttpService.getResponse(url);
+  // Matching Methods
+  async findTmdb(id: number): Promise<TmdbWithRelations> {
+    const tmdb = await this.findMatchInPrisma(id).catch(() => null)
+    if (tmdb) return tmdb;
+    return await this.fetchTmdbByAnilist(id);
   }
 
-  async fetchTmdbSeason(id: number, seasonNumber: number): Promise<TmdbSeasonWithRelations> {
-    const seasonData: TmdbSeasonWithRelations = await this.customHttpService.getResponse(
-      TMDB.getSeasonDetails(id, seasonNumber),
+  async findMatchInPrisma(id: number): Promise<TmdbWithRelations> {
+    const anilist = await this.anilistService.getAnilist(id);
+    const candidates = await this.prisma.tmdb.findMany({
+      where: {
+        OR: [
+          { name: { mode: 'insensitive' } },
+          { original_name: { mode: 'insensitive' } }
+        ]
+      },
+      include: { seasons: true }
+    });
+
+    const searchAnime: ExpectAnime = {
+      title: {
+        romaji: (anilist.title as { romaji: string }).romaji,
+        english: (anilist.title as { english: string }).english,
+        native: (anilist.title as { native: string }).native
+      }
+    };
+
+    const bestMatch = findBestMatch(searchAnime, candidates);
+    if (bestMatch) {
+      return bestMatch.result as TmdbWithRelations;
+    }
+
+    throw new Error('No matching TMDb entry found');
+  }
+
+  findBestMatchFromCandidates(
+    anilist: AnilistWithRelations,
+    candidates: TmdbWithRelations[],
+  ): TmdbWithRelations | null {
+    const searchAnime: ExpectAnime = {
+      title: {
+        romaji: (anilist.title as { romaji: string }).romaji,
+        english: (anilist.title as { english: string }).english,
+        native: (anilist.title as { native: string }).native
+      },
+      year: anilist.startDate?.year ?? undefined,
+      episodes: anilist.episodes ?? undefined
+    };
+
+    const mediaTypeFiltered = candidates.filter(
+      tmdb => tmdb.media_type?.toLowerCase() === anilist.format?.toLowerCase()
     );
 
+    const bestMatch = findBestMatch(searchAnime, mediaTypeFiltered);
+    if (bestMatch) {
+      return bestMatch.result;
+    }
+
+    return null;
+  }
+
+  findBestMatchFromSearch(
+    anilist: AnilistWithRelations,
+    results: BasicTmdb[] | undefined,
+  ): BasicTmdb | null {
+    if (!results || !Array.isArray(results)) return null;
+
+    const searchAnime: ExpectAnime = {
+      title: {
+        romaji: (anilist.title as { romaji: string }).romaji,
+        english: (anilist.title as { english: string }).english,
+        native: (anilist.title as { native: string }).native
+      },
+      year: anilist.startDate?.year ?? undefined,
+      episodes: anilist.episodes ?? undefined
+    };
+
+    const bestMatch = findBestMatch(searchAnime, results.map(result => ({
+      id: result.id,
+      title: {
+        english: result.name,
+        native: result.original_name
+      }
+    })));
+
+    if (bestMatch) {
+      return results.find(r => r.id === bestMatch.result.id) || null;
+    }
+
+    return null;
+  }
+
+  // Helper Methods
+  private filterSeasonEpisodes(seasonData: TmdbSeasonWithRelations): TmdbSeasonWithRelations {
     const filteredEpisodes = (seasonData.episodes).map((episode) => ({
       id: episode.id,
       air_date: episode.air_date,
@@ -248,159 +373,7 @@ export class TmdbService {
     })) as TmdbSeasonEpisode[];
 
     seasonData.episodes = filteredEpisodes;
-
     return seasonData;
-  }
-
-  async searchTmdb(query: string): Promise<TmdbResponse> {
-    return this.customHttpService.getResponse(TMDB.multiSearch(query));
-  }
-
-  async findTmdb(id: number): Promise<TmdbWithRelations> {
-    const tmdb = await this.findMatchInPrisma(id)
-    if (tmdb) return tmdb;
-    return await this.fetchTmdbByAnilist(id);
-  }
-
-  async findMatchInPrisma(id: number): Promise<TmdbWithRelations> {
-    const anilist = await this.anilistService.getAnilist(id);
-
-    let match = await this.prisma.tmdb.findFirst({
-      where: {
-        OR: [
-          {
-            name: {
-              equals: (anilist.title as { romaji: string }).romaji,
-              mode: 'insensitive',
-            }
-          },
-          {
-            name: {
-              equals: (anilist.title as { english: string }).english,
-              mode: 'insensitive',
-            }
-          },
-          {
-            original_name: {
-              equals: (anilist.title as { native: string }).native,
-              mode: 'insensitive',
-            }
-          }
-        ]
-      },
-      include: { seasons: true }
-    });
-
-    if (match && this.isTitleMatch(anilist, match as TmdbWithRelations)) {
-      return match as TmdbWithRelations;
-    }
-
-    const candidates = await this.prisma.tmdb.findMany({
-      where: {
-        OR: [
-          {
-            name: {
-              contains: ScrapeHelper.normalizeTitle((anilist.title as { romaji: string }).romaji),
-              mode: 'insensitive',
-            }
-          },
-          {
-            name: {
-              contains: ScrapeHelper.normalizeTitle((anilist.title as { english: string }).english || ''),
-              mode: 'insensitive',
-            }
-          },
-          {
-            original_name: {
-              contains: ScrapeHelper.normalizeTitle((anilist.title as { native: string }).native),
-              mode: 'insensitive',
-            }
-          }
-        ]
-      },
-      include: { seasons: true }
-    });
-
-    const bestMatch = this.findBestMatchFromCandidates(anilist, candidates as TmdbWithRelations[]);
-    
-    if (bestMatch) {
-      return bestMatch;
-    }
-
-    return Promise.resolve(undefined as unknown as TmdbWithRelations);
-  }
-
-  isTitleMatch(anilist: AnilistWithRelations, tmdb: TmdbWithRelations): boolean {
-    if (anilist.format?.toLowerCase() != tmdb.media_type?.toLowerCase()) {
-      return false;
-    }
-
-    return ScrapeHelper.compareTitles(
-      (anilist.title as { romaji: string }).romaji,
-      (anilist.title as { english: string }).english,
-      (anilist.title as { native: string }).native,
-      anilist.synonyms,
-      tmdb.name!!,
-      tmdb.original_name!!,
-    );
-  }
-
-  findBestMatchFromCandidates(
-    anilist: AnilistWithRelations,
-    candidates: TmdbWithRelations[],
-  ): TmdbWithRelations | null {
-    return candidates.find((tmdb) => this.isTitleMatch(anilist, tmdb)) || null;
-  }
-
-  async fetchTmdbByAnilist(id: number): Promise<TmdbWithRelations> {
-    const anilist = await this.anilistService.getAnilist(id);
-
-    let searchResults = await this.searchTmdb(
-      ScrapeHelper.normalizeTitle(anilist.title?.romaji ?? anilist.title?.english ?? ''),
-    );
-
-
-
-    let bestMatch = this.findBestMatchFromSearch(
-      anilist,
-      searchResults.results,
-    );
-    if (!bestMatch && (anilist.title as { english: string }).english) {
-      searchResults = await this.searchTmdb(
-        (anilist.title as { english: string }).english,
-      );
-      bestMatch = this.findBestMatchFromSearch(anilist, searchResults.results);
-    }
-    if (!bestMatch) {
-      throw new Error('No matching TMDb entry found');
-    }
-    const fetchedTmdb = await this.fetchTmdb(
-      bestMatch.id,
-      bestMatch.media_type,
-    );
-    fetchedTmdb.media_type = bestMatch.media_type;
-    return await this.saveTmdb(fetchedTmdb);
-  }
-
-  findBestMatchFromSearch(
-    anilist: AnilistWithRelations,
-    results: BasicTmdb[] | undefined,
-  ): BasicTmdb | null {
-    if (!results || !Array.isArray(results)) return null
-
-    return (
-      results.find((result) =>
-        anilist.format?.toLowerCase() === result.media_type.toLowerCase() &&
-        ScrapeHelper.compareTitles(
-          (anilist.title as { romaji: string }).romaji,
-          (anilist.title as { english: string }).english,
-          (anilist.title as { native: string }).native,
-          anilist.synonyms,
-          result.name,
-          result.original_name,
-        )
-      ) || null
-    )
   }
 
   async detectType(id: number): Promise<string> {

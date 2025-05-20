@@ -6,7 +6,7 @@ import { PrismaService } from '../../../../prisma.service';
 import { ZoroHelper } from '../utils/zoro-helper';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service'
-import { findBestMatch, ScrapeHelper } from '../../../../scrapper/scrape-helper'
+import { findBestMatch } from '../../../../mapper/mapper.helper'
 import { Source } from '../../stream/model/Source'
 import { TmdbService } from '../../tmdb/service/tmdb.service'
 
