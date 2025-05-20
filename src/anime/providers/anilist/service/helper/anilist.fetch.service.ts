@@ -34,11 +34,15 @@ export class AnilistFetchService {
     )
   }
 
-  async fetchMoreInfo(id: number): Promise<MoreInfoResponse> {
+  async fetchMoreInfo(id: number): Promise<MoreInfoResponse | null> {
     try {
-      return this.customHttpService.getResponse(Jikan.getMoreInfo(id))
+      const response: { data?: { moreinfo?: string } } = await this.customHttpService.getResponse(Jikan.getMoreInfo(id));
+      if (!response?.data?.moreinfo) {
+        return null;
+      }
+      return { data: response.data ?? {} };
     } catch (error) {
-      throw error;
+      return null;
     }
   }
 
