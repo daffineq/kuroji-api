@@ -1130,6 +1130,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [Prisma](https://www.prisma.io/) - ORM
 - [Consumet API](https://github.com/consumet/consumet.ts) - For anime scraping inspiration and utilities
 - Various anime API providers for their data
+- Mapping Code by: [Shimizudev](https://github.com/shimizudev)
 
 ## 📄 License
 

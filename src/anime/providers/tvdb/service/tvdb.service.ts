@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common'
 import { TvdbHelper } from '../utils/tvdb-helper'
 import { CustomHttpService } from '../../../../http/http.service'
 import { PrismaService } from '../../../../prisma.service'
-import { AnilistService } from '../../anilist/service/anilist.service'
 import { TmdbService } from '../../tmdb/service/tmdb.service'
 import { TvdbTokenService } from './token/tvdb.token.service'
 import { TVDB } from '../../../../configs/tvdb.config'
@@ -62,7 +61,6 @@ export class TvdbService {
     private readonly prisma: PrismaService,
     private readonly tmdbService: TmdbService,
     private readonly tokenService: TvdbTokenService,
-    private readonly anilistService: AnilistService,
     private readonly customHttpService: CustomHttpService,
     private readonly helper: TvdbHelper,
   ) { }

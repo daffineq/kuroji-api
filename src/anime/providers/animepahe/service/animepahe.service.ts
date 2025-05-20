@@ -3,7 +3,7 @@ import { Animepahe, AnimepaheEpisode, AnimepaheExternalLink } from '@prisma/clie
 import { UrlConfig } from '../../../../configs/url.config';
 import { CustomHttpService } from '../../../../http/http.service';
 import { PrismaService } from '../../../../prisma.service';
-import { ScrapeHelper } from '../../../../scrapper/scrape-helper';
+import { findBestMatch, ScrapeHelper } from '../../../../scrapper/scrape-helper';
 import { Source } from '../../stream/model/Source';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service';
@@ -126,24 +126,27 @@ export class AnimepaheService {
       (anilist.title as { romaji: string }).romaji,
     );
 
-    for (const result of searchResult.results) {
-      if (
-        ScrapeHelper.compareTitlesSimple(
-          (anilist.title as { romaji: string }).romaji,
-          (anilist.title as { english: string }).english,
-          (anilist.title as { native: string }).native,
-          anilist.synonyms,
-          result.title,
-        )
-      ) {
-        const data = await this.fetchAnimepahe(result.id) as AnimepaheWithRelations;
-        const externalLinks = data.externalLinks;
+    const results = searchResult.results.map(result => ({
+      title: result.title,
+      id: result.id
+    }));
 
-        if (externalLinks.find(l => l.sourceName === 'AniList' && l.id === String(id))) {
-          data.alId = id;
-          return data;
-        }
-      }
+    const searchCriteria = {
+      title: {
+        romaji: anilist.title?.romaji || undefined,
+        english: anilist.title?.english || undefined,
+        native: anilist.title?.native || undefined,
+      },
+      year: anilist.seasonYear ?? undefined,
+      episodes: anilist.episodes ?? undefined
+    };
+
+    const bestMatch = findBestMatch(searchCriteria, results);
+
+    if (bestMatch) {
+      const data = await this.fetchAnimepahe(bestMatch.result.id as string);
+      data.alId = id;
+      return data;
     }
 
     throw new Error('Animepahe not found');

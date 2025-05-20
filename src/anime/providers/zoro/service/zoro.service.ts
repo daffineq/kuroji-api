@@ -6,7 +6,7 @@ import { PrismaService } from '../../../../prisma.service';
 import { ZoroHelper } from '../utils/zoro-helper';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service'
-import { ScrapeHelper } from '../../../../scrapper/scrape-helper'
+import { findBestMatch, ScrapeHelper } from '../../../../scrapper/scrape-helper'
 import { Source } from '../../stream/model/Source'
 import { TmdbService } from '../../tmdb/service/tmdb.service'
 
@@ -137,26 +137,33 @@ export class ZoroService {
   
   async findZoroByAnilist(id: number): Promise<Zoro> {
     const anilist = await this.anilistService.getAnilist(id);
-    const searchResult = await this.searchZoro((anilist.title as { romaji: string }).romaji);
+    const searchResult = await this.searchZoro(
+      (anilist.title as { romaji: string }).romaji,
+    );
 
-    for (const z of searchResult.results) {
-      if (
-        ScrapeHelper.compareTitles(
-          (anilist.title as { romaji: string }).romaji,
-          (anilist.title as { english: string }).english,
-          (anilist.title as { native: string }).native,
-          anilist.synonyms,
-          z.title,
-          z.japaneseTitle
-        )
-      ) {
-        const zoroData = await this.fetchZoro(z.id);
-        if (zoroData.malID === anilist.idMal) {
-          zoroData.alID = id;
-          return zoroData as Zoro;
-        }
-      }
+    const results = searchResult.results.map(result => ({
+      title: result.title,
+      id: result.id
+    }));
+
+    const searchCriteria = {
+      title: {
+        romaji: anilist.title?.romaji || undefined,
+        english: anilist.title?.english || undefined,
+        native: anilist.title?.native || undefined,
+      },
+      year: anilist.seasonYear ?? undefined,
+      episodes: anilist.episodes ?? undefined
+    };
+
+    const bestMatch = findBestMatch(searchCriteria, results);
+
+    if (bestMatch) {
+      const data = await this.fetchZoro(bestMatch.result.id as string);
+      data.alID = id;
+      return data;
     }
+
     throw new Error('Zoro not found');
   }
 }
