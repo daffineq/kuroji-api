@@ -75,3 +75,10 @@ export enum MediaSort {
   UPDATED_AT = 'updated_at',
   UPDATED_AT_DESC = 'updated_at_desc',
 }
+
+export enum Language {
+  SUB = 'sub',
+  DUB = 'dub',
+  BOTH = 'both',
+  RAW = 'raw',
+}

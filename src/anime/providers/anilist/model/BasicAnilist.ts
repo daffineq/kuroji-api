@@ -2,7 +2,7 @@ import { AnilistCover, AnilistNextAiringEpisode, AnilistTitle, ShikimoriPoster, 
 
 export interface BasicShikimori {
   id?: string;
-  malId?: string;
+  malId?: number;
   russian?: string;
   licenseNameRu?: string;
   episodes?: number,

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnilistHelper } from '../utils/anilist-helper';
@@ -6,6 +6,7 @@ import { AnilistFetchService } from './helper/anilist.fetch.service'
 import { MediaType } from '../filter/Filter'
 import { AnilistWithRelations, AnilistResponse } from '../model/AnilistModels'
 import { AnilistUtilService } from './helper/anilist.util.service'
+import { ShikimoriService } from '../../shikimori/service/shikimori.service'
 
 @Injectable()
 export class AnilistService {
@@ -13,7 +14,8 @@ export class AnilistService {
     private readonly prisma: PrismaService,
     private readonly helper: AnilistHelper,
     private readonly fetch: AnilistFetchService,
-    private readonly util: AnilistUtilService
+    private readonly util: AnilistUtilService,
+    private readonly shikimori: ShikimoriService,
   ) {}
 
   async getAnilist(
@@ -71,11 +73,14 @@ export class AnilistService {
       },
     });
 
-    return await this.prisma.anilist.upsert({
+    await this.prisma.anilist.upsert({
       where: { id: anilist.id },
       create: this.helper.getDataForPrisma(anilist, videos),
       update: this.helper.getDataForPrisma(anilist, videos),
     });
+
+    await this.shikimori.getShikimori(String(anilist.idMal));
+    return await this.prisma.anilist.findUnique(this.helper.getFindUnique(anilist.id)) as AnilistWithRelations;
   }
   
   async updateAtAnilist(anilist: AnilistWithRelations, shouldSave: boolean = true): Promise<AnilistWithRelations> {

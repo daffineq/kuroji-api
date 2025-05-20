@@ -5,10 +5,14 @@ import { ShikimoriService } from '../service/shikimori.service';
 export class ShikimoriController {
   constructor(private readonly service: ShikimoriService) {}
 
-  @Get('info/:id')
-  async getShikimori(@Param('id') id: string) {
-    return this.service.getShikimori(id);
-  }
+  /*
+     Removed because it would cause error
+  */
+
+  // @Get('info/:id')
+  // async getShikimori(@Param('id') id: string) {
+  //   return this.service.getShikimori(id);
+  // }
 
   @Put('info/:id')
   async updateShikimori(@Param('id') id: string) {

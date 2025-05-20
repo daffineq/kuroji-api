@@ -8,7 +8,6 @@ export class AnimePaheHelper {
   ): Prisma.AnimepaheCreateInput {
     return {
       id: animePahe.id,
-      alId: animePahe.alId,
       title: animePahe.title,
       image: animePahe.image,
       cover: animePahe.cover,
@@ -41,6 +40,11 @@ export class AnimePaheHelper {
           }
         })) ?? []
       },
+      anilist: {
+        connect: {
+          id: animePahe.alId
+        }
+      }
     };
   }
 }

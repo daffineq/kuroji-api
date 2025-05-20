@@ -8,7 +8,6 @@ export class ZoroHelper {
       id: zoro.id,
       title: zoro.title,
       malID: zoro.malID,
-      alID: zoro.alID,
       japaneseTitle: zoro.japaneseTitle,
       image: zoro.image,
       description: zoro.description,
@@ -33,6 +32,11 @@ export class ZoroHelper {
             url: e.url
           }
         })) ?? []
+      },
+      anilist: {
+        connect: {
+          id: zoro.alID
+        }
       },
     };
   }

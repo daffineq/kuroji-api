@@ -14,6 +14,7 @@ import {
   MediaStatus,
   MediaType,
   MediaSource,
+  Language,
 } from '../filter/Filter'
 
 const TransformToArray = () =>
@@ -291,6 +292,11 @@ export class FilterDto {
   @IsEnum(MediaSeason)
   @Type(() => String)
   season?: MediaSeason
+
+  @IsOptional()
+  @IsEnum(Language)
+  @Type(() => String)
+  language?: Language
 
   @IsOptional()
   @IsNumber()

@@ -8,7 +8,6 @@ export class ShikimoriHelper {
   public getDataForPrisma(anime: any): CreateShikimoriData {
     return {
       id: anime.id,
-      malId: anime.malId,
       name: anime.name,
       russian: anime.russian,
       licenseNameRu: anime.licenseNameRu,
@@ -111,6 +110,11 @@ export class ShikimoriHelper {
           })),
         }
         : undefined,
+      anilist: {
+        connect: {
+          idMal: +anime.malId
+        }
+      }  
     }
   }
 

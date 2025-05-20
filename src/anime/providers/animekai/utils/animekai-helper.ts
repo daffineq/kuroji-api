@@ -6,7 +6,6 @@ export class AnimeKaiHelper {
   getAnimekaiData(anime: any): Prisma.AnimeKaiCreateInput {
     return {
       id: anime.id,
-      anilistId: anime.anilistId,
       title: anime.title,
       japaneseTitle: anime.japaneseTitle,
       image: anime.image,
@@ -33,6 +32,11 @@ export class AnimeKaiHelper {
           }
         })) ?? []
       },
+      anilist: {
+        connect: {
+          id: anime.anilistId
+        }
+      }
     };
   }
 }

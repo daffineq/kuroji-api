@@ -1,6 +1,6 @@
 model Animepahe {
   id             String              @id
-  alId           Int?
+  alId           Int?                @unique 
   title          String?
   image          String?
   cover          String?
@@ -13,6 +13,8 @@ model Animepahe {
   episodePages   Int?
 
   episodes       AnimepaheEpisode[] @relation("AnimepaheEpisode")
+
+  anilist Anilist? @relation(fields: [alId], references: [id])
 }
 
 model AnimepaheEpisode {

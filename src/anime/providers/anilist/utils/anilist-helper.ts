@@ -4,10 +4,13 @@ import { BasicAnilist, BasicAnilistSmall, BasicShikimori } from '../model/BasicA
 import { ScheduleData } from '../model/AnilistModels'
 import { ShikimoriWithRelations } from '../../shikimori/service/shikimori.service'
 import { Episode, MusicVideo, PromoVideo, VideosResponse } from '../../../../configs/jikan.config'
+import { ShikimoriHelper } from '../../shikimori/utils/shikimori-helper'
 
 @Injectable()
 export class AnilistHelper {
-  constructor() {}
+  constructor(
+    private readonly shikimoriHelper: ShikimoriHelper
+  ) {}
 
   public getDataForPrisma(anime: any, mal: VideosResponse | null = null): Prisma.AnilistCreateInput {
     return {
@@ -536,7 +539,10 @@ export class AnilistHelper {
           malId: true,
           anilistId: true,
         }
-      }
+      },
+      shikimori: {
+        include: this.shikimoriHelper.getInclude(),
+      },
     }
 
     return include;

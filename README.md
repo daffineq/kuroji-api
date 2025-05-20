@@ -210,6 +210,9 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
   sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" | 
               "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
   
+  // Language in which anime available
+  language?: "sub" | "dub" | "both" | "raw"
+
   // Content filters
   isAdult?: boolean;        // Filter adult content
   isLicensed?: boolean;     // Filter licensed content
@@ -335,6 +338,9 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
   sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" | 
               "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
   
+  // Language in which anime available
+  language?: "sub" | "dub" | "both" | "raw"     
+
   // Content filters
   isAdult?: boolean;        // Filter adult content
   isLicensed?: boolean;     // Filter licensed content
@@ -518,6 +524,9 @@ GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&gen
   // Source material filters
   sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" | 
               "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
+
+  // Language in which anime available
+  language?: "sub" | "dub" | "both" | "raw"                 
   
   // Content filters
   isAdult?: boolean;        // Filter adult content
@@ -667,6 +676,9 @@ GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popu
   // Source material filters
   sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" | 
               "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
+
+  // Language in which anime available
+  language?: "sub" | "dub" | "both" | "raw"            
   
   // Content filters
   isAdult?: boolean;        // Filter adult content
@@ -794,6 +806,8 @@ GET https://api.example.com/api/shikimori/info/21
 
 **Parameters:**
 - `id` (path): Anime ID (required)
+
+> **Warning**: It's not available right now
 </details>
 
 <details>

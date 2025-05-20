@@ -23,11 +23,9 @@ export class AnilistScheduleService {
 
     const releases = await this.getThisWeeksAnilist(start, end);
 
-    const data = await this.add.addShikimori(releases);
-
     const releasesByDay: Partial<Record<Weekday, BasicAnilistSmall[]>> = {}
 
-    for (const release of data) {
+    for (const release of releases) {
       const small = this.helper.convertBasicToBasicSmall(release)
       const airingAt = small.nextAiringEpisode?.airingAt
 

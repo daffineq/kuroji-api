@@ -186,27 +186,27 @@ export class AnilistAddService {
     return response;
   }
 
-  async addShikimori(
-    data: AnilistWithRelations[],
-  ): Promise<AnilistWithRelations[]> {
-    const malIds = data
-      .map((anilist) => anilist.idMal)
-      .filter((id): id is number => id != null)
-      .map((id) => id.toString())
-      .join(',');
-    const shikimoriData = await this.shikimori.saveMultipleShikimori(malIds);
+  // async addShikimori(
+  //   data: AnilistWithRelations[],
+  // ): Promise<AnilistWithRelations[]> {
+  //   const malIds = data
+  //     .map((anilist) => anilist.idMal)
+  //     .filter((id): id is number => id != null)
+  //     .map((id) => id.toString())
+  //     .join(',');
+  //   const shikimoriData = await this.shikimori.saveMultipleShikimori(malIds);
 
-    return data.map((anilist) => {
-      const malId = anilist.idMal?.toString() || '';
-      const shikimori = shikimoriData.find(
-        (data) => data.malId?.toString() == malId,
-      );
-      return {
-        ...anilist,
-        shikimori: (shikimori as any) || null,
-      } as AnilistWithRelations;
-    });
-  }
+  //   return data.map((anilist) => {
+  //     const malId = anilist.idMal?.toString() || '';
+  //     const shikimori = shikimoriData.find(
+  //       (data) => data.malId?.toString() == malId,
+  //     );
+  //     return {
+  //       ...anilist,
+  //       shikimori: (shikimori as any) || null,
+  //     } as AnilistWithRelations;
+  //   });
+  // }
 
   async getAllGenres(): Promise<string[]> {
     const results = await this.prisma.anilist.findMany({

@@ -1,6 +1,6 @@
 model Anilist {
   id              Int           @id
-  idMal           Int?
+  idMal           Int?          @unique
   title           AnilistTitle? @relation("AnilistTitle")
   bannerImage     String?
   status          String?
@@ -52,6 +52,11 @@ model Anilist {
   
   // Jikan episodes
   jikanEpisodes      AnilistJikanEpisode[]       @relation("AnilistJikanEpisodes")
+
+  animepahe          Animepahe?
+  animekai           AnimeKai?
+  zoro               Zoro?
+  shikimori          Shikimori?
 }
 
 model AnilistTitle {

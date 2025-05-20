@@ -1,6 +1,6 @@
 model AnimeKai {
   id             String        @id
-  anilistId      Int?
+  anilistId      Int?          @unique
   title          String?
   japaneseTitle  String?
   image          String?
@@ -15,6 +15,8 @@ model AnimeKai {
   totalEpisodes  Int?
 
   episodes       AnimekaiEpisode[] @relation("AnimekaiEpisode")
+
+  anilist Anilist? @relation(fields: [anilistId], references: [id])
 }
 
 model AnimekaiEpisode {

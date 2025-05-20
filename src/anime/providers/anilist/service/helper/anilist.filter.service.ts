@@ -5,6 +5,7 @@ import { FilterDto } from '../../model/FilterDto'
 import { PrismaService } from '../../../../../prisma.service'
 import { AnilistHelper } from '../../utils/anilist-helper'
 import { firstUpperList, getPageInfo } from '../../../../../shared/utils'
+import { Language } from '../../filter/Filter'
 
 @Injectable()
 export class AnilistFilterService {
@@ -16,19 +17,6 @@ export class AnilistFilterService {
   async getAnilistByFilter(
     filter: FilterDto,
   ): Promise<ApiResponse<Anilist[]>> {
-    const shikimori = await this.prisma.shikimori.findMany({
-      where: {
-        OR: [
-          { russian: { contains: filter.query, mode: 'insensitive' } },
-          { licenseNameRu: { contains: filter.query, mode: 'insensitive' } },
-        ],
-      },
-    })
-
-    const malIdsFromShikimori = shikimori
-      .map((s) => +s.malId!)
-      .filter((id) => !!id)
-
     const conditions: any[] = []
 
     // ========== Basic Filters ==========
@@ -45,6 +33,59 @@ export class AnilistFilterService {
     ]
     for (const [key, value] of basicFields) {
       if (value !== undefined) conditions.push({ [key as any]: value })
+    }
+
+    // ========== Language Filter ==========
+    if (filter.language) {
+      switch (filter.language) {
+        case Language.SUB:
+          conditions.push({
+            zoro: {
+              episodes: {
+                every: {
+                  isDubbed: false,
+                  isSubbed: true
+                }
+              }
+            }
+          });
+          break;
+        case Language.DUB:
+          conditions.push({
+            zoro: {
+              episodes: {
+                some: {
+                  isDubbed: true
+                }
+              }
+            }
+          });
+          break;
+        case Language.BOTH:
+          conditions.push({
+            zoro: {
+              episodes: {
+                some: {
+                  isDubbed: true,
+                  isSubbed: true
+                }
+              }
+            }
+          });
+          break;
+        case Language.RAW:
+          conditions.push({
+            zoro: {
+              episodes: {
+                every: {
+                  isDubbed: false,
+                  isSubbed: false
+                }
+              }
+            }
+          });
+          break;
+      }
     }
 
     // ========== Array Filters ==========
@@ -223,11 +264,9 @@ export class AnilistFilterService {
         { title: { english: { contains: q, mode: 'insensitive' } } },
         { title: { native: { contains: q, mode: 'insensitive' } } },
         { synonyms: { hasSome: [q] } },
+        { shikimori: { russian: { contains: q, mode: 'insensitive' } } },
+        { shikimori: { licenseNameRu: { contains: q, mode: 'insensitive' } } },
       )
-    }
-
-    if (malIdsFromShikimori.length) {
-      searchOr.push({ idMal: { in: malIdsFromShikimori } })
     }
 
     if (searchOr.length) {

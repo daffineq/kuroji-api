@@ -10,7 +10,7 @@ datasource db {
 // Anilist.prisma
 model Anilist {
   id              Int           @id
-  idMal           Int?
+  idMal           Int?          @unique
   title           AnilistTitle? @relation("AnilistTitle")
   bannerImage     String?
   status          String?
@@ -62,6 +62,11 @@ model Anilist {
   
   // Jikan episodes
   jikanEpisodes      AnilistJikanEpisode[]       @relation("AnilistJikanEpisodes")
+
+  animepahe          Animepahe?
+  animekai           AnimeKai?
+  zoro               Zoro?
+  shikimori          Shikimori?
 }
 
 model AnilistTitle {
@@ -370,7 +375,7 @@ model AnilistJikanEpisode {
 // Animekai.prisma
 model AnimeKai {
   id             String        @id
-  anilistId      Int?
+  anilistId      Int?          @unique
   title          String?
   japaneseTitle  String?
   image          String?
@@ -385,6 +390,8 @@ model AnimeKai {
   totalEpisodes  Int?
 
   episodes       AnimekaiEpisode[] @relation("AnimekaiEpisode")
+
+  anilist Anilist? @relation(fields: [anilistId], references: [id])
 }
 
 model AnimekaiEpisode {
@@ -402,7 +409,7 @@ model AnimekaiEpisode {
 // Animepahe.prisma
 model Animepahe {
   id             String              @id
-  alId           Int?
+  alId           Int?                @unique 
   title          String?
   image          String?
   cover          String?
@@ -415,6 +422,8 @@ model Animepahe {
   episodePages   Int?
 
   episodes       AnimepaheEpisode[] @relation("AnimepaheEpisode")
+
+  anilist Anilist? @relation(fields: [alId], references: [id])
 }
 
 model AnimepaheEpisode {
@@ -470,7 +479,7 @@ model LastUpdated {
 // Shikimori.prisma
 model Shikimori {
   id            String        @id
-  malId         String?
+  malId         Int?          @unique
   name          String?
   russian       String?
   licenseNameRu String?
@@ -496,6 +505,7 @@ model Shikimori {
   chronology    BasicIdShik[] @relation("ShikimoriChronology")
   videos        ShikimoriVideo[] @relation("ShikimoriVideo")
   screenshots   ShikimoriScreenshot[] @relation("ShikimoriScreenshot")
+  anilist       Anilist? @relation(fields: [malId], references: [idMal])
 }
 
 model AiredOn {
@@ -776,9 +786,9 @@ model TvdbLanguage {
 // Zoro.prisma
 model Zoro {
   id            String        @id
-  title         String?
-  malID         Int?
-  alID          Int?
+  title         String?   
+  malID         Int? 
+  alID          Int?          @unique
   japaneseTitle String?
   image         String?
   description   String?
@@ -791,6 +801,8 @@ model Zoro {
   season        String?
   totalEpisodes Int?
   episodes      EpisodeZoro[] @relation("EpisodeZoro")
+
+  anilist Anilist? @relation(fields: [alID], references: [id])
 }
 
 model EpisodeZoro {

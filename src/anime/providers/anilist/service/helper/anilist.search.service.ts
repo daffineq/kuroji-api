@@ -20,9 +20,7 @@ export class AnilistSearchService {
   ): Promise<SearcnResponse<BasicAnilist[]>> {
     const response = await this.filter.getAnilistByFilter(filter);
 
-    const data = await this.add.addShikimori(response.data);
-
-    const basicAnilist = data.map((anilist) =>
+    const basicAnilist = response.data.map((anilist) =>
       this.helper.convertAnilistToBasic(anilist),
     );
 
@@ -32,9 +30,7 @@ export class AnilistSearchService {
   async searchAnilist(q: string): Promise<SearcnResponse<BasicAnilist[]>> {
     const response = await this.filter.getAnilistByFilter(new FilterDto({ query: q }))
 
-    const data = await this.add.addShikimori(response.data);
-
-    const basicAnilist = data.map((anilist) =>
+    const basicAnilist = response.data.map((anilist) =>
       this.helper.convertAnilistToBasic(anilist),
     )
 

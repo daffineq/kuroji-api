@@ -1,6 +1,6 @@
 model Shikimori {
   id            String        @id
-  malId         String?
+  malId         Int?          @unique
   name          String?
   russian       String?
   licenseNameRu String?
@@ -26,6 +26,7 @@ model Shikimori {
   chronology    BasicIdShik[] @relation("ShikimoriChronology")
   videos        ShikimoriVideo[] @relation("ShikimoriVideo")
   screenshots   ShikimoriScreenshot[] @relation("ShikimoriScreenshot")
+  anilist       Anilist? @relation(fields: [malId], references: [idMal])
 }
 
 model AiredOn {
