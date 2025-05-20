@@ -9,7 +9,7 @@ import {
 import { TMDB } from '../../../../configs/tmdb.config';
 import { CustomHttpService } from '../../../../http/http.service';
 import { PrismaService } from '../../../../prisma.service';
-import { sanitizeTitle, findBestMatch, ExpectAnime } from '../../../../mapper/mapper.helper';
+import { sanitizeTitle, findBestMatch, ExpectAnime, deepCleanTitle } from '../../../../mapper/mapper.helper';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service';
 import { TmdbHelper } from '../utils/tmdb-helper';
@@ -174,9 +174,14 @@ export class TmdbService {
 
   async fetchTmdbByAnilist(id: number): Promise<TmdbWithRelations> {
     const anilist = await this.anilistService.getAnilist(id);
+    const title = anilist.title?.romaji ?? anilist.title?.english ?? anilist.title?.native;
+
+    if (!title) {
+      throw new Error('No title found in AniList');
+    }
 
     let searchResults = await this.searchTmdb(
-      sanitizeTitle(anilist.title?.romaji ?? anilist.title?.english ?? '') || '',
+      deepCleanTitle(title)
     );
 
     let bestMatch = this.findBestMatchFromSearch(

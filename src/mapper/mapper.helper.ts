@@ -1,3 +1,37 @@
+export const SPECIAL_CHARS_REGEX = /[^\w\s]/g
+export const SEASON_PATTERNS = [
+  /\b(\d+)(?:st|nd|rd|th)?\s*season\b/i,    // "1st season", "2nd season", "3 season"
+  /\bseason\s*(\d+)\b/i,                     // "season 1", "season 2"
+  /\bs(\d+)\b/i,                             // "s1", "s2"
+  /\b(\d+)(期|クール)\b/,                    // Japanese season indicators
+]
+
+export const PART_PATTERNS = [
+  /\bpart\s*(\d+)\b/i,                       // "part 1", "part 2"
+  /\bp(\d+)\b/i,                             // "p1", "p2"
+  /\b(\d+)部\b/,                             // Japanese part indicator
+]
+
+export const FORMAT_INDICATORS = [
+  /\b(?:ova|oad|ona)\b/i,                    // Animation format indicators
+  /\b(?:movie|film|theatrical)\b/i,          // Movie indicators
+  /\b(?:special|sp|specials)\b/i,            // Special episode indicators
+  /\b(?:tv|television)\s*series?\b/i,        // TV series indicators
+  /\b(?:web|net)\s*series?\b/i,              // Web series indicators
+]
+
+export const EXTRA_PATTERNS = [
+  /\b(?:complete|collection|series)\b/i,      // Collection indicators
+  /\b(?:dubbed|subbed|uncensored|uncut)\b/i, // Version indicators
+  /\b(?:hd|bd|dvd|blu-ray)\b/i,              // Media format
+  /\b(?:remaster(?:ed)?|remake)\b/i,         // Version types
+  /\b(?:final|chapter|episode|vol\.?)\b/i,   // Content indicators
+  /[-~+:]/g,                                 // Common separators
+  /\([^)]*\)/g,                             // Remove anything in parentheses
+  /\[[^\]]*\]/g,                            // Remove anything in square brackets
+  /\{[^}]*\}/g,                             // Remove anything in curly braces
+];
+
 /**
  * Calculates the Jaro-Winkler distance between two strings.
  * Returns a value between 0 and 1, where 1 means the strings are identical
@@ -99,6 +133,51 @@ export function cleanTitle(title?: string): string | undefined {
       // Limit the length of the title to 100 characters
       .slice(0, 100)
   )
+}
+
+export function deepCleanTitle(title: string): string {
+  if (!title) return "";
+  
+  // Convert to lowercase and trim
+  let cleaned = title.toLowerCase().trim();
+  
+  // Remove all special characters
+  cleaned = cleaned.replace(SPECIAL_CHARS_REGEX, " ");
+  
+  // Remove season indicators
+  SEASON_PATTERNS.forEach(pattern => {
+    cleaned = cleaned.replace(pattern, "");
+  });
+  
+  // Remove part indicators
+  PART_PATTERNS.forEach(pattern => {
+    cleaned = cleaned.replace(pattern, "");
+  });
+  
+  // Remove format indicators
+  FORMAT_INDICATORS.forEach(pattern => {
+    cleaned = cleaned.replace(pattern, "");
+  });
+  
+  // Remove extra patterns
+  EXTRA_PATTERNS.forEach(pattern => {
+    cleaned = cleaned.replace(pattern, "");
+  });
+  
+  // Additional cleaning steps
+  cleaned = cleaned
+    // Remove year patterns
+    .replace(/\b\d{4}\b/g, "")
+    // Remove single digits (often season/part numbers)
+    .replace(/\b\d\b/g, "")
+    // Remove common anime title prefixes
+    .replace(/^(?:the|a|an)\s+/i, "")
+    // Replace multiple spaces with single space
+    .replace(/\s+/g, " ")
+    // Remove leading/trailing spaces
+    .trim();
+
+  return cleaned;
 }
 
 /**
