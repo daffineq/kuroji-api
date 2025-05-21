@@ -46,7 +46,7 @@ export class KitsuService {
       data: {
         entityId: kitsu.data.id,
         externalId: kitsu.data.anilistId,
-        type: UpdateType.ANILIST,
+        type: UpdateType.KITSU,
       },
     });
 

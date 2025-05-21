@@ -15,6 +15,7 @@ import {
   MediaType,
   MediaSource,
   Language,
+  AgeRating,
 } from '../filter/Filter'
 
 const TransformToArray = () =>
@@ -271,6 +272,11 @@ export class FilterDto {
   @IsOptional()
   @IsBoolean()
   @TransformToBoolean()
+  nsfw?: boolean
+
+  @IsOptional()
+  @IsBoolean()
+  @TransformToBoolean()
   isLicensed?: boolean
 
   @IsOptional()
@@ -297,6 +303,13 @@ export class FilterDto {
   @IsEnum(Language)
   @Type(() => String)
   language?: Language
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @IsEnum(AgeRating, { each: true })
+  @Type(() => String)
+  ageRating?: AgeRating[]
 
   @IsOptional()
   @IsNumber()

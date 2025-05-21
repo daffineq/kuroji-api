@@ -35,6 +35,14 @@ export class AnilistFilterService {
       if (value !== undefined) conditions.push({ [key as any]: value })
     }
 
+    if (filter.nsfw) {
+      conditions.push({
+        kitsu: {
+          nsfw: filter.nsfw,
+        }
+      })
+    }
+
     // ========== Language Filter ==========
     if (filter.language) {
       switch (filter.language) {
@@ -169,6 +177,14 @@ export class AnilistFilterService {
     ]
     for (const [field, op, val] of enumFilters) {
       if (val) conditions.push({ [field as any]: { [op as any]: val } })
+    }
+
+    if (filter.ageRating) {
+      conditions.push({
+        kitsu: {
+          ageRating: { in: filter.ageRating },
+        }
+      })
     }
 
     // ========== Tags Filters ==========
