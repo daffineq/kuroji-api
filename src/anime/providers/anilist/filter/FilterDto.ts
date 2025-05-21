@@ -16,7 +16,7 @@ import {
   MediaSource,
   Language,
   AgeRating,
-} from '../filter/Filter'
+} from './Filter'
 
 const TransformToArray = () =>
   Transform(({ value }) => {

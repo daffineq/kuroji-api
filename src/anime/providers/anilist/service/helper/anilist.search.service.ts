@@ -1,7 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { SearcnResponse, FranchiseResponse } from '../../model/AnilistModels'
 import { BasicAnilist } from '../../model/BasicAnilist'
-import { FilterDto } from '../../model/FilterDto'
+import { FilterDto } from '../../filter/FilterDto'
 import { AnilistFilterService } from './anilist.filter.service'
 import { AnilistAddService } from './anilist.add.service'
 import { AnilistHelper } from '../../utils/anilist-helper'

@@ -122,6 +122,7 @@ export default class AnilistQL {
       type
       format
       updatedAt
+      siteUrl
       coverImage {
         extraLarge
         large

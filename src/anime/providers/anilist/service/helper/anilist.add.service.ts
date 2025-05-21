@@ -3,7 +3,7 @@ import { BasicIdAni, AnilistCharacter, AnilistTag } from '@prisma/client';
 import { ApiResponse, PageInfo } from '../../../../../api/ApiResponse';
 import { TMDB } from '../../../../../configs/tmdb.config';
 import { BasicAnilistSmall, BasicAnilist } from '../../model/BasicAnilist';
-import { FilterDto } from '../../model/FilterDto';
+import { FilterDto } from '../../filter/FilterDto';
 import { PrismaService } from '../../../../../prisma.service';
 import { ShikimoriService } from '../../../shikimori/service/shikimori.service';
 import { TmdbService } from '../../../tmdb/service/tmdb.service';

@@ -11,6 +11,7 @@ import * as express from 'express'
 import { join } from 'path'
 import Config from './configs/Config'
 import { ThrottlerGuard } from '@nestjs/throttler'
+import { UndefinedToNullInterceptor } from './shared/UndefinedToNullInterceptor'
 
 config();
 
@@ -25,6 +26,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
   app.use(new RootPathBlockerMiddleware().use)
+  app.useGlobalInterceptors(new UndefinedToNullInterceptor());
   app.enableCors({
     origin: Config.CORS,
     credentials: true,

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { Anilist } from '@prisma/client'
 import { ApiResponse } from '../../../../../api/ApiResponse'
-import { FilterDto } from '../../model/FilterDto'
+import { FilterDto } from '../../filter/FilterDto'
 import { PrismaService } from '../../../../../prisma.service'
 import { AnilistHelper } from '../../utils/anilist-helper'
 import { firstUpperList, getPageInfo } from '../../../../../shared/utils'

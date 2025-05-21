@@ -211,12 +211,14 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
               "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
   
   // Language in which anime available
-  language?: "sub" | "dub" | "both" | "raw"
+  language?: "sub" | "dub" | "both" | "raw";
 
   // Content filters
   isAdult?: boolean;        // Filter adult content
   isLicensed?: boolean;     // Filter licensed content
   countryOfOrigin?: string; // Filter by country code
+  nsfw?: boolean;           // Filter NSFW content
+  ageRating?: ("G" | "PG" | "PG_13" | "R" | "R+" | "RX")[];  // Filter by age rating
   
   // Date filters
   startDateGreater?: string; // After this date (YYYY-MM-DD)
@@ -339,12 +341,14 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
               "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
   
   // Language in which anime available
-  language?: "sub" | "dub" | "both" | "raw"     
+  language?: "sub" | "dub" | "both" | "raw";     
 
   // Content filters
   isAdult?: boolean;        // Filter adult content
   isLicensed?: boolean;     // Filter licensed content
   countryOfOrigin?: string; // Filter by country code
+  nsfw?: boolean;           // Filter NSFW content
+  ageRating?: ("G" | "PG" | "PG_13" | "R" | "R+" | "RX")[];  // Filter by age rating
   
   // Date filters
   startDateGreater?: string; // After this date (YYYY-MM-DD)
@@ -526,12 +530,14 @@ GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&gen
               "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
 
   // Language in which anime available
-  language?: "sub" | "dub" | "both" | "raw"                 
+  language?: "sub" | "dub" | "both" | "raw";                  
   
   // Content filters
   isAdult?: boolean;        // Filter adult content
   isLicensed?: boolean;     // Filter licensed content
   countryOfOrigin?: string; // Filter by country code
+  nsfw?: boolean;           // Filter NSFW content
+  ageRating?: ("G" | "PG" | "PG_13" | "R" | "R+" | "RX")[];  // Filter by age rating
   
   // Date filters
   startDateGreater?: string; // After this date (YYYY-MM-DD)
@@ -678,12 +684,14 @@ GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popu
               "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
 
   // Language in which anime available
-  language?: "sub" | "dub" | "both" | "raw"            
+  language?: "sub" | "dub" | "both" | "raw";            
   
   // Content filters
   isAdult?: boolean;        // Filter adult content
   isLicensed?: boolean;     // Filter licensed content
   countryOfOrigin?: string; // Filter by country code
+  nsfw?: boolean;           // Filter NSFW content
+  ageRating?: ("G" | "PG" | "PG_13" | "R" | "R+" | "RX")[];  // Filter by age rating
   
   // Date filters
   startDateGreater?: string; // After this date (YYYY-MM-DD)

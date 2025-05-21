@@ -10,7 +10,7 @@ import { AnilistService } from '../service/anilist.service';
 import { AnilistIndexerService } from '../service/anilist-indexer/anilist-indexer.service';
 import { StreamService } from '../../stream/service/stream.service';
 import { Provider } from '../../stream/model/Provider';
-import { FilterDto } from '../model/FilterDto';
+import { FilterDto } from '../filter/FilterDto';
 import { AnilistAddService } from '../service/helper/anilist.add.service';
 import { AnilistScheduleService } from '../service/helper/anilist.schedule.service';
 import Dimens from '../../../../configs/Dimens';
