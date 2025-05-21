@@ -12,6 +12,7 @@ import { ZoroService } from '../anime/providers/zoro/service/zoro.service'
 import Config from '../configs/Config'
 import { MediaStatus } from '../anime/providers/anilist/filter/Filter'
 import { TvdbService, TvdbStatus } from '../anime/providers/tvdb/service/tvdb.service'
+import { KitsuService } from '../anime/providers/kitsu/service/kitsu.service'
 
 interface IProvider {
   update: (id: any) => any;
@@ -34,6 +35,7 @@ export class UpdateService {
     private readonly ShikService: ShikimoriService,
     private readonly TmdbService: TmdbService,
     private readonly TvdbService: TvdbService,
+    private readonly KitsuService: KitsuService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -65,6 +67,10 @@ export class UpdateService {
     {
       update: (id: any) => this.TvdbService.update(Number(id)),
       type: UpdateType.TVDB,
+    },
+    {
+      update: (id: any) => this.KitsuService.updateKitsu(id),
+      type: UpdateType.KITSU,
     },
   ];
 

@@ -15,6 +15,7 @@ export class UrlConfig {
   public static readonly ANILIST_GRAPHQL = Config.ANILIST || 'https://graphql.anilist.co';
   public static readonly TMDB: string = withTrailingSlash(Config.TMDB || 'https://api.themoviedb.org/3/');
   public static readonly TVDB: string = withTrailingSlash(Config.TVDB || 'https://api4.thetvdb.com/v4/');
+  public static readonly KITSU: string = withTrailingSlash(Config.KITSU || 'https://kitsu.io/api/edge/');
 
   // 📡 External Links
   public static readonly MAL = 'https://myanimelist.net/anime/';

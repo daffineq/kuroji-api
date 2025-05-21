@@ -14,7 +14,7 @@ export interface BasicAnimepahe {
   id: string;
   title: string;
   image: string;
-  releaseDate: string;
+  releaseDate: number;
   type: string;
 }
 
@@ -128,7 +128,8 @@ export class AnimepaheService {
 
     const results = searchResult.results.map(result => ({
       title: result.title,
-      id: result.id
+      id: result.id,
+      year: result.releaseDate
     }));
 
     const searchCriteria = {

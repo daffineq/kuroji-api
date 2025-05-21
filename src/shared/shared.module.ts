@@ -29,6 +29,8 @@ import { ShikimoriHelperModule } from '../anime/providers/shikimori/module/shiki
 import { Redis } from './redis.module'
 import { AnilistSearchService } from '../anime/providers/anilist/service/helper/anilist.search.service'
 import { AnilistUtilService } from '../anime/providers/anilist/service/helper/anilist.util.service'
+import { KitsuService } from '../anime/providers/kitsu/service/kitsu.service'
+import { KitsuHelper } from '../anime/providers/kitsu/util/kitsu-helper'
 
 @Module({
   imports: [
@@ -61,6 +63,8 @@ import { AnilistUtilService } from '../anime/providers/anilist/service/helper/an
     TvdbService,
     TvdbTokenService,
     TvdbHelper,
+    KitsuService,
+    KitsuHelper,
     UpdateService,
     StreamService,
     ExceptionsService
@@ -88,6 +92,8 @@ import { AnilistUtilService } from '../anime/providers/anilist/service/helper/an
     TvdbService,
     TvdbTokenService,
     TvdbHelper,
+    KitsuService,
+    KitsuHelper,
     UpdateService,
     StreamService,
     ExceptionsService

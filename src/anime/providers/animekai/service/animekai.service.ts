@@ -123,7 +123,7 @@ export class AnimekaiService {
 
     const results = searchResult.results.map(result => ({
       title: result.title,
-      id: result.id
+      id: result.id,
     }));
 
     const searchCriteria = {

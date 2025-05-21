@@ -82,3 +82,10 @@ export enum Language {
   BOTH = 'both',
   RAW = 'raw',
 }
+
+export enum AgeRating {
+  G = 'G',
+  PG = 'PG',
+  R = 'R',
+  R18 = 'R18',
+}

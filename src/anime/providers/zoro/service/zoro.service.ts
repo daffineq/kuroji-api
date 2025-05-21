@@ -16,6 +16,9 @@ export interface BasicZoro {
   url: string;
   image: string;
   japaneseTitle: string;
+  sub: number;
+  dub: number;
+  episodes: number;
 }
 
 export interface ZoroResponse {
@@ -143,7 +146,8 @@ export class ZoroService {
 
     const results = searchResult.results.map(result => ({
       title: result.title,
-      id: result.id
+      id: result.id,
+      episodes: result.sub
     }));
 
     const searchCriteria = {

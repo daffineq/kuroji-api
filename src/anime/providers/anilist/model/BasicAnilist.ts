@@ -1,4 +1,4 @@
-import { AnilistCover, AnilistNextAiringEpisode, AnilistTitle, ShikimoriPoster, StartDate } from '@prisma/client'
+import { AnilistCover, AnilistNextAiringEpisode, AnilistTitle, KitsuCoverImage, KitsuPosterImage, KitsuTitle, ShikimoriPoster, StartDate } from '@prisma/client'
 
 export interface BasicShikimori {
   id?: string;
@@ -10,6 +10,23 @@ export interface BasicShikimori {
   url?: string;
   franchise?: string;
   poster?: ShikimoriPoster;
+}
+
+export interface BasicKitsu {
+  id?: string;
+  anilistId?: number;
+  titles?: KitsuTitle;
+  slug?: string;
+  synopsis?: string;
+  episodeCount?: number;
+  episodeLength?: number;
+  canonicalTitle?: string;
+  averageRating?: string;
+  ageRating?: string;
+  ageRatingGuide?: string;
+  posterImage?: KitsuPosterImage;
+  coverImage?: KitsuCoverImage;
+  showType?: string;
 }
 
 export interface BasicAnilist {
@@ -53,6 +70,7 @@ export interface BasicAnilist {
   nextAiringEpisode?: AnilistNextAiringEpisode;
 
   shikimori?: BasicShikimori;
+  kitsu?: BasicKitsu;
 }
 
 export interface BasicAnilistSmall {
@@ -84,5 +102,6 @@ export interface BasicAnilistSmall {
 
   nextAiringEpisode?: AnilistNextAiringEpisode;
 
-  shikimori?: BasicShikimori
+  shikimori?: BasicShikimori;
+  kitsu?: BasicKitsu;
 }

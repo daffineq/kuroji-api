@@ -7,6 +7,7 @@ import { MediaType } from '../filter/Filter'
 import { AnilistWithRelations, AnilistResponse } from '../model/AnilistModels'
 import { AnilistUtilService } from './helper/anilist.util.service'
 import { ShikimoriService } from '../../shikimori/service/shikimori.service'
+import { KitsuService } from '../../kitsu/service/kitsu.service'
 
 @Injectable()
 export class AnilistService {
@@ -16,6 +17,8 @@ export class AnilistService {
     private readonly fetch: AnilistFetchService,
     private readonly util: AnilistUtilService,
     private readonly shikimori: ShikimoriService,
+    @Inject(forwardRef(() => KitsuService))
+    private readonly kitsu: KitsuService,
   ) {}
 
   async getAnilist(
@@ -80,6 +83,8 @@ export class AnilistService {
     });
 
     await this.shikimori.getShikimori(String(anilist.idMal));
+    await this.kitsu.getKitsuByAnilist(anilist.id);
+
     return await this.prisma.anilist.findUnique(this.helper.getFindUnique(anilist.id)) as AnilistWithRelations;
   }
   

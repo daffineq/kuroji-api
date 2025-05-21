@@ -67,6 +67,7 @@ model Anilist {
   animekai           AnimeKai?
   zoro               Zoro?
   shikimori          Shikimori?
+  kitsu              Kitsu?
 }
 
 model AnilistTitle {
@@ -465,6 +466,114 @@ model AnilistIndexerState {
   id               String   @id @default("anime")
   lastFetchedPage  Int
   updatedAt        DateTime @updatedAt
+}
+
+// Kitsu.prisma
+model Kitsu {
+  // Base Fields
+  id                  String      @id
+  type                String?
+  selfLink            String?     @map("self_link")
+
+  // Attributes
+  createdAt           DateTime?   @map("created_at")
+  updatedAt           DateTime?   @map("updated_at")
+  slug                String?
+  synopsis            String?     @db.Text
+  coverImageTopOffset Int?        @map("cover_image_top_offset")
+  canonicalTitle      String?     @map("canonical_title")
+  abbreviatedTitles   String[]    @map("abbreviated_titles")
+  averageRating       String?     @map("average_rating")
+  ratingFrequencies   Json?       @map("rating_frequencies")
+  userCount           Int?        @map("user_count")
+  favoritesCount      Int?        @map("favorites_count")
+  startDate           DateTime?   @map("start_date")
+  endDate             DateTime?   @map("end_date")
+  popularityRank      Int?        @map("popularity_rank")
+  ratingRank          Int?        @map("rating_rank")
+  ageRating           String?     @map("age_rating")
+  ageRatingGuide      String?     @map("age_rating_guide")
+  subtype             String?
+  status              String?
+  tba                 String?
+  episodeCount        Int?        @map("episode_count")
+  episodeLength       Int?        @map("episode_length")
+  youtubeVideoId      String?     @map("youtube_video_id")
+  showType            String?     @map("show_type")
+  nsfw                Boolean     @default(false)
+
+  // One-to-One Relations
+  titles              KitsuTitle?
+  posterImage         KitsuPosterImage?  @relation("PosterImage")
+  coverImage          KitsuCoverImage?   @relation("CoverImage")
+
+  // External Relations
+  anilistId           Int?        @unique
+  anilist             Anilist?    @relation(fields: [anilistId], references: [id])
+}
+
+model KitsuTitle {
+  id                  String    @id @default(cuid())
+  en                  String?
+  en_jp               String?
+  ja_jp               String?
+
+  kitsuId             String    @unique
+  kitsu               Kitsu     @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuPosterImage {
+  id                  String    @id @default(cuid())
+  tiny                String?
+  small               String?
+  medium              String?
+  large               String?
+  original            String?
+  dimensions          KitsuImageDimensions?
+
+  kitsuId             String    @unique
+  kitsu               Kitsu     @relation("PosterImage", fields: [kitsuId], references: [id])
+}
+
+model KitsuCoverImage {
+  id                  String    @id @default(cuid())
+  tiny                String?
+  small               String?
+  large               String?
+  original            String?
+  dimensions          KitsuImageDimensions?
+
+  kitsuId             String    @unique
+  kitsu               Kitsu     @relation("CoverImage", fields: [kitsuId], references: [id])
+}
+
+model KitsuImageDimensions {
+  id                  String    @id @default(cuid())
+  tiny                KitsuDimension? @relation("TinyDimension")
+  small               KitsuDimension? @relation("SmallDimension")
+  medium              KitsuDimension? @relation("MediumDimension")
+  large               KitsuDimension? @relation("LargeDimension")
+
+  posterImageId       String?   @unique
+  coverImageId        String?   @unique
+  posterImage         KitsuPosterImage? @relation(fields: [posterImageId], references: [id])
+  coverImage          KitsuCoverImage?  @relation(fields: [coverImageId], references: [id])
+}
+
+model KitsuDimension {
+  id                  String    @id @default(cuid())
+  width               Int?
+  height              Int?
+
+  tinyDimensionId     String?   @unique
+  smallDimensionId    String?   @unique
+  mediumDimensionId   String?   @unique
+  largeDimensionId    String?   @unique
+
+  tinyDimension       KitsuImageDimensions?  @relation("TinyDimension", fields: [tinyDimensionId], references: [id])
+  smallDimension      KitsuImageDimensions?  @relation("SmallDimension", fields: [smallDimensionId], references: [id])
+  mediumDimension     KitsuImageDimensions?  @relation("MediumDimension", fields: [mediumDimensionId], references: [id])
+  largeDimension      KitsuImageDimensions?  @relation("LargeDimension", fields: [largeDimensionId], references: [id])
 }
 
 // LastUpdated.prisma

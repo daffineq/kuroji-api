@@ -6,4 +6,5 @@ export enum UpdateType {
   SHIKIMORI = 'SHIKIMORI',
   TMDB = 'TMDB',
   TVDB = 'TVDB',
+  KITSU = 'KITSU',
 }

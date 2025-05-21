@@ -1,15 +1,18 @@
 import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { BasicAnilist, BasicAnilistSmall, BasicShikimori } from '../model/BasicAnilist'
+import { BasicAnilist, BasicAnilistSmall, BasicKitsu, BasicShikimori } from '../model/BasicAnilist'
 import { ScheduleData } from '../model/AnilistModels'
 import { ShikimoriWithRelations } from '../../shikimori/service/shikimori.service'
 import { Episode, MusicVideo, PromoVideo, VideosResponse } from '../../../../configs/jikan.config'
 import { ShikimoriHelper } from '../../shikimori/utils/shikimori-helper'
+import { KitsuHelper } from '../../kitsu/util/kitsu-helper'
+import { KitsuWithRelations } from '../../kitsu/service/kitsu.service'
 
 @Injectable()
 export class AnilistHelper {
   constructor(
-    private readonly shikimoriHelper: ShikimoriHelper
+    private readonly shikimoriHelper: ShikimoriHelper,
+    private readonly kitsuHelper: KitsuHelper,
   ) {}
 
   public getDataForPrisma(anime: any, mal: VideosResponse | null = null): Prisma.AnilistCreateInput {
@@ -359,7 +362,8 @@ export class AnilistHelper {
       isAdult: anilist.isAdult ?? undefined,
       genres: anilist.genres ?? undefined,
       nextAiringEpisode: anilist.nextAiringEpisode ?? undefined,
-      shikimori: this.convertShikimoriToBasic(anilist.shikimori)
+      shikimori: this.convertShikimoriToBasic(anilist.shikimori),
+      kitsu: this.convertKitsuToBasic(anilist.kitsu),
     }
   }
 
@@ -383,7 +387,8 @@ export class AnilistHelper {
       isLocked: anilist.isLocked ?? undefined,
       isAdult: anilist.isAdult ?? undefined,
       nextAiringEpisode: anilist.nextAiringEpisode ?? undefined,
-      shikimori: this.convertShikimoriToBasic(anilist.shikimori)
+      shikimori: this.convertShikimoriToBasic(anilist.shikimori),
+      kitsu: this.convertKitsuToBasic(anilist.kitsu),
     }
   }
 
@@ -401,6 +406,26 @@ export class AnilistHelper {
       url: shikimori.url ?? undefined,
       franchise: shikimori.franchise ?? undefined,
       poster: shikimori.poster ?? undefined
+    }
+  }
+
+  public convertKitsuToBasic(kitsu?: KitsuWithRelations): BasicKitsu | undefined {
+    if (!kitsu) {
+      return undefined
+    }
+    return {
+      id: kitsu.id,
+      anilistId: kitsu.anilistId ?? undefined,
+      titles: kitsu.titles ?? undefined,
+      slug: kitsu.slug ?? undefined,
+      synopsis: kitsu.synopsis ?? undefined,
+      episodeCount: kitsu.episodeCount ?? undefined,
+      episodeLength: kitsu.episodeLength ?? undefined,
+      ageRating: kitsu.ageRating ?? undefined,
+      ageRatingGuide: kitsu.ageRatingGuide ?? undefined,
+      posterImage: kitsu.posterImage ?? undefined,
+      coverImage: kitsu.coverImage ?? undefined,
+      showType: kitsu.showType ?? undefined
     }
   }
 
@@ -543,6 +568,9 @@ export class AnilistHelper {
       shikimori: {
         include: this.shikimoriHelper.getInclude(),
       },
+      kitsu: {
+        include: this.kitsuHelper.getInclude(),
+      }
     }
 
     return include;
@@ -610,6 +638,7 @@ export class AnilistHelper {
       musicVideos: raw.musicVideos,
       jikanEpisodes: raw.jikanEpisodes,
       shikimori: raw.shikimori,
+      kitsu: raw.kitsu,
     };
   }
 

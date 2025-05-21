@@ -57,6 +57,7 @@ model Anilist {
   animekai           AnimeKai?
   zoro               Zoro?
   shikimori          Shikimori?
+  kitsu              Kitsu?
 }
 
 model AnilistTitle {

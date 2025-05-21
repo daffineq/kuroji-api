@@ -12,6 +12,7 @@ export default class Config {
   public static readonly TMDB = process.env.TMDB;
   public static readonly TVDB = process.env.TVDB;
   public static readonly JIKAN = process.env.JIKAN;
+  public static readonly KITSU = process.env.KITSU;
 
   public static readonly TMDB_API = process.env.TMDB_API;
   public static readonly TVDB_API = process.env.TVDB_API;

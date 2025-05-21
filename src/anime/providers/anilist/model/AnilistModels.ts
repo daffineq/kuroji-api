@@ -1,6 +1,8 @@
 import { Anilist, AnilistTitle, AnilistCover, StartDate, EndDate, AnilistTrailer, AnilistCharacter, AnilistStudio, AnilistAiringSchedule, AnilistNextAiringEpisode, AnilistTag, AnilistExternalLink, AnilistStreamingEpisode, Shikimori, AnilistRanking, AnilistScoreDistribution, AnilistStatusDistribution, AnilistPromoVideo, AnilistMusicVideo, AnilistJikanEpisode } from '@prisma/client'
 import { PageInfo } from '../graphql/types/PageInfo'
 import { BasicAnilistSmall } from './BasicAnilist'
+import { KitsuWithRelations } from '../../kitsu/service/kitsu.service'
+import { ShikimoriWithRelations } from '../../shikimori/service/shikimori.service'
 
 export interface AnilistResponse {
   Page: {
@@ -46,7 +48,8 @@ export interface AnilistWithRelations extends Anilist {
   promoVideos?: AnilistPromoVideo[];
   jikanEpisodes?: AnilistJikanEpisode[];
   musicVideos?: AnilistMusicVideo[];
-  shikimori?: Shikimori;
+  shikimori?: ShikimoriWithRelations;
+  kitsu?: KitsuWithRelations
 }
 
 export interface Franchise {
