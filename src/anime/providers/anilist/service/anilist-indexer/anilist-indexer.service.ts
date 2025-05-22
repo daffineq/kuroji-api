@@ -88,6 +88,7 @@ export class AnilistIndexerService {
             create: { id: id.toString() },
           })
         } catch (e) {
+          this.isRunning = false;
           throw e
         }
 
@@ -189,8 +190,8 @@ export class AnilistIndexerService {
           console.warn(`429 hit - Attempt ${attempt}/${retries}. Sleeping ${retryAfter}s`)
           await sleep(retryAfter + 1)
         } else {
-          console.warn(`Attempt ${attempt} failed:`, e.message ?? e)
-          break
+          console.warn(`Error fetching Anilist for ID ${id} - Attempt ${attempt}/${retries}:`, e.message ?? e)
+          await sleep(60)
         }
       }
     }
