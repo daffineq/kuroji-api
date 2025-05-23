@@ -82,8 +82,10 @@ export class AnilistService {
       update: this.helper.getDataForPrisma(anilist, videos),
     });
 
-    await this.shikimori.getShikimori(String(anilist.idMal)).catch(() => null);
-    await this.kitsu.getKitsuByAnilist(anilist.id).catch(() => null);
+    await Promise.all([
+      this.shikimori.getShikimori(String(anilist.idMal)).catch(() => null),
+      this.kitsu.getKitsuByAnilist(anilist.id).catch(() => null)
+    ]);
 
     return await this.prisma.anilist.findUnique(this.helper.getFindUnique(anilist.id)) as AnilistWithRelations;
   }

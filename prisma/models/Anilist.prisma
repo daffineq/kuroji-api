@@ -233,7 +233,6 @@ model AnilistAiringSchedule {
   anilistId       Int
   episode         Int?
   airingAt        Int?
-  timeUntilAiring Int?
 
   anilist Anilist @relation("AnilistAiringSchedules", fields: [anilistId], references: [id])
 }
@@ -243,7 +242,6 @@ model AnilistNextAiringEpisode {
   anilistId       Int  @unique
   episode         Int?
   airingAt        Int?
-  timeUntilAiring Int?
 
   anilist Anilist @relation("AnilistNextAiringEpisode", fields: [anilistId], references: [id])
 }

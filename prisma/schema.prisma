@@ -243,7 +243,6 @@ model AnilistAiringSchedule {
   anilistId       Int
   episode         Int?
   airingAt        Int?
-  timeUntilAiring Int?
 
   anilist Anilist @relation("AnilistAiringSchedules", fields: [anilistId], references: [id])
 }
@@ -253,7 +252,6 @@ model AnilistNextAiringEpisode {
   anilistId       Int  @unique
   episode         Int?
   airingAt        Int?
-  timeUntilAiring Int?
 
   anilist Anilist @relation("AnilistNextAiringEpisode", fields: [anilistId], references: [id])
 }
@@ -472,14 +470,15 @@ model AnilistIndexerState {
 model Kitsu {
   // Base Fields
   id                  String      @id
+  anilistId           Int?        @unique
   type                String?
   selfLink            String?     @map("self_link")
 
   // Attributes
   createdAt           DateTime?   @map("created_at")
   updatedAt           DateTime?   @map("updated_at")
-  slug                String?
-  synopsis            String?     @db.Text
+  slug                String?     @map("slug")
+  synopsis            String?     @map("synopsis")
   coverImageTopOffset Int?        @map("cover_image_top_offset")
   canonicalTitle      String?     @map("canonical_title")
   abbreviatedTitles   String[]    @map("abbreviated_titles")
@@ -508,7 +507,6 @@ model Kitsu {
   coverImage          KitsuCoverImage?   @relation("CoverImage")
 
   // External Relations
-  anilistId           Int?        @unique
   anilist             Anilist?    @relation(fields: [anilistId], references: [id])
 }
 

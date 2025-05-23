@@ -191,7 +191,6 @@ export class AnilistHelper {
               id: edge.node.id,
               episode: edge.node.episode ?? null,
               airingAt: edge.node.airingAt ?? null,
-              timeUntilAiring: edge.node.timeUntilAiring ?? null
             }
           })) ?? []
       },
@@ -202,7 +201,6 @@ export class AnilistHelper {
             id: anime.nextAiringEpisode?.id,
             episode: anime.nextAiringEpisode?.episode ?? null,
             airingAt: anime.nextAiringEpisode?.airingAt ?? null,
-            timeUntilAiring: anime.nextAiringEpisode?.timeUntilAiring ?? null
           }
         }
       } : undefined,
