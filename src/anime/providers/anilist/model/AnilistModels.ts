@@ -1,6 +1,6 @@
 import { Anilist, AnilistTitle, AnilistCover, StartDate, EndDate, AnilistTrailer, AnilistCharacter, AnilistStudio, AnilistAiringSchedule, AnilistNextAiringEpisode, AnilistTag, AnilistExternalLink, AnilistStreamingEpisode, Shikimori, AnilistRanking, AnilistScoreDistribution, AnilistStatusDistribution, AnilistPromoVideo, AnilistMusicVideo, AnilistJikanEpisode } from '@prisma/client'
 import { PageInfo } from '../graphql/types/PageInfo'
-import { BasicAnilistSmall } from './BasicAnilist'
+import { BasicAnilist } from './BasicAnilist'
 import { KitsuWithRelations } from '../../kitsu/service/kitsu.service'
 import { ShikimoriWithRelations } from '../../shikimori/service/shikimori.service'
 
@@ -68,5 +68,5 @@ export type Schedule = {
 
 export interface ScheduleData {
   current: boolean
-  data: BasicAnilistSmall[]
+  data: BasicAnilist[]
 }

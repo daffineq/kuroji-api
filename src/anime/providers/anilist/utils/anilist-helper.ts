@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { BasicAnilist, BasicAnilistSmall, BasicKitsu, BasicShikimori } from '../model/BasicAnilist'
+import { BasicAnilist, BasicKitsu, BasicShikimori } from '../model/BasicAnilist'
 import { ScheduleData } from '../model/AnilistModels'
 import { ShikimoriWithRelations } from '../../shikimori/service/shikimori.service'
 import { Episode, MusicVideo, PromoVideo, VideosResponse } from '../../../../configs/jikan.config'
@@ -343,7 +343,6 @@ export class AnilistHelper {
     return {
       id: anilist.id,
       idMal: anilist.idMal ?? undefined,
-      siteUrl: anilist.siteUrl ?? undefined,
       title: anilist.title ?? undefined,
       synonyms: anilist.synonyms ?? undefined,
       bannerImage: anilist.bannerImage ?? undefined,
@@ -366,31 +365,6 @@ export class AnilistHelper {
       isLocked: anilist.isLocked ?? undefined,
       isAdult: anilist.isAdult ?? undefined,
       genres: anilist.genres ?? undefined,
-      nextAiringEpisode: anilist.nextAiringEpisode ?? undefined,
-      shikimori: this.convertShikimoriToBasic(anilist.shikimori),
-      kitsu: this.convertKitsuToBasic(anilist.kitsu),
-    }
-  }
-
-  public convertBasicToBasicSmall(anilist: any): BasicAnilistSmall {
-    return {
-      id: anilist.id,
-      idMal: anilist.idMal ?? undefined,
-      siteUrl: anilist.siteUrl ?? undefined,
-      title: anilist.title ?? undefined,
-      coverImage: anilist.coverImage ?? undefined,
-      type: anilist.type ?? undefined,
-      format: anilist.format ?? undefined,
-      status: anilist.status ?? undefined,
-      startDate: anilist.startDate ?? undefined,
-      season: anilist.season ?? undefined,
-      seasonYear: anilist.seasonYear ?? undefined,
-      episodes: anilist.episodes ?? undefined,
-      episodesAired: (anilist as any).episodesAired ?? undefined,
-      duration: anilist.duration ?? undefined,
-      score: anilist.score ?? undefined,
-      isLocked: anilist.isLocked ?? undefined,
-      isAdult: anilist.isAdult ?? undefined,
       nextAiringEpisode: anilist.nextAiringEpisode ?? undefined,
       shikimori: this.convertShikimoriToBasic(anilist.shikimori),
       kitsu: this.convertKitsuToBasic(anilist.kitsu),
@@ -581,7 +555,7 @@ export class AnilistHelper {
     return include;
   }
 
-  public createScheduleData(data: BasicAnilistSmall[] = [], current: boolean): ScheduleData {
+  public createScheduleData(data: BasicAnilist[] = [], current: boolean): ScheduleData {
     return {
       current,
       data: data.sort((a, b) => a.nextAiringEpisode?.airingAt!! - b.nextAiringEpisode?.airingAt!!),
@@ -647,9 +621,9 @@ export class AnilistHelper {
     };
   }
 
-  public mapToSmall(data: any): BasicAnilistSmall[] {
+  public mapToBasic(data: any): BasicAnilist[] {
     return data.map((anilist) =>
-      this.convertBasicToBasicSmall(anilist),
+      this.convertAnilistToBasic(anilist),
     );
   }
 }

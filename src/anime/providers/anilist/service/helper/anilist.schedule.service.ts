@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { startOfWeek, addDays } from 'date-fns'
 import { PrismaService } from '../../../../../prisma.service'
 import { AnilistHelper } from '../../utils/anilist-helper'
-import { BasicAnilistSmall } from '../../model/BasicAnilist'
+import { BasicAnilist } from '../../model/BasicAnilist'
 import { Schedule, Weekday } from '../../model/AnilistModels'
 import { AnilistAddService } from './anilist.add.service'
 
@@ -10,10 +10,10 @@ import { AnilistAddService } from './anilist.add.service'
 export class AnilistScheduleService {
   constructor(private readonly prisma: PrismaService, private readonly helper: AnilistHelper, private readonly add: AnilistAddService) {}
 
-  async getWithCurrentWeek(): Promise<BasicAnilistSmall[]> {
+  async getWithCurrentWeek(): Promise<BasicAnilist[]> {
     const { start, end } = this.getWeekRangeTimestamps()
     const releases = await this.getThisWeeksAnilist(start, end);
-    return releases.map(r => this.helper.convertBasicToBasicSmall(r));
+    return releases.map(r => this.helper.convertAnilistToBasic(r));
   }
 
   async getSchedule(): Promise<Schedule> {
@@ -23,10 +23,10 @@ export class AnilistScheduleService {
 
     const releases = await this.getThisWeeksAnilist(start, end);
 
-    const releasesByDay: Partial<Record<Weekday, BasicAnilistSmall[]>> = {}
+    const releasesByDay: Partial<Record<Weekday, BasicAnilist[]>> = {}
 
     for (const release of releases) {
-      const small = this.helper.convertBasicToBasicSmall(release)
+      const small = this.helper.convertAnilistToBasic(release)
       const airingAt = small.nextAiringEpisode?.airingAt
 
       if (airingAt) {

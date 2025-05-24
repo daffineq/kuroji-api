@@ -33,7 +33,6 @@ export interface BasicAnilist {
   id: number;
   idMal?: number;
 
-  siteUrl?: string;
   title?: AnilistTitle;
 
   synonyms?: string[];
@@ -66,39 +65,6 @@ export interface BasicAnilist {
   isAdult?: boolean;
 
   genres?: string[];
-
-  nextAiringEpisode?: AnilistNextAiringEpisode;
-
-  shikimori?: BasicShikimori;
-  kitsu?: BasicKitsu;
-}
-
-export interface BasicAnilistSmall {
-  id: number
-  idMal?: number
-
-  siteUrl?: string
-  title?: AnilistTitle
-
-  coverImage?: AnilistCover
-
-  type?: string
-  format?: string
-  status?: string
-
-  startDate?: StartDate
-
-  season?: string
-  seasonYear?: number
-
-  episodes?: number
-  episodesAired?: number
-  duration?: number
-
-  score?: number;
-
-  isLocked?: boolean
-  isAdult?: boolean
 
   nextAiringEpisode?: AnilistNextAiringEpisode;
 

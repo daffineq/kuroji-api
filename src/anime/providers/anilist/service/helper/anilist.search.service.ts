@@ -5,6 +5,7 @@ import { FilterDto } from '../../filter/FilterDto'
 import { AnilistFilterService } from './anilist.filter.service'
 import { AnilistAddService } from './anilist.add.service'
 import { AnilistHelper } from '../../utils/anilist-helper'
+import { ApiResponse } from '../../../../../api/ApiResponse'
 
 @Injectable()
 export class AnilistSearchService {
@@ -17,14 +18,14 @@ export class AnilistSearchService {
 
   async getAnilists(
     filter: FilterDto
-  ): Promise<SearcnResponse<BasicAnilist[]>> {
+  ): Promise<ApiResponse<BasicAnilist[]>> {
     const response = await this.filter.getAnilistByFilter(filter);
 
     const basicAnilist = response.data.map((anilist) =>
       this.helper.convertAnilistToBasic(anilist),
     );
 
-    return { pageInfo: response.pageInfo, data: basicAnilist } as SearcnResponse<BasicAnilist[]>;
+    return { pageInfo: response.pageInfo, data: basicAnilist } as ApiResponse<BasicAnilist[]>;
   }
 
   async searchAnilist(q: string): Promise<SearcnResponse<BasicAnilist[]>> {

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BasicIdAni, AnilistCharacter, AnilistTag } from '@prisma/client';
 import { ApiResponse, PageInfo } from '../../../../../api/ApiResponse';
 import { TMDB } from '../../../../../configs/tmdb.config';
-import { BasicAnilistSmall, BasicAnilist } from '../../model/BasicAnilist';
+import { BasicAnilist } from '../../model/BasicAnilist';
 import { FilterDto } from '../../filter/FilterDto';
 import { PrismaService } from '../../../../../prisma.service';
 import { ShikimoriService } from '../../../shikimori/service/shikimori.service';
@@ -31,7 +31,7 @@ export class AnilistAddService {
   async getChronology(
     id: number,
     filter: FilterDto,
-  ): Promise<ApiResponse<BasicAnilistSmall[]>> {
+  ): Promise<ApiResponse<BasicAnilist[]>> {
     const existingAnilist = (await this.prisma.anilist.findUnique({
       where: { id },
     })) as AnilistWithRelations;
@@ -41,20 +41,13 @@ export class AnilistAddService {
     );
     const chronologyIds = chronologyRaw.map((c) => Number(c.malId));
     filter.idMalIn = [...(filter.idMalIn ?? []), ...chronologyIds];
-    const chronology = await this.search.getAnilists(filter);
-
-    const basicChronology = this.helper.mapToSmall(chronology.data);
-
-    return {
-      ...chronology,
-      data: basicChronology,
-    } as ApiResponse<BasicAnilistSmall[]>;
+    return await this.search.getAnilists(filter);
   }
 
   async getRecommendations(
     id: number,
     filter: FilterDto,
-  ): Promise<ApiResponse<BasicAnilistSmall[]>> {
+  ): Promise<ApiResponse<BasicAnilist[]>> {
     const existingAnilist = (await this.prisma.anilist.findUnique({
       where: { id },
       include: { recommendations: true },
@@ -67,13 +60,7 @@ export class AnilistAddService {
       Number(r.id),
     );
     filter.idIn = [...(filter.idIn ?? []), ...recommendationIds];
-    const recommendations = await this.search.getAnilists(filter);
-    const basicRecommendations = this.helper.mapToSmall(recommendations.data);
-
-    return {
-      ...recommendations,
-      data: basicRecommendations,
-    } as ApiResponse<BasicAnilistSmall[]>;
+    return await this.search.getAnilists(filter);
   }
 
   async getCharacters(
