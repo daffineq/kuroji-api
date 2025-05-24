@@ -7,18 +7,25 @@ import { Episode, MusicVideo, PromoVideo, VideosResponse } from '../../../../con
 import { ShikimoriHelper } from '../../shikimori/utils/shikimori-helper'
 import { KitsuHelper } from '../../kitsu/util/kitsu-helper'
 import { KitsuWithRelations } from '../../kitsu/service/kitsu.service'
+import { PrismaService } from '../../../../prisma.service'
 
 @Injectable()
 export class AnilistHelper {
   constructor(
+    private readonly prisma: PrismaService,
     private readonly shikimoriHelper: ShikimoriHelper,
     private readonly kitsuHelper: KitsuHelper,
   ) {}
 
-  public getDataForPrisma(anime: any, mal: VideosResponse | null = null): Prisma.AnilistCreateInput {
+  public async getDataForPrisma(anime: any, mal: VideosResponse | null = null): Promise<Prisma.AnilistCreateInput> {
+    const isMalExist = !!(await this.prisma.anilist.findUnique({
+      where: { idMal: anime.idMal ?? undefined },
+      select: { id: true },
+    }));
+
     return {
       id: anime.id,
-      idMal: anime.idMal,
+      idMal: isMalExist ? undefined : anime.idMal ?? null,
       title: {
         connectOrCreate: {
           where: { anilistId: anime.id },

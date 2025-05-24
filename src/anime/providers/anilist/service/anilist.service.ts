@@ -79,8 +79,8 @@ export class AnilistService {
 
     await this.prisma.anilist.upsert({
       where: { id: anilist.id },
-      create: this.helper.getDataForPrisma(anilist, videos),
-      update: this.helper.getDataForPrisma(anilist, videos),
+      create: await this.helper.getDataForPrisma(anilist, videos),
+      update: await this.helper.getDataForPrisma(anilist, videos),
     });
 
     await Promise.all([
@@ -97,8 +97,8 @@ export class AnilistService {
     if (shouldSave) {
       return await this.prisma.anilist.upsert({
         where: { id: anilist.id },
-        create: this.helper.getDataForPrisma(anilist),
-        update: this.helper.getDataForPrisma(anilist),
+        create: await this.helper.getDataForPrisma(anilist),
+        update: await this.helper.getDataForPrisma(anilist),
       });
     }
 
