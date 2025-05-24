@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common'
 import {
   AiredOn,
   BasicIdShik,
@@ -15,6 +15,7 @@ import { CustomHttpService } from '../../../../http/http.service'
 import { GraphQL } from '../graphql/shikimori.graphql'
 import { ShikimoriHelper } from '../utils/shikimori-helper'
 import Dimens from '../../../../configs/Dimens'
+import { AnilistService } from '../../anilist/service/anilist.service'
 
 export interface ShikimoriWithRelations extends Shikimori {
   poster: ShikimoriPoster
@@ -30,6 +31,8 @@ export class ShikimoriService {
     private readonly prisma: PrismaService,
     private readonly http: CustomHttpService,
     private readonly helper: ShikimoriHelper,
+    @Inject(forwardRef(() => AnilistService))
+    private readonly anilist: AnilistService,
   ) { }
 
   async getShikimori(id: string): Promise<ShikimoriWithRelations> {
@@ -84,8 +87,14 @@ export class ShikimoriService {
   }
 
   async saveShikimori(anime: ShikimoriWithRelations): Promise<ShikimoriWithRelations> {
+    const anilist = await this.anilist.getAnilist(Number(anime.malId), true);
+
     await this.prisma.lastUpdated.create({
-      data: { entityId: anime.id, type: UpdateType.SHIKIMORI },
+      data: { 
+        entityId: anime.id, 
+        externalId: anilist.id,
+        type: UpdateType.SHIKIMORI 
+      },
     })
 
     await this.prisma.shikimori.upsert({

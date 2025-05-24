@@ -16,6 +16,7 @@ export class AnilistService {
     private readonly helper: AnilistHelper,
     private readonly fetch: AnilistFetchService,
     private readonly util: AnilistUtilService,
+    @Inject(forwardRef(() => ShikimoriService))
     private readonly shikimori: ShikimoriService,
     @Inject(forwardRef(() => KitsuService))
     private readonly kitsu: KitsuService,
@@ -71,7 +72,7 @@ export class AnilistService {
     await this.prisma.lastUpdated.create({
       data: {
         entityId: anilist.id.toString(),
-        externalId: anilist.idMal,
+        externalId: anilist.id,
         type: UpdateType.ANILIST,
       },
     });
