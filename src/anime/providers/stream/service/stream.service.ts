@@ -7,10 +7,11 @@ import { AnimepaheService } from '../../animepahe/service/animepahe.service'
 import { AnilistService } from '../../anilist/service/anilist.service'
 import { TmdbService } from '../../tmdb/service/tmdb.service'
 import { AnimekaiEpisode, AnimepaheEpisode, EpisodeZoro } from '@prisma/client'
-import { Source } from '../model/Source'
 import { InjectRedis } from '@nestjs-modules/ioredis'
 import Redis from 'ioredis'
 import Config from '../../../../configs/Config'
+import { ISource } from '@consumet/extensions'
+import { TMDB } from '../../../../configs/tmdb.config'
 
 export interface Episode {
   title: string | null
@@ -95,7 +96,7 @@ export class StreamService {
 
         return {
           title: tmdbEpisode?.name || jikanEpisode?.title || anilistEpisode?.title || zoroTitle,
-          image: tmdbEpisode?.still_path || jikanEpisode?.imageUrl || anilistEpisode?.thumbnail || anilist?.cover?.extraLarge || "",
+          image: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${tmdbEpisode?.still_path}` || jikanEpisode?.imageUrl || anilistEpisode?.thumbnail || anilist?.cover?.extraLarge || "",
           number,
           overview: tmdbEpisode?.overview ?? "",
           date: tmdbEpisode?.air_date || formattedDate || "",
@@ -205,7 +206,7 @@ export class StreamService {
     return enrichedEpisodes
   }
 
-  async getSources(provider: Provider, ep: number, alId: number, dub: boolean = false): Promise<Source> {
+  async getSources(provider: Provider, ep: number, alId: number, dub: boolean = false): Promise<ISource> {
     const providers = await this.getProvidersSingle(alId, ep)
     const epId = providers.find(p => p.provider === provider)?.id
     if (!epId) throw new Error("Episode not found for provider")

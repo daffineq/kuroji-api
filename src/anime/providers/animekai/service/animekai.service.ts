@@ -1,31 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { AnimeKai, AnimekaiEpisode } from '@prisma/client';
-import { UrlConfig } from '../../../../configs/url.config';
 import { CustomHttpService } from '../../../../http/http.service';
 import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../../mapper/mapper.helper';
-import { Source } from '../../stream/model/Source';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service';
 import { AnimeKaiHelper } from '../utils/animekai-helper';
 import { TmdbService } from '../../tmdb/service/tmdb.service'
-
-export interface BasicAnimekai {
-  id: string;
-  title: string;
-  url: string;
-  japaneseTitle: string;
-  image: string;
-  type: string;
-}
-
-export interface AnimekaiResponse {
-  results: BasicAnimekai[];
-}
+import { ANIME, IAnimeResult, ISource, StreamingServers, SubOrSub } from "@consumet/extensions"
 
 export interface AnimekaiWithRelations extends AnimeKai {
   episodes: AnimekaiEpisode[]
 }
+
+const animekai = new ANIME.AnimeKai();
 
 @Injectable()
 export class AnimekaiService {
@@ -51,12 +39,8 @@ export class AnimekaiService {
     return this.saveAnimekai(animekai as AnimekaiWithRelations);
   }
 
-  async getSources(episodeId: string, dub: boolean): Promise<Source> {
-    const animekai = await this.customHttpService.getResponse(
-      UrlConfig.ANIMEKAI + 'watch/' + episodeId + '?dub=' + dub
-    )
-
-    return animekai as Source
+  async getSources(episodeId: string, dub: boolean): Promise<ISource> {
+    return await animekai.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
   }
 
   async saveAnimekai(animekai: AnimekaiWithRelations): Promise<AnimekaiWithRelations> {
@@ -106,13 +90,12 @@ export class AnimekaiService {
   }
 
   async fetchAnimekai(id: string): Promise<AnimeKai> {
-    return this.customHttpService.getResponse(
-      UrlConfig.ANIMEKAI + 'info?id=' + id,
-    );
+    const info = await animekai.fetchAnimeInfo(id);
+    return info as unknown as AnimeKai;
   }
 
-  async searchAnimekai(query: string): Promise<AnimekaiResponse> {
-    return this.customHttpService.getResponse(UrlConfig.ANIMEKAI + query);
+  async searchAnimekai(query: string): Promise<IAnimeResult[]> {
+    return (await animekai.fetchSearchSuggestions(query)).results;
   }
 
   async findAnimekai(id: number): Promise<AnimeKai> {
@@ -121,7 +104,7 @@ export class AnimekaiService {
       (anilist.title as { romaji: string }).romaji,
     );
 
-    const results = searchResult.results.map(result => ({
+    const results = searchResult.map(result => ({
       title: result.title,
       id: result.id,
     }));

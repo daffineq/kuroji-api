@@ -1,33 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { EpisodeZoro, Zoro } from '@prisma/client';
-import { UrlConfig } from '../../../../configs/url.config';
 import { CustomHttpService } from '../../../../http/http.service';
 import { PrismaService } from '../../../../prisma.service';
 import { ZoroHelper } from '../utils/zoro-helper';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service'
 import { findBestMatch } from '../../../../mapper/mapper.helper'
-import { Source } from '../../stream/model/Source'
 import { TmdbService } from '../../tmdb/service/tmdb.service'
-
-export interface BasicZoro {
-  id: string;
-  title: string;
-  url: string;
-  image: string;
-  japaneseTitle: string;
-  sub: number;
-  dub: number;
-  episodes: number;
-}
-
-export interface ZoroResponse {
-  results: BasicZoro[];
-}
+import { ANIME, IAnimeResult, ISource, StreamingServers, SubOrSub } from '@consumet/extensions'
 
 export interface ZoroWithRelations extends Zoro {
   episodes: EpisodeZoro[]
 }
+
+const zoro = new ANIME.Zoro();
 
 @Injectable()
 export class ZoroService {
@@ -119,23 +105,17 @@ export class ZoroService {
     return this.saveZoro(zoro);
   }
 
-  async getSources(episodeId: string, dub: boolean): Promise<Source> {
-    const zoro = await this.http.getResponse(
-      UrlConfig.ZORO + 'watch/' + episodeId + '?dub=' + dub
-    )
-
-    return zoro as Source
+  async getSources(episodeId: string, dub: boolean): Promise<ISource> {
+    return await zoro.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
   }
 
   async fetchZoro(id: string): Promise<Zoro> {
-    const zoro = await this.http.getResponse(UrlConfig.ZORO + 'info?id=' + id);
-
-    return zoro as Promise<Zoro>;
+    const info = await zoro.fetchAnimeInfo(id);
+    return info as unknown as Zoro;
   }
 
-  async searchZoro(q: string): Promise<ZoroResponse> {
-    const zoro = await this.http.getResponse(UrlConfig.ZORO + q);
-    return zoro as Promise<ZoroResponse>;
+  async searchZoro(q: string): Promise<IAnimeResult[]> {
+    return (await zoro.search(q)).results;
   }
   
   async findZoroByAnilist(id: number): Promise<Zoro> {
@@ -144,7 +124,7 @@ export class ZoroService {
       (anilist.title as { romaji: string }).romaji,
     );
 
-    const results = searchResult.results.map(result => ({
+    const results = searchResult.map(result => ({
       title: result.title,
       id: result.id,
       episodes: result.sub

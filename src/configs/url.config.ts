@@ -9,7 +9,6 @@ export class UrlConfig {
   public static readonly BASE = withTrailingSlash(Config.BASE || 'http://localhost:3000');
 
   // 🌐 API Base URLs
-  public static readonly CONSUMET_BASE = withTrailingSlash(Config.CONSUMET || '');
   public static readonly SHIKIMORI = withTrailingSlash(Config.SHIKIMORI || 'https://shikimori.one');
   public static readonly JIKAN = withTrailingSlash(Config.JIKAN || 'https://api.jikan.moe/v4');
   public static readonly ANILIST_GRAPHQL = Config.ANILIST || 'https://graphql.anilist.co';
@@ -24,9 +23,4 @@ export class UrlConfig {
   // 🔁 SHIKIMORI Sub Routes
   public static readonly SHIKIMORI_API = UrlConfig.SHIKIMORI + 'api/';
   public static readonly SHIKIMORI_GRAPHQL = UrlConfig.SHIKIMORI_API + 'graphql';
-
-  // 📺 Stream/Source APIs via Consumet
-  public static readonly ZORO = UrlConfig.CONSUMET_BASE + 'anime/zoro/';
-  public static readonly ANIMEKAI = UrlConfig.CONSUMET_BASE + 'anime/animekai/';
-  public static readonly ANIMEPAHE = UrlConfig.CONSUMET_BASE + 'anime/animepahe/';
 }
