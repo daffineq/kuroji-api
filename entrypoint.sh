@@ -8,7 +8,7 @@ done
 echo "✅ Database is live!"
 
 # Run Prisma stuff
-yarn prisma migrate deploy
+bun run prisma migrate deploy
 
 # Run the app
-yarn start:prod
+bun run start:prod

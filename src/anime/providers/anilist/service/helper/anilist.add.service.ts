@@ -73,9 +73,9 @@ export class AnilistAddService {
       include: {
         characters: true,
       },
-    })) as AnilistWithRelations;
+    }));
 
-    const charactersIds = existingAnilist.characters?.map((c) => c.id);
+    const charactersIds = existingAnilist?.characters?.map((c) => c.id);
 
     const [data, total] = await Promise.all([
       this.prisma.anilistCharacterEdge.findMany({

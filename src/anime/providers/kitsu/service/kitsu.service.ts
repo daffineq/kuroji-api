@@ -1,6 +1,5 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service'
-import { AnilistService } from '../../anilist/service/anilist.service'
 import { KitsuHelper } from '../util/kitsu-helper'
 import { Kitsu, KitsuCoverImage, KitsuPosterImage, KitsuTitle } from '@prisma/client'
 import { KITSU } from '../../../../configs/kitsu.config'
@@ -19,8 +18,6 @@ export class KitsuService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly helper: KitsuHelper,
-    @Inject(forwardRef(() => AnilistService))
-    private readonly anilist: AnilistService,
     private readonly http: CustomHttpService
   ) {}
 
@@ -79,7 +76,25 @@ export class KitsuService {
   }
 
   async findKitsuByAnilist(id: number): Promise<KitsuWithRelations> {
-    const anilist = await this.anilist.getAnilist(id);
+    const anilist = await this.prisma.anilist.findUnique({
+      where: { id: id },
+      select: {
+        title: {
+          select: {
+            romaji: true,
+            english: true,
+            native: true,
+          },
+        },
+        seasonYear: true,
+        episodes: true,
+      },
+    });
+
+    if (!anilist) {
+      throw new Error('Anilist not found');
+    }
+
     const searchResult = await this.searchKitsu(
       (anilist.title as { romaji: string }).romaji,
     );

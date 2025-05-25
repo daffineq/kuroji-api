@@ -348,7 +348,7 @@ export class AnilistFilterService {
         ]
       }
 
-      if (field === 'updated_at') return { updatedAt: direction }
+      if (field === 'updated_at') return { zoro: { updatedAt: direction } }
 
       if (parts.length > 1) {
         let nested: any = { [parts.pop()!]: direction }

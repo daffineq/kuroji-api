@@ -31,8 +31,6 @@ export class ShikimoriService {
     private readonly prisma: PrismaService,
     private readonly http: CustomHttpService,
     private readonly helper: ShikimoriHelper,
-    @Inject(forwardRef(() => AnilistService))
-    private readonly anilist: AnilistService,
   ) { }
 
   async getShikimori(id: string): Promise<ShikimoriWithRelations> {
@@ -87,12 +85,9 @@ export class ShikimoriService {
   }
 
   async saveShikimori(anime: ShikimoriWithRelations): Promise<ShikimoriWithRelations> {
-    const anilist = await this.anilist.getAnilist(Number(anime.malId), true);
-
     await this.prisma.lastUpdated.create({
       data: { 
         entityId: anime.id, 
-        externalId: anilist.id,
         type: UpdateType.SHIKIMORI 
       },
     })

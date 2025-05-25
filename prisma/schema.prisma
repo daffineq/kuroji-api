@@ -7,6 +7,242 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Animepahe.prisma
+model Animepahe {
+  id             String              @id
+  alId           Int?                @unique 
+  title          String?
+  image          String?
+  cover          String?
+  updatedAt      Int?
+  hasSub         Boolean?
+  externalLinks  AnimepaheExternalLink[] @relation("AnimepaheExLink")
+  status         String?
+  type           String?
+  releaseDate    String?
+  totalEpisodes  Int?
+  episodePages   Int?
+
+  episodes       AnimepaheEpisode[] @relation("AnimepaheEpisode")
+
+  anilist Anilist? @relation(fields: [alId], references: [id])
+}
+
+model AnimepaheEpisode {
+  id          String   @id
+  number      Int?
+  title       String?
+  image       String?
+  duration    String?
+  url         String?
+
+  animepahe Animepahe[] @relation("AnimepaheEpisode")
+}
+
+model AnimepaheExternalLink {
+  id          String   @id
+  url         String
+  sourceName  String
+
+  animepahe Animepahe[] @relation("AnimepaheExLink")
+}
+
+// Shikimori.prisma
+model Shikimori {
+  id            String        @id
+  malId         Int?          @unique
+  name          String?
+  russian       String?
+  licenseNameRu String?
+  english       String?
+  japanese      String?
+  poster        ShikimoriPoster? @relation("ShikimoriPoster")
+  synonyms      String[]
+  kind          String?
+  rating        String?
+  score         Float?
+  status        String?
+  episodes      Int?
+  episodesAired Int?
+  duration      Int?
+  airedOn       AiredOn? @relation("ShikimoriAiredOn")
+  releasedOn    ReleasedOn? @relation("ShikimoriReleasedOn")
+  franchise     String?
+  url           String?
+  season        String?
+  createdAt     DateTime?
+  updatedAt     DateTime?
+  nextEpisodeAt DateTime?
+  chronology    BasicIdShik[] @relation("ShikimoriChronology")
+  videos        ShikimoriVideo[] @relation("ShikimoriVideo")
+  screenshots   ShikimoriScreenshot[] @relation("ShikimoriScreenshot")
+  anilist       Anilist? @relation(fields: [malId], references: [idMal])
+}
+
+model AiredOn {
+  id        Int         @id @default(autoincrement())
+  shikimoriId String @unique
+
+  year      Int?
+  month     Int?
+  day       Int?
+  date      String?
+
+  shikimori Shikimori @relation("ShikimoriAiredOn", fields: [shikimoriId], references: [id])
+}
+
+model ReleasedOn {
+  id        Int         @id @default(autoincrement())
+  shikimoriId String @unique
+
+  year      Int?
+  month     Int?
+  day       Int?
+  date      String?
+
+  shikimori Shikimori @relation("ShikimoriReleasedOn", fields: [shikimoriId], references: [id])
+}
+
+model BasicIdShik {
+  id          String        @id
+  malId       String?
+
+  shikimori Shikimori[] @relation("ShikimoriChronology")
+}
+
+model ShikimoriVideo {
+  id            String        @id
+  url           String?
+  name          String?
+  kind          String?
+  playerUrl     String?
+  imageUrl      String?
+
+  shikimori Shikimori[] @relation("ShikimoriVideo")
+}
+
+model ShikimoriScreenshot {
+  id          String        @id
+  originalUrl String?
+  x166Url     String?
+  x332Url     String?
+
+  shikimori Shikimori[] @relation("ShikimoriScreenshot")
+}
+
+model Title {
+  id           Int                     @id @default(autoincrement())
+  romaji       String?
+  english      String?
+  native       String?
+}
+
+model DateDetails {
+  id           Int                     @id @default(autoincrement())
+  year         Int?
+  month        Int?
+  day          Int?
+}
+
+model ShikimoriPoster {
+  id             String              @id
+  shikimoriId    String @unique
+
+  originalUrl    String?
+  mainUrl        String?
+
+  shikimori Shikimori @relation("ShikimoriPoster", fields: [shikimoriId], references: [id])
+}
+
+model ReleaseIndex {
+  id        String   @id
+  addedAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+// Tmdb.prisma
+model Tmdb {
+  id                 Int      @id
+  adult              Boolean
+  backdrop_path      String?  // full URL constructed on getter in Java, handle that in your app logic
+  episode_run_time   Int[]    // list of integers
+  media_type         String?
+  first_air_date     String?
+  homepage           String?
+  in_production      Boolean?
+  last_air_date      String?
+  name               String?
+  number_of_episodes Int?
+  number_of_seasons  Int?
+  original_language  String?
+  original_name      String?
+  origin_country     String[] // list of countries
+  overview           String?  // @Lob in Java
+  popularity         Float?
+  poster_path        String?  // handle URL concatenation in your app logic
+  tagline            String?  // @Lob in Java
+  status             String?
+  type               String?
+  vote_average       Float?
+  vote_count         Int?
+
+  seasons            TmdbReleaseSeason[] @relation("TmdbReleaseSeason")
+}
+
+model TmdbReleaseSeason {
+  id            Int     @id
+  air_date      String?
+  episode_count Int?
+  name          String?
+  overview      String? // @Lob
+  poster_path   String? // handle URL concatenation in your app logic
+  season_number Int?
+  vote_average  Float?
+
+  tmdb Tmdb[] @relation("TmdbReleaseSeason")
+}
+
+model TmdbSeason {
+  id            Int      @id
+  air_date      String?
+  show_id       Int?     // although marked with @JsonIgnore, we keep it if you need it
+  name          String?
+  overview      String?  // @Lob
+  poster_path   String?  // handle URL concatenation in your app logic
+  season_number Int?
+  vote_average  Float?
+
+  episodes      TmdbSeasonEpisode[] @relation("TmdbSeasonEpisode")
+}
+
+model TmdbSeasonEpisode {
+  id             Int     @id
+  air_date       String?
+  episode_number Int?
+  episode_type   String?
+  name           String?
+  overview       String? // @Lob
+  production_code String?
+  runtime        Int?
+  season_number  Int?
+  show_id        Int?
+  still_path     String? // handle URL concatenation in your app logic
+  vote_average   Float?
+  vote_count     Int?
+
+  tmdbSeason TmdbSeason[] @relation("TmdbSeasonEpisode")
+}
+
+// LastUpdated.prisma
+model LastUpdated {
+  id        Int   @id @default(autoincrement())
+  entityId  String
+  externalId Int?
+  type      String
+  createdAt DateTime @default(now())
+}
+
 // Anilist.prisma
 model Anilist {
   id              Int           @id
@@ -371,6 +607,28 @@ model AnilistJikanEpisode {
   anilist     Anilist  @relation("AnilistJikanEpisodes", fields: [anilistId], references: [id])
 }
 
+// Indexer.prisma
+model AnilistIndexerState {
+  id               String   @id @default("anime")
+  lastFetchedPage  Int
+  updatedAt        DateTime @updatedAt
+}
+
+// Exception.prisma
+model Exception {
+  id              Int      @id @default(autoincrement())
+  date            DateTime @default(now())
+  statusCode      Int?
+  timestamp       String?
+  path            String?
+  method          String?
+  message         String?
+  file            String?
+  line            String?
+  stack           String?
+  headers         String?
+}
+
 // Animekai.prisma
 model AnimeKai {
   id             String        @id
@@ -378,9 +636,10 @@ model AnimeKai {
   title          String?
   japaneseTitle  String?
   image          String?
-  description    String?       // @Lob just means long text, handled by String
+  description    String?
   type           String?
   url            String?
+  updatedAt      Int?
   subOrDub       String?
   hasSub         Boolean?
   hasDub         Boolean?
@@ -403,67 +662,6 @@ model AnimekaiEpisode {
   url        String?
 
   animekai AnimeKai[] @relation("AnimekaiEpisode")
-}
-
-// Animepahe.prisma
-model Animepahe {
-  id             String              @id
-  alId           Int?                @unique 
-  title          String?
-  image          String?
-  cover          String?
-  hasSub         Boolean?
-  externalLinks  AnimepaheExternalLink[] @relation("AnimepaheExLink")
-  status         String?
-  type           String?
-  releaseDate    String?
-  totalEpisodes  Int?
-  episodePages   Int?
-
-  episodes       AnimepaheEpisode[] @relation("AnimepaheEpisode")
-
-  anilist Anilist? @relation(fields: [alId], references: [id])
-}
-
-model AnimepaheEpisode {
-  id          String   @id
-  number      Int?
-  title       String?
-  image       String?
-  duration    String?
-  url         String?
-
-  animepahe Animepahe[] @relation("AnimepaheEpisode")
-}
-
-model AnimepaheExternalLink {
-  id          String   @id
-  url         String
-  sourceName  String
-
-  animepahe Animepahe[] @relation("AnimepaheExLink")
-}
-
-// Exception.prisma
-model Exception {
-  id              Int      @id @default(autoincrement())
-  date            DateTime @default(now())
-  statusCode      Int?
-  timestamp       String?
-  path            String?
-  method          String?
-  message         String?
-  file            String?
-  line            String?
-  stack           String?
-  headers         String?
-}
-
-// Indexer.prisma
-model AnilistIndexerState {
-  id               String   @id @default("anime")
-  lastFetchedPage  Int
-  updatedAt        DateTime @updatedAt
 }
 
 // Kitsu.prisma
@@ -574,201 +772,41 @@ model KitsuDimension {
   largeDimension      KitsuImageDimensions?  @relation("LargeDimension", fields: [largeDimensionId], references: [id])
 }
 
-// LastUpdated.prisma
-model LastUpdated {
-  id        Int   @id @default(autoincrement())
-  entityId  String
-  externalId Int?
-  type      String
-  createdAt DateTime @default(now())
-}
-
-// Shikimori.prisma
-model Shikimori {
+// Zoro.prisma
+model Zoro {
   id            String        @id
-  malId         Int?          @unique
-  name          String?
-  russian       String?
-  licenseNameRu String?
-  english       String?
-  japanese      String?
-  poster        ShikimoriPoster? @relation("ShikimoriPoster")
-  synonyms      String[]
-  kind          String?
-  rating        String?
-  score         Float?
+  title         String?   
+  malID         Int? 
+  alID          Int?          @unique
+  japaneseTitle String?
+  image         String?
+  description   String?
+  type          String?
+  url           String?
+  updatedAt     Int?
+  subOrDub      String?
+  hasSub        Boolean?
+  hasDub        Boolean?
   status        String?
-  episodes      Int?
-  episodesAired Int?
-  duration      Int?
-  airedOn       AiredOn? @relation("ShikimoriAiredOn")
-  releasedOn    ReleasedOn? @relation("ShikimoriReleasedOn")
-  franchise     String?
-  url           String?
   season        String?
-  createdAt     DateTime?
-  updatedAt     DateTime?
-  nextEpisodeAt DateTime?
-  chronology    BasicIdShik[] @relation("ShikimoriChronology")
-  videos        ShikimoriVideo[] @relation("ShikimoriVideo")
-  screenshots   ShikimoriScreenshot[] @relation("ShikimoriScreenshot")
-  anilist       Anilist? @relation(fields: [malId], references: [idMal])
+  totalEpisodes Int?
+  episodes      EpisodeZoro[] @relation("EpisodeZoro")
+
+  anilist Anilist? @relation(fields: [alID], references: [id])
 }
 
-model AiredOn {
-  id        Int         @id @default(autoincrement())
-  shikimoriId String @unique
+model EpisodeZoro {
+  id       String  @id
+  number   Int?
+  title    String?
+  isFiller Boolean?
+  isSubbed Boolean?
+  isDubbed Boolean?
+  url      String?
 
-  year      Int?
-  month     Int?
-  day       Int?
-  date      String?
-
-  shikimori Shikimori @relation("ShikimoriAiredOn", fields: [shikimoriId], references: [id])
+  zoro Zoro[] @relation("EpisodeZoro")
 }
 
-model ReleasedOn {
-  id        Int         @id @default(autoincrement())
-  shikimoriId String @unique
-
-  year      Int?
-  month     Int?
-  day       Int?
-  date      String?
-
-  shikimori Shikimori @relation("ShikimoriReleasedOn", fields: [shikimoriId], references: [id])
-}
-
-model BasicIdShik {
-  id          String        @id
-  malId       String?
-
-  shikimori Shikimori[] @relation("ShikimoriChronology")
-}
-
-model ShikimoriVideo {
-  id            String        @id
-  url           String?
-  name          String?
-  kind          String?
-  playerUrl     String?
-  imageUrl      String?
-
-  shikimori Shikimori[] @relation("ShikimoriVideo")
-}
-
-model ShikimoriScreenshot {
-  id          String        @id
-  originalUrl String?
-  x166Url     String?
-  x332Url     String?
-
-  shikimori Shikimori[] @relation("ShikimoriScreenshot")
-}
-
-model Title {
-  id           Int                     @id @default(autoincrement())
-  romaji       String?
-  english      String?
-  native       String?
-}
-
-model DateDetails {
-  id           Int                     @id @default(autoincrement())
-  year         Int?
-  month        Int?
-  day          Int?
-}
-
-model ShikimoriPoster {
-  id             String              @id
-  shikimoriId    String @unique
-
-  originalUrl    String?
-  mainUrl        String?
-
-  shikimori Shikimori @relation("ShikimoriPoster", fields: [shikimoriId], references: [id])
-}
-
-model ReleaseIndex {
-  id        String   @id
-  addedAt   DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-
-// Tmdb.prisma
-model Tmdb {
-  id                 Int      @id
-  adult              Boolean
-  backdrop_path      String?  // full URL constructed on getter in Java, handle that in your app logic
-  episode_run_time   Int[]    // list of integers
-  media_type         String?
-  first_air_date     String?
-  homepage           String?
-  in_production      Boolean?
-  last_air_date      String?
-  name               String?
-  number_of_episodes Int?
-  number_of_seasons  Int?
-  original_language  String?
-  original_name      String?
-  origin_country     String[] // list of countries
-  overview           String?  // @Lob in Java
-  popularity         Float?
-  poster_path        String?  // handle URL concatenation in your app logic
-  tagline            String?  // @Lob in Java
-  status             String?
-  type               String?
-  vote_average       Float?
-  vote_count         Int?
-
-  seasons            TmdbReleaseSeason[] @relation("TmdbReleaseSeason")
-}
-
-model TmdbReleaseSeason {
-  id            Int     @id
-  air_date      String?
-  episode_count Int?
-  name          String?
-  overview      String? // @Lob
-  poster_path   String? // handle URL concatenation in your app logic
-  season_number Int?
-  vote_average  Float?
-
-  tmdb Tmdb[] @relation("TmdbReleaseSeason")
-}
-
-model TmdbSeason {
-  id            Int      @id
-  air_date      String?
-  show_id       Int?     // although marked with @JsonIgnore, we keep it if you need it
-  name          String?
-  overview      String?  // @Lob
-  poster_path   String?  // handle URL concatenation in your app logic
-  season_number Int?
-  vote_average  Float?
-
-  episodes      TmdbSeasonEpisode[] @relation("TmdbSeasonEpisode")
-}
-
-model TmdbSeasonEpisode {
-  id             Int     @id
-  air_date       String?
-  episode_number Int?
-  episode_type   String?
-  name           String?
-  overview       String? // @Lob
-  production_code String?
-  runtime        Int?
-  season_number  Int?
-  show_id        Int?
-  still_path     String? // handle URL concatenation in your app logic
-  vote_average   Float?
-  vote_count     Int?
-
-  tmdbSeason TmdbSeason[] @relation("TmdbSeasonEpisode")
-}
 
 // Tvdb.prisma
 model Tvdb {
@@ -888,38 +926,4 @@ model TvdbLanguage {
   name       String?
   nativeName String?
   shortCode  String?
-}
-
-// Zoro.prisma
-model Zoro {
-  id            String        @id
-  title         String?   
-  malID         Int? 
-  alID          Int?          @unique
-  japaneseTitle String?
-  image         String?
-  description   String?
-  type          String?
-  url           String?
-  subOrDub      String?
-  hasSub        Boolean?
-  hasDub        Boolean?
-  status        String?
-  season        String?
-  totalEpisodes Int?
-  episodes      EpisodeZoro[] @relation("EpisodeZoro")
-
-  anilist Anilist? @relation(fields: [alID], references: [id])
-}
-
-model EpisodeZoro {
-  id       String  @id
-  number   Int?
-  title    String?
-  isFiller Boolean?
-  isSubbed Boolean?
-  isDubbed Boolean?
-  url      String?
-
-  zoro Zoro[] @relation("EpisodeZoro")
 }

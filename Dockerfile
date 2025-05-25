@@ -1,18 +1,30 @@
-FROM node:20-alpine
-
-RUN apk add --no-cache git
+FROM oven/bun:1
 
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+# Install required system dependencies
+RUN apt-get update && \
+    apt-get install -y git netcat-openbsd && \
+    rm -rf /var/lib/apt/lists/*
 
+# Copy package.json first
+COPY package.json ./
+
+# Initialize bun and install dependencies
+RUN bun install && \
+    bun install --frozen-lockfile
+
+# Copy the rest of the application
 COPY . .
 
-RUN yarn prisma generate --schema=./prisma/schema.prisma
+# Generate Prisma client
+RUN bun run prisma generate --schema=./prisma/schema.prisma
 
+# Make entrypoint executable
 RUN chmod +x ./entrypoint.sh
 
-RUN yarn build
+# Build the application
+RUN bun run build
 
+# Run the application
 CMD ["./entrypoint.sh"]

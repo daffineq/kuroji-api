@@ -35,7 +35,6 @@ export interface AnilistWithRelations extends Anilist {
   startDate?: StartDate;
   endDate?: EndDate;
   trailer?: AnilistTrailer;
-  characters?: AnilistCharacter[];
   studios?: AnilistStudio[];
   airingSchedule?: AnilistAiringSchedule[];
   nextAiringEpisode?: AnilistNextAiringEpisode;

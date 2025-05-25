@@ -4,9 +4,10 @@ model AnimeKai {
   title          String?
   japaneseTitle  String?
   image          String?
-  description    String?       // @Lob just means long text, handled by String
+  description    String?
   type           String?
   url            String?
+  updatedAt      Int?
   subOrDub       String?
   hasSub         Boolean?
   hasDub         Boolean?

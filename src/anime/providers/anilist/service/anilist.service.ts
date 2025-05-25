@@ -16,9 +16,7 @@ export class AnilistService {
     private readonly helper: AnilistHelper,
     private readonly fetch: AnilistFetchService,
     private readonly util: AnilistUtilService,
-    @Inject(forwardRef(() => ShikimoriService))
     private readonly shikimori: ShikimoriService,
-    @Inject(forwardRef(() => KitsuService))
     private readonly kitsu: KitsuService,
   ) {}
 
@@ -65,9 +63,7 @@ export class AnilistService {
       this.fetch.fetchVideos(anilist.idMal ?? 0).catch(() => null)
     ]);
 
-    if (moreInfo?.data?.moreinfo) {
-      anilist.moreInfo = moreInfo.data.moreinfo;
-    }
+    anilist.moreInfo = moreInfo?.data.moreinfo ?? "";
 
     await this.prisma.lastUpdated.create({
       data: {
@@ -84,26 +80,13 @@ export class AnilistService {
     });
 
     await Promise.all([
-      this.shikimori.getShikimori(String(anilist.idMal)).catch(() => null),
-      this.kitsu.getKitsuByAnilist(anilist.id).catch(() => null)
+      this.shikimori.getShikimori(String(anilist.idMal ?? 0)).catch(() => null),
+      this.kitsu.getKitsuByAnilist(anilist.id).catch(() => null),
     ]);
 
     return await this.prisma.anilist.findUnique(this.helper.getFindUnique(anilist.id)) as AnilistWithRelations;
   }
-  
-  async updateAtAnilist(anilist: AnilistWithRelations, shouldSave: boolean = true): Promise<AnilistWithRelations> {
-    anilist.updatedAt = Math.floor(Date.now() / 1000);
-    
-    if (shouldSave) {
-      return await this.prisma.anilist.upsert({
-        where: { id: anilist.id },
-        create: await this.helper.getDataForPrisma(anilist),
-        update: await this.helper.getDataForPrisma(anilist),
-      });
-    }
 
-    return anilist;
-  }
 
   async update(id: number): Promise<void> {
     const existingAnilist = await this.getAnilist(id);
@@ -113,8 +96,6 @@ export class AnilistService {
     }
 
     if (existingAnilist == data.Page.media[0]) Promise.reject('No changes in anilist');
-
-    data.Page.media[0] = await this.updateAtAnilist(data.Page.media[0], false);
 
     await this.saveAnilist(data);
   }

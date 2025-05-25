@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { EpisodeZoro, Zoro } from '@prisma/client';
-import { CustomHttpService } from '../../../../http/http.service';
 import { PrismaService } from '../../../../prisma.service';
 import { ZoroHelper } from '../utils/zoro-helper';
 import { UpdateType } from '../../../../shared/UpdateType';
-import { AnilistService } from '../../anilist/service/anilist.service'
 import { findBestMatch } from '../../../../mapper/mapper.helper'
-import { TmdbService } from '../../tmdb/service/tmdb.service'
 import { ANIME, IAnimeResult, ISource, StreamingServers, SubOrSub } from '@consumet/extensions'
 
 export interface ZoroWithRelations extends Zoro {
@@ -19,9 +16,6 @@ const zoro = new ANIME.Zoro();
 export class ZoroService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly anilistService: AnilistService,
-    private readonly tmdbService: TmdbService,
-    private readonly http: CustomHttpService,
     private readonly helper: ZoroHelper,
   ) {}
 
@@ -64,8 +58,10 @@ export class ZoroService {
       },
     });
 
-    await this.prisma.zoro.create({
-      data: this.helper.getZoroData(zoro),
+    await this.prisma.zoro.upsert({
+      where: { id: zoro.id },
+      create: this.helper.getZoroData(zoro),
+      update: this.helper.getZoroData(zoro)
     });
 
     return await this.prisma.zoro.findUnique({
@@ -73,7 +69,7 @@ export class ZoroService {
       include: {
         episodes: true
       }
-    }) as unknown as ZoroWithRelations;
+    }) as ZoroWithRelations;
   }
 
   async update(id: string): Promise<ZoroWithRelations> {
@@ -90,17 +86,6 @@ export class ZoroService {
 
     const zoro = await this.fetchZoro(id) as ZoroWithRelations;
     zoro.alID = existingZoro.alID || 0;
-
-    if (existingZoro?.episodes !== zoro.episodes) {
-      const tmdb = await this.tmdbService.getTmdbByAnilist(zoro.alID);
-
-      if (tmdb) {
-        await this.tmdbService.update(tmdb.id);
-      }
-
-      const anilist = await this.anilistService.getAnilist(zoro.alID);
-      await this.anilistService.updateAtAnilist(anilist);
-    }
 
     return this.saveZoro(zoro);
   }
@@ -119,7 +104,25 @@ export class ZoroService {
   }
   
   async findZoroByAnilist(id: number): Promise<Zoro> {
-    const anilist = await this.anilistService.getAnilist(id);
+    const anilist = await this.prisma.anilist.findUnique({
+      where: { id: id },
+      select: {
+        title: {
+          select: {
+            romaji: true,
+            english: true,
+            native: true,
+          },
+        },
+        seasonYear: true,
+        episodes: true,
+      },
+    });
+
+    if (!anilist) {
+      throw new Error('Anilist not found');
+    }
+    
     const searchResult = await this.searchZoro(
       (anilist.title as { romaji: string }).romaji,
     );

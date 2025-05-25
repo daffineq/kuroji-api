@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Animepahe, AnimepaheEpisode, AnimepaheExternalLink } from '@prisma/client';
-import { CustomHttpService } from '../../../../http/http.service';
 import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../../mapper/mapper.helper';
 import { UpdateType } from '../../../../shared/UpdateType';
-import { AnilistService } from '../../anilist/service/anilist.service';
 import { AnimePaheHelper } from '../utils/animepahe-helper';
-import { TmdbService } from '../../tmdb/service/tmdb.service'
 import { ANIME, IAnimeResult, ISource } from '@consumet/extensions'
 
 export interface AnimepaheWithRelations extends Animepahe {
@@ -20,9 +17,6 @@ const animepahe = new ANIME.AnimePahe();
 export class AnimepaheService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly anilistService: AnilistService,
-    private readonly tmdbService: TmdbService,
-    private readonly customHttpService: CustomHttpService,
     private readonly helper: AnimePaheHelper
   ) {}
 
@@ -85,14 +79,6 @@ export class AnimepaheService {
     
     animepahe.alId = existingAnimepahe?.alId || 0;
 
-    if (existingAnimepahe?.episodes !== animepahe.episodes) {
-      const tmdb = await this.tmdbService.getTmdbByAnilist(animepahe.alId);
-
-      if (tmdb) {
-        await this.tmdbService.update(tmdb.id);
-      }
-    }
-
     return await this.saveAnimepahe(animepahe);
   }
 
@@ -105,7 +91,25 @@ export class AnimepaheService {
     return (await animepahe.search(q)).results;
   }
   async findAnimepahe(id: number): Promise<Animepahe> {
-    const anilist = await this.anilistService.getAnilist(id);
+    const anilist = await this.prisma.anilist.findUnique({
+      where: { id: id },
+      select: {
+        title: {
+          select: {
+            romaji: true,
+            english: true,
+            native: true,
+          },
+        },
+        seasonYear: true,
+        episodes: true,
+      },
+    });
+
+    if (!anilist) {
+      throw new Error('Anilist not found');
+    }
+
     const searchResult = await this.searchAnimepahe(
       (anilist.title as { romaji: string }).romaji,
     );

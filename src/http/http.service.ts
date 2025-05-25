@@ -8,30 +8,14 @@ import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class CustomHttpService {
-  private readonly rateLimit = 5;
-  private lastRequestTime = 0;
-
   constructor(private readonly httpService: HttpService) {}
-
-  private async rateLimiter(): Promise<void> {
-    const now = Date.now();
-    const delay = 1000 / this.rateLimit;
-
-    if (now - this.lastRequestTime < delay) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, delay - (now - this.lastRequestTime)),
-      );
-    }
-
-    this.lastRequestTime = Date.now();
-  }
 
   async getResponse<T>(
     url: string,
     config?: AxiosRequestConfig,
     jsonPath?: string,
   ): Promise<T> {
-    await this.rateLimiter();
+    console.log(`Fetching URL: ${url}`)
 
     try {
       const response = await firstValueFrom(
@@ -56,8 +40,6 @@ export class CustomHttpService {
     config?: AxiosRequestConfig,
     jsonPath?: string,
   ): Promise<T> {
-    await this.rateLimiter();
-
     try {
       const response = await firstValueFrom(
         this.httpService.post(url, body, config),
@@ -81,8 +63,6 @@ export class CustomHttpService {
     variables?: Record<string, any>,
     jsonPath?: string,
   ): Promise<T> {
-    await this.rateLimiter();
-
     try {
       const response = await firstValueFrom(
         this.httpService.post(url, { query, variables }),

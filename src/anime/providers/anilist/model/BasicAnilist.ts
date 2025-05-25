@@ -53,6 +53,8 @@ export interface BasicAnilist {
 
   episodes?: number;
   episodesAired?: number;
+  sub?: number;
+  dub?: number;
   duration?: number;
 
   countryOfOrigin?: string;

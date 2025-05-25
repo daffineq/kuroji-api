@@ -34,23 +34,11 @@ export class AnilistFetchService {
     )
   }
 
-  async fetchMoreInfo(id: number): Promise<MoreInfoResponse | null> {
-    try {
-      const response: { data?: { moreinfo?: string } } = await this.customHttpService.getResponse(Jikan.getMoreInfo(id));
-      if (!response?.data?.moreinfo) {
-        return null;
-      }
-      return { data: response.data ?? {} };
-    } catch (error) {
-      return null;
-    }
+  async fetchMoreInfo(id: number): Promise<MoreInfoResponse> {
+    return await this.customHttpService.getResponse(Jikan.getMoreInfo(id));
   }
 
   async fetchVideos(id: number): Promise<VideosResponse> {
-    try {
-      return this.customHttpService.getResponse(Jikan.getVideos(id))
-    } catch (error) {
-      throw error;
-    }
+    return await this.customHttpService.getResponse(Jikan.getVideos(id));
   }
 }

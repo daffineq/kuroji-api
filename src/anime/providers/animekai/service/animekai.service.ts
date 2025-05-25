@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { AnimeKai, AnimekaiEpisode } from '@prisma/client';
-import { CustomHttpService } from '../../../../http/http.service';
 import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../../mapper/mapper.helper';
 import { UpdateType } from '../../../../shared/UpdateType';
-import { AnilistService } from '../../anilist/service/anilist.service';
 import { AnimeKaiHelper } from '../utils/animekai-helper';
-import { TmdbService } from '../../tmdb/service/tmdb.service'
 import { ANIME, IAnimeResult, ISource, StreamingServers, SubOrSub } from "@consumet/extensions"
 
 export interface AnimekaiWithRelations extends AnimeKai {
@@ -19,9 +16,6 @@ const animekai = new ANIME.AnimeKai();
 export class AnimekaiService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly anilistService: AnilistService,
-    private readonly tmdbService: TmdbService,
-    private readonly customHttpService: CustomHttpService,
     private readonly helper: AnimeKaiHelper
   ) {}
 
@@ -78,14 +72,6 @@ export class AnimekaiService {
 
     animekai.anilistId = existingAnimekai?.anilistId ?? 0;
 
-    if (existingAnimekai?.episodes !== animekai.episodes) {
-      const tmdb = await this.tmdbService.getTmdbByAnilist(animekai.anilistId);
-
-      if (tmdb) {
-        await this.tmdbService.update(tmdb.id);
-      }
-    }
-
     return await this.saveAnimekai(animekai);
   }
 
@@ -99,7 +85,25 @@ export class AnimekaiService {
   }
 
   async findAnimekai(id: number): Promise<AnimeKai> {
-    const anilist = await this.anilistService.getAnilist(id);
+    const anilist = await this.prisma.anilist.findUnique({
+      where: { id: id },
+      select: {
+        title: {
+          select: {
+            romaji: true,
+            english: true,
+            native: true,
+          },
+        },
+        seasonYear: true,
+        episodes: true,
+      },
+    });
+
+    if (!anilist) {
+      throw new Error('Anilist not found');
+    }
+
     const searchResult = await this.searchAnimekai(
       (anilist.title as { romaji: string }).romaji,
     );

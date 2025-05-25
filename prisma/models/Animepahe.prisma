@@ -4,6 +4,7 @@ model Animepahe {
   title          String?
   image          String?
   cover          String?
+  updatedAt      Int?
   hasSub         Boolean?
   externalLinks  AnimepaheExternalLink[] @relation("AnimepaheExLink")
   status         String?

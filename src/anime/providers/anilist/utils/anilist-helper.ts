@@ -357,6 +357,8 @@ export class AnilistHelper {
       seasonYear: anilist.seasonYear ?? undefined,
       episodes: anilist.episodes ?? undefined,
       episodesAired: (anilist as any).episodesAired ?? undefined,
+      sub: anilist.zoro.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
+      dub: anilist.zoro.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
       duration: anilist.duration ?? undefined,
       countryOfOrigin: anilist.countryOfOrigin ?? undefined,
       popularity: anilist.popularity ?? undefined,
@@ -549,6 +551,11 @@ export class AnilistHelper {
       },
       kitsu: {
         include: this.kitsuHelper.getInclude(),
+      },
+      zoro: {
+        include: {
+          episodes: true,
+        }
       }
     }
 
@@ -568,7 +575,6 @@ export class AnilistHelper {
     return {
       id: raw.id,
       idMal: raw.idMal,
-      siteUrl: raw.siteUrl,
       title: raw.title,
       bannerImage: raw.bannerImage,
       status: raw.status,
@@ -582,6 +588,8 @@ export class AnilistHelper {
       season: raw.season,
       seasonYear: raw.seasonYear,
       episodes: raw.episodes,
+      sub: raw.zoro.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
+      dub: raw.zoro.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
       duration: raw.duration,
       countryOfOrigin: raw.countryOfOrigin,
       isLicensed: raw.isLicensed,
