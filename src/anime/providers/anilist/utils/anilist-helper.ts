@@ -356,7 +356,6 @@ export class AnilistHelper {
       season: anilist.season ?? undefined,
       seasonYear: anilist.seasonYear ?? undefined,
       episodes: anilist.episodes ?? undefined,
-      episodesAired: (anilist as any).episodesAired ?? undefined,
       sub: anilist?.zoro?.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
       dub: anilist?.zoro?.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
       duration: anilist.duration ?? undefined,
