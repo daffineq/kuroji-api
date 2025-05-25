@@ -18,14 +18,14 @@ export class AnilistHelper {
   ) {}
 
   public async getDataForPrisma(anime: any, mal: VideosResponse | null = null): Promise<Prisma.AnilistCreateInput> {
-    const isMalExist = !!(await this.prisma.anilist.findUnique({
-      where: { idMal: anime.idMal ?? undefined },
+    const isMalExist = anime.idMal ? !!(await this.prisma.anilist.findUnique({
+      where: { idMal: anime.idMal },
       select: { id: true },
-    }));
+    })) : false;
 
     return {
       id: anime.id,
-      idMal: isMalExist ? undefined : anime.idMal ?? null,
+      idMal: isMalExist ? undefined : (anime.idMal ?? undefined),
       title: {
         connectOrCreate: {
           where: { anilistId: anime.id },
@@ -357,8 +357,8 @@ export class AnilistHelper {
       seasonYear: anilist.seasonYear ?? undefined,
       episodes: anilist.episodes ?? undefined,
       episodesAired: (anilist as any).episodesAired ?? undefined,
-      sub: anilist.zoro.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
-      dub: anilist.zoro.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
+      sub: anilist?.zoro?.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
+      dub: anilist?.zoro?.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
       duration: anilist.duration ?? undefined,
       countryOfOrigin: anilist.countryOfOrigin ?? undefined,
       popularity: anilist.popularity ?? undefined,
@@ -368,8 +368,8 @@ export class AnilistHelper {
       isAdult: anilist.isAdult ?? undefined,
       genres: anilist.genres ?? undefined,
       nextAiringEpisode: anilist.nextAiringEpisode ?? undefined,
-      shikimori: this.convertShikimoriToBasic(anilist.shikimori),
-      kitsu: this.convertKitsuToBasic(anilist.kitsu),
+      shikimori: this.convertShikimoriToBasic(anilist?.shikimori),
+      kitsu: this.convertKitsuToBasic(anilist?.kitsu),
     }
   }
 
@@ -588,8 +588,8 @@ export class AnilistHelper {
       season: raw.season,
       seasonYear: raw.seasonYear,
       episodes: raw.episodes,
-      sub: raw.zoro.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
-      dub: raw.zoro.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
+      sub: raw?.zoro?.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
+      dub: raw?.zoro?.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
       duration: raw.duration,
       countryOfOrigin: raw.countryOfOrigin,
       isLicensed: raw.isLicensed,
