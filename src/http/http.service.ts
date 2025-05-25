@@ -15,8 +15,6 @@ export class CustomHttpService {
     config?: AxiosRequestConfig,
     jsonPath?: string,
   ): Promise<T> {
-    console.log(`Fetching URL: ${url}`)
-
     try {
       const response = await firstValueFrom(
         this.httpService.get<T>(url, config),

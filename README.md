@@ -85,7 +85,7 @@ You can quickly start the entire application stack (App, PostgreSQL, and Redis) 
 
 ```bash
 # Start all services in detached mode
-$ docker-compose up -d
+$ docker-compose up --build -d
 ```
 
 The API will be available at: http://localhost:3000
@@ -98,7 +98,7 @@ For a quicker development workflow, you can run just the PostgreSQL and Redis se
 
 ```bash
 # Start only PostgreSQL and Redis
-$ docker-compose -f docker-compose.basic.yml up -d
+$ docker-compose -f docker-compose.basic.yml up --build -d
 ```
 
 Then run the API locally with:
