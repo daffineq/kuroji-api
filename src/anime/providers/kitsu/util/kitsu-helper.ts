@@ -6,6 +6,7 @@ export class KitsuHelper {
   public getDataForPrisma(rawAnime: any): Prisma.KitsuCreateInput {
     const anime = rawAnime.data;
     const attrs = anime.attributes;
+    const relationships = anime.relationships;
 
     return {
       id: anime.id,
@@ -117,90 +118,277 @@ export class KitsuHelper {
         }
       } : undefined,
 
-      anilist: {
+      // Relationships
+      genres: relationships?.genres ? {
+        create: {
+          selfLink: relationships.genres.links.self,
+          related: relationships.genres.links.related,
+        }
+      } : undefined,
+
+      categories: relationships?.categories ? {
+        create: {
+          selfLink: relationships.categories.links.self,
+          related: relationships.categories.links.related,
+        }
+      } : undefined,
+
+      castings: relationships?.castings ? {
+        create: {
+          selfLink: relationships.castings.links.self,
+          related: relationships.castings.links.related,
+        }
+      } : undefined,
+
+      installments: relationships?.installments ? {
+        create: {
+          selfLink: relationships.installments.links.self,
+          related: relationships.installments.links.related,
+        }
+      } : undefined,
+
+      mappings: relationships?.mappings ? {
+        create: {
+          selfLink: relationships.mappings.links.self,
+          related: relationships.mappings.links.related,
+        }
+      } : undefined,
+
+      reviews: relationships?.reviews ? {
+        create: {
+          selfLink: relationships.reviews.links.self,
+          related: relationships.reviews.links.related,
+        }
+      } : undefined,
+
+      mediaRelationships: relationships?.mediaRelationships ? {
+        create: {
+          selfLink: relationships.mediaRelationships.links.self,
+          related: relationships.mediaRelationships.links.related,
+        }
+      } : undefined,
+
+      episodes: relationships?.episodes ? {
+        create: {
+          selfLink: relationships.episodes.links.self,
+          related: relationships.episodes.links.related,
+        }
+      } : undefined,
+
+      streamingLinks: relationships?.streamingLinks ? {
+        create: {
+          selfLink: relationships.streamingLinks.links.self,
+          related: relationships.streamingLinks.links.related,
+        }
+      } : undefined,
+
+      animeProductions: relationships?.animeProductions ? {
+        create: {
+          selfLink: relationships.animeProductions.links.self,
+          related: relationships.animeProductions.links.related,
+        }
+      } : undefined,
+
+      animeCharacters: relationships?.animeCharacters ? {
+        create: {
+          selfLink: relationships.animeCharacters.links.self,
+          related: relationships.animeCharacters.links.related,
+        }
+      } : undefined,
+
+      animeStaff: relationships?.animeStaff ? {
+        create: {
+          selfLink: relationships.animeStaff.links.self,
+          related: relationships.animeStaff.links.related,
+        }
+      } : undefined,
+
+      anilist: anime.anilistId ? {
         connect: {
           id: anime.anilistId,
         }
-      }
+      } : undefined,
     }
   }
 
   public getInclude(): Prisma.KitsuInclude {
     return {
       titles: {
-        select: {
-          en: true,
-          en_jp: true,
-          ja_jp: true,
+        omit: {
+          id: true,
+          kitsuId: true,
         }
       },
       posterImage: {
-        select: {
-          tiny: true,
-          small: true,
-          medium: true,
-          large: true,
-          original: true,
+        omit: {
+          id: true,
+          kitsuId: true,
+        },
+        include: {
           dimensions: {
-            select: {
+            omit: {
+              id: true,
+              posterImageId: true,
+              coverImageId: true,
+            },
+            include: {
               tiny: {
-                select: {
-                  width: true,
-                  height: true,
+                omit: {
+                  id: true,
+                  tinyDimensionId: true,
+                  smallDimensionId: true,
+                  mediumDimensionId: true,
+                  largeDimensionId: true,
                 }
               },
               small: {
-                select: {
-                  width: true,
-                  height: true,
+                omit: {
+                  id: true,
+                  tinyDimensionId: true,
+                  smallDimensionId: true,
+                  mediumDimensionId: true,
+                  largeDimensionId: true,
                 }
               },
               medium: {
-                select: {
-                  width: true,
-                  height: true,
+                omit: {
+                  id: true,
+                  tinyDimensionId: true,
+                  smallDimensionId: true,
+                  mediumDimensionId: true,
+                  largeDimensionId: true,
                 }
               },
               large: {
-                select: {
-                  width: true,
-                  height: true,
+                omit: {
+                  id: true,
+                  tinyDimensionId: true,
+                  smallDimensionId: true,
+                  mediumDimensionId: true,
+                  largeDimensionId: true,
                 }
-              },
+              }
             }
           }
         }
       },
       coverImage: {
-        select: {
-          tiny: true,
-          small: true,
-          large: true,
-          original: true,
+        omit: {
+          id: true,
+          kitsuId: true,
+        },
+        include: {
           dimensions: {
-            select: {
+            omit: {
+              id: true,
+              posterImageId: true,
+              coverImageId: true,
+            },
+            include: {
               tiny: {
-                select: {
-                  width: true,
-                  height: true,
+                omit: {
+                  id: true,
+                  tinyDimensionId: true,
+                  smallDimensionId: true,
+                  mediumDimensionId: true,
+                  largeDimensionId: true,
                 }
               },
               small: {
-                select: {
-                  width: true,
-                  height: true,
+                omit: {
+                  id: true,
+                  tinyDimensionId: true,
+                  smallDimensionId: true,
+                  mediumDimensionId: true,
+                  largeDimensionId: true,
                 }
               },
               large: {
-                select: {
-                  width: true,
-                  height: true,
+                omit: {
+                  id: true,
+                  tinyDimensionId: true,
+                  smallDimensionId: true,
+                  mediumDimensionId: true,
+                  largeDimensionId: true,
                 }
-              },
+              }
             }
           }
         }
       },
+      // One-to-One relation includes
+      genres: {
+        select: {
+          selfLink: true,
+          related: true,
+        }
+      },
+      categories: {
+        select: {
+          selfLink: true,
+          related: true,
+        }
+      },
+      castings: {
+        select: {
+          selfLink: true,
+          related: true,
+        }
+      },
+      installments: {
+        select: {
+          selfLink: true,
+          related: true,
+        }
+      },
+      mappings: {
+        select: {
+          selfLink: true,
+          related: true,
+        }
+      },
+      reviews: {
+        select: {
+          selfLink: true,
+          related: true,
+        }
+      },
+      mediaRelationships: {
+        select: {
+          selfLink: true,
+          related: true,
+        }
+      },
+      episodes: {
+        select: {
+          selfLink: true,
+          related: true,
+        }
+      },
+      streamingLinks: {
+        select: {
+          selfLink: true,
+          related: true,
+        }
+      },
+      animeProductions: {
+        select: {
+          selfLink: true,
+          related: true,
+        }
+      },
+      animeCharacters: {
+        select: {
+          selfLink: true,
+          related: true,
+        }
+      },
+      animeStaff: {
+        select: {
+          selfLink: true,
+          related: true,
+        }
+      }
     }
   }
 }

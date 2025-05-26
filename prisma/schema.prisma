@@ -695,8 +695,19 @@ model Kitsu {
   titles              KitsuTitle?
   posterImage         KitsuPosterImage?  @relation("PosterImage")
   coverImage          KitsuCoverImage?   @relation("CoverImage")
+  genres              KitsuGenres?
+  categories          KitsuCategories?
+  castings            KitsuCastings?
+  installments        KitsuInstallments?
+  mappings            KitsuMappings?
+  reviews             KitsuReviews?
+  mediaRelationships  KitsuMediaRelationships?
+  episodes            KitsuEpisodes?
+  streamingLinks      KitsuStreamingLinks?
+  animeProductions    KitsuAnimeProductions?
+  animeCharacters     KitsuAnimeCharacters?
+  animeStaff          KitsuAnimeStaff?
 
-  // External Relations
   anilist             Anilist?    @relation(fields: [anilistId], references: [id])
 }
 
@@ -762,6 +773,114 @@ model KitsuDimension {
   smallDimension      KitsuImageDimensions?  @relation("SmallDimension", fields: [smallDimensionId], references: [id])
   mediumDimension     KitsuImageDimensions?  @relation("MediumDimension", fields: [mediumDimensionId], references: [id])
   largeDimension      KitsuImageDimensions?  @relation("LargeDimension", fields: [largeDimensionId], references: [id])
+}
+
+model KitsuGenres {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuCategories {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuCastings {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuInstallments {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuMappings {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuReviews {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuMediaRelationships {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuEpisodes {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuStreamingLinks {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuAnimeProductions {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuAnimeCharacters {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuAnimeStaff {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
 }
 
 // Zoro.prisma
