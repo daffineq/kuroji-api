@@ -16,6 +16,7 @@ import { GraphQL } from '../graphql/shikimori.graphql'
 import { ShikimoriHelper } from '../utils/shikimori-helper'
 import Dimens from '../../../../configs/Dimens'
 import { AnilistService } from '../../anilist/service/anilist.service'
+import { withRetry } from '../../../../shared/utils'
 
 export interface ShikimoriWithRelations extends Shikimori {
   poster: ShikimoriPoster
@@ -41,9 +42,9 @@ export class ShikimoriService {
     const existing = await this.findById(id)
     if (existing) return this.adjustScreenshots(existing)
 
-    const { animes } = await this.fetchFromGraphQL(id)
+    const { animes } = await withRetry(() => this.fetchFromGraphQL(id));
     const anime = animes[0]
-    if (!anime) throw new NotFoundException(`No Shikimori data found for ID: ${id}`)
+    if (!anime) throw new NotFoundException(`No Shikimori data found for ID: ${id}`);
 
     await this.saveShikimori(anime as ShikimoriWithRelations)
     const saved = await this.findById(id)
@@ -73,7 +74,7 @@ export class ShikimoriService {
 
     if (!toFetch.length) return existing
 
-    const { animes } = await this.fetchFromGraphQL(toFetch.join(','), 1, toFetch.length)
+    const { animes } = await withRetry(() => this.fetchFromGraphQL(toFetch.join(','), 1, toFetch.length));
     const newAnimes = animes.filter((a) => !existingIds.includes(a.id)) as ShikimoriWithRelations[]
 
     if (newAnimes.length) await this.saveShikimoris(newAnimes)
@@ -116,7 +117,7 @@ export class ShikimoriService {
   }
 
   async update(id: string): Promise<ShikimoriWithRelations> {
-    const { animes } = await this.fetchFromGraphQL(id)
+    const { animes } = await withRetry(() => this.fetchFromGraphQL(id));
     const anime = animes[0]
     if (!anime) throw new NotFoundException(`Shikimori not found for ID: ${id}`)
 

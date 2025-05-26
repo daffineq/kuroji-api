@@ -8,28 +8,78 @@ import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class CustomHttpService {
+  private requestQueue: (() => Promise<any>)[] = [];
+  private isProcessing = false;
+  private requestCount = 0;
+  private lastRequestTime = Date.now();
+  private readonly MAX_REQUESTS_PER_SECOND = 5;
+
   constructor(private readonly httpService: HttpService) {}
+
+  private async processQueue() {
+    if (this.isProcessing) return;
+    this.isProcessing = true;
+
+    while (this.requestQueue.length > 0) {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - this.lastRequestTime;
+
+      if (elapsedTime >= 1000) {
+        this.requestCount = 0;
+        this.lastRequestTime = currentTime;
+      }
+
+      if (this.requestCount >= this.MAX_REQUESTS_PER_SECOND) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        continue;
+      }
+
+      const request = this.requestQueue.shift();
+      if (request) {
+        this.requestCount++;
+        await request();
+      }
+    }
+
+    this.isProcessing = false;
+  }
+
+  private async enqueueRequest<T>(request: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.requestQueue.push(async () => {
+        try {
+          const result = await request();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      void this.processQueue();
+    });
+  }
 
   async getResponse<T>(
     url: string,
     config?: AxiosRequestConfig,
     jsonPath?: string,
   ): Promise<T> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService.get<T>(url, config),
-      );
-      const data = response.data as T;
+    return this.enqueueRequest(async () => {
+      try {
+        const response = await firstValueFrom(
+          this.httpService.get<T>(url, config),
+        );
+        const data = response.data as T;
 
-      if (jsonPath) {
-        return this.extractJson(data, jsonPath) as T;
+        if (jsonPath) {
+          return this.extractJson(data, jsonPath) as T;
+        }
+
+        return data;
+      } catch (error) {
+        console.error(`Failed to get response for ${url}: ${error}`);
+        throw error;
       }
-
-      return data;
-    } catch (error) {
-      console.error(`Failed to get response: ${error}`)
-      throw error;
-    }
+    });
   }
 
   async postResponse<T>(
@@ -38,21 +88,23 @@ export class CustomHttpService {
     config?: AxiosRequestConfig,
     jsonPath?: string,
   ): Promise<T> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService.post(url, body, config),
-      );
-      const data = response.data as T;
+    return this.enqueueRequest(async () => {
+      try {
+        const response = await firstValueFrom(
+          this.httpService.post(url, body, config),
+        );
+        const data = response.data as T;
 
-      if (jsonPath) {
-        return this.extractJson(data, jsonPath) as T;
+        if (jsonPath) {
+          return this.extractJson(data, jsonPath) as T;
+        }
+
+        return data;
+      } catch (error) {
+        console.error(`Failed to get post response for ${url}: ${error}`);
+        throw error;
       }
-
-      return data;
-    } catch (error) {
-      console.error(`Failed to get post response: ${error}`)
-      throw error;
-    }
+    });
   }
 
   async getGraphQL<T>(
@@ -61,32 +113,30 @@ export class CustomHttpService {
     variables?: Record<string, any>,
     jsonPath?: string,
   ): Promise<T> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService.post(url, { query, variables }),
-      );
-      const data = response.data as T;
+    return this.enqueueRequest(async () => {
+      try {
+        const response = await firstValueFrom(
+          this.httpService.post(url, { query, variables }),
+        );
+        const data = response.data as T;
 
-      if (jsonPath) {
-        return this.extractJson(data, jsonPath) as T;
-      }
+        if (jsonPath) {
+          return this.extractJson(data, jsonPath) as T;
+        }
 
-      if (data && typeof data === 'object' && 'data' in data) {
-        return (data as { data: T }).data;
+        if (data && typeof data === 'object' && 'data' in data) {
+          return (data as { data: T }).data;
+        }
+        return data;
+      } catch (error) {
+        console.error(`Failed to fetch GraphQL response for ${url}:`, error);
+        throw error;
       }
-      return data;
-    } catch (error) {
-      console.error(
-        `Failed to fetch GraphQL response from ${url}:`,
-        error,
-      );
-      throw error;
-    }
+    });
   }
 
   private extractJson(data: any, jsonPath: string): any {
     const pathParts = jsonPath.split('.');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     let currentNode = data;
 
     for (const part of pathParts) {
@@ -94,7 +144,6 @@ export class CustomHttpService {
         return null;
       }
       if (typeof currentNode[part] === 'object' && currentNode[part] !== null) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         currentNode = currentNode[part];
       } else {
         return null;

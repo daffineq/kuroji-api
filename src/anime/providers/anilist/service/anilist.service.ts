@@ -8,6 +8,7 @@ import { AnilistWithRelations, AnilistResponse } from '../model/AnilistModels'
 import { AnilistUtilService } from './helper/anilist.util.service'
 import { ShikimoriService } from '../../shikimori/service/shikimori.service'
 import { KitsuService } from '../../kitsu/service/kitsu.service'
+import { withRetry } from '../../../../shared/utils'
 
 @Injectable()
 export class AnilistService {
@@ -30,12 +31,12 @@ export class AnilistService {
       return await this.util.adjustAnilist(existingAnilist);
     }
 
-    const data = await this.fetch.fetchAnilistFromGraphQL(id, isMal);
+    const data = await withRetry(() => this.fetch.fetchAnilistFromGraphQL(id, isMal));
     if (!data.Page?.media || data.Page.media.length === 0) {
       throw new Error('No media found');
     }
 
-    const type = data.Page.media[0].type as unknown as MediaType;
+    const type = data.Page.media[0].type as MediaType;
     if (type == MediaType.MANGA) {
       throw new Error('Nuh uh, no mangas here');
     }
@@ -80,22 +81,21 @@ export class AnilistService {
     });
 
     await Promise.all([
-      ...(anilist.idMal ? [this.shikimori.getShikimori(String(anilist.idMal)).catch(() => null)] : []),
-      this.kitsu.getKitsuByAnilist(anilist.id).catch(() => null),
+      ...(anilist.idMal ? [withRetry(() => this.shikimori.getShikimori(String(anilist.idMal))).catch(() => null)] : []),
+      withRetry(() => this.kitsu.getKitsuByAnilist(anilist.id)).catch(() => null),
     ]);
 
     return await this.prisma.anilist.findUnique(this.helper.getFindUnique(anilist.id)) as AnilistWithRelations;
   }
 
-
   async update(id: number): Promise<void> {
     const existingAnilist = await this.getAnilist(id);
-    const data = await this.fetch.fetchAnilistFromGraphQL(id);
+    const data = await withRetry(() => this.fetch.fetchAnilistFromGraphQL(id));
     if (!data.Page?.media || data.Page.media.length === 0) {
       throw new Error('No media found');
     }
 
-    if (existingAnilist == data.Page.media[0]) Promise.reject('No changes in anilist');
+    if (existingAnilist == data.Page.media[0]) throw new Error('No changes in anilist');
 
     await this.saveAnilist(data);
   }

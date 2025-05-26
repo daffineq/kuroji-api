@@ -6,6 +6,7 @@ import { KITSU } from '../../../../configs/kitsu.config'
 import { CustomHttpService } from '../../../../http/http.service'
 import { findBestMatch } from '../../../../mapper/mapper.helper'
 import { UpdateType } from '../../../../shared/UpdateType'
+import { withRetry } from '../../../../shared/utils'
 
 export interface KitsuWithRelations extends Kitsu {
   titles: KitsuTitle;
@@ -33,7 +34,7 @@ export class KitsuService {
       return existingKitsu;
     }
 
-    const rawKitsu = await this.findKitsuByAnilist(id);
+    const rawKitsu = await withRetry(() => this.findKitsuByAnilist(id));
 
     return await this.saveKitsu(rawKitsu);
   }
@@ -69,7 +70,7 @@ export class KitsuService {
       throw new Error('Not found');
     }
 
-    const rawKitsu = await this.fetchKitsu(id);
+    const rawKitsu = await withRetry(() => this.fetchKitsu(id));
     rawKitsu.data.anilistId = existingKitsu.anilistId;
 
     await this.saveKitsu(rawKitsu);
@@ -119,7 +120,7 @@ export class KitsuService {
     const bestMatch = findBestMatch(searchCriteria, results);
 
     if (bestMatch) {
-      const data = await this.fetchKitsu(bestMatch.result.id as string);
+      const data = await withRetry(() => this.fetchKitsu(bestMatch.result.id as string));
       data.data.anilistId = id;
       return data;
     }
