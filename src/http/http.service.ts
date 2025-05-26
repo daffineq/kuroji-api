@@ -12,7 +12,7 @@ export class CustomHttpService {
   private isProcessing = false;
   private requestCount = 0;
   private lastRequestTime = Date.now();
-  private readonly MAX_REQUESTS_PER_SECOND = 5;
+  private readonly MAX_REQUESTS_PER_SECOND = 3;
 
   constructor(private readonly httpService: HttpService) {}
 

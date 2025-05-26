@@ -60,8 +60,8 @@ export class AnilistService {
     let anilist = data.Page.media[0];
 
     const [moreInfo, videos] = await Promise.all([
-      this.fetch.fetchMoreInfo(anilist.idMal ?? 0).catch(() => null),
-      this.fetch.fetchVideos(anilist.idMal ?? 0).catch(() => null)
+      withRetry(() => this.fetch.fetchMoreInfo(anilist.idMal ?? 0)).catch(() => null),
+      withRetry(() => this.fetch.fetchVideos(anilist.idMal ?? 0)).catch(() => null)
     ]);
 
     anilist.moreInfo = moreInfo?.data?.moreinfo ?? "";
