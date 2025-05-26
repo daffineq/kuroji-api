@@ -81,7 +81,7 @@ export class AnilistHelper {
       isLicensed: anime.isLicensed,
       source: anime.source,
       hashtag: anime.hashtag,
-      moreInfo: anime.moreInfo,
+      moreInfo: anime?.moreInfo ?? null,
       trailer: anime.trailer ? {
         connectOrCreate: {
           where: { id: anime.trailer?.id },
