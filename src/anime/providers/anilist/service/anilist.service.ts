@@ -64,7 +64,7 @@ export class AnilistService {
       this.fetch.fetchVideos(anilist.idMal ?? 0).catch(() => null)
     ]);
 
-    anilist.moreInfo = moreInfo?.data.moreinfo ?? "";
+    anilist.moreInfo = moreInfo?.data?.moreinfo ?? "";
 
     await this.prisma.lastUpdated.create({
       data: {
