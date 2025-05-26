@@ -18,31 +18,54 @@ export class ExceptionsHandler implements ExceptionFilter {
     const response = ctx.getResponse<Response>()
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR
-    let message = 'Something went wrong'
+    let message = 'Internal Server Error'
     let stack: string | undefined
     let file: string | undefined
     let line: number | undefined
     let headers: string | undefined
+    let errorResponse: any = {}
 
+    // Handle different types of exceptions
     if (exception instanceof HttpException) {
       status = exception.getStatus()
       const res = exception.getResponse()
       message = typeof res === 'string' ? res : (res as any).message
       headers = typeof res === 'string' ? res : (res as any).headers
-    }
-
-    if (exception instanceof Error) {
-      stack = exception.stack;
+      errorResponse = res
+    } else if (exception instanceof Error) {
+      // Handle any Error instance
       message = exception.message
-      console.log(stack);
-      const stackLines = stack?.split('\n')[1]?.trim()?.match(/\((.*):(\d+):(\d+)\)/)
-      if (stackLines) {
-        const absolutePath = stackLines[1]
-        file = absolutePath.split('veanime__nestend')[1] || absolutePath
-        line = parseInt(stackLines[2])
+      stack = exception.stack
+      
+      // Parse stack trace for file info
+      const stackLines = stack?.split('\n')
+      const errorLine = stackLines?.find(line => line.includes('Error:'))
+      const callerLine = stackLines?.find(line => !line.includes('node_modules') && line.includes('.ts'))
+      
+      if (callerLine) {
+        const match = callerLine.match(/\((.*):(\d+):(\d+)\)/) || callerLine.match(/at\s+(.+):(\d+):(\d+)/)
+        if (match) {
+          file = match[1]
+          line = parseInt(match[2])
+        }
+      }
+
+      // Set error response
+      errorResponse = {
+        statusCode: status,
+        message,
+        error: exception.name,
+      }
+    } else {
+      // Handle unknown exceptions
+      errorResponse = {
+        statusCode: status,
+        message: String(exception),
+        error: 'Unknown Error'
       }
     }
 
+    // Log exception to database
     try {
       await this.prisma.exception.create({
         data: {
@@ -61,13 +84,13 @@ export class ExceptionsHandler implements ExceptionFilter {
       console.error('Failed to save exception log:', e)
     }
 
-    if (exception instanceof HttpException) {
-      response.status(status).json(exception.getResponse())
-    } else {
-      response.status(status).json({
-        statusCode: status,
-        message: message,
+    // Send response
+    response
+      .status(status)
+      .json({
+        timestamp: new Date().toISOString(),
+        path: request.url,
+        ...errorResponse
       })
-    }
   }
 }

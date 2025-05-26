@@ -57,14 +57,7 @@ export class AnilistService {
       throw new Error('No media found');
     }
 
-    let anilist = data.Page.media[0];
-
-    const [moreInfo, videos] = await Promise.all([
-      withRetry(() => this.fetch.fetchMoreInfo(anilist.idMal ?? 0)).catch(() => null),
-      withRetry(() => this.fetch.fetchVideos(anilist.idMal ?? 0)).catch(() => null)
-    ]);
-
-    anilist.moreInfo = moreInfo?.data?.moreinfo ?? "";
+    const anilist = data.Page.media[0];
 
     await this.prisma.lastUpdated.create({
       data: {
@@ -76,8 +69,8 @@ export class AnilistService {
 
     await this.prisma.anilist.upsert({
       where: { id: anilist.id },
-      create: await this.helper.getDataForPrisma(anilist, videos),
-      update: await this.helper.getDataForPrisma(anilist, videos),
+      create: await this.helper.getDataForPrisma(anilist),
+      update: await this.helper.getDataForPrisma(anilist),
     });
 
     await Promise.all([

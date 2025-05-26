@@ -50,7 +50,7 @@ $ git clone https://github.com/daffineq/kuroji-api.git
 $ cd kuroji-api
 
 # Install dependencies
-$ yarn install
+$ bun install
 
 # Set up environment variables
 $ cp .env.example .env
@@ -60,7 +60,7 @@ $ cp .env.example .env
 $ npx prisma migrate dev
 
 # Start the server
-$ yarn start:dev
+$ bun start:dev
 ```
 
 ## 🏁 Getting Started

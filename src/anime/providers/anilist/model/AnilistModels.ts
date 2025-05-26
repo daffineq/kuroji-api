@@ -1,4 +1,4 @@
-import { Anilist, AnilistTitle, AnilistCover, StartDate, EndDate, AnilistTrailer, AnilistCharacter, AnilistStudio, AnilistAiringSchedule, AnilistNextAiringEpisode, AnilistTag, AnilistExternalLink, AnilistStreamingEpisode, Shikimori, AnilistRanking, AnilistScoreDistribution, AnilistStatusDistribution, AnilistPromoVideo, AnilistMusicVideo, AnilistJikanEpisode } from '@prisma/client'
+import { Anilist, AnilistTitle, AnilistCover, StartDate, EndDate, AnilistTrailer, AnilistStudio, AnilistAiringSchedule, AnilistNextAiringEpisode, AnilistTag, AnilistExternalLink, AnilistStreamingEpisode, AnilistRanking, AnilistScoreDistribution, AnilistStatusDistribution } from '@prisma/client'
 import { PageInfo } from '../graphql/types/PageInfo'
 import { BasicAnilist } from './BasicAnilist'
 import { KitsuWithRelations } from '../../kitsu/service/kitsu.service'
@@ -44,9 +44,6 @@ export interface AnilistWithRelations extends Anilist {
   streamingEpisodes?: AnilistStreamingEpisode[];
   scoreDistribution?: AnilistScoreDistribution[];
   statusDistribution?: AnilistStatusDistribution[];
-  promoVideos?: AnilistPromoVideo[];
-  jikanEpisodes?: AnilistJikanEpisode[];
-  musicVideos?: AnilistMusicVideo[];
   shikimori?: ShikimoriWithRelations;
   kitsu?: KitsuWithRelations
 }

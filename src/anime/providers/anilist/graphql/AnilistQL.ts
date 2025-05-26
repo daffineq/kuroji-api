@@ -256,6 +256,7 @@ export default class AnilistQL {
       }
       streamingEpisodes {
         title
+        thumbnail
         url
         site
       }

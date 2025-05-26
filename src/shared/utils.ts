@@ -37,15 +37,16 @@ export async function withRetry<T>(
 
       if (status === 429) {
         const retryAfter =
-          parseInt(err?.response?.headers?.['retry-after']) || 10
+          parseInt(err?.response?.headers?.['retry-after']) || 20
 
         console.warn(`⏳ Rate limited, waiting ${retryAfter}s... [Attempt ${attempt + 1}/${retries}]`)
         await sleep(retryAfter)
       } else {
-        await sleep(5)
+        // not a 429, bail out
+        throw err
       }
     }
   }
 
-  throw new Error(`💥 Failed after ${retries + 1} attempts`)
+  throw new Error(`💥 Failed after ${retries + 1} attempts due to repeated 429s.`)
 }

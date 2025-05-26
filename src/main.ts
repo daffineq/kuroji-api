@@ -40,8 +40,7 @@ async function bootstrap() {
   );
   app.use(express.static(join(__dirname, '..', 'public')));
   app.setGlobalPrefix('api');
-  const prismaService = app.get(PrismaService)
-  app.useGlobalFilters(new ExceptionsHandler(prismaService));
+  app.useGlobalFilters(new ExceptionsHandler(app.get(PrismaService)));
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

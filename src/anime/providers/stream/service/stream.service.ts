@@ -63,7 +63,6 @@ export class StreamService {
       const episodesZoro = aniwatch?.episodes || []
       const tmdbEpisodes = season?.episodes || []
       const anilistEpisodes = anilist?.streamingEpisodes || []
-      const jikanEpisodes = anilist?.jikanEpisodes || []
 
       const episodes: Episode[] = episodesZoro.map((episode) => {
         const {
@@ -81,11 +80,6 @@ export class StreamService {
           return match ? parseInt(match[1]) === number : false
         })
 
-        const jikanEpisode = jikanEpisodes.find(e => {
-          const match = e.episode?.match(/.*?(\d+).*/)
-          return match ? parseInt(match[1]) === number : false
-        })
-
         const airDate = anilist?.airingSchedule?.find(s => s.episode == number)?.airingAt || 0;
 
         const formattedDate = new Date(airDate * 1000).toLocaleDateString('en-US', {
@@ -95,8 +89,8 @@ export class StreamService {
         });
 
         return {
-          title: tmdbEpisode?.name || jikanEpisode?.title || anilistEpisode?.title || zoroTitle,
-          image: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${tmdbEpisode?.still_path}` || jikanEpisode?.imageUrl || anilistEpisode?.thumbnail || anilist?.cover?.extraLarge || "",
+          title: tmdbEpisode?.name || anilistEpisode?.title || zoroTitle,
+          image: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${tmdbEpisode?.still_path}` || anilistEpisode?.thumbnail || anilist?.cover?.extraLarge || "",
           number,
           overview: tmdbEpisode?.overview ?? "",
           date: tmdbEpisode?.air_date || formattedDate || "",

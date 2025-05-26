@@ -17,7 +17,7 @@ export class AnilistHelper {
     private readonly kitsuHelper: KitsuHelper,
   ) {}
 
-  public async getDataForPrisma(anime: any, mal: VideosResponse | null = null): Promise<Prisma.AnilistCreateInput> {
+  public async getDataForPrisma(anime: any): Promise<Prisma.AnilistCreateInput> {
     const isMalExist = anime.idMal ? !!(await this.prisma.anilist.findUnique({
       where: { idMal: anime.idMal },
       select: { id: true },
@@ -81,7 +81,6 @@ export class AnilistHelper {
       isLicensed: anime.isLicensed,
       source: anime.source,
       hashtag: anime.hashtag,
-      moreInfo: anime.moreInfo,
       trailer: anime.trailer ? {
         connectOrCreate: {
           where: { id: anime.trailer?.id },
@@ -277,65 +276,6 @@ export class AnilistHelper {
           amount: status.amount ?? null,
         })) ?? []
       },
-      promoVideos: mal?.data?.promo?.length ? {
-        connectOrCreate: mal.data.promo
-          .filter(video => video.trailer.youtube_id)
-          .map((video: PromoVideo) => ({
-            where: { youtubeId: video.trailer.youtube_id },
-            create: {
-              title: video.title ?? null,
-              youtubeId: video.trailer?.youtube_id,
-              url: video.trailer?.url ?? null,
-              embedUrl: video.trailer?.embed_url ?? null,
-              images: video.trailer?.images ? {
-                create: {
-                  imageUrl: video.trailer.images.image_url ?? null,
-                  smallImageUrl: video.trailer.images.small_image_url ?? null,
-                  mediumImageUrl: video.trailer.images.medium_image_url ?? null,
-                  largeImageUrl: video.trailer.images.large_image_url ?? null,
-                  maximumImageUrl: video.trailer.images.maximum_image_url ?? null,
-                }
-              } : undefined,
-            }
-          }))
-      } : undefined,
-      musicVideos: mal?.data?.music_videos?.length ? {
-        connectOrCreate: mal.data.music_videos
-          .filter(video => video.video.youtube_id)
-          .map((video: MusicVideo) => ({
-            where: { youtubeId: video.video.youtube_id },
-            create: {
-              title: video.title ?? null,
-              youtubeId: video.video?.youtube_id,
-              url: video.video?.url ?? null,
-              embedUrl: video.video?.embed_url ?? null,
-              images: video.video?.images ? {
-                create: {
-                  imageUrl: video.video.images.image_url ?? null,
-                  smallImageUrl: video.video.images.small_image_url ?? null,
-                  mediumImageUrl: video.video.images.medium_image_url ?? null,
-                  largeImageUrl: video.video.images.large_image_url ?? null,
-                  maximumImageUrl: video.video.images.maximum_image_url ?? null,
-                }
-              } : undefined,
-              meta: video.meta ? {
-                create: {
-                  title: video.meta.title ?? null,
-                  author: video.meta.author ?? null,
-                }
-              } : undefined
-            }
-          }))
-      } : undefined,
-      jikanEpisodes: mal?.data?.episodes?.length ? {
-        create: mal.data.episodes.map((episode: Episode) => ({
-          malId: episode.mal_id ?? null,
-          url: episode.url ?? null,
-          title: episode.title ?? null,
-          episode: episode.episode ?? null,
-          imageUrl: episode.images?.jpg?.image_url ?? null
-        }))
-      } : undefined,
     }
   }
 
@@ -504,47 +444,6 @@ export class AnilistHelper {
           anilistId: true,
         }
       },
-      promoVideos: {
-        omit: {
-          anilistId: true,
-        },
-        include: {
-          images: {
-            omit: {
-              id: true,
-              promoVideoYoutubeId: true,
-              musicVideoYoutubeId: true,
-            }
-          }
-        }
-      },
-      musicVideos: {
-        omit: {
-          anilistId: true,
-        },
-        include: {
-          images: {
-            omit: {
-              id: true,
-              promoVideoYoutubeId: true,
-              musicVideoYoutubeId: true,
-            }
-          },
-          meta: {
-            omit: {
-              id: true,
-              musicVideoYoutubeId: true,
-            }
-          }
-        }
-      },
-      jikanEpisodes: {
-        omit: {
-          id: true,
-          malId: true,
-          anilistId: true,
-        }
-      },
       shikimori: {
         include: this.shikimoriHelper.getInclude(),
       },
@@ -594,7 +493,6 @@ export class AnilistHelper {
       isLicensed: raw.isLicensed,
       source: raw.source,
       hashtag: raw.hashtag,
-      moreInfo: raw.moreInfo,
       isLocked: raw.isLocked,
       isAdult: raw.isAdult,
       averageScore: raw.averageScore,
@@ -609,7 +507,6 @@ export class AnilistHelper {
       trailer: raw.trailer,
       nextAiringEpisode: raw.nextAiringEpisode,
 
-      characters: raw.characters,
       studios: raw.studios,
       airingSchedule: raw.airingSchedule,
       tags: raw.tags,
@@ -618,11 +515,6 @@ export class AnilistHelper {
       streamingEpisodes: raw.streamingEpisodes,
       scoreDistribution: raw.scoreDistribution,
       statusDistribution: raw.statusDistribution,
-      recommendations: raw.recommendations,
-      chronology: raw.chronology,
-      promoVideos: raw.promoVideos,
-      musicVideos: raw.musicVideos,
-      jikanEpisodes: raw.jikanEpisodes,
       shikimori: raw.shikimori,
       kitsu: raw.kitsu,
     };

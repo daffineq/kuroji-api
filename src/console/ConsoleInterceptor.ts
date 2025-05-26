@@ -31,12 +31,6 @@ export class ConsoleInterceptor {
 
     console.error = (...args: any[]) => {
       this.addToList(this.errors, args, 'error')
-
-      if (args[0] instanceof Error) {
-        origError(...args)
-        throw args[0]
-      }
-
       origError(...args)
     };
 
