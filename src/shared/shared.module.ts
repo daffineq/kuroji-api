@@ -31,6 +31,7 @@ import { AnilistSearchService } from '../anime/providers/anilist/service/helper/
 import { AnilistUtilService } from '../anime/providers/anilist/service/helper/anilist.util.service'
 import { KitsuService } from '../anime/providers/kitsu/service/kitsu.service'
 import { KitsuHelper } from '../anime/providers/kitsu/util/kitsu-helper'
+import { AnilistRecommendationService } from '../anime/providers/anilist/service/helper/anilist.recommendation.service'
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { KitsuHelper } from '../anime/providers/kitsu/util/kitsu-helper'
     AnilistScheduleService,
     AnilistIndexerService,
     AnilistSearchService,
+    AnilistRecommendationService,
     AnilistUtilService,
     ShikimoriService,
     AnilistHelper,
@@ -79,6 +81,7 @@ import { KitsuHelper } from '../anime/providers/kitsu/util/kitsu-helper'
     AnilistScheduleService,
     AnilistIndexerService,
     AnilistSearchService,
+    AnilistRecommendationService,
     AnilistUtilService,
     ShikimoriService,
     AnilistHelper,

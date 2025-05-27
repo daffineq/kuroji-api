@@ -15,6 +15,7 @@ import { AnilistAddService } from '../service/helper/anilist.add.service';
 import { AnilistScheduleService } from '../service/helper/anilist.schedule.service';
 import Dimens from '../../../../configs/Dimens';
 import { AnilistSearchService } from '../service/helper/anilist.search.service';
+import { AnilistRecommendationService } from '../service/helper/anilist.recommendation.service'
 
 @Controller('anime')
 export class AnilistController {
@@ -23,6 +24,7 @@ export class AnilistController {
     private readonly add: AnilistAddService,
     private readonly search: AnilistSearchService,
     private readonly schedule: AnilistScheduleService,
+    private readonly recommendation: AnilistRecommendationService,
     private readonly stream: StreamService,
     private readonly indexer: AnilistIndexerService,
   ) {}
@@ -38,6 +40,13 @@ export class AnilistController {
     @Query() filter: FilterDto,
   ) {
     return this.add.getRecommendations(id, filter);
+  }
+
+  @Get('info/:id/custom/recommendations')
+  async getCustomRecommendations(
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.recommendation.getRecommendations(id)
   }
 
   @Get('info/:id/characters')
