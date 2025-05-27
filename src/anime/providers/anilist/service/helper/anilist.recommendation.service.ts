@@ -46,26 +46,40 @@ export class AnilistRecommendationService {
     function temperature(candidate: any): number {
       let score = 0
 
-      // Genre overlap (weighted)
-      const genreOverlap = candidate.genres?.filter((g: string) => genres.includes(g)).length || 0
-      score += genreOverlap * 5
+      // Genre overlap (percentage of source genres present in candidate)
+      const candidateGenres = candidate.genres ?? []
+      const genreOverlap = candidateGenres.filter((g: string) => genres.includes(g))
+      const genrePrecision = genreOverlap.length / (candidateGenres.length || 1)
+      const genreRecall = genreOverlap.length / (genres.length || 1)
+      // F1 score for genre match
+      const genreF1 = (2 * genrePrecision * genreRecall) / (genrePrecision + genreRecall || 1)
+      score += genreF1 * 40 // Strong weight for genre match
 
-      // Tag overlap (weighted)
+      // Tag overlap (percentage, F1)
       const candidateTags = (candidate.tags ?? []).map((t: any) => t.name).filter(Boolean)
-      const tagOverlap = candidateTags.filter((t: string) => tags.includes(t)).length
-      score += tagOverlap * 3
+      const tagOverlap = candidateTags.filter((t: string) => tags.includes(t))
+      const tagPrecision = tagOverlap.length / (candidateTags.length || 1)
+      const tagRecall = tagOverlap.length / (tags.length || 1)
+      const tagF1 = (2 * tagPrecision * tagRecall) / (tagPrecision + tagRecall || 1)
+      score += tagF1 * 20
 
-      // Studio overlap (weighted)
+      // Studio overlap (bonus if any match)
       const candidateStudios = (candidate.studios ?? []).map((s: any) => s.studio?.name).filter(Boolean)
       const studioOverlap = candidateStudios.filter((s: string) => studios.includes(s)).length
-      score += studioOverlap * 4
+      if (studioOverlap > 0) score += 5
 
       // Format match
       if (candidate.format === format && format) score += 2
 
-      // Popularity and meanScore (normalized, minor boost)
-      score += (candidate.popularity || 0) / 10000
-      score += (candidate.meanScore || 0) / 10
+      // Penalize for genres/tags NOT in source (irrelevant content)
+      const extraGenres = candidateGenres.filter((g: string) => !genres.includes(g)).length
+      score -= extraGenres * 2
+      const extraTags = candidateTags.filter((t: string) => !tags.includes(t)).length
+      score -= extraTags
+
+      // Popularity and meanScore (minor boost)
+      score += (candidate.popularity || 0) / 20000
+      score += (candidate.meanScore || 0) / 20
 
       return score
     }
