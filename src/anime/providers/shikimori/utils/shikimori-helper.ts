@@ -117,37 +117,37 @@ export class ShikimoriHelper {
       }  
     }
   }
+}
 
-  public shikimoriToBasicId(shikimori: any): BasicIdShik {
-    return {
-      id: shikimori.id,
-      malId: shikimori.malId ?? undefined,
-    }
+export function shikimoriToBasicId(shikimori: any): BasicIdShik {
+  return {
+    id: shikimori.id,
+    malId: shikimori.malId ?? undefined,
+  }
+}
+
+export function getShikimoriInclude(): any {
+  const include = {
+    poster: {
+      omit: {
+        shikimoriId: true
+      }
+    },
+    airedOn: {
+      omit: {
+        id: true,
+        shikimoriId: true,
+      }
+    },
+    releasedOn: {
+      omit: {
+        id: true,
+        shikimoriId: true,
+      }
+    },
+    videos: true,
+    screenshots: true,
   }
 
-  public getInclude(): any {
-    const include = {
-      poster: {
-        omit: {
-          shikimoriId: true
-        }
-      },
-      airedOn: {
-        omit: {
-          id: true,
-          shikimoriId: true,
-        }
-      },
-      releasedOn: {
-        omit: {
-          id: true,
-          shikimoriId: true,
-        }
-      },
-      videos: true,
-      screenshots: true,
-    }
-
-    return include;
-  }
+  return include
 }

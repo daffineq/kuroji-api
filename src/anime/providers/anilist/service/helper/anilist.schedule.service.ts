@@ -1,19 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { startOfWeek, addDays } from 'date-fns'
 import { PrismaService } from '../../../../../prisma.service'
-import { AnilistHelper } from '../../utils/anilist-helper'
+import { convertAnilistToBasic, createScheduleData, getAnilistInclude } from '../../utils/anilist-helper'
 import { BasicAnilist } from '../../model/BasicAnilist'
 import { Schedule, Weekday } from '../../model/AnilistModels'
-import { AnilistAddService } from './anilist.add.service'
 
 @Injectable()
 export class AnilistScheduleService {
-  constructor(private readonly prisma: PrismaService, private readonly helper: AnilistHelper, private readonly add: AnilistAddService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getWithCurrentWeek(): Promise<BasicAnilist[]> {
     const { start, end } = this.getWeekRangeTimestamps()
     const releases = await this.getThisWeeksAnilist(start, end);
-    return releases.map(r => this.helper.convertAnilistToBasic(r));
+    return releases.map(r =>convertAnilistToBasic(r));
   }
 
   async getSchedule(): Promise<Schedule> {
@@ -26,7 +25,7 @@ export class AnilistScheduleService {
     const releasesByDay: Partial<Record<Weekday, BasicAnilist[]>> = {}
 
     for (const release of releases) {
-      const small = this.helper.convertAnilistToBasic(release)
+      const small = convertAnilistToBasic(release)
       const airingAt = small.nextAiringEpisode?.airingAt
 
       if (airingAt) {
@@ -42,13 +41,13 @@ export class AnilistScheduleService {
     }
 
     const schedule: Schedule = {
-      monday: this.helper.createScheduleData(releasesByDay['monday'], currentDay === 1),
-      tuesday: this.helper.createScheduleData(releasesByDay['tuesday'], currentDay === 2),
-      wednesday: this.helper.createScheduleData(releasesByDay['wednesday'], currentDay === 3),
-      thursday: this.helper.createScheduleData(releasesByDay['thursday'], currentDay === 4),
-      friday: this.helper.createScheduleData(releasesByDay['friday'], currentDay === 5),
-      saturday: this.helper.createScheduleData(releasesByDay['saturday'], currentDay === 6),
-      sunday: this.helper.createScheduleData(releasesByDay['sunday'], currentDay === 0),
+      monday: createScheduleData(releasesByDay['monday'], currentDay === 1),
+      tuesday: createScheduleData(releasesByDay['tuesday'], currentDay === 2),
+      wednesday: createScheduleData(releasesByDay['wednesday'], currentDay === 3),
+      thursday: createScheduleData(releasesByDay['thursday'], currentDay === 4),
+      friday: createScheduleData(releasesByDay['friday'], currentDay === 5),
+      saturday: createScheduleData(releasesByDay['saturday'], currentDay === 6),
+      sunday: createScheduleData(releasesByDay['sunday'], currentDay === 0),
     }
 
     return schedule
@@ -78,7 +77,7 @@ export class AnilistScheduleService {
           { airingSchedule: { some: { airingAt: { gte: start, lt: end } } } },
         ]
       },
-      include: this.helper.getInclude(),
+      include: getAnilistInclude(),
     })
   }
 }

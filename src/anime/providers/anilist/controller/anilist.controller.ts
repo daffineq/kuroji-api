@@ -44,9 +44,11 @@ export class AnilistController {
 
   @Get('info/:id/custom/recommendations')
   async getCustomRecommendations(
-    @Param('id', ParseIntPipe) id: number
+    @Param('id', ParseIntPipe) id: number,
+    @Query('perPage') perPage: number = Dimens.PER_PAGE,
+    @Query('page') page: number = 1,
   ) {
-    return this.recommendation.getRecommendations(id)
+    return this.recommendation.getRecommendations(id, page, perPage);
   }
 
   @Get('info/:id/characters')

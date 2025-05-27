@@ -3,7 +3,7 @@ import { Anilist } from '@prisma/client'
 import { ApiResponse } from '../../../../../api/ApiResponse'
 import { FilterDto } from '../../filter/FilterDto'
 import { PrismaService } from '../../../../../prisma.service'
-import { AnilistHelper } from '../../utils/anilist-helper'
+import { AnilistHelper, getAnilistInclude } from '../../utils/anilist-helper'
 import { firstUpperList, getPageInfo } from '../../../../../shared/utils'
 import { Language } from '../../filter/Filter'
 
@@ -303,7 +303,7 @@ export class AnilistFilterService {
     const [data, total] = await Promise.all([
       this.prisma.anilist.findMany({
         where: whereCondition,
-        include: this.helper.getInclude(),
+        include: getAnilistInclude(),
         take: perPage,
         skip,
         orderBy,

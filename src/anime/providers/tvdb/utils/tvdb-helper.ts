@@ -120,31 +120,31 @@ export class TvdbHelper {
       shortCode: language.shortCode ?? undefined,
     };
   }
+}
 
-  getInclude(): any {
-    const include = {
-      status: {
-        omit: {
-          id: true,
-          tvdbId: true,
-        }
-      },
-      aliases: {
-        omit: {
-          id: true
-        }
-      },
-      artworks: true,
-      remoteIds: true,
-      trailers: true,
-      airsDays: {
-        omit: {
-          id: true,
-          tvdbId: true,
-        }
+export function getTvdbInclude(): any {
+  const include = {
+    status: {
+      omit: {
+        id: true,
+        tvdbId: true,
+      }
+    },
+    aliases: {
+      omit: {
+        id: true
+      }
+    },
+    artworks: true,
+    remoteIds: true,
+    trailers: true,
+    airsDays: {
+      omit: {
+        id: true,
+        tvdbId: true,
       }
     }
-    
-    return include;
   }
+
+  return include
 }

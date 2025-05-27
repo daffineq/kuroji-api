@@ -1,7 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
 import { UpdateType } from '../../../../shared/UpdateType';
-import { AnilistHelper } from '../utils/anilist-helper';
+import { AnilistHelper, getAnilistFindUnique } from '../utils/anilist-helper';
 import { AnilistFetchService } from './helper/anilist.fetch.service'
 import { MediaType } from '../filter/Filter'
 import { AnilistWithRelations, AnilistResponse } from '../model/AnilistModels'
@@ -25,7 +25,7 @@ export class AnilistService {
     id: number,
     isMal: boolean = false,
   ): Promise<AnilistWithRelations> {
-    let existingAnilist = await this.prisma.anilist.findUnique(this.helper.getFindUnique(id));
+    let existingAnilist = await this.prisma.anilist.findUnique(getAnilistFindUnique(id));
 
     if (existingAnilist) {
       return await this.util.adjustAnilist(existingAnilist);
@@ -43,7 +43,7 @@ export class AnilistService {
 
     await this.saveAnilist(data);
 
-    existingAnilist = await this.prisma.anilist.findUnique(this.helper.getFindUnique(id));
+    existingAnilist = await this.prisma.anilist.findUnique(getAnilistFindUnique(id));
 
     if (!existingAnilist) {
       throw new Error('Not found');
@@ -78,7 +78,7 @@ export class AnilistService {
       withRetry(() => this.kitsu.getKitsuByAnilist(anilist.id)).catch(() => null),
     ]);
 
-    return await this.prisma.anilist.findUnique(this.helper.getFindUnique(anilist.id)) as AnilistWithRelations;
+    return await this.prisma.anilist.findUnique(getAnilistFindUnique(anilist.id)) as AnilistWithRelations;
   }
 
   async update(id: number): Promise<void> {

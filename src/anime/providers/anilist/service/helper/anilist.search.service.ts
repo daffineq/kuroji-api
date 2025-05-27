@@ -4,7 +4,7 @@ import { BasicAnilist } from '../../model/BasicAnilist'
 import { FilterDto } from '../../filter/FilterDto'
 import { AnilistFilterService } from './anilist.filter.service'
 import { AnilistAddService } from './anilist.add.service'
-import { AnilistHelper } from '../../utils/anilist-helper'
+import { AnilistHelper, convertAnilistToBasic } from '../../utils/anilist-helper'
 import { ApiResponse } from '../../../../../api/ApiResponse'
 
 @Injectable()
@@ -22,7 +22,7 @@ export class AnilistSearchService {
     const response = await this.filter.getAnilistByFilter(filter);
 
     const basicAnilist = response.data.map((anilist) =>
-      this.helper.convertAnilistToBasic(anilist),
+      convertAnilistToBasic(anilist),
     );
 
     return { pageInfo: response.pageInfo, data: basicAnilist } as ApiResponse<BasicAnilist[]>;
@@ -32,7 +32,7 @@ export class AnilistSearchService {
     const response = await this.filter.getAnilistByFilter(new FilterDto({ query: q }))
 
     const basicAnilist = response.data.map((anilist) =>
-      this.helper.convertAnilistToBasic(anilist),
+      convertAnilistToBasic(anilist),
     )
 
     const firstBasicFranchise = basicAnilist.find(b =>

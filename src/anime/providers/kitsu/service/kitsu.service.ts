@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service'
-import { KitsuHelper } from '../util/kitsu-helper'
+import { getKitsuInclude, KitsuHelper } from '../util/kitsu-helper'
 import { Kitsu, KitsuCoverImage, KitsuPosterImage, KitsuTitle } from '@prisma/client'
 import { KITSU } from '../../../../configs/kitsu.config'
 import { CustomHttpService } from '../../../../http/http.service'
@@ -27,7 +27,7 @@ export class KitsuService {
       where: {
         anilistId: id,
       },
-      include: this.helper.getInclude()
+      include: getKitsuInclude(),
     }) as KitsuWithRelations;
 
     if (existingKitsu) {
@@ -56,14 +56,14 @@ export class KitsuService {
 
     return await this.prisma.kitsu.findUnique({
       where: { id: kitsu.data.id },
-      include: this.helper.getInclude(),
+      include: getKitsuInclude(),
     }) as KitsuWithRelations;
   }
 
   async updateKitsu(id: string): Promise<void> {
     const existingKitsu = await this.prisma.kitsu.findUnique({
       where: { id: id },
-      include: this.helper.getInclude(),
+      include: getKitsuInclude(),
     }) as KitsuWithRelations;
 
     if (!existingKitsu) {

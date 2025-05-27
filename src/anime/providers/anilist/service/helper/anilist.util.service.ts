@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { AnilistHelper } from '../../utils/anilist-helper'
+import { AnilistHelper, reorderAnilistItems } from '../../utils/anilist-helper'
 import { AnilistWithRelations } from '../../model/AnilistModels'
 
 @Injectable()
@@ -9,6 +9,6 @@ export class AnilistUtilService {
   ) {}
   
   async adjustAnilist(anilist: AnilistWithRelations): Promise<AnilistWithRelations> {
-    return this.helper.reorderItems(anilist) as AnilistWithRelations;
+    return reorderAnilistItems(anilist) as AnilistWithRelations;
   }
 }

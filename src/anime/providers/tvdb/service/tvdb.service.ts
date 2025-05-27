@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { TvdbHelper } from '../utils/tvdb-helper'
+import { getTvdbInclude, TvdbHelper } from '../utils/tvdb-helper'
 import { CustomHttpService } from '../../../../http/http.service'
 import { PrismaService } from '../../../../prisma.service'
 import { TmdbService } from '../../tmdb/service/tmdb.service'
@@ -68,7 +68,7 @@ export class TvdbService {
   async getTvdb(id: number): Promise<TvdbWithRelations> {
     const existingTvdb = await this.prisma.tvdb.findUnique({
       where: { id },
-      include: this.helper.getInclude(),
+      include: getTvdbInclude(),
     }) as TvdbWithRelations | null
 
     if (existingTvdb) return existingTvdb
@@ -82,7 +82,7 @@ export class TvdbService {
     const tmdb = await this.tmdbService.getTmdbByAnilist(id)
     const existingTvdb = await this.prisma.tvdb.findFirst({
       where: { tmdbId: tmdb.id },
-      include: this.helper.getInclude(),
+      include: getTvdbInclude(),
     }) as TvdbWithRelations | null
 
     if (existingTvdb) return existingTvdb
@@ -134,7 +134,7 @@ export class TvdbService {
 
     return await this.prisma.tvdb.findUnique({
       where: { id: tvdb.id },
-      include: this.helper.getInclude(),
+      include: getTvdbInclude(),
     }) as unknown as TvdbWithRelations;
   }
 
@@ -151,7 +151,7 @@ export class TvdbService {
   async update(id: number): Promise<void> {
     const existing = await this.prisma.tvdb.findFirst({
       where: { id },
-      include: this.helper.getInclude(),
+      include: getTvdbInclude(),
     }) as TvdbWithRelations | null
 
     if (!existing) return

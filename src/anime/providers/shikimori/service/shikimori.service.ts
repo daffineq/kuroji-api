@@ -13,7 +13,7 @@ import { UpdateType } from '../../../../shared/UpdateType'
 import { UrlConfig } from '../../../../configs/url.config'
 import { CustomHttpService } from '../../../../http/http.service'
 import { GraphQL } from '../graphql/shikimori.graphql'
-import { ShikimoriHelper } from '../utils/shikimori-helper'
+import { getShikimoriInclude, ShikimoriHelper, shikimoriToBasicId } from '../utils/shikimori-helper'
 import Dimens from '../../../../configs/Dimens'
 import { AnilistService } from '../../anilist/service/anilist.service'
 import { withRetry } from '../../../../shared/utils'
@@ -66,7 +66,7 @@ export class ShikimoriService {
 
     const existing = await this.prisma.shikimori.findMany({
       where: { id: { in: idList } },
-      include: this.helper.getInclude(),
+      include: getShikimoriInclude(),
     }) as unknown as ShikimoriWithRelations[]
 
     const existingIds = existing.map((a) => a.id)
@@ -135,7 +135,7 @@ export class ShikimoriService {
 
   async getFranchiseIds(franchise: string): Promise<BasicIdShik[]> {
     const items = await this.getFranchise(franchise)
-    return items.map((item) => this.helper.shikimoriToBasicId(item))
+    return items.map((item) => shikimoriToBasicId(item))
   }
 
   private async fetchFromGraphQL(id: string, page = 1, perPage = 1) {
@@ -145,7 +145,7 @@ export class ShikimoriService {
   private async findById(id: string): Promise<ShikimoriWithRelations | null> {
     return this.prisma.shikimori.findUnique({
       where: { id },
-      include: this.helper.getInclude(),
+      include: getShikimoriInclude()
     }) as Promise<ShikimoriWithRelations | null>
   }
 

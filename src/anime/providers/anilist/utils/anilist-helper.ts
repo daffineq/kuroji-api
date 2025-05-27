@@ -3,8 +3,8 @@ import { Prisma } from '@prisma/client'
 import { BasicAnilist, BasicKitsu, BasicShikimori } from '../model/BasicAnilist'
 import { ScheduleData } from '../model/AnilistModels'
 import { ShikimoriWithRelations } from '../../shikimori/service/shikimori.service'
-import { ShikimoriHelper } from '../../shikimori/utils/shikimori-helper'
-import { KitsuHelper } from '../../kitsu/util/kitsu-helper'
+import { getShikimoriInclude } from '../../shikimori/utils/shikimori-helper'
+import { getKitsuInclude } from '../../kitsu/util/kitsu-helper'
 import { KitsuWithRelations } from '../../kitsu/service/kitsu.service'
 import { PrismaService } from '../../../../prisma.service'
 
@@ -12,8 +12,6 @@ import { PrismaService } from '../../../../prisma.service'
 export class AnilistHelper {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly shikimoriHelper: ShikimoriHelper,
-    private readonly kitsuHelper: KitsuHelper,
   ) {}
 
   public async getDataForPrisma(anime: any): Promise<Prisma.AnilistCreateInput> {
@@ -277,251 +275,251 @@ export class AnilistHelper {
       },
     }
   }
+}
 
-  public convertAnilistToBasic(anilist: any): BasicAnilist {
-    return {
-      id: anilist.id,
-      idMal: anilist.idMal ?? undefined,
-      title: anilist.title ?? undefined,
-      synonyms: anilist.synonyms ?? undefined,
-      bannerImage: anilist.bannerImage ?? undefined,
-      coverImage: anilist.coverImage ?? undefined,
-      type: anilist.type ?? undefined,
-      format: anilist.format ?? undefined,
-      status: anilist.status ?? undefined,
-      description: anilist.description ?? undefined,
-      moreInfo: anilist.moreInfo ?? undefined,
-      startDate: anilist.startDate ?? undefined,
-      season: anilist.season ?? undefined,
-      seasonYear: anilist.seasonYear ?? undefined,
-      episodes: anilist.episodes ?? undefined,
-      sub: anilist?.zoro?.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
-      dub: anilist?.zoro?.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
-      duration: anilist.duration ?? undefined,
-      countryOfOrigin: anilist.countryOfOrigin ?? undefined,
-      popularity: anilist.popularity ?? undefined,
-      favourites: anilist.favourites ?? undefined,
-      score: anilist.score ?? undefined,
-      isLocked: anilist.isLocked ?? undefined,
-      isAdult: anilist.isAdult ?? undefined,
-      genres: anilist.genres ?? undefined,
-      nextAiringEpisode: anilist.nextAiringEpisode ?? undefined,
-      shikimori: this.convertShikimoriToBasic(anilist?.shikimori),
-      kitsu: this.convertKitsuToBasic(anilist?.kitsu),
-    }
+export function convertAnilistToBasic(anilist: any): BasicAnilist {
+  return {
+    id: anilist.id,
+    idMal: anilist.idMal ?? undefined,
+    title: anilist.title ?? undefined,
+    synonyms: anilist.synonyms ?? undefined,
+    bannerImage: anilist.bannerImage ?? undefined,
+    coverImage: anilist.coverImage ?? undefined,
+    type: anilist.type ?? undefined,
+    format: anilist.format ?? undefined,
+    status: anilist.status ?? undefined,
+    description: anilist.description ?? undefined,
+    moreInfo: anilist.moreInfo ?? undefined,
+    startDate: anilist.startDate ?? undefined,
+    season: anilist.season ?? undefined,
+    seasonYear: anilist.seasonYear ?? undefined,
+    episodes: anilist.episodes ?? undefined,
+    sub: anilist?.zoro?.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
+    dub: anilist?.zoro?.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
+    duration: anilist.duration ?? undefined,
+    countryOfOrigin: anilist.countryOfOrigin ?? undefined,
+    popularity: anilist.popularity ?? undefined,
+    favourites: anilist.favourites ?? undefined,
+    score: anilist.score ?? undefined,
+    isLocked: anilist.isLocked ?? undefined,
+    isAdult: anilist.isAdult ?? undefined,
+    genres: anilist.genres ?? undefined,
+    nextAiringEpisode: anilist.nextAiringEpisode ?? undefined,
+    shikimori: convertShikimoriToBasic(anilist?.shikimori),
+    kitsu: convertKitsuToBasic(anilist?.kitsu),
+  }
+}
+
+export function convertShikimoriToBasic(shikimori?: ShikimoriWithRelations): BasicShikimori | undefined {
+  if (!shikimori) {
+    return undefined
+  }
+  return {
+    id: shikimori.id,
+    malId: shikimori.malId ?? undefined,
+    russian: shikimori.russian ?? undefined,
+    licenseNameRu: shikimori.licenseNameRu ?? undefined,
+    episodes: shikimori.episodes ?? undefined,
+    episodesAired: shikimori.episodesAired ?? undefined,
+    url: shikimori.url ?? undefined,
+    franchise: shikimori.franchise ?? undefined,
+    poster: shikimori.poster ?? undefined
+  }
+}
+
+export function convertKitsuToBasic(kitsu?: KitsuWithRelations): BasicKitsu | undefined {
+  if (!kitsu) {
+    return undefined
+  }
+  return {
+    id: kitsu.id,
+    anilistId: kitsu.anilistId ?? undefined,
+    titles: kitsu.titles ?? undefined,
+    slug: kitsu.slug ?? undefined,
+    synopsis: kitsu.synopsis ?? undefined,
+    episodeCount: kitsu.episodeCount ?? undefined,
+    episodeLength: kitsu.episodeLength ?? undefined,
+    ageRating: kitsu.ageRating ?? undefined,
+    ageRatingGuide: kitsu.ageRatingGuide ?? undefined,
+    posterImage: kitsu.posterImage ?? undefined,
+    coverImage: kitsu.coverImage ?? undefined,
+    showType: kitsu.showType ?? undefined
+  }
+}
+
+export function getAnilistFindUnique(id: number): any {
+  const findUnique = {
+    omit: {
+      recommendations: true,
+    },
+    where: { id },
+    include: getAnilistInclude(),
   }
 
-  public convertShikimoriToBasic(shikimori?: ShikimoriWithRelations): BasicShikimori | undefined {
-    if (!shikimori) {
-      return undefined
-    }
-    return {
-      id: shikimori.id,
-      malId: shikimori.malId ?? undefined,
-      russian: shikimori.russian ?? undefined,
-      licenseNameRu: shikimori.licenseNameRu ?? undefined,
-      episodes: shikimori.episodes ?? undefined,
-      episodesAired: shikimori.episodesAired ?? undefined,
-      url: shikimori.url ?? undefined,
-      franchise: shikimori.franchise ?? undefined,
-      poster: shikimori.poster ?? undefined
-    }
-  }
+  return findUnique
+}
 
-  public convertKitsuToBasic(kitsu?: KitsuWithRelations): BasicKitsu | undefined {
-    if (!kitsu) {
-      return undefined
-    }
-    return {
-      id: kitsu.id,
-      anilistId: kitsu.anilistId ?? undefined,
-      titles: kitsu.titles ?? undefined,
-      slug: kitsu.slug ?? undefined,
-      synopsis: kitsu.synopsis ?? undefined,
-      episodeCount: kitsu.episodeCount ?? undefined,
-      episodeLength: kitsu.episodeLength ?? undefined,
-      ageRating: kitsu.ageRating ?? undefined,
-      ageRatingGuide: kitsu.ageRatingGuide ?? undefined,
-      posterImage: kitsu.posterImage ?? undefined,
-      coverImage: kitsu.coverImage ?? undefined,
-      showType: kitsu.showType ?? undefined
-    }
-  }
-
-  public getFindUnique(id: number): any {
-    const findUnique = {
+export function getAnilistInclude(): any {
+  const include = {
+    title: {
       omit: {
-        recommendations: true,
+        id: true,
+        anilistId: true,
+      }
+    },
+    coverImage: {
+      omit: {
+        id: true,
+        anilistId: true,
+      }
+    },
+    startDate: {
+      omit: {
+        id: true,
+        anilistId: true,
+      }
+    },
+    endDate: {
+      omit: {
+        id: true,
+        anilistId: true,
+      }
+    },
+    trailer: {
+      omit: {
+        anilistId: true,
+      }
+    },
+    studios: {
+      omit: {
+        anilistId: true,
+        studioId: true,
       },
-      where: { id },
-      include: this.getInclude(),
-    }
-
-    return findUnique;
-  }
-
-  public getInclude(): any {
-    const include = {
-      title: {
-        omit: {
-          id: true,
-          anilistId: true,
-        }
-      },
-      coverImage: {
-        omit: {
-          id: true,
-          anilistId: true,
-        }
-      },
-      startDate: {
-        omit: {
-          id: true,
-          anilistId: true,
-        }
-      },
-      endDate: {
-        omit: {
-          id: true,
-          anilistId: true,
-        }
-      },
-      trailer: {
-        omit: {
-          anilistId: true,
-        }
-      },
-      studios: {
-        omit: {
-          anilistId: true,
-          studioId: true,
-        },
-        include: {
-          studio: true
-        }
-      },
-      airingSchedule: {
-        omit: {
-          anilistId: true,
-        }
-      },
-      nextAiringEpisode: {
-        omit: {
-          anilistId: true,
-        }
-      },
-      tags: {
-        omit: {
-          anilistId: true,
-        }
-      },
-      rankings: {
-        omit: {
-          anilistId: true,
-        }
-      },
-      externalLinks: {
-        omit: {
-          anilistId: true,
-        }
-      },
-      streamingEpisodes: {
-        omit: {
-          id: true,
-          anilistId: true,
-        }
-      },
-      scoreDistribution: {
-        omit: {
-          id: true,
-          anilistId: true,
-        }
-      },
-      statusDistribution: {
-        omit: {
-          id: true,
-          anilistId: true,
-        }
-      },
-      shikimori: {
-        include: this.shikimoriHelper.getInclude(),
-      },
-      kitsu: {
-        include: this.kitsuHelper.getInclude(),
-      },
-      zoro: {
-        include: {
-          episodes: true,
-        }
+      include: {
+        studio: true
+      }
+    },
+    airingSchedule: {
+      omit: {
+        anilistId: true,
+      }
+    },
+    nextAiringEpisode: {
+      omit: {
+        anilistId: true,
+      }
+    },
+    tags: {
+      omit: {
+        anilistId: true,
+      }
+    },
+    rankings: {
+      omit: {
+        anilistId: true,
+      }
+    },
+    externalLinks: {
+      omit: {
+        anilistId: true,
+      }
+    },
+    streamingEpisodes: {
+      omit: {
+        id: true,
+        anilistId: true,
+      }
+    },
+    scoreDistribution: {
+      omit: {
+        id: true,
+        anilistId: true,
+      }
+    },
+    statusDistribution: {
+      omit: {
+        id: true,
+        anilistId: true,
+      }
+    },
+    shikimori: {
+      include: getShikimoriInclude(),
+    },
+    kitsu: {
+      include: getKitsuInclude(),
+    },
+    zoro: {
+      include: {
+        episodes: true,
       }
     }
-
-    return include;
   }
 
-  public createScheduleData(data: BasicAnilist[] = [], current: boolean): ScheduleData {
-    return {
-      current,
-      data: data.sort((a, b) => a.nextAiringEpisode?.airingAt!! - b.nextAiringEpisode?.airingAt!!),
-    }
+  return include
+}
+
+export function createScheduleData(data: BasicAnilist[] = [], current: boolean): ScheduleData {
+  return {
+    current,
+    data: data.sort((a, b) => a.nextAiringEpisode?.airingAt!! - b.nextAiringEpisode?.airingAt!!),
   }
+}
 
-  public reorderItems(raw: any) {
-    if (!raw) return null
+export function reorderAnilistItems(raw: any) {
+  if (!raw) return null
 
-    return {
-      id: raw.id,
-      idMal: raw.idMal,
-      title: raw.title,
-      bannerImage: raw.bannerImage,
-      status: raw.status,
-      type: raw.type,
-      format: raw.format,
-      coverImage: raw.coverImage,
-      updatedAt: raw.updatedAt,
-      description: raw.description,
-      startDate: raw.startDate,
-      endDate: raw.endDate,
-      season: raw.season,
-      seasonYear: raw.seasonYear,
-      episodes: raw.episodes,
-      sub: raw?.zoro?.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
-      dub: raw?.zoro?.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
-      duration: raw.duration,
-      countryOfOrigin: raw.countryOfOrigin,
-      isLicensed: raw.isLicensed,
-      source: raw.source,
-      hashtag: raw.hashtag,
-      isLocked: raw.isLocked,
-      isAdult: raw.isAdult,
-      averageScore: raw.averageScore,
-      meanScore: raw.meanScore,
-      score: raw.score,
-      popularity: raw.popularity,
-      trending: raw.trending,
-      favourites: raw.favourites,
-      genres: raw.genres,
-      synonyms: raw.synonyms,
+  return {
+    id: raw.id,
+    idMal: raw.idMal,
+    title: raw.title,
+    bannerImage: raw.bannerImage,
+    status: raw.status,
+    type: raw.type,
+    format: raw.format,
+    coverImage: raw.coverImage,
+    updatedAt: raw.updatedAt,
+    description: raw.description,
+    startDate: raw.startDate,
+    endDate: raw.endDate,
+    season: raw.season,
+    seasonYear: raw.seasonYear,
+    episodes: raw.episodes,
+    sub: raw?.zoro?.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
+    dub: raw?.zoro?.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
+    duration: raw.duration,
+    countryOfOrigin: raw.countryOfOrigin,
+    isLicensed: raw.isLicensed,
+    source: raw.source,
+    hashtag: raw.hashtag,
+    isLocked: raw.isLocked,
+    isAdult: raw.isAdult,
+    averageScore: raw.averageScore,
+    meanScore: raw.meanScore,
+    score: raw.score,
+    popularity: raw.popularity,
+    trending: raw.trending,
+    favourites: raw.favourites,
+    genres: raw.genres,
+    synonyms: raw.synonyms,
 
-      trailer: raw.trailer,
-      nextAiringEpisode: raw.nextAiringEpisode,
+    trailer: raw.trailer,
+    nextAiringEpisode: raw.nextAiringEpisode,
 
-      studios: raw.studios,
-      airingSchedule: raw.airingSchedule,
-      tags: raw.tags,
-      rankings: raw.rankings,
-      externalLinks: raw.externalLinks,
-      streamingEpisodes: raw.streamingEpisodes,
-      scoreDistribution: raw.scoreDistribution,
-      statusDistribution: raw.statusDistribution,
-      shikimori: raw.shikimori,
-      kitsu: raw.kitsu,
-    };
+    studios: raw.studios,
+    airingSchedule: raw.airingSchedule,
+    tags: raw.tags,
+    rankings: raw.rankings,
+    externalLinks: raw.externalLinks,
+    streamingEpisodes: raw.streamingEpisodes,
+    scoreDistribution: raw.scoreDistribution,
+    statusDistribution: raw.statusDistribution,
+    shikimori: raw.shikimori,
+    kitsu: raw.kitsu,
   }
+}
 
-  public mapToBasic(data: any): BasicAnilist[] {
-    return data.map((anilist) =>
-      this.convertAnilistToBasic(anilist),
-    );
-  }
+export function mapToBasic(data: any): BasicAnilist[] {
+  return data.map((anilist) =>
+    convertAnilistToBasic(anilist),
+  )
 }
