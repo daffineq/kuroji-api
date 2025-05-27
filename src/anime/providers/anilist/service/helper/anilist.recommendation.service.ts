@@ -5,6 +5,7 @@ import { BasicAnilist } from '../../model/BasicAnilist'
 import { AnilistService } from '../anilist.service'
 import { Anilist, AnilistStudioEdge, AnilistTag } from '@prisma/client'
 import { getPageInfo } from '../../../../../shared/utils'
+import { AnilistHelper } from '../../utils/anilist-helper'
 
 interface AnimeScore {
   id: number
@@ -20,7 +21,8 @@ type AnimeWithRelations = Anilist & {
 export class AnilistRecommendationService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly anilist: AnilistService
+    private readonly anilist: AnilistService,
+    private readonly helper: AnilistHelper
   ) {}
 
   async getRecommendations(id: number, page: number = 1, perPage: number = 20): Promise<ApiResponse<BasicAnilist[]>> {
@@ -56,10 +58,7 @@ export class AnilistRecommendationService {
           hasSome: sourceAnime.genres
         }
       },
-      include: {
-        tags: true,
-        studios: true,
-      },
+      include: this.helper.getInclude(),
       // Get more than needed for scoring, but not all
       take: perPage * 3,
       orderBy: [
@@ -71,7 +70,7 @@ export class AnilistRecommendationService {
     // Calculate scores for the pre-filtered anime
     const scores: AnimeScore[] = preFilteredAnime.map(anime => ({
       id: anime.id,
-      score: this.calculateSimilarityScore(sourceAnime, anime)
+      score: this.calculateSimilarityScore(sourceAnime, anime as unknown as AnimeWithRelations)
     }));
 
     // Sort by score and get paginated results
@@ -87,9 +86,11 @@ export class AnilistRecommendationService {
 
     const pageInfo = getPageInfo(sortedScores.length, perPage, page);
 
+    const basicRecommendations = this.helper.mapToBasic(validRecommendations);
+
     return {
       pageInfo,
-      data: validRecommendations
+      data: basicRecommendations
     };
   }
 
