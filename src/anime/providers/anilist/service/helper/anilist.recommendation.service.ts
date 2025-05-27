@@ -18,46 +18,67 @@ export class AnilistRecommendationService {
     page: number,
     perPage: number
   ): Promise<ApiResponse<BasicAnilist[]>> {
-    // 1. Get the source anime
     const source = await this.anilist.getAnilist(id, true)
     if (!source) {
-      return {
-        pageInfo: getPageInfo(0, perPage, page),
-        data: [],
-      }
+      throw new Error('Anime not found')
     }
 
-    // 2. Use genres and tags for similarity
     const genres = source.genres ?? []
     const tags = (source.tags ?? []).map((t: any) => t.name).filter(Boolean)
+    const studios = (source.studios ?? []).map((s: any) => s.studio?.name).filter(Boolean)
+    const format = source.format
 
-    // 3. Query for similar anime, prefer those with most genre/tag overlap and high popularity
-    const where: any = {
-      id: { not: id },
-      isAdult: false,
-      OR: [
-        { genres: { hasSome: genres } },
-        { tags: { some: { name: { in: tags } } } },
-      ],
-    }
-
-    // 4. Count total for pagination
-    const total = await this.prisma.anilist.count({ where })
-
-    // 5. Find recommendations, order by genre/tag overlap and popularity
-    const recs = await this.prisma.anilist.findMany({
-      where,
-      orderBy: [
-        { popularity: 'desc' },
-        { meanScore: 'desc' },
-      ],
-      skip: (page - 1) * perPage,
-      take: perPage,
+    const candidates = await this.prisma.anilist.findMany({
+      where: {
+        id: { not: id },
+        isAdult: false,
+        OR: [
+          { genres: { hasSome: genres } },
+          { tags: { some: { name: { in: tags } } } },
+          { studios: { some: { studio: { name: { in: studios } } } } },
+          { format: format },
+        ],
+      },
       include: getAnilistInclude(),
+      take: 200,
     })
 
-    // 6. Map to BasicAnilist
-    const data: BasicAnilist[] = mapToBasic(recs)
+    function temperature(candidate: any): number {
+      let score = 0
+
+      // Genre overlap (weighted)
+      const genreOverlap = candidate.genres?.filter((g: string) => genres.includes(g)).length || 0
+      score += genreOverlap * 5
+
+      // Tag overlap (weighted)
+      const candidateTags = (candidate.tags ?? []).map((t: any) => t.name).filter(Boolean)
+      const tagOverlap = candidateTags.filter((t: string) => tags.includes(t)).length
+      score += tagOverlap * 3
+
+      // Studio overlap (weighted)
+      const candidateStudios = (candidate.studios ?? []).map((s: any) => s.studio?.name).filter(Boolean)
+      const studioOverlap = candidateStudios.filter((s: string) => studios.includes(s)).length
+      score += studioOverlap * 4
+
+      // Format match
+      if (candidate.format === format && format) score += 2
+
+      // Popularity and meanScore (normalized, minor boost)
+      score += (candidate.popularity || 0) / 10000
+      score += (candidate.meanScore || 0) / 10
+
+      return score
+    }
+
+    const sorted = candidates
+      .map(c => ({ c, temp: temperature(c) }))
+      .sort((a, b) => b.temp - a.temp)
+      .map(x => x.c)
+
+    const total = sorted.length
+    const paged = sorted.slice((page - 1) * perPage, page * perPage)
+
+    const data: BasicAnilist[] = mapToBasic(paged)
 
     return {
       pageInfo: getPageInfo(total, perPage, page),
