@@ -1,6 +1,6 @@
 export enum SourceType {
-  SOFT_SUB = 'SOFT_SUB',
-  HARD_SUB = 'HARD_SUB',
-  DUB = 'DUB',
-  BOTH = 'BOTH'
+  soft_sub = 'soft_sub',
+  hard_sub = 'hard_sub',
+  dub = 'dub',
+  both = 'both',
 }

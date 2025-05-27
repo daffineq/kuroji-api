@@ -131,11 +131,11 @@ export class StreamService {
 
       const providers: ProviderInfo[] = []
 
-      const [zoro, pahe, kai] = await Promise.all([
-        this.aniwatch.getZoroByAnilist(id).catch(() => null),
-        this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
-        this.animekai.getAnimekaiByAnilist(id).catch(() => null),
-      ])
+      const zoroPromise = Config.ZORO_ENABLED ? this.aniwatch.getZoroByAnilist(id).catch(() => null) : Promise.resolve(null)
+      const pahePromise = Config.ANIMEPAHE_ENABLED ? this.animepahe.getAnimepaheByAnilist(id).catch(() => null) : Promise.resolve(null)
+      const kaiPromise = Config.ANIMEKAI_ENABLED ? this.animekai.getAnimekaiByAnilist(id).catch(() => null) : Promise.resolve(null)
+
+      const [zoro, pahe, kai] = await Promise.all([zoroPromise, pahePromise, kaiPromise])
 
       const pushProvider = (
         id: string,
@@ -146,29 +146,35 @@ export class StreamService {
         providers.push({ id, filler, provider, type })
       }
 
-      const zoroEp = zoro?.episodes?.find((e: EpisodeZoro, idx: number) =>
-        e.number === ep || idx + 1 === ep
-      )
-      if (zoroEp) {
-        const { id, isFiller, isSubbed, isDubbed } = zoroEp
-        if (isSubbed) pushProvider(id, isFiller || false, Provider.ANIWATCH, SourceType.SOFT_SUB)
-        if (isDubbed) pushProvider(id, isFiller || false, Provider.ANIWATCH, SourceType.DUB)
+      if (Config.ZORO_ENABLED && zoro) {
+        const zoroEp = zoro.episodes?.find((e: EpisodeZoro, idx: number) =>
+          e.number === ep || idx + 1 === ep
+        )
+        if (zoroEp) {
+          const { id, isFiller, isSubbed, isDubbed } = zoroEp
+          if (isSubbed) pushProvider(id, isFiller || false, Provider.zoro, SourceType.soft_sub)
+          if (isDubbed) pushProvider(id, isFiller || false, Provider.zoro, SourceType.dub)
+        }
       }
 
-      const paheEp = pahe?.episodes?.find((e: AnimepaheEpisode, idx: number) =>
-        e.number === ep || idx + 1 === ep
-      )
-      if (paheEp) {
-        pushProvider(paheEp.id, zoroEp?.isFiller || false, Provider.ANIMEPAHE, SourceType.BOTH)
+      if (Config.ANIMEPAHE_ENABLED && pahe) {
+        const paheEp = pahe.episodes?.find((e: AnimepaheEpisode, idx: number) =>
+          e.number === ep || idx + 1 === ep
+        )
+        if (paheEp) {
+          pushProvider(paheEp.id, false, Provider.animepahe, SourceType.both)
+        }
       }
 
-      const kaiEp = kai?.episodes?.find((e: AnimekaiEpisode, idx: number) =>
-        e.number === ep || idx + 1 === ep
-      )
-      if (kaiEp) {
-        const { id, isFiller, isSubbed, isDubbed } = kaiEp
-        if (isSubbed) pushProvider(id, isFiller || false, Provider.ANIMEKAI, SourceType.HARD_SUB)
-        if (isDubbed) pushProvider(id, isFiller || false, Provider.ANIMEKAI, SourceType.DUB)
+      if (Config.ANIMEKAI_ENABLED && kai) {
+        const kaiEp = kai.episodes?.find((e: AnimekaiEpisode, idx: number) =>
+          e.number === ep || idx + 1 === ep
+        )
+        if (kaiEp) {
+          const { id, isFiller, isSubbed, isDubbed } = kaiEp
+          if (isSubbed) pushProvider(id, isFiller || false, Provider.animekai, SourceType.hard_sub)
+          if (isDubbed) pushProvider(id, isFiller || false, Provider.animekai, SourceType.dub)
+        }
       }
 
       Config.REDIS && await this.redis.set(
@@ -201,14 +207,22 @@ export class StreamService {
   }
 
   async getSources(provider: Provider, ep: number, alId: number, dub: boolean = false): Promise<ISource> {
+    if (
+      (provider === Provider.zoro && !Config.ZORO_ENABLED) ||
+      (provider === Provider.animepahe && !Config.ANIMEPAHE_ENABLED) ||
+      (provider === Provider.animekai && !Config.ANIMEKAI_ENABLED)
+    ) {
+      throw new Error(`${Provider[provider]} provider is disabled`)
+    }
+
     const providers = await this.getProvidersSingle(alId, ep)
     const epId = providers.find(p => p.provider === provider)?.id
     if (!epId) throw new Error("Episode not found for provider")
 
     const fetchMap = {
-      [Provider.ANIWATCH]: async () => this.aniwatch.getSources(epId, dub),
-      [Provider.ANIMEKAI]: async () => this.animekai.getSources(epId, dub),
-      [Provider.ANIMEPAHE]: async () => this.animepahe.getSources(epId),
+      [Provider.zoro]: async () => this.aniwatch.getSources(epId, dub),
+      [Provider.animekai]: async () => this.animekai.getSources(epId, dub),
+      [Provider.animepahe]: async () => this.animepahe.getSources(epId),
     }
 
     const fetchFn = fetchMap[provider]

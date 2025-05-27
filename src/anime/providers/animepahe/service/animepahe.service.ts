@@ -90,6 +90,7 @@ export class AnimepaheService {
   async searchAnimepahe(q: string): Promise<IAnimeResult[]> {
     return (await animepahe.search(q)).results;
   }
+  
   async findAnimepahe(id: number): Promise<Animepahe> {
     const anilist = await this.prisma.anilist.findUnique({
       where: { id: id },

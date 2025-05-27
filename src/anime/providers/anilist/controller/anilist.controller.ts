@@ -98,12 +98,12 @@ export class AnilistController {
   async getSources(
     @Param('id', ParseIntPipe) id: number,
     @Param('number', ParseIntPipe) number: number,
-    @Query('provider') provider: string = Provider.ANIWATCH,
+    @Query('provider') provider: string = Provider.zoro,
     @Query('dub') dub: boolean = false,
   ) {
     const providerEnum =
-      Provider[provider.toUpperCase() as keyof typeof Provider] ||
-      Provider.ANIWATCH;
+      Provider[provider.toLowerCase() as keyof typeof Provider] ||
+      Provider.zoro;
 
     return this.stream.getSources(providerEnum, number, id, dub);
   }

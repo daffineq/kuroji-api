@@ -165,10 +165,10 @@ export class AnilistIndexerService {
         }
 
         const providers = [
-          { name: 'Zoro', fn: () => this.zoro.getZoroByAnilist(id) },
-          { name: 'Animekai', fn: () => this.animekai.getAnimekaiByAnilist(id) },
-          { name: 'Animepahe', fn: () => this.animepahe.getAnimepaheByAnilist(id) },
-        ]
+          Config.ZORO_ENABLED ? { name: 'Zoro', fn: () => this.zoro.getZoroByAnilist(id) } : null,
+          Config.ANIMEKAI_ENABLED ? { name: 'Animekai', fn: () => this.animekai.getAnimekaiByAnilist(id) } : null,
+          Config.ANIMEPAHE_ENABLED ? { name: 'Animepahe', fn: () => this.animepahe.getAnimepaheByAnilist(id) } : null,
+        ].filter((provider): provider is { name: string; fn: () => Promise<any> } => provider !== null)
 
         for (const provider of providers) {
           try {
