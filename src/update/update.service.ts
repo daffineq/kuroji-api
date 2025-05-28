@@ -213,7 +213,7 @@ export class UpdateService {
           }
 
           enum Interval {
-            NOW = 0,
+            MINUTE_5 = 5 * 60 * 1000,
             MINUTE_30 = 30 * 60 * 1000,
             MINUTE_60 = 60 * 60 * 1000,
             HOUR_1 = 1 * 60 * 60 * 1000,
@@ -232,7 +232,7 @@ export class UpdateService {
           const getUpdateInterval = (temperature: Temperature, type: UpdateType): number => {
             switch(temperature) {
               case Temperature.AIRING_NOW:
-                return Interval.NOW;
+                return Interval.MINUTE_5;
               case Temperature.AIRING_TODAY:
                 return Interval.MINUTE_30;
               case Temperature.HOT:
@@ -263,7 +263,7 @@ export class UpdateService {
             );
 
             provider.update(lastUpdated.entityId);
-            await this.sleep(20);
+            await this.sleep(30);
           }
 
           if (lastDatePlusMonth.getTime() < now.getTime()) {
