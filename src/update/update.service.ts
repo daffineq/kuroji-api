@@ -55,10 +55,12 @@ enum UpdateInterval {
   DAY_5 = 5 * 24 * ONE_HOUR_MS,
   DAY_7 = 7 * 24 * ONE_HOUR_MS,
   DAY_14 = 14 * 24 * ONE_HOUR_MS,
+  DAY_28 = 28 * 24 * ONE_HOUR_MS,
 }
 
 @Injectable()
 export class UpdateService {
+  private isRunning = false
   private readonly providers: IProvider[]
 
   constructor(
@@ -96,13 +98,13 @@ export class UpdateService {
           : UpdateInterval.HOUR_3
       case Temperature.WARM:
         return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
-          ? UpdateInterval.DAY_3
-          : UpdateInterval.DAY_2
+          ? UpdateInterval.DAY_7
+          : UpdateInterval.DAY_3
       case Temperature.COLD:
       case Temperature.UNKNOWN:
       default:
         return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
-          ? UpdateInterval.DAY_14
+          ? UpdateInterval.DAY_28
           : UpdateInterval.DAY_14
     }
   }
@@ -220,6 +222,14 @@ export class UpdateService {
       console.log('Updates are disabled via configuration.')
       return
     }
+
+    if (this.isRunning) {
+      console.log('Update cycle is already running. Skipping this cycle.')
+      return
+    }
+
+    this.isRunning = true
+
     console.log('Starting update cycle...')
 
     for (const provider of this.providers) {
@@ -264,11 +274,14 @@ export class UpdateService {
               where: { id: lastUpdated.id },
             })
           }
+
+          await sleep(1);
         }
       } catch (e: any) {
         console.error(`Error processing provider ${provider.type} in UpdateService:`, e.message, e.stack)
       }
     }
+    this.isRunning = false
     console.log('Update cycle finished.')
   }
 
