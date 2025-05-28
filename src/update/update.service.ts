@@ -108,7 +108,7 @@ export class UpdateService {
                 case UpdateType.ANILIST:
                   return await this.AniService.getAnilist(lastUpdated.externalId || 0, true)
                 case UpdateType.SHIKIMORI:
-                  return await this.AniService.getAnilist(lastUpdated.externalId || 0, true)
+                  return await this.AniService.getAnilist(+lastUpdated.entityId || 0, true)
                 default:
                   return await this.AniService.getAnilist(lastUpdated.externalId || 0)
               }
@@ -188,27 +188,42 @@ export class UpdateService {
             }
           }
 
-          const updateInterval = (() => {
+          enum Interval {
+            HOUR_3 = 3 * 60 * 60 * 1000,
+            HOUR_6 = 6 * 60 * 60 * 1000,
+            HOUR_9 = 9 * 60 * 60 * 1000,
+            HOUR_12 = 12 * 60 * 60 * 1000,
+            DAY_1 = 24 * 60 * 60 * 1000,
+            DAY_2 = 2 * 24 * 60 * 60 * 1000,
+            DAY_3 = 3 * 24 * 60 * 60 * 1000,
+            DAY_5 = 5 * 24 * 60 * 60 * 1000,
+            DAY_7 = 7 * 24 * 60 * 60 * 1000,
+            DAY_14 = 14 * 24 * 60 * 60 * 1000,
+          }
+
+          const getUpdateInterval = (temperature: Temperature, type: UpdateType): number => {
             switch(temperature) {
               case Temperature.HOT:
                 if (type === UpdateType.ANILIST || type === UpdateType.SHIKIMORI || type === UpdateType.TVDB) {
-                  return 24 * 60 * 60 * 1000;
+                  return Interval.HOUR_12;
                 }
-                return 3 * 60 * 60 * 1000;
+                return Interval.HOUR_3;
               case Temperature.WARM:
                 if (type === UpdateType.ANILIST || type === UpdateType.SHIKIMORI || type === UpdateType.TVDB) {
-                  return 7 * 24 * 60 * 60 * 1000;
+                  return Interval.DAY_1;
                 }
-                return 3 * 24 * 60 * 60 * 1000;
+                return Interval.HOUR_6;
               case Temperature.COLD:
                 if (type === UpdateType.ANILIST || type === UpdateType.SHIKIMORI || type === UpdateType.TVDB) {
-                  return 28 * 24 * 60 * 60 * 1000
+                  return Interval.DAY_7;
                 }
-                return 21 * 24 * 60 * 60 * 1000;
+                return Interval.DAY_3;
               default:
-                return 21 * 24 * 60 * 60 * 1000;
+                return Interval.DAY_3;
             }
-          })();
+          };
+
+          const updateInterval = getUpdateInterval(temperature, type);
 
           if (lastTime + updateInterval < now.getTime()) {
             console.log(
