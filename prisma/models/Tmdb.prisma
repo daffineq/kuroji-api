@@ -1,8 +1,8 @@
 model Tmdb {
   id                 Int      @id
   adult              Boolean
-  backdrop_path      String?  // full URL constructed on getter in Java, handle that in your app logic
-  episode_run_time   Int[]    // list of integers
+  backdrop_path      String?
+  episode_run_time   Int[]
   media_type         String?
   first_air_date     String?
   homepage           String?
@@ -13,17 +13,60 @@ model Tmdb {
   number_of_seasons  Int?
   original_language  String?
   original_name      String?
-  origin_country     String[] // list of countries
-  overview           String?  // @Lob in Java
+  origin_country     String[]
+  overview           String?
   popularity         Float?
-  poster_path        String?  // handle URL concatenation in your app logic
-  tagline            String?  // @Lob in Java
+  poster_path        String?
+  tagline            String?
   status             String?
   type               String?
   vote_average       Float?
   vote_count         Int?
 
+  next_episode_to_air TmdbNextEpisodeToAir? @relation("NextEpisode")
+  last_episode_to_air TmdbLastEpisodeToAir? @relation("LastEpisode")
   seasons            TmdbReleaseSeason[] @relation("TmdbReleaseSeason")
+}
+
+// Add new model for episode info
+model TmdbNextEpisodeToAir {
+  id              Int      @id
+  name            String?
+  overview        String?  // @Lob
+  vote_average    Float?
+  vote_count      Int?
+  air_date        String?
+  episode_number  Int?
+  episode_type    String?
+  production_code String?
+  runtime         Int?
+  season_number   Int?
+  show_id         Int? @unique
+  still_path      String?
+
+  tmdb_next       Tmdb? @relation("NextEpisode", fields: [show_id], references: [id])
+
+  @@index([show_id])
+}
+
+model TmdbLastEpisodeToAir {
+  id              Int      @id
+  name            String?
+  overview        String?  // @Lob
+  vote_average    Float?
+  vote_count      Int?
+  air_date        String?
+  episode_number  Int?
+  episode_type    String?
+  production_code String?
+  runtime         Int?
+  season_number   Int?
+  show_id         Int? @unique
+  still_path      String?
+
+  tmdb_last       Tmdb? @relation("LastEpisode", fields: [show_id], references: [id])
+
+  @@index([show_id])
 }
 
 model TmdbReleaseSeason {

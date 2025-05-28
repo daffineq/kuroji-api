@@ -20,6 +20,8 @@ interface IProvider {
 }
 
 export enum Temperature {
+  AIRING_TODAY,
+  AIRING_NOW,
   HOT,
   WARM,
   COLD
@@ -74,7 +76,7 @@ export class UpdateService {
     },
   ];
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async update() {
     if (!Config.UPDATE_ENABLED) return;
 
@@ -91,6 +93,7 @@ export class UpdateService {
 
         for (const lastUpdated of lastUpdates) {
           const now: Date = new Date();
+          const oneHour = 60 * 60 * 1000;
           const lastTime: number = lastUpdated.createdAt.getTime();
           const lastDatePlusMonth = new Date(
             lastUpdated.createdAt.getFullYear(),
@@ -114,57 +117,78 @@ export class UpdateService {
               }
             })()
 
-            const anilistStatus = anilist.status as MediaStatus
-
-            temperature = (() => {
-              const { popularity, trending, averageScore, favourites, rankings } = anilist
-
-              const rank = rankings?.find(r => r.allTime)?.rank ?? 9999
-              const highScore = averageScore!! >= 80
-              const hype = trending!! > 5000 || popularity!! > 100000
-              const isTopRanked = rank <= 100
-
-              if (anilistStatus === MediaStatus.RELEASING) {
-                if (isTopRanked || (hype && highScore)) {
-                  return Temperature.HOT
-                } else if (hype || highScore) {
-                  return Temperature.WARM
-                } else {
-                  return Temperature.COLD
-                }
-              }
-
-              if (anilistStatus === MediaStatus.NOT_YET_RELEASED) {
-                return hype ? Temperature.WARM : Temperature.COLD
-              }
-
-              return highScore || isTopRanked ? Temperature.WARM : Temperature.COLD
-            })();
-          } else {
-            if (type === UpdateType.TMDB) {
-              const tmdb = await this.TmdbService.getTmdb(lastUpdated.externalId || 0);
-              const status = tmdb.status as TmdbStatus;
+            const airingTime = new Date((anilist?.nextAiringEpisode?.airingAt || 0) * 1000);
+            if (Math.abs(airingTime.getTime() - now.getTime()) <= oneHour) {
+              temperature = Temperature.AIRING_NOW;
+            } else {
+              const anilistStatus = anilist.status as MediaStatus
 
               temperature = (() => {
-                switch (status) {
-                  case TmdbStatus.InProduction:
-                  case TmdbStatus.PostProduction:
+                const { popularity, trending, averageScore, favourites, rankings } = anilist
+
+                const rank = rankings?.find(r => r.allTime)?.rank ?? 9999
+                const highScore = averageScore!! >= 80
+                const hype = trending!! > 5000 || popularity!! > 100000
+                const isTopRanked = rank <= 100
+
+                if (anilistStatus === MediaStatus.RELEASING) {
+                  if (isTopRanked || (hype && highScore)) {
                     return Temperature.HOT
-
-                  case TmdbStatus.Planned:
-                  case TmdbStatus.Rumored:
-                  case TmdbStatus.ReturningSeries:
+                  } else if (hype || highScore) {
                     return Temperature.WARM
-
-                  case TmdbStatus.Released:
-                  case TmdbStatus.Ended:
-                  case TmdbStatus.Canceled:
+                  } else {
                     return Temperature.COLD
-
-                  default:
-                    return Temperature.COLD
+                  }
                 }
+
+                if (anilistStatus === MediaStatus.NOT_YET_RELEASED) {
+                  return hype ? Temperature.WARM : Temperature.COLD
+                }
+
+                return highScore || isTopRanked ? Temperature.WARM : Temperature.COLD
               })();
+            }
+          } else {
+            if (type === UpdateType.TMDB) {
+              const tmdb = await this.TmdbService.getTmdb(lastUpdated.externalId || 0)
+
+              const airingDateStr = tmdb?.next_episode_to_air?.air_date
+              let isAiringToday = false
+              if (airingDateStr) {
+                const airingDate = new Date(airingDateStr)
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+                isAiringToday =
+                  airingDate.getFullYear() === today.getFullYear() &&
+                  airingDate.getMonth() === today.getMonth() &&
+                  airingDate.getDate() === today.getDate()
+              }
+
+              if (isAiringToday) {
+                temperature = Temperature.AIRING_TODAY
+              } else {
+                const status = tmdb.status as TmdbStatus
+
+                temperature = (() => {
+                  switch (status) {
+                    case TmdbStatus.InProduction:
+                    case TmdbStatus.PostProduction:
+                      return Temperature.HOT
+
+                    case TmdbStatus.Planned:
+                    case TmdbStatus.Rumored:
+                    case TmdbStatus.ReturningSeries:
+                      return Temperature.WARM
+
+                    case TmdbStatus.Released:
+                    case TmdbStatus.Ended:
+                    case TmdbStatus.Canceled:
+                      return Temperature.COLD
+
+                    default:
+                      return Temperature.COLD
+                  }
+                })()
+              }
             } else {
               const tvdb = await this.TvdbService.getTvdb(lastUpdated.externalId || 0)
               const status = (tvdb.status as any)?.name as TvdbStatus
@@ -189,6 +213,10 @@ export class UpdateService {
           }
 
           enum Interval {
+            NOW = 0,
+            MINUTE_30 = 30 * 60 * 1000,
+            MINUTE_60 = 60 * 60 * 1000,
+            HOUR_1 = 1 * 60 * 60 * 1000,
             HOUR_3 = 3 * 60 * 60 * 1000,
             HOUR_6 = 6 * 60 * 60 * 1000,
             HOUR_9 = 9 * 60 * 60 * 1000,
@@ -203,6 +231,10 @@ export class UpdateService {
 
           const getUpdateInterval = (temperature: Temperature, type: UpdateType): number => {
             switch(temperature) {
+              case Temperature.AIRING_NOW:
+                return Interval.NOW;
+              case Temperature.AIRING_TODAY:
+                return Interval.MINUTE_30;
               case Temperature.HOT:
                 if (type === UpdateType.ANILIST || type === UpdateType.SHIKIMORI || type === UpdateType.TVDB) {
                   return Interval.HOUR_12;

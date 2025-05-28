@@ -2,6 +2,8 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import {
   DateDetails,
   Tmdb,
+  TmdbLastEpisodeToAir,
+  TmdbNextEpisodeToAir,
   TmdbReleaseSeason,
   TmdbSeason,
   TmdbSeasonEpisode,
@@ -28,6 +30,8 @@ export interface TmdbResponse {
 }
 
 export interface TmdbWithRelations extends Tmdb {
+  last_episode_to_air?: TmdbLastEpisodeToAir;
+  next_episode_to_air?: TmdbNextEpisodeToAir;
   seasons: TmdbReleaseSeason[]
 }
 
@@ -59,8 +63,12 @@ export class TmdbService {
   async getTmdb(id: number): Promise<TmdbWithRelations> {
     const existingTmdb = await this.prisma.tmdb.findUnique({
       where: { id },
-      include: { seasons: true }
-    });
+      include: { 
+        seasons: true,
+        last_episode_to_air: true,
+        next_episode_to_air: true,
+      }
+    }) as TmdbWithRelations;
 
     if (existingTmdb) return existingTmdb;
 
@@ -230,7 +238,11 @@ export class TmdbService {
 
     return await this.prisma.tmdb.findUnique({
       where: { id: tmdb.id },
-      include: { seasons: true }
+      include: {
+        seasons: true,
+        last_episode_to_air: true,
+        next_episode_to_air: true,
+      }
     }) as TmdbWithRelations;
   }
 
@@ -254,8 +266,12 @@ export class TmdbService {
   async updateSeason(id: number): Promise<TmdbWithRelations> {
     const tmdb = await this.prisma.tmdb.findFirst({
       where: { id },
-      include: { seasons: true }
-    });
+      include: {
+        seasons: true,
+        last_episode_to_air: true,
+        next_episode_to_air: true,
+      }
+    }) as TmdbWithRelations;
 
     if (!tmdb) {
       throw new Error(`TMDb ID ${id} not found`);
@@ -287,7 +303,11 @@ export class TmdbService {
           { original_name: { mode: 'insensitive' } }
         ]
       },
-      include: { seasons: true }
+      include: {
+        seasons: true,
+        last_episode_to_air: true,
+        next_episode_to_air: true,
+      }
     });
 
     const searchAnime: ExpectAnime = {
