@@ -86,26 +86,34 @@ export class UpdateService {
     ]
   }
 
+  private static getRandomInterval(base: number, variation: number): number {
+    const min = base - (base * variation)
+    const max = base + (base * variation)
+    return Math.floor(Math.random() * (max - min + 1)) + min
+  }
+
   private static getUpdateInterval(temperature: Temperature, type: UpdateType): number {
+    const variation = 0.2 // 20% variation
+
     switch (temperature) {
       case Temperature.AIRING_NOW:
-        return UpdateInterval.MINUTE_5
+        return this.getRandomInterval(UpdateInterval.MINUTE_5, variation)
       case Temperature.AIRING_TODAY:
-        return UpdateInterval.MINUTE_30
+        return this.getRandomInterval(UpdateInterval.MINUTE_30, variation)
       case Temperature.HOT:
         return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
-          ? UpdateInterval.HOUR_12
-          : UpdateInterval.HOUR_3
+          ? this.getRandomInterval(UpdateInterval.HOUR_12, variation)
+          : this.getRandomInterval(UpdateInterval.HOUR_3, variation)
       case Temperature.WARM:
         return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
-          ? UpdateInterval.DAY_7
-          : UpdateInterval.DAY_3
+          ? this.getRandomInterval(UpdateInterval.DAY_7, variation)
+          : this.getRandomInterval(UpdateInterval.DAY_3, variation)
       case Temperature.COLD:
       case Temperature.UNKNOWN:
       default:
         return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
-          ? UpdateInterval.DAY_28
-          : UpdateInterval.DAY_14
+          ? this.getRandomInterval(UpdateInterval.DAY_28, variation)
+          : this.getRandomInterval(UpdateInterval.DAY_14, variation)
     }
   }
 
@@ -268,12 +276,12 @@ export class UpdateService {
             lastUpdated.createdAt.getDate(),
           )
 
-          if (lastDatePlusMonth.getTime() < now.getTime()) {
-            console.log(`Deleting old LastUpdated entry for ${provider.type} ID:${lastUpdated.entityId}`)
-            await this.prisma.lastUpdated.delete({
-              where: { id: lastUpdated.id },
-            })
-          }
+          // if (lastDatePlusMonth.getTime() < now.getTime()) {
+          //   console.log(`Deleting old LastUpdated entry for ${provider.type} ID:${lastUpdated.entityId}`)
+          //   await this.prisma.lastUpdated.delete({
+          //     where: { id: lastUpdated.id },
+          //   })
+          // }
 
           await sleep(1);
         }
