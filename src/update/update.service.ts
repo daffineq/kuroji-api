@@ -96,14 +96,14 @@ export class UpdateService {
           : UpdateInterval.HOUR_3
       case Temperature.WARM:
         return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
-          ? UpdateInterval.DAY_1
-          : UpdateInterval.HOUR_6
+          ? UpdateInterval.DAY_3
+          : UpdateInterval.DAY_2
       case Temperature.COLD:
       case Temperature.UNKNOWN:
       default:
         return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
-          ? UpdateInterval.DAY_7
-          : UpdateInterval.DAY_3
+          ? UpdateInterval.DAY_14
+          : UpdateInterval.DAY_14
     }
   }
 
