@@ -16,9 +16,11 @@ import { Redis } from './shared/redis.module'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import Config from './configs/Config'
 import { APP_GUARD } from '@nestjs/core'
+import { ScheduleModule } from '@nestjs/schedule'
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ShikimoriModule,
     AnilistModule,
     ZoroModule,
