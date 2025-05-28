@@ -1,285 +1,265 @@
-import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { LastUpdated } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
-import { AnilistService } from '../anime/providers/anilist/service/anilist.service';
-import { AnimekaiService } from '../anime/providers/animekai/service/animekai.service';
-import { AnimepaheService } from '../anime/providers/animepahe/service/animepahe.service';
-import { ShikimoriService } from '../anime/providers/shikimori/service/shikimori.service';
-import { TmdbService, TmdbStatus } from '../anime/providers/tmdb/service/tmdb.service';
-import { UpdateType } from '../shared/UpdateType'
+import { Injectable } from '@nestjs/common'
+import { Cron, CronExpression } from '@nestjs/schedule'
+import { LastUpdated } from '@prisma/client'
+import { AnimekaiService } from '../anime/providers/animekai/service/animekai.service'
+import { AnilistService } from '../anime/providers/anilist/service/anilist.service'
+import { MediaStatus } from '../anime/providers/anilist/filter/Filter'
+import { AnimepaheService } from '../anime/providers/animepahe/service/animepahe.service'
+import { KitsuService } from '../anime/providers/kitsu/service/kitsu.service'
+import { ShikimoriService } from '../anime/providers/shikimori/service/shikimori.service'
+import { TmdbService, TmdbStatus } from '../anime/providers/tmdb/service/tmdb.service'
+import { TvdbService, TvdbStatus } from '../anime/providers/tvdb/service/tvdb.service'
 import { ZoroService } from '../anime/providers/zoro/service/zoro.service'
 import Config from '../configs/Config'
-import { MediaStatus } from '../anime/providers/anilist/filter/Filter'
-import { TvdbService, TvdbStatus } from '../anime/providers/tvdb/service/tvdb.service'
-import { KitsuService } from '../anime/providers/kitsu/service/kitsu.service'
+import { PrismaService } from '../prisma.service'
+import { UpdateType } from '../shared/UpdateType'
+import { sleep } from '../shared/utils'
 
 interface IProvider {
-  update: (id: any) => any;
-  type: UpdateType;
+  update: (id: string | number) => Promise<any>
+  type: UpdateType
 }
 
 export enum Temperature {
-  AIRING_TODAY,
   AIRING_NOW,
+  AIRING_TODAY,
   HOT,
   WARM,
-  COLD
+  COLD,
+  UNKNOWN,
+}
+
+const ONE_HOUR_MS = 60 * 60 * 1000
+const SLEEP_BETWEEN_UPDATES = 30
+
+enum UpdateInterval {
+  MINUTE_5 = 5 * 60 * 1000,
+  MINUTE_30 = 30 * 60 * 1000,
+  HOUR_1 = 1 * ONE_HOUR_MS,
+  HOUR_3 = 3 * ONE_HOUR_MS,
+  HOUR_6 = 6 * ONE_HOUR_MS,
+  HOUR_9 = 9 * ONE_HOUR_MS,
+  HOUR_12 = 12 * ONE_HOUR_MS,
+  DAY_1 = 24 * ONE_HOUR_MS,
+  DAY_2 = 2 * 24 * ONE_HOUR_MS,
+  DAY_3 = 3 * 24 * ONE_HOUR_MS,
+  DAY_5 = 5 * 24 * ONE_HOUR_MS,
+  DAY_7 = 7 * 24 * ONE_HOUR_MS,
+  DAY_14 = 14 * 24 * ONE_HOUR_MS,
 }
 
 @Injectable()
 export class UpdateService {
-  constructor(
-    private readonly AniService: AnilistService,
-    private readonly AniKaiService: AnimekaiService,
-    private readonly ZoroService: ZoroService,
-    private readonly PaheService: AnimepaheService,
-    private readonly ShikService: ShikimoriService,
-    private readonly TmdbService: TmdbService,
-    private readonly TvdbService: TvdbService,
-    private readonly KitsuService: KitsuService,
-    private readonly prisma: PrismaService,
-  ) {}
+  private readonly providers: IProvider[]
 
-  providers: IProvider[] = [
-    {
-      update: (id: any) => this.AniService.update(Number(id)),
-      type: UpdateType.ANILIST,
-    },
-    {
-      update: (id: any) => this.AniKaiService.update(String(id)),
-      type: UpdateType.ANIMEKAI,
-    },
-    {
-      update: (id: any) => this.PaheService.update(String(id)),
-      type: UpdateType.ANIMEPAHE,
-    },
-    {
-      update: (id: any) => this.ZoroService.update(String(id)),
-      type: UpdateType.ANIWATCH,
-    },
-    {
-      update: (id: any) => this.ShikService.update(String(id)),
-      type: UpdateType.SHIKIMORI,
-    },
-    {
-      update: (id: any) => this.TmdbService.update(Number(id)),
-      type: UpdateType.TMDB,
-    },
-    {
-      update: (id: any) => this.TvdbService.update(Number(id)),
-      type: UpdateType.TVDB,
-    },
-    {
-      update: (id: any) => this.KitsuService.updateKitsu(id),
-      type: UpdateType.KITSU,
-    },
-  ];
+  constructor(
+    private readonly anilistService: AnilistService,
+    private readonly animekaiService: AnimekaiService,
+    private readonly zoroService: ZoroService,
+    private readonly animepaheService: AnimepaheService,
+    private readonly shikimoriService: ShikimoriService,
+    private readonly tmdbService: TmdbService,
+    private readonly tvdbService: TvdbService,
+    private readonly kitsuService: KitsuService,
+    private readonly prisma: PrismaService,
+  ) {
+    this.providers = [
+      { update: (id: any) => this.anilistService.update(Number(id)), type: UpdateType.ANILIST },
+      { update: (id: any) => this.animekaiService.update(String(id)), type: UpdateType.ANIMEKAI },
+      { update: (id: any) => this.animepaheService.update(String(id)), type: UpdateType.ANIMEPAHE },
+      { update: (id: any) => this.zoroService.update(String(id)), type: UpdateType.ANIWATCH }, // Assuming ANIWATCH is Zoro
+      { update: (id: any) => this.shikimoriService.update(String(id)), type: UpdateType.SHIKIMORI },
+      { update: (id: any) => this.tmdbService.update(Number(id)), type: UpdateType.TMDB },
+      { update: (id: any) => this.tvdbService.update(Number(id)), type: UpdateType.TVDB },
+      { update: (id: any) => this.kitsuService.updateKitsu(id), type: UpdateType.KITSU },
+    ]
+  }
+
+  private static getUpdateInterval(temperature: Temperature, type: UpdateType): number {
+    switch (temperature) {
+      case Temperature.AIRING_NOW:
+        return UpdateInterval.MINUTE_5
+      case Temperature.AIRING_TODAY:
+        return UpdateInterval.MINUTE_30
+      case Temperature.HOT:
+        return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
+          ? UpdateInterval.HOUR_12
+          : UpdateInterval.HOUR_3
+      case Temperature.WARM:
+        return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
+          ? UpdateInterval.DAY_1
+          : UpdateInterval.HOUR_6
+      case Temperature.COLD:
+      case Temperature.UNKNOWN:
+      default:
+        return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
+          ? UpdateInterval.DAY_7
+          : UpdateInterval.DAY_3
+    }
+  }
+
+  private async _getAnilistData(lastUpdated: LastUpdated, type: UpdateType) {
+    const entityId = lastUpdated.entityId
+    const externalId = lastUpdated.externalId
+
+    switch (type) {
+      case UpdateType.ANILIST:
+        return this.anilistService.getAnilist(Number(entityId) || 0)
+      case UpdateType.SHIKIMORI:
+        return this.anilistService.getAnilist(Number(entityId) || 0, true)
+      default:
+        return this.anilistService.getAnilist(Number(externalId) || 0)
+    }
+  }
+
+  private async _getAnilistBasedTemperature(lastUpdated: LastUpdated, type: UpdateType): Promise<Temperature> {
+    const anilistData = await this._getAnilistData(lastUpdated, type)
+    if (!anilistData) return Temperature.UNKNOWN
+
+    const now = new Date()
+    const airingTime = new Date((anilistData.nextAiringEpisode?.airingAt || 0) * 1000)
+
+    if (Math.abs(airingTime.getTime() - now.getTime()) <= ONE_HOUR_MS) {
+      return Temperature.AIRING_NOW
+    }
+
+    const status = anilistData.status as MediaStatus
+    switch (status) {
+      case MediaStatus.RELEASING:
+        return Temperature.HOT
+      case MediaStatus.NOT_YET_RELEASED:
+      case MediaStatus.HIATUS:
+        return Temperature.WARM
+      case MediaStatus.FINISHED:
+      case MediaStatus.CANCELLED:
+        return Temperature.COLD
+      default:
+        return Temperature.UNKNOWN
+    }
+  }
+
+  private async _getTmdbTemperature(lastUpdated: LastUpdated): Promise<Temperature> {
+    const tmdbData = await this.tmdbService.getTmdb(Number(lastUpdated.externalId) || 0)
+    if (!tmdbData) return Temperature.UNKNOWN
+
+    const now = new Date()
+    const airingDateStr = tmdbData.next_episode_to_air?.air_date
+
+    if (airingDateStr) {
+      const airingDate = new Date(airingDateStr)
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      if (
+        airingDate.getFullYear() === today.getFullYear() &&
+        airingDate.getMonth() === today.getMonth() &&
+        airingDate.getDate() === today.getDate()
+      ) {
+        return Temperature.AIRING_TODAY
+      }
+    }
+
+    const status = tmdbData.status as TmdbStatus
+    switch (status) {
+      case TmdbStatus.InProduction:
+      case TmdbStatus.PostProduction:
+        return Temperature.HOT
+      case TmdbStatus.Planned:
+      case TmdbStatus.Rumored:
+      case TmdbStatus.ReturningSeries:
+        return Temperature.WARM
+      case TmdbStatus.Released:
+      case TmdbStatus.Ended:
+      case TmdbStatus.Canceled:
+        return Temperature.COLD
+      default:
+        return Temperature.UNKNOWN
+    }
+  }
+
+  private async _getTvdbTemperature(lastUpdated: LastUpdated): Promise<Temperature> {
+    const tvdbData = await this.tvdbService.getTvdb(Number(lastUpdated.externalId) || 0)
+    if (!tvdbData || !tvdbData.status) return Temperature.UNKNOWN
+
+    const status = (tvdbData.status as any)?.name as TvdbStatus
+
+    switch (status) {
+      case TvdbStatus.Continuing:
+        return Temperature.HOT
+      case TvdbStatus.Pilot:
+        return Temperature.WARM
+      case TvdbStatus.Ended:
+      case TvdbStatus.Cancelled:
+        return Temperature.COLD
+      default:
+        return Temperature.UNKNOWN
+    }
+  }
+
+  private async _calculateTemperature(lastUpdated: LastUpdated, type: UpdateType): Promise<Temperature> {
+    if (type === UpdateType.TMDB) {
+      return this._getTmdbTemperature(lastUpdated)
+    } else if (type === UpdateType.TVDB) {
+      return this._getTvdbTemperature(lastUpdated)
+    } else {
+      // For ANILIST, SHIKIMORI, ANIMEKAI, ANIMEPAHE, ANIWATCH, KITSU
+      return this._getAnilistBasedTemperature(lastUpdated, type)
+    }
+  }
 
   @Cron(CronExpression.EVERY_30_MINUTES)
   async update() {
-    if (!Config.UPDATE_ENABLED) return;
+    if (!Config.UPDATE_ENABLED) {
+      console.log('Updates are disabled via configuration.')
+      return
+    }
+    console.log('Starting update cycle...')
 
     for (const provider of this.providers) {
       try {
-        const lastUpdates: LastUpdated[] =
-          await this.prisma.lastUpdated.findMany({
-            where: {
-              type: provider.type,
-            },
-            distinct: ['entityId'],
-          });
-        if (!lastUpdates.length) continue;
+        const lastUpdates = await this.prisma.lastUpdated.findMany({
+          where: { type: provider.type },
+          distinct: ['entityId'],
+        })
+
+        if (!lastUpdates.length) {
+          // console.log(`No items to update for provider: ${provider.type}`);
+          continue
+        }
+
+        console.log(`Processing ${lastUpdates.length} items for provider: ${provider.type}`)
 
         for (const lastUpdated of lastUpdates) {
-          const now: Date = new Date();
-          const oneHour = 60 * 60 * 1000;
-          const lastTime: number = lastUpdated.createdAt.getTime();
+          const now = new Date()
+          const lastTime = lastUpdated.createdAt.getTime()
+          const type = lastUpdated.type as UpdateType
+
+          const temperature = await this._calculateTemperature(lastUpdated, type)
+          const updateInterval = UpdateService.getUpdateInterval(temperature, type)
+
+          if (lastTime + updateInterval < now.getTime()) {
+            console.log(
+              `Updating ${provider.type} ID:${lastUpdated.entityId} (Temp: ${Temperature[temperature]}, Interval: ${updateInterval / ONE_HOUR_MS}h)`,
+            )
+            await provider.update(lastUpdated.entityId)
+            await sleep(SLEEP_BETWEEN_UPDATES)
+          }
+
           const lastDatePlusMonth = new Date(
             lastUpdated.createdAt.getFullYear(),
             lastUpdated.createdAt.getMonth() + 1,
             lastUpdated.createdAt.getDate(),
-          );
-
-          const type = lastUpdated.type as UpdateType;
-
-          let temperature;
-
-          if (type !== UpdateType.TMDB && type !== UpdateType.TVDB) {
-            const anilist = await (async () => {
-              switch (type) {
-                case UpdateType.ANILIST:
-                  return await this.AniService.getAnilist(lastUpdated.externalId || 0, true)
-                case UpdateType.SHIKIMORI:
-                  return await this.AniService.getAnilist(+lastUpdated.entityId || 0, true)
-                default:
-                  return await this.AniService.getAnilist(lastUpdated.externalId || 0)
-              }
-            })()
-
-            const airingTime = new Date((anilist?.nextAiringEpisode?.airingAt || 0) * 1000);
-            if (Math.abs(airingTime.getTime() - now.getTime()) <= oneHour) {
-              temperature = Temperature.AIRING_NOW;
-            } else {
-              const anilistStatus = anilist.status as MediaStatus
-
-              temperature = (() => {
-                const { popularity, trending, averageScore, favourites, rankings } = anilist
-
-                const rank = rankings?.find(r => r.allTime)?.rank ?? 9999
-                const highScore = averageScore!! >= 80
-                const hype = trending!! > 5000 || popularity!! > 100000
-                const isTopRanked = rank <= 100
-
-                if (anilistStatus === MediaStatus.RELEASING) {
-                  if (isTopRanked || (hype && highScore)) {
-                    return Temperature.HOT
-                  } else if (hype || highScore) {
-                    return Temperature.WARM
-                  } else {
-                    return Temperature.COLD
-                  }
-                }
-
-                if (anilistStatus === MediaStatus.NOT_YET_RELEASED) {
-                  return hype ? Temperature.WARM : Temperature.COLD
-                }
-
-                return highScore || isTopRanked ? Temperature.WARM : Temperature.COLD
-              })();
-            }
-          } else {
-            if (type === UpdateType.TMDB) {
-              const tmdb = await this.TmdbService.getTmdb(lastUpdated.externalId || 0)
-
-              const airingDateStr = tmdb?.next_episode_to_air?.air_date
-              let isAiringToday = false
-              if (airingDateStr) {
-                const airingDate = new Date(airingDateStr)
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-                isAiringToday =
-                  airingDate.getFullYear() === today.getFullYear() &&
-                  airingDate.getMonth() === today.getMonth() &&
-                  airingDate.getDate() === today.getDate()
-              }
-
-              if (isAiringToday) {
-                temperature = Temperature.AIRING_TODAY
-              } else {
-                const status = tmdb.status as TmdbStatus
-
-                temperature = (() => {
-                  switch (status) {
-                    case TmdbStatus.InProduction:
-                    case TmdbStatus.PostProduction:
-                      return Temperature.HOT
-
-                    case TmdbStatus.Planned:
-                    case TmdbStatus.Rumored:
-                    case TmdbStatus.ReturningSeries:
-                      return Temperature.WARM
-
-                    case TmdbStatus.Released:
-                    case TmdbStatus.Ended:
-                    case TmdbStatus.Canceled:
-                      return Temperature.COLD
-
-                    default:
-                      return Temperature.COLD
-                  }
-                })()
-              }
-            } else {
-              const tvdb = await this.TvdbService.getTvdb(lastUpdated.externalId || 0)
-              const status = (tvdb.status as any)?.name as TvdbStatus
-
-              temperature = (() => {
-                switch (status) {
-                  case TvdbStatus.Continuing:
-                    return Temperature.HOT
-
-                  case TvdbStatus.Pilot:
-                    return Temperature.WARM
-
-                  case TvdbStatus.Ended:
-                  case TvdbStatus.Cancelled:
-                    return Temperature.COLD
-
-                  default:
-                    return Temperature.COLD
-                }
-              })();
-            }
-          }
-
-          enum Interval {
-            MINUTE_5 = 5 * 60 * 1000,
-            MINUTE_30 = 30 * 60 * 1000,
-            MINUTE_60 = 60 * 60 * 1000,
-            HOUR_1 = 1 * 60 * 60 * 1000,
-            HOUR_3 = 3 * 60 * 60 * 1000,
-            HOUR_6 = 6 * 60 * 60 * 1000,
-            HOUR_9 = 9 * 60 * 60 * 1000,
-            HOUR_12 = 12 * 60 * 60 * 1000,
-            DAY_1 = 24 * 60 * 60 * 1000,
-            DAY_2 = 2 * 24 * 60 * 60 * 1000,
-            DAY_3 = 3 * 24 * 60 * 60 * 1000,
-            DAY_5 = 5 * 24 * 60 * 60 * 1000,
-            DAY_7 = 7 * 24 * 60 * 60 * 1000,
-            DAY_14 = 14 * 24 * 60 * 60 * 1000,
-          }
-
-          const getUpdateInterval = (temperature: Temperature, type: UpdateType): number => {
-            switch(temperature) {
-              case Temperature.AIRING_NOW:
-                return Interval.MINUTE_5;
-              case Temperature.AIRING_TODAY:
-                return Interval.MINUTE_30;
-              case Temperature.HOT:
-                if (type === UpdateType.ANILIST || type === UpdateType.SHIKIMORI || type === UpdateType.TVDB) {
-                  return Interval.HOUR_12;
-                }
-                return Interval.HOUR_3;
-              case Temperature.WARM:
-                if (type === UpdateType.ANILIST || type === UpdateType.SHIKIMORI || type === UpdateType.TVDB) {
-                  return Interval.DAY_1;
-                }
-                return Interval.HOUR_6;
-              case Temperature.COLD:
-                if (type === UpdateType.ANILIST || type === UpdateType.SHIKIMORI || type === UpdateType.TVDB) {
-                  return Interval.DAY_7;
-                }
-                return Interval.DAY_3;
-              default:
-                return Interval.DAY_3;
-            }
-          };
-
-          const updateInterval = getUpdateInterval(temperature, type);
-
-          if (lastTime + updateInterval < now.getTime()) {
-            console.log(
-              `Updating ${provider.type} with ID:${lastUpdated.entityId}`,
-            );
-
-            provider.update(lastUpdated.entityId);
-            await this.sleep(30);
-          }
+          )
 
           if (lastDatePlusMonth.getTime() < now.getTime()) {
+            console.log(`Deleting old LastUpdated entry for ${provider.type} ID:${lastUpdated.entityId}`)
             await this.prisma.lastUpdated.delete({
-              where: lastUpdated,
-            });
+              where: { id: lastUpdated.id },
+            })
           }
         }
-      } catch (e) {
-        console.error(`Error in ${provider.type} provider UpdateService:`, e);
+      } catch (e: any) {
+        console.error(`Error processing provider ${provider.type} in UpdateService:`, e.message, e.stack)
       }
     }
-  }
-
-  public async sleep(delay: number): Promise<void> {
-    console.log(`Sleeping for ${delay} seconds...`);
-    return new Promise((resolve) => setTimeout(resolve, delay * 1000));
+    console.log('Update cycle finished.')
   }
 }
