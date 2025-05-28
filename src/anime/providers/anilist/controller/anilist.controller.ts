@@ -16,6 +16,8 @@ import { AnilistScheduleService } from '../service/helper/anilist.schedule.servi
 import Dimens from '../../../../configs/Dimens';
 import { AnilistSearchService } from '../service/helper/anilist.search.service';
 import { AnilistRecommendationService } from '../service/helper/anilist.recommendation.service'
+import { LastUpdateResponse, UpdateService } from '../../../../update/update.service'
+import { UpdateType } from '../../../../shared/UpdateType'
 
 @Controller('anime')
 export class AnilistController {
@@ -27,6 +29,7 @@ export class AnilistController {
     private readonly recommendation: AnilistRecommendationService,
     private readonly stream: StreamService,
     private readonly indexer: AnilistIndexerService,
+    private readonly update: UpdateService,
   ) {}
 
   @Get('info/:id')
@@ -149,6 +152,26 @@ export class AnilistController {
     return this.add.getAllTags(page, perPage);
   }
 
+  @Get('updates')
+  async getLastUpdates(
+    @Query('entityId') entityId?: string,
+    @Query('externalId') externalId?: string,
+    @Query('type') type: string = UpdateType.ANILIST,
+    @Query('perPage') perPage: number = Dimens.PER_PAGE,
+    @Query('page') page: number = 1,
+  ): Promise<LastUpdateResponse[]>{
+    const parsedExternalId = externalId ? parseInt(externalId) : undefined;
+    const updateType = UpdateType[type.toUpperCase() as keyof typeof UpdateType] || UpdateType.ANILIST;
+    
+    return this.update.getLastUpdates(
+      entityId, 
+      parsedExternalId, 
+      updateType,
+      page,
+      perPage
+    );
+  }
+
   @Put('index')
   index(
     @Query('delay') delay: number = 10,
@@ -168,6 +191,17 @@ export class AnilistController {
     this.indexer.stop();
     return {
       status: 'Indexing stopped',
+    };
+  }
+
+  @Put('update')
+  async updateAnilist() {
+    this.update
+      .update()
+      .catch((err) => console.error('Update failed:', err)); // just in case it blows up
+
+    return {
+      status: 'Update started',
     };
   }
 }

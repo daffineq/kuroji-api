@@ -20,6 +20,15 @@ interface IProvider {
   type: UpdateType
 }
 
+export interface LastUpdateResponse {
+  id: number
+  entityId: string
+  externalId: number | null
+  type: string
+  createdAt: string
+  temperature: string
+}
+
 export enum Temperature {
   AIRING_NOW,
   AIRING_TODAY,
@@ -261,5 +270,40 @@ export class UpdateService {
       }
     }
     console.log('Update cycle finished.')
+  }
+
+  async getLastUpdates(
+    entityId?: string,
+    externalId?: number,
+    type: UpdateType = UpdateType.ANILIST,
+    page: number = 1,
+    perPage: number = 20,
+  ): Promise<LastUpdateResponse[]> {
+    const where: any = { type }
+
+    if (entityId) where.entityId = entityId
+    if (externalId) where.externalId = externalId
+
+    const skip = (page - 1) * perPage
+    const take = perPage
+
+    const data = await this.prisma.lastUpdated.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take,
+    })
+
+    const result = await Promise.all(
+      data.map(async (item) => {
+        const temperature = await this._calculateTemperature(item, item.type as UpdateType)
+        return {
+          ...item,
+          createdAt: item.createdAt.toISOString(),
+          temperature: Temperature[temperature],
+        }
+      }),
+    )
+    return result
   }
 }
