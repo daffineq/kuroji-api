@@ -14,6 +14,7 @@ import Config from '../configs/Config'
 import { PrismaService } from '../prisma.service'
 import { UpdateType } from '../shared/UpdateType'
 import { sleep } from '../shared/utils'
+import { AnilistWithRelations } from '../anime/providers/anilist/model/AnilistModels'
 
 interface IProvider {
   update: (id: string | number) => Promise<any>
@@ -136,25 +137,120 @@ export class UpdateService {
     if (!anilistData) return Temperature.UNKNOWN
 
     const now = new Date()
-    const airingTime = new Date((anilistData.nextAiringEpisode?.airingAt || 0) * 1000)
 
-    if (Math.abs(airingTime.getTime() - now.getTime()) <= ONE_HOUR_MS) {
-      return Temperature.AIRING_NOW
+    // Check for immediate airing episodes
+    if (anilistData.nextAiringEpisode) {
+      const airingTime = new Date((anilistData?.nextAiringEpisode?.airingAt || 0) * 1000)
+      const timeDiff = Math.abs(airingTime.getTime() - now.getTime())
+      
+      // If airing within the next hour
+      if (timeDiff <= ONE_HOUR_MS) {
+        return Temperature.AIRING_NOW
+      }
+      
+      // If airing today
+      // if (airingTime.toDateString() === now.toDateString()) {
+      //   return Temperature.AIRING_TODAY
+      // }
     }
 
     const status = anilistData.status as MediaStatus
+    
+    // Calculate anime's current relevance score
+    const relevanceScore = this._calculateRelevanceScore(anilistData, now)
+
     switch (status) {
       case MediaStatus.RELEASING:
-        return Temperature.HOT
-      case MediaStatus.NOT_YET_RELEASED:
-      case MediaStatus.HIATUS:
+        // For releasing shows, consider popularity and trending metrics
+        if (relevanceScore >= 6) return Temperature.HOT
         return Temperature.WARM
+
+      case MediaStatus.NOT_YET_RELEASED:
+        // For upcoming shows, check proximity to release date
+        if (anilistData.startDate) {
+          const startDate = new Date(
+            anilistData.startDate.year!, 
+            (anilistData.startDate.month || 1) - 1,
+            anilistData.startDate.day || 1
+          )
+          const daysUntilStart = (startDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)
+          
+          if (daysUntilStart <= 7) return Temperature.HOT
+          if (daysUntilStart <= 30) return Temperature.WARM
+        }
+        return Temperature.COLD
+
       case MediaStatus.FINISHED:
+        // For finished shows, consider recent popularity and classic status
+        if (relevanceScore >= 7) return Temperature.HOT
+        if (relevanceScore >= 5) return Temperature.WARM
+        return Temperature.COLD
+
       case MediaStatus.CANCELLED:
         return Temperature.COLD
+
+      case MediaStatus.HIATUS:
+        // For shows on hiatus, check if they're still popular
+        return relevanceScore >= 6 ? Temperature.WARM : Temperature.COLD
+
       default:
         return Temperature.UNKNOWN
     }
+  }
+
+  private _calculateRelevanceScore(anilist: AnilistWithRelations, now: Date): number {
+    let score = 0
+
+    // Popularity and trending factors (0-3 points)
+    if (anilist.popularity) {
+      if (anilist.popularity > 100000) score += 3
+      else if (anilist.popularity > 50000) score += 2
+      else if (anilist.popularity > 10000) score += 1
+    }
+
+    if (anilist.trending) {
+      if (anilist.trending > 1000) score += 3
+      else if (anilist.trending > 500) score += 2
+      else if (anilist.trending > 100) score += 1
+    }
+
+    // Recent activity (0-2 points)
+    if (anilist.updatedAt) {
+      const daysSinceUpdate = (now.getTime() - anilist.updatedAt * 1000) / (24 * 60 * 60 * 1000)
+      if (daysSinceUpdate < 1) score += 2
+      else if (daysSinceUpdate < 7) score += 1
+    }
+
+    // Rankings consideration (0-2 points)
+    const topRanking = anilist.rankings?.find(r => r.allTime && r.rank || 0 <= 100)
+    if (topRanking) {
+      if (topRanking.rank || 0 <= 50) score += 2
+      else score += 1
+    }
+
+    // Score and favorites (0-2 points)
+    if (anilist.averageScore && anilist.averageScore > 80) score += 1
+    if (anilist.favourites && anilist.favourites > 10000) score += 1
+
+    // Season relevance (0-1 point)
+    if (anilist.season && anilist.seasonYear) {
+      const currentYear = now.getFullYear()
+      const currentSeason = this._getCurrentSeason(now)
+      
+      if (anilist.seasonYear === currentYear && anilist.season === currentSeason) {
+        score += 1
+      }
+    }
+
+    return score
+  }
+
+  private _getCurrentSeason(date: Date): string {
+    const month = date.getMonth()
+    if (month >= 0 && month <= 2) return 'WINTER'
+    if (month >= 3 && month <= 5) return 'SPRING'
+    if (month >= 6 && month <= 8) return 'SUMMER'
+    return 'FALL'
   }
 
   private async _getTmdbTemperature(lastUpdated: LastUpdated): Promise<Temperature> {
