@@ -4,7 +4,7 @@ model Animepahe {
   title          String?
   image          String?
   cover          String?
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
   hasSub         Boolean?
   externalLinks  AnimepaheExternalLink[] @relation("AnimepaheExLink")
   status         String?
