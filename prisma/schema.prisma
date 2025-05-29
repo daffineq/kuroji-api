@@ -14,7 +14,7 @@ model Animepahe {
   title          String?
   image          String?
   cover          String?
-  updatedAt      Int?
+  updatedAt DateTime @updatedAt
   hasSub         Boolean?
   externalLinks  AnimepaheExternalLink[] @relation("AnimepaheExLink")
   status         String?
@@ -283,7 +283,7 @@ model LastUpdated {
   externalId Int?
   type      String
   createdAt DateTime @default(now())
-  updatedAt Int @default(0)
+  updatedAt DateTime @updatedAt
 }
 
 
@@ -675,7 +675,7 @@ model AnimeKai {
   description    String?
   type           String?
   url            String?
-  updatedAt      Int?
+  updatedAt DateTime @updatedAt
   subOrDub       String?
   hasSub         Boolean?
   hasDub         Boolean?
@@ -938,7 +938,7 @@ model Zoro {
   description   String?
   type          String?
   url           String?
-  updatedAt     Int?
+  updatedAt DateTime @updatedAt
   subOrDub      String?
   hasSub        Boolean?
   hasDub        Boolean?

@@ -15,6 +15,7 @@ import { PrismaService } from '../prisma.service'
 import { UpdateType } from '../shared/UpdateType'
 import { sleep } from '../shared/utils'
 import { AnilistWithRelations } from '../anime/providers/anilist/model/AnilistModels'
+import { last } from 'rxjs'
 
 interface IProvider {
   update: (id: string | number) => Promise<any>
@@ -351,9 +352,7 @@ export class UpdateService {
         for (const lastUpdated of lastUpdates) {
           try {
             const now = new Date()
-            const lastTime = lastUpdated.updatedAt === 0 
-              ? lastUpdated.createdAt.getTime()
-              : new Date(lastUpdated.updatedAt * 1000).getTime()
+            const lastTime = lastUpdated.updatedAt ? lastUpdated.updatedAt.getTime() : lastUpdated.createdAt.getTime()
             const type = lastUpdated.type as UpdateType
 
             const temperature = await this._calculateTemperature(lastUpdated, type)
@@ -445,6 +444,7 @@ export class UpdateService {
         return {
           ...item,
           createdAt: item.createdAt.toISOString(),
+          updatedAt: item.updatedAt.toISOString(),
           temperature: Temperature[temperature],
         }
       }),

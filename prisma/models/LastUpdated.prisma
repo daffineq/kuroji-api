@@ -3,5 +3,5 @@ model LastUpdated {
   externalId Int?
   type      String
   createdAt DateTime @default(now())
-  updatedAt Int @default(0)
+  updatedAt DateTime @updatedAt
 }
