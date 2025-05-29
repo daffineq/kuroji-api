@@ -40,7 +40,7 @@ export enum Temperature {
 }
 
 const ONE_HOUR_MS = 60 * 60 * 1000
-const SLEEP_BETWEEN_UPDATES = 30
+const SLEEP_BETWEEN_UPDATES = 10
 
 enum UpdateInterval {
   MINUTE_5 = 5 * 60 * 1000,
@@ -359,7 +359,7 @@ export class UpdateService {
           const temperature = await this._calculateTemperature(lastUpdated, type)
           const updateInterval = UpdateService.getUpdateInterval(temperature, type)
 
-          if (lastTime + updateInterval < now.getTime()) {
+          if (lastTime + updateInterval <= now.getTime()) {
             console.log(
               `Updating ${provider.type} ID:${lastUpdated.entityId} (Temp: ${Temperature[temperature]}, Interval: ${updateInterval / ONE_HOUR_MS}h)`,
             )
@@ -375,12 +375,12 @@ export class UpdateService {
             lastUpdated.createdAt.getDate(),
           )
 
-          // if (lastDatePlusMonth.getTime() < now.getTime()) {
-          //   console.log(`Deleting old LastUpdated entry for ${provider.type} ID:${lastUpdated.entityId}`)
-          //   await this.prisma.lastUpdated.delete({
-          //     where: { id: lastUpdated.id },
-          //   })
-          // }
+          if (lastDatePlusMonth.getTime() < now.getTime()) {
+            console.log(`Deleting old LastUpdated entry for ${provider.type} ID:${lastUpdated.entityId}`)
+            await this.prisma.lastUpdated.delete({
+              where: { id: lastUpdated.id },
+            })
+          }
         }
       } catch (e: any) {
         console.error(`Error processing provider ${provider.type} in UpdateService:`, e.message, e.stack)
