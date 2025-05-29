@@ -364,6 +364,8 @@ export class UpdateService {
             )
             await provider.update(lastUpdated.entityId)
             await sleep(SLEEP_BETWEEN_UPDATES)
+          } else {
+            await sleep(0.1);
           }
 
           const lastDatePlusMonth = new Date(
@@ -378,8 +380,6 @@ export class UpdateService {
           //     where: { id: lastUpdated.id },
           //   })
           // }
-
-          await sleep(1);
         }
       } catch (e: any) {
         console.error(`Error processing provider ${provider.type} in UpdateService:`, e.message, e.stack)
