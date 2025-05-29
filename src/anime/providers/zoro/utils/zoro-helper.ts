@@ -13,7 +13,7 @@ export class ZoroHelper {
       description: zoro.description,
       type: zoro.type,
       url: zoro.url,
-      updatedAt: Math.floor(Date.now() / 1000),
+      // updatedAt: Math.floor(Date.now() / 1000),
       subOrDub: zoro.subOrDub,
       hasSub: zoro.hasSub,
       hasDub: zoro.hasDub,

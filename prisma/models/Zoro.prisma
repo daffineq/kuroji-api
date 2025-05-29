@@ -8,7 +8,7 @@ model Zoro {
   description   String?
   type          String?
   url           String?
-  updatedAt     Int?
+  updatedAt DateTime @updatedAt
   subOrDub      String?
   hasSub        Boolean?
   hasDub        Boolean?

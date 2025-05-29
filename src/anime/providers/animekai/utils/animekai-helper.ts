@@ -12,7 +12,7 @@ export class AnimeKaiHelper {
       description: anime.description,
       type: anime.type,
       url: anime.url,
-      updatedAt: Math.floor(Date.now() / 1000),
+      // updatedAt: Math.floor(Date.now() / 1000),
       subOrDub: anime.subOrDub,
       hasSub: anime.hasSub,
       hasDub: anime.hasDub,
