@@ -340,6 +340,7 @@ export class UpdateService {
       try {
         const lastUpdates = await this.prisma.lastUpdated.findMany({
           where: { type: provider.type },
+          orderBy: { createdAt: 'desc' },
           distinct: ['entityId'],
         })
 
