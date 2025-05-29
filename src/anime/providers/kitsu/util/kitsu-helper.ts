@@ -98,33 +98,38 @@ export class KitsuHelper {
       } : undefined,
 
       coverImage: attrs.coverImage ? {
-        create: {
-          tiny: attrs.coverImage.tiny,
-          small: attrs.coverImage.small,
-          large: attrs.coverImage.large,
-          original: attrs.coverImage.original,
-          dimensions: attrs.coverImage.meta?.dimensions ? {
-            create: {
-              tiny: {
-                create: {
-                  width: attrs.coverImage.meta.dimensions.tiny?.width,
-                  height: attrs.coverImage.meta.dimensions.tiny?.height,
-                }
-              },
-              small: {
-                create: {
-                  width: attrs.coverImage.meta.dimensions.small?.width,
-                  height: attrs.coverImage.meta.dimensions.small?.height,
-                }
-              },
-              large: {
-                create: {
-                  width: attrs.coverImage.meta.dimensions.large?.width,
-                  height: attrs.coverImage.meta.dimensions.large?.height,
-                }
-              },
-            }
-          } : undefined
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            tiny: attrs.coverImage.tiny ?? null,
+            small: attrs.coverImage.small ?? null,
+            large: attrs.coverImage.large ?? null,
+            original: attrs.coverImage.original ?? null,
+            dimensions: attrs.coverImage.meta?.dimensions ? {
+              create: {
+                tiny: {
+                  create: {
+                    width: attrs.coverImage.meta.dimensions.tiny?.width,
+                    height: attrs.coverImage.meta.dimensions.tiny?.height,
+                  }
+                },
+                small: {
+                  create: {
+                    width: attrs.coverImage.meta.dimensions.small?.width,
+                    height: attrs.coverImage.meta.dimensions.small?.height,
+                  }
+                },
+                large: {
+                  create: {
+                    width: attrs.coverImage.meta.dimensions.large?.width,
+                    height: attrs.coverImage.meta.dimensions.large?.height,
+                  }
+                },
+              }
+            } : undefined
+          }
         }
       } : undefined,
 
