@@ -338,7 +338,7 @@ export class UpdateService {
       try {
         const lastUpdates = await this.prisma.lastUpdated.findMany({
           where: { type: provider.type },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { updatedAt: 'desc' },
         })
 
         if (!lastUpdates.length) {
@@ -351,7 +351,9 @@ export class UpdateService {
         for (const lastUpdated of lastUpdates) {
           try {
             const now = new Date()
-            const lastTime = lastUpdated.createdAt.getTime()
+            const lastTime = lastUpdated.updatedAt === 0 
+              ? lastUpdated.createdAt.getTime()
+              : new Date(lastUpdated.updatedAt * 1000).getTime()
             const type = lastUpdated.type as UpdateType
 
             const temperature = await this._calculateTemperature(lastUpdated, type)
