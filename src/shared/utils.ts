@@ -11,8 +11,11 @@ export function getPageInfo(total: number, perPage: number, page: number): PageI
   }
 }
 
-export function sleep(duration: number): Promise<void> {
-  console.log(`Sleeping for ${duration} seconds...`)
+export function sleep(duration: number, log: boolean = true): Promise<void> {
+  if (log) {
+    console.log(`Sleeping for ${duration} seconds...`)
+  }
+  
   return new Promise((resolve) => setTimeout(resolve, duration * 1000))
 }
 

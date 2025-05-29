@@ -359,14 +359,18 @@ export class UpdateService {
           const temperature = await this._calculateTemperature(lastUpdated, type)
           const updateInterval = UpdateService.getUpdateInterval(temperature, type)
 
-          if (lastTime + updateInterval <= now.getTime()) {
+          const shouldUpdate = lastTime + updateInterval <= now.getTime()
+
+          console.log(`Processing LastUpdated ID: ${lastUpdated.id}, Entity ID: ${lastUpdated.entityId}, Type: ${lastUpdated.type}, Will Update: ${shouldUpdate}`)
+
+          if (shouldUpdate) {
             console.log(
-              `Updating ${provider.type} ID:${lastUpdated.entityId} (Temp: ${Temperature[temperature]}, Interval: ${updateInterval / ONE_HOUR_MS}h)`,
+              `Updating ${provider.type} ID:${lastUpdated.entityId} (Temp: ${Temperature[temperature]}, Interval: ${updateInterval / ONE_HOUR_MS}h), Items Left: ${lastUpdates.length - lastUpdates.indexOf(lastUpdated) - 1}`,
             )
             await provider.update(lastUpdated.entityId)
-            await sleep(SLEEP_BETWEEN_UPDATES)
+            await sleep(SLEEP_BETWEEN_UPDATES, false)
           } else {
-            await sleep(0.1);
+            await sleep(0.1, false);
           }
 
           const lastDatePlusMonth = new Date(
