@@ -5,6 +5,7 @@ import { ZoroHelper } from '../utils/zoro-helper';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { findBestMatch } from '../../../../mapper/mapper.helper'
 import { ANIME, IAnimeResult, ISource, StreamingServers, SubOrSub } from '@consumet/extensions'
+import { getUpdateData } from '../../../../update/update.util'
 
 export interface ZoroWithRelations extends Zoro {
   episodes: EpisodeZoro[]
@@ -50,12 +51,10 @@ export class ZoroService {
   }
 
   async saveZoro(zoro: ZoroWithRelations): Promise<ZoroWithRelations> {
-    await this.prisma.lastUpdated.create({
-      data: {
-        entityId: zoro.id,
-        externalId: zoro.alID,
-        type: UpdateType.ANIWATCH,
-      },
+    await this.prisma.lastUpdated.upsert({
+      where: { entityId: String(zoro.id) },
+      create: getUpdateData(String(zoro.id), zoro.alID ?? 0, UpdateType.ANIWATCH),
+      update: getUpdateData(String(zoro.id), zoro.alID ?? 0, UpdateType.ANIWATCH),
     });
 
     await this.prisma.zoro.upsert({
