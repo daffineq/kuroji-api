@@ -161,9 +161,9 @@ export class UpdateService {
 
     switch (status) {
       case MediaStatus.RELEASING:
-        // For releasing shows, consider popularity and trending metrics
-        if (relevanceScore >= 6) return Temperature.HOT
-        return Temperature.WARM
+        // // For releasing shows, consider popularity and trending metrics
+        // if (relevanceScore >= 6) return Temperature.HOT
+        return Temperature.HOT
 
       case MediaStatus.NOT_YET_RELEASED:
         // For upcoming shows, check proximity to release date
