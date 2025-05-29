@@ -16,6 +16,7 @@ import {
   TvdbTrailer,
 } from '@prisma/client'
 import { UpdateType } from '../../../../shared/UpdateType'
+import { getUpdateData } from '../../../../update/update.util'
 
 export interface BasicTvdb {
   id: number
@@ -118,13 +119,11 @@ export class TvdbService {
   }
 
   async saveTvdb(tvdb: TvdbWithRelations): Promise<TvdbWithRelations> {
-    await this.prisma.lastUpdated.create({
-      data: {
-        entityId: String(tvdb.id),
-        externalId: tvdb.id,
-        type: UpdateType.TVDB,
-      },
-    })
+    await this.prisma.lastUpdated.upsert({
+      where: { entityId: String(tvdb.id) },
+      create: getUpdateData(String(tvdb.id), tvdb.id ?? 0, UpdateType.TVDB),
+      update: getUpdateData(String(tvdb.id), tvdb.id ?? 0, UpdateType.TVDB),
+    });
 
     await this.prisma.tvdb.upsert({
       where: { id: tvdb.id },

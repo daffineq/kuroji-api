@@ -7,6 +7,7 @@ import { CustomHttpService } from '../../../../http/http.service'
 import { findBestMatch } from '../../../../mapper/mapper.helper'
 import { UpdateType } from '../../../../shared/UpdateType'
 import { withRetry } from '../../../../shared/utils'
+import { getUpdateData } from '../../../../update/update.util'
 
 export interface KitsuWithRelations extends Kitsu {
   titles: KitsuTitle;
@@ -40,12 +41,10 @@ export class KitsuService {
   }
 
   async saveKitsu(kitsu: any): Promise<KitsuWithRelations> {
-    await this.prisma.lastUpdated.create({
-      data: {
-        entityId: kitsu.data.id,
-        externalId: kitsu.data.anilistId,
-        type: UpdateType.KITSU,
-      },
+    await this.prisma.lastUpdated.upsert({
+      where: { entityId: String(kitsu.data.id) },
+      create: getUpdateData(String(kitsu.data.id), kitsu.data.anilistId ?? 0, UpdateType.KITSU),
+      update: getUpdateData(String(kitsu.data.id), kitsu.data.anilistId ?? 0, UpdateType.KITSU),
     });
 
     await this.prisma.kitsu.upsert({

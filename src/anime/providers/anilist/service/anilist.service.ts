@@ -9,6 +9,7 @@ import { AnilistUtilService } from './helper/anilist.util.service'
 import { ShikimoriService } from '../../shikimori/service/shikimori.service'
 import { KitsuService } from '../../kitsu/service/kitsu.service'
 import { withRetry } from '../../../../shared/utils'
+import { getUpdateData } from '../../../../update/update.util'
 
 @Injectable()
 export class AnilistService {
@@ -59,12 +60,10 @@ export class AnilistService {
 
     const anilist = data.Page.media[0];
 
-    await this.prisma.lastUpdated.create({
-      data: {
-        entityId: anilist.id.toString(),
-        externalId: anilist.id,
-        type: UpdateType.ANILIST,
-      },
+    await this.prisma.lastUpdated.upsert({
+      where: { entityId: String(anilist.id) },
+      create: getUpdateData(String(anilist.id), anilist.id, UpdateType.ANILIST),
+      update: getUpdateData(String(anilist.id), anilist.id, UpdateType.ANILIST),
     });
 
     await this.prisma.anilist.upsert({

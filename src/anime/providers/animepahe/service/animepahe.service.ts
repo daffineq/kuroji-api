@@ -5,6 +5,7 @@ import { findBestMatch } from '../../../../mapper/mapper.helper';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnimePaheHelper } from '../utils/animepahe-helper';
 import { ANIME, IAnimeResult, ISource } from '@consumet/extensions'
+import { getUpdateData } from '../../../../update/update.util'
 
 export interface AnimepaheWithRelations extends Animepahe {
   externalLinks: AnimepaheExternalLink[],
@@ -42,12 +43,10 @@ export class AnimepaheService {
   }
 
   async saveAnimepahe(animepahe: Animepahe): Promise<AnimepaheWithRelations> {
-    await this.prisma.lastUpdated.create({
-      data: {
-        entityId: animepahe.id,
-        externalId: animepahe.alId,
-        type: UpdateType.ANIMEPAHE,
-      },
+    await this.prisma.lastUpdated.upsert({
+      where: { entityId: String(animepahe.id) },
+      create: getUpdateData(String(animepahe.id), animepahe.alId ?? 0, UpdateType.ANIMEPAHE),
+      update: getUpdateData(String(animepahe.id), animepahe.alId ?? 0, UpdateType.ANIMEPAHE),
     });
 
     await this.prisma.animepahe.upsert({

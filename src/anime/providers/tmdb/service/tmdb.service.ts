@@ -17,6 +17,7 @@ import { AnilistService } from '../../anilist/service/anilist.service';
 import { TmdbHelper } from '../utils/tmdb-helper';
 import { AnilistWithRelations } from '../../anilist/model/AnilistModels'
 import { sleep, withRetry } from '../../../../shared/utils'
+import { getUpdateData } from '../../../../update/update.util'
 
 export interface BasicTmdb {
   id: number;
@@ -222,12 +223,10 @@ export class TmdbService {
 
   // Database Operations
   async saveTmdb(tmdb: TmdbWithRelations): Promise<TmdbWithRelations> {
-    await this.prisma.lastUpdated.create({
-      data: {
-        entityId: String(tmdb.id),
-        externalId: tmdb.id,
-        type: UpdateType.TMDB,
-      },
+    await this.prisma.lastUpdated.upsert({
+      where: { entityId: String(tmdb.id) },
+      create: getUpdateData(String(tmdb.id), tmdb.id ?? 0, UpdateType.TMDB),
+      update: getUpdateData(String(tmdb.id), tmdb.id ?? 0, UpdateType.TMDB),
     });
 
     await this.prisma.tmdb.upsert({

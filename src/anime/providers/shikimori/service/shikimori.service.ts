@@ -17,6 +17,7 @@ import { getShikimoriInclude, ShikimoriHelper, shikimoriToBasicId } from '../uti
 import Dimens from '../../../../configs/Dimens'
 import { AnilistService } from '../../anilist/service/anilist.service'
 import { withRetry } from '../../../../shared/utils'
+import { getUpdateData } from '../../../../update/update.util'
 
 export interface ShikimoriWithRelations extends Shikimori {
   poster: ShikimoriPoster
@@ -86,12 +87,11 @@ export class ShikimoriService {
   }
 
   async saveShikimori(anime: ShikimoriWithRelations): Promise<ShikimoriWithRelations> {
-    await this.prisma.lastUpdated.create({
-      data: { 
-        entityId: anime.id, 
-        type: UpdateType.SHIKIMORI 
-      },
-    })
+    await this.prisma.lastUpdated.upsert({
+      where: { entityId: String(anime.id) },
+      create: getUpdateData(String(anime.id), anime.malId ?? 0, UpdateType.SHIKIMORI),
+      update: getUpdateData(String(anime.id), anime.malId ?? 0, UpdateType.SHIKIMORI),
+    });
 
     await this.prisma.shikimori.upsert({
       where: { id: anime.id },
@@ -103,14 +103,6 @@ export class ShikimoriService {
   }
 
   async saveShikimoris(animes: ShikimoriWithRelations[]): Promise<void> {
-    const updates = animes.map((a) => ({
-      entityId: a.id,
-      externalId: Number(a.malId),
-      type: UpdateType.SHIKIMORI,
-    }))
-
-    await this.prisma.lastUpdated.createMany({ data: updates })
-
     for (const anime of animes) {
       await this.saveShikimori(anime)
     }

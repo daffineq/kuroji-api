@@ -42,48 +42,58 @@ export class KitsuHelper {
 
       // One-to-One Relations
       titles: attrs.titles ? {
-        create: {
-          en: attrs.titles.en,
-          en_jp: attrs.titles.en_jp,
-          ja_jp: attrs.titles.ja_jp,
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            en: attrs.titles.en ?? null,
+            en_jp: attrs.titles.en_jp ?? null,
+            ja_jp: attrs.titles.ja_jp ?? null,
+          }
         }
       } : undefined,
 
       posterImage: attrs.posterImage ? {
-        create: {
-          tiny: attrs.posterImage.tiny,
-          small: attrs.posterImage.small,
-          medium: attrs.posterImage.medium,
-          large: attrs.posterImage.large,
-          original: attrs.posterImage.original,
-          dimensions: attrs.posterImage.meta?.dimensions ? {
-            create: {
-              tiny: {
-                create: {
-                  width: attrs.posterImage.meta.dimensions.tiny?.width,
-                  height: attrs.posterImage.meta.dimensions.tiny?.height,
-                }
-              },
-              small: {
-                create: {
-                  width: attrs.posterImage.meta.dimensions.small?.width,
-                  height: attrs.posterImage.meta.dimensions.small?.height,
-                }
-              },
-              medium: {
-                create: {
-                  width: attrs.posterImage.meta.dimensions.medium?.width,
-                  height: attrs.posterImage.meta.dimensions.medium?.height,
-                }
-              },
-              large: {
-                create: {
-                  width: attrs.posterImage.meta.dimensions.large?.width,
-                  height: attrs.posterImage.meta.dimensions.large?.height,
-                }
-              },
-            }
-          } : undefined
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            tiny: attrs.posterImage.tiny ?? null,
+            small: attrs.posterImage.small ?? null,
+            medium: attrs.posterImage.medium ?? null,
+            large: attrs.posterImage.large ?? null,
+            original: attrs.posterImage.original ?? null,
+            dimensions: attrs.posterImage.meta?.dimensions ? {
+              create: {
+                tiny: {
+                  create: {
+                    width: attrs.posterImage.meta.dimensions.tiny?.width,
+                    height: attrs.posterImage.meta.dimensions.tiny?.height,
+                  }
+                },
+                small: {
+                  create: {
+                    width: attrs.posterImage.meta.dimensions.small?.width,
+                    height: attrs.posterImage.meta.dimensions.small?.height,
+                  }
+                },
+                medium: {
+                  create: {
+                    width: attrs.posterImage.meta.dimensions.medium?.width,
+                    height: attrs.posterImage.meta.dimensions.medium?.height,
+                  }
+                },
+                large: {
+                  create: {
+                    width: attrs.posterImage.meta.dimensions.large?.width,
+                    height: attrs.posterImage.meta.dimensions.large?.height,
+                  }
+                },
+              }
+            } : undefined
+          }
         }
       } : undefined,
 
@@ -119,87 +129,135 @@ export class KitsuHelper {
       } : undefined,
 
       // Relationships
-      genres: relationships?.genres ? {
-        create: {
-          selfLink: relationships.genres.links.self,
-          related: relationships.genres.links.related,
-        }
-      } : undefined,
-
       categories: relationships?.categories ? {
-        create: {
-          selfLink: relationships.categories.links.self,
-          related: relationships.categories.links.related,
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            selfLink: relationships.categories.links.self,
+            related: relationships.categories.links.related,
+          }
         }
       } : undefined,
 
       castings: relationships?.castings ? {
-        create: {
-          selfLink: relationships.castings.links.self,
-          related: relationships.castings.links.related,
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            selfLink: relationships.castings.links.self,
+            related: relationships.castings.links.related,
+          }
         }
       } : undefined,
 
       installments: relationships?.installments ? {
-        create: {
-          selfLink: relationships.installments.links.self,
-          related: relationships.installments.links.related,
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            selfLink: relationships.installments.links.self,
+            related: relationships.installments.links.related,
+          }
         }
       } : undefined,
 
       mappings: relationships?.mappings ? {
-        create: {
-          selfLink: relationships.mappings.links.self,
-          related: relationships.mappings.links.related,
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            selfLink: relationships.mappings.links.self,
+            related: relationships.mappings.links.related,
+          }
         }
       } : undefined,
 
       reviews: relationships?.reviews ? {
-        create: {
-          selfLink: relationships.reviews.links.self,
-          related: relationships.reviews.links.related,
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            selfLink: relationships.reviews.links.self,
+            related: relationships.reviews.links.related,
+          }
         }
       } : undefined,
 
       mediaRelationships: relationships?.mediaRelationships ? {
-        create: {
-          selfLink: relationships.mediaRelationships.links.self,
-          related: relationships.mediaRelationships.links.related,
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            selfLink: relationships.mediaRelationships.links.self,
+            related: relationships.mediaRelationships.links.related,
+          }
         }
       } : undefined,
 
       episodes: relationships?.episodes ? {
-        create: {
-          selfLink: relationships.episodes.links.self,
-          related: relationships.episodes.links.related,
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            selfLink: relationships.episodes.links.self,
+            related: relationships.episodes.links.related,
+          }
         }
       } : undefined,
 
       streamingLinks: relationships?.streamingLinks ? {
-        create: {
-          selfLink: relationships.streamingLinks.links.self,
-          related: relationships.streamingLinks.links.related,
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            selfLink: relationships.streamingLinks.links.self,
+            related: relationships.streamingLinks.links.related,
+          }
         }
       } : undefined,
 
       animeProductions: relationships?.animeProductions ? {
-        create: {
-          selfLink: relationships.animeProductions.links.self,
-          related: relationships.animeProductions.links.related,
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            selfLink: relationships.animeProductions.links.self,
+            related: relationships.animeProductions.links.related,
+          }
         }
       } : undefined,
 
       animeCharacters: relationships?.animeCharacters ? {
-        create: {
-          selfLink: relationships.animeCharacters.links.self,
-          related: relationships.animeCharacters.links.related,
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            selfLink: relationships.animeCharacters.links.self,
+            related: relationships.animeCharacters.links.related,
+          }
         }
       } : undefined,
 
       animeStaff: relationships?.animeStaff ? {
-        create: {
-          selfLink: relationships.animeStaff.links.self,
-          related: relationships.animeStaff.links.related,
+        connectOrCreate: {
+          where: {
+            kitsuId: anime.id,
+          },
+          create: {
+            selfLink: relationships.animeStaff.links.self,
+            related: relationships.animeStaff.links.related,
+          }
         }
       } : undefined,
 

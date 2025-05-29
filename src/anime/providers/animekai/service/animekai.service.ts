@@ -5,6 +5,7 @@ import { findBestMatch } from '../../../../mapper/mapper.helper';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnimeKaiHelper } from '../utils/animekai-helper';
 import { ANIME, IAnimeResult, ISource, StreamingServers, SubOrSub } from "@consumet/extensions"
+import { getUpdateData } from '../../../../update/update.util'
 
 export interface AnimekaiWithRelations extends AnimeKai {
   episodes: AnimekaiEpisode[]
@@ -38,12 +39,10 @@ export class AnimekaiService {
   }
 
   async saveAnimekai(animekai: AnimekaiWithRelations): Promise<AnimekaiWithRelations> {
-    await this.prisma.lastUpdated.create({
-      data: {
-        entityId: animekai.id,
-        externalId: animekai.anilistId,
-        type: UpdateType.ANIMEKAI,
-      },
+    await this.prisma.lastUpdated.upsert({
+      where: { entityId: String(animekai.id) },
+      create: getUpdateData(String(animekai.id), animekai.anilistId ?? 0, UpdateType.ANIMEKAI),
+      update: getUpdateData(String(animekai.id), animekai.anilistId ?? 0, UpdateType.ANIMEKAI),
     });
 
     await this.prisma.animeKai.upsert({
