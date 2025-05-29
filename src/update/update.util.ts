@@ -10,6 +10,6 @@ export function getUpdateData(
     entityId: entityId,
     externalId: externalId || undefined,
     type: type,
-    updatedAt: new Date(),
+    // updatedAt: new Date(),
   }
 }
