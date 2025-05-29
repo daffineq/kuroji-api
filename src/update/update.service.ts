@@ -321,7 +321,7 @@ export class UpdateService {
   }
 
   @Cron(CronExpression.EVERY_30_MINUTES)
-  async update() {
+  async update(annotateAtId: string | null = null): Promise<void> {
     if (!Config.UPDATE_ENABLED) {
       console.log('Updates are disabled via configuration.')
       return
@@ -361,7 +361,9 @@ export class UpdateService {
 
           const shouldUpdate = lastTime + updateInterval <= now.getTime()
 
-          console.log(`Processing LastUpdated ID: ${lastUpdated.id}, Entity ID: ${lastUpdated.entityId}, Type: ${lastUpdated.type}, Will Update: ${shouldUpdate}`)
+          if (annotateAtId == lastUpdated.entityId) {
+            console.log(`Info for id ${lastUpdated.entityId} (Type: ${provider.type}) - Temperature: ${Temperature[temperature]}, Last Updated: ${lastUpdated.createdAt.toISOString()}, Interval: ${updateInterval / ONE_HOUR_MS}h, Will Update: ${shouldUpdate}`)
+          }
 
           if (shouldUpdate) {
             console.log(
@@ -370,7 +372,7 @@ export class UpdateService {
             await provider.update(lastUpdated.entityId)
             await sleep(SLEEP_BETWEEN_UPDATES, false)
           } else {
-            await sleep(0.1, false);
+            await sleep(0.01, false);
           }
 
           const lastDatePlusMonth = new Date(

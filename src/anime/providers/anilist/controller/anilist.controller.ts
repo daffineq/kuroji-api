@@ -195,9 +195,11 @@ export class AnilistController {
   }
 
   @Put('update')
-  async updateAnilist() {
+  async updateAnilist(
+    @Query('annotateAtId') annotateAtId: string,
+  ) {
     this.update
-      .update()
+      .update(annotateAtId)
       .catch((err) => console.error('Update failed:', err)); // just in case it blows up
 
     return {
