@@ -11,7 +11,7 @@ export class AnimePaheHelper {
       title: animePahe.title,
       image: animePahe.image,
       cover: animePahe.cover,
-      // updatedAt: Math.floor(Date.now() / 1000),
+      updatedAt: new Date(),
       hasSub: animePahe.hasSub,
       externalLinks: {
         connectOrCreate: animePahe.externalLinks.map((e: any) => ({

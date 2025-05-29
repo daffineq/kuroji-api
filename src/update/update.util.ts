@@ -10,6 +10,6 @@ export function getUpdateData(
     entityId: entityId,
     externalId: externalId || undefined,
     type: type,
-    // updatedAt: Math.floor(Date.now() / 1000),
+    updatedAt: new Date(),
   }
 }
