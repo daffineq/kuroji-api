@@ -102,17 +102,17 @@ export class UpdateService {
       case Temperature.AIRING_TODAY:
         return this.getRandomInterval(UpdateInterval.MINUTE_30, variation)
       case Temperature.HOT:
-        return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
-          ? this.getRandomInterval(UpdateInterval.HOUR_12, variation)
-          : this.getRandomInterval(UpdateInterval.HOUR_3, variation)
+        return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB, UpdateType.KITSU].includes(type)
+          ? this.getRandomInterval(UpdateInterval.DAY_1, variation)
+          : this.getRandomInterval(UpdateInterval.HOUR_12, variation)
       case Temperature.WARM:
-        return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
+        return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB, UpdateType.KITSU].includes(type)
           ? this.getRandomInterval(UpdateInterval.DAY_7, variation)
           : this.getRandomInterval(UpdateInterval.DAY_3, variation)
       case Temperature.COLD:
       case Temperature.UNKNOWN:
       default:
-        return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB].includes(type)
+        return [UpdateType.ANILIST, UpdateType.SHIKIMORI, UpdateType.TVDB, UpdateType.KITSU].includes(type)
           ? this.getRandomInterval(UpdateInterval.DAY_28, variation)
           : this.getRandomInterval(UpdateInterval.DAY_14, variation)
     }
