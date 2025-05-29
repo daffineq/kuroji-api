@@ -371,9 +371,7 @@ export class UpdateService {
               )
             }
 
-            const shouldLogUpdate = annotateAtId === null || shouldUpdate
-
-            if (shouldLogUpdate) {
+            if (shouldUpdate) {
               console.log(
                 `Updating ${provider.type} ID:${lastUpdated.entityId} (Temp: ${Temperature[temperature]}, Interval: ${updateInterval / ONE_HOUR_MS}h), Items Left: ${lastUpdates.length - lastUpdates.indexOf(lastUpdated) - 1}`,
               )
