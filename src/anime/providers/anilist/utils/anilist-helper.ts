@@ -404,11 +404,6 @@ export function getAnilistInclude(): any {
         anilistId: true,
       }
     },
-    nextAiringEpisode: {
-      omit: {
-        anilistId: true,
-      }
-    },
     tags: {
       omit: {
         anilistId: true,
