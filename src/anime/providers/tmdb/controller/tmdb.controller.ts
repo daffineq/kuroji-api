@@ -14,4 +14,10 @@ export class TmdbController {
   async getTmdbSeasonByAnilist(@Param('id', ParseIntPipe) id: number) {
     return this.service.getTmdbSeasonByAnilist(id);
   }
+
+  @Get('info/:id/tmdb/update')
+  async updateTmdbByAnilist(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.getTmdbByAnilist(id);
+    return this.service.update(data.id);
+  }
 }

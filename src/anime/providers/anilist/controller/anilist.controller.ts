@@ -172,6 +172,11 @@ export class AnilistController {
     );
   }
 
+  @Put('info/:id/update')
+  async updateAnilist(@Param('id', ParseIntPipe) id: number) {
+    return this.service.update(id)
+  }
+
   @Put('index')
   index(
     @Query('delay') delay: number = 10,
@@ -195,7 +200,7 @@ export class AnilistController {
   }
 
   @Put('update')
-  async updateAnilist(
+  async updateDb(
     @Query('annotateAtId') annotateAtId: string,
   ) {
     this.update

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Put } from '@nestjs/common';
 import { AnimepaheService } from '../service/animepahe.service'
 
 @Controller('anime')
@@ -13,5 +13,11 @@ export class AnimepaheController {
   @Get('watch/:id/animepahe')
   async getSources(@Param('id') id: string) {
     return this.service.getSources(id);
+  }
+
+  @Put('info/:id/animepahe/update')
+  async updateAnimepaheByAnilist(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.getAnimepaheByAnilist(id);
+    return this.service.update(data.id);
   }
 }

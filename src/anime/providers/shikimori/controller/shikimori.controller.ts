@@ -14,7 +14,7 @@ export class ShikimoriController {
   //   return this.service.getShikimori(id);
   // }
 
-  @Put('info/:id')
+  @Put('info/:id/update')
   async updateShikimori(@Param('id') id: string) {
     return this.service.update(id);
   }

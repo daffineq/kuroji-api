@@ -24,4 +24,10 @@ export class TvdbController {
   async updateLanguages() {
     return this.service.updateLanguages()
   }
+
+  @Put('info/:id/tvdb/update')
+  async updateTvdbByAnilist(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.getTvdbByAnilist(id);
+    return this.service.update(data.id);
+  }
 }

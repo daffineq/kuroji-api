@@ -1,4 +1,15 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Param, ParseIntPipe, Put } from '@nestjs/common';
+import { KitsuService } from '../service/kitsu.service'
 
-@Controller('kitsu')
-export class KitsuController {}
+@Controller('anime')
+export class KitsuController {
+  constructor(
+    private readonly kitsu: KitsuService
+  ) {}
+
+  @Put('info/:id/kitsu/update')
+  async updateAnimepaheByAnilist(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.kitsu.getKitsuByAnilist(id);
+    return this.kitsu.updateKitsu(data.id);
+  }
+}
