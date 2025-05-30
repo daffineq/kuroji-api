@@ -90,7 +90,7 @@ export class StreamService {
 
         return {
           title: tmdbEpisode?.name || anilistEpisode?.title || zoroTitle,
-          image: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${tmdbEpisode?.still_path}` || anilistEpisode?.thumbnail || anilist?.cover?.extraLarge || "",
+          image: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${tmdbEpisode?.still_path}` || anilistEpisode?.thumbnail || anilist?.coverImage?.extraLarge || "",
           number,
           overview: tmdbEpisode?.overview ?? "",
           date: tmdbEpisode?.air_date || formattedDate || "",

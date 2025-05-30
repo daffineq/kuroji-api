@@ -73,7 +73,6 @@ export class AnilistScheduleService {
     return this.prisma.anilist.findMany({
       where: {
         OR: [
-          { nextAiringEpisode: { airingAt: { gte: start, lt: end } } },
           { airingSchedule: { some: { airingAt: { gte: start, lt: end } } } },
         ]
       },

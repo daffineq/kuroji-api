@@ -1,4 +1,4 @@
-import { AnilistCover, AnilistNextAiringEpisode, AnilistTitle, KitsuCoverImage, KitsuPosterImage, KitsuTitle, ShikimoriPoster, StartDate } from '@prisma/client'
+import { AnilistAiringSchedule, AnilistCover, AnilistTitle, KitsuCoverImage, KitsuPosterImage, KitsuTitle, ShikimoriPoster, StartDate } from '@prisma/client'
 
 export interface BasicShikimori {
   id?: string;
@@ -67,7 +67,7 @@ export interface BasicAnilist {
 
   genres?: string[];
 
-  nextAiringEpisode?: AnilistNextAiringEpisode;
+  nextAiringEpisode?: AnilistAiringSchedule;
 
   shikimori?: BasicShikimori;
   kitsu?: BasicKitsu;

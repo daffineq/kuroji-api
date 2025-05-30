@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { AnilistAiringSchedule, Prisma } from '@prisma/client'
 import { BasicAnilist, BasicKitsu, BasicShikimori } from '../model/BasicAnilist'
 import { ScheduleData } from '../model/AnilistModels'
 import { ShikimoriWithRelations } from '../../shikimori/service/shikimori.service'
@@ -197,16 +197,16 @@ export class AnilistHelper {
             }
           })) ?? []
       },
-      nextAiringEpisode: anime.nextAiringEpisode ? {
-        connectOrCreate: {
-          where: { id: anime.nextAiringEpisode?.id },
-          create: {
-            id: anime.nextAiringEpisode?.id,
-            episode: anime.nextAiringEpisode?.episode ?? null,
-            airingAt: anime.nextAiringEpisode?.airingAt ?? null,
-          }
-        }
-      } : undefined,
+      // nextAiringEpisode: anime.nextAiringEpisode ? {
+      //   connectOrCreate: {
+      //     where: { id: anime.nextAiringEpisode?.id },
+      //     create: {
+      //       id: anime.nextAiringEpisode?.id,
+      //       episode: anime.nextAiringEpisode?.episode ?? null,
+      //       airingAt: anime.nextAiringEpisode?.airingAt ?? null,
+      //     }
+      //   }
+      // } : undefined,
       tags: {
         connectOrCreate: anime.tags?.map((tag: any) => ({
           where: { id: tag.id },
@@ -304,7 +304,7 @@ export function convertAnilistToBasic(anilist: any): BasicAnilist {
     isLocked: anilist.isLocked ?? undefined,
     isAdult: anilist.isAdult ?? undefined,
     genres: anilist.genres ?? undefined,
-    nextAiringEpisode: anilist.nextAiringEpisode ?? undefined,
+    nextAiringEpisode: findNextAiringInSchedule(anilist.airingSchedule),
     shikimori: convertShikimoriToBasic(anilist?.shikimori),
     kitsu: convertKitsuToBasic(anilist?.kitsu),
   }
@@ -503,7 +503,7 @@ export function reorderAnilistItems(raw: any) {
     synonyms: raw.synonyms,
 
     trailer: raw.trailer,
-    nextAiringEpisode: raw.nextAiringEpisode,
+    nextAiringEpisode: findNextAiringInSchedule(raw.airingSchedule),
 
     studios: raw.studios,
     airingSchedule: raw.airingSchedule,
@@ -522,4 +522,27 @@ export function mapToBasic(data: any): BasicAnilist[] {
   return data.map((anilist) =>
     convertAnilistToBasic(anilist),
   )
+}
+
+export function findNextAiringInSchedule(data: AnilistAiringSchedule[] | null): AnilistAiringSchedule | undefined {
+  if (!data) {
+    throw new Error("No airing schedule")
+  }
+
+  const now = new Date().getTime();
+  const nowUnix = Math.floor(now / 1000);
+
+  let nextAiring: AnilistAiringSchedule | undefined = undefined
+  let smallestFutureAiringTime = Infinity
+
+  for (const schedule of data) {
+    if (schedule.airingAt && schedule.airingAt > nowUnix) {
+      if (schedule.airingAt < smallestFutureAiringTime) {
+        smallestFutureAiringTime = schedule.airingAt;
+        nextAiring = schedule;
+      }
+    }
+  }
+
+  return nextAiring;
 }

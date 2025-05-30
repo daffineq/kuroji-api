@@ -1,4 +1,4 @@
-import { Anilist, AnilistTitle, AnilistCover, StartDate, EndDate, AnilistTrailer, AnilistStudio, AnilistAiringSchedule, AnilistNextAiringEpisode, AnilistTag, AnilistExternalLink, AnilistStreamingEpisode, AnilistRanking, AnilistScoreDistribution, AnilistStatusDistribution } from '@prisma/client'
+import { Anilist, AnilistTitle, AnilistCover, StartDate, EndDate, AnilistTrailer, AnilistStudio, AnilistAiringSchedule, AnilistTag, AnilistExternalLink, AnilistStreamingEpisode, AnilistRanking, AnilistScoreDistribution, AnilistStatusDistribution } from '@prisma/client'
 import { PageInfo } from '../graphql/types/PageInfo'
 import { BasicAnilist } from './BasicAnilist'
 import { KitsuWithRelations } from '../../kitsu/service/kitsu.service'
@@ -31,13 +31,13 @@ export interface SearcnResponse<T> {
 
 export interface AnilistWithRelations extends Anilist {
   title?: AnilistTitle;
-  cover?: AnilistCover;
+  coverImage?: AnilistCover;
   startDate?: StartDate;
   endDate?: EndDate;
   trailer?: AnilistTrailer;
   studios?: AnilistStudio[];
   airingSchedule?: AnilistAiringSchedule[];
-  nextAiringEpisode?: AnilistNextAiringEpisode;
+  nextAiringEpisode?: AnilistAiringSchedule;
   tags?: AnilistTag[];
   rankings?: AnilistRanking[];
   externalLinks?: AnilistExternalLink[];
