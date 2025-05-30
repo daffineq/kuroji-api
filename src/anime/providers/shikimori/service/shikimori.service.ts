@@ -15,8 +15,6 @@ import { CustomHttpService } from '../../../../http/http.service'
 import { GraphQL } from '../graphql/shikimori.graphql'
 import { getShikimoriInclude, ShikimoriHelper, shikimoriToBasicId } from '../utils/shikimori-helper'
 import Dimens from '../../../../configs/Dimens'
-import { AnilistService } from '../../anilist/service/anilist.service'
-import { withRetry } from '../../../../shared/utils'
 import { getUpdateData } from '../../../../update/update.util'
 
 export interface ShikimoriWithRelations extends Shikimori {
@@ -43,7 +41,7 @@ export class ShikimoriService {
     const existing = await this.findById(id)
     if (existing) return this.adjustScreenshots(existing)
 
-    const { animes } = await withRetry(() => this.fetchFromGraphQL(id));
+    const { animes } = await this.fetchFromGraphQL(id);
     const anime = animes[0]
     if (!anime) throw new NotFoundException(`No Shikimori data found for ID: ${id}`);
 
@@ -62,30 +60,6 @@ export class ShikimoriService {
     return shikimori.chronology as BasicIdShik[]
   }
 
-  async saveMultipleShikimori(ids: string): Promise<ShikimoriWithRelations[]> {
-    const idList = ids.split(',').map((id) => id.trim()).filter(Boolean)
-
-    const existing = await this.prisma.shikimori.findMany({
-      where: { id: { in: idList } },
-      include: getShikimoriInclude(),
-    }) as unknown as ShikimoriWithRelations[]
-
-    const existingIds = existing.map((a) => a.id)
-    const toFetch = idList.filter((id) => !existingIds.includes(id))
-
-    if (!toFetch.length) return existing
-
-    const { animes } = await withRetry(() => this.fetchFromGraphQL(toFetch.join(','), 1, toFetch.length));
-    const newAnimes = animes.filter((a) => !existingIds.includes(a.id)) as ShikimoriWithRelations[]
-
-    if (newAnimes.length) await this.saveShikimoris(newAnimes)
-
-    return [
-      ...existing,
-      ...newAnimes.map(this.adjustScreenshots),
-    ]
-  }
-
   async saveShikimori(anime: ShikimoriWithRelations): Promise<ShikimoriWithRelations> {
     await this.prisma.lastUpdated.upsert({
       where: { entityId: String(anime.id) },
@@ -102,14 +76,8 @@ export class ShikimoriService {
     return (await this.findById(anime.id))!
   }
 
-  async saveShikimoris(animes: ShikimoriWithRelations[]): Promise<void> {
-    for (const anime of animes) {
-      await this.saveShikimori(anime)
-    }
-  }
-
   async update(id: string): Promise<ShikimoriWithRelations> {
-    const { animes } = await withRetry(() => this.fetchFromGraphQL(id));
+    const { animes } = await this.fetchFromGraphQL(id);
     const anime = animes[0]
     if (!anime) throw new NotFoundException(`Shikimori not found for ID: ${id}`)
 

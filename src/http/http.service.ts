@@ -5,6 +5,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { AxiosRequestConfig } from 'axios';
 import { firstValueFrom } from 'rxjs';
+import { withRetry } from '../shared/utils'
 
 @Injectable()
 export class CustomHttpService {
@@ -58,27 +59,28 @@ export class CustomHttpService {
     });
   }
 
+  private async makeRequest<T>(request: () => Promise<T>): Promise<T> {
+    return withRetry(async () => {
+      return this.enqueueRequest(request)
+    })
+  }
+
   async getResponse<T>(
     url: string,
     config?: AxiosRequestConfig,
     jsonPath?: string,
   ): Promise<T> {
-    return this.enqueueRequest(async () => {
-      try {
-        const response = await firstValueFrom(
-          this.httpService.get<T>(url, config),
-        );
-        const data = response.data as T;
+    return this.makeRequest(async () => {
+      const response = await firstValueFrom(
+        this.httpService.get<T>(url, config),
+      )
+      const data = response.data as T
 
-        if (jsonPath) {
-          return this.extractJson(data, jsonPath) as T;
-        }
-
-        return data;
-      } catch (error) {
-        console.error(`Failed to get response for ${url}: ${error}`);
-        throw error;
+      if (jsonPath) {
+        return this.extractJson(data, jsonPath) as T
       }
+
+      return data;
     });
   }
 
@@ -88,22 +90,17 @@ export class CustomHttpService {
     config?: AxiosRequestConfig,
     jsonPath?: string,
   ): Promise<T> {
-    return this.enqueueRequest(async () => {
-      try {
-        const response = await firstValueFrom(
-          this.httpService.post(url, body, config),
-        );
-        const data = response.data as T;
+    return this.makeRequest(async () => {
+      const response = await firstValueFrom(
+        this.httpService.post(url, body, config),
+      )
+      const data = response.data as T
 
-        if (jsonPath) {
-          return this.extractJson(data, jsonPath) as T;
-        }
-
-        return data;
-      } catch (error) {
-        console.error(`Failed to get post response for ${url}: ${error}`);
-        throw error;
+      if (jsonPath) {
+        return this.extractJson(data, jsonPath) as T
       }
+
+      return data;
     });
   }
 
@@ -113,25 +110,20 @@ export class CustomHttpService {
     variables?: Record<string, any>,
     jsonPath?: string,
   ): Promise<T> {
-    return this.enqueueRequest(async () => {
-      try {
-        const response = await firstValueFrom(
-          this.httpService.post(url, { query, variables }),
-        );
-        const data = response.data as T;
+    return this.makeRequest(async () => {
+      const response = await firstValueFrom(
+        this.httpService.post(url, { query, variables }),
+      )
+      const data = response.data as T
 
-        if (jsonPath) {
-          return this.extractJson(data, jsonPath) as T;
-        }
-
-        if (data && typeof data === 'object' && 'data' in data) {
-          return (data as { data: T }).data;
-        }
-        return data;
-      } catch (error) {
-        console.error(`Failed to fetch GraphQL response for ${url}:`, error);
-        throw error;
+      if (jsonPath) {
+        return this.extractJson(data, jsonPath) as T
       }
+
+      if (data && typeof data === 'object' && 'data' in data) {
+        return (data as { data: T }).data
+      }
+      return data;
     });
   }
 

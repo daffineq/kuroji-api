@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnilistHelper, getAnilistFindUnique } from '../utils/anilist-helper';
@@ -8,7 +8,6 @@ import { AnilistWithRelations, AnilistResponse } from '../model/AnilistModels'
 import { AnilistUtilService } from './helper/anilist.util.service'
 import { ShikimoriService } from '../../shikimori/service/shikimori.service'
 import { KitsuService } from '../../kitsu/service/kitsu.service'
-import { withRetry } from '../../../../shared/utils'
 import { getUpdateData } from '../../../../update/update.util'
 
 @Injectable()
@@ -32,7 +31,7 @@ export class AnilistService {
       return await this.util.adjustAnilist(existingAnilist);
     }
 
-    const data = await withRetry(() => this.fetch.fetchAnilistFromGraphQL(id, isMal));
+    const data = await this.fetch.fetchAnilistFromGraphQL(id, isMal);
     if (!data.Page?.media || data.Page.media.length === 0) {
       throw new Error('No media found');
     }
@@ -73,8 +72,8 @@ export class AnilistService {
     });
 
     await Promise.all([
-      ...(anilist.idMal ? [withRetry(() => this.shikimori.getShikimori(String(anilist.idMal))).catch(() => null)] : []),
-      withRetry(() => this.kitsu.getKitsuByAnilist(anilist.id)).catch(() => null),
+      ...(anilist.idMal ? [this.shikimori.getShikimori(String(anilist.idMal)).catch(() => null)] : []),
+      this.kitsu.getKitsuByAnilist(anilist.id).catch(() => null),
     ]);
 
     return await this.prisma.anilist.findUnique(getAnilistFindUnique(anilist.id)) as AnilistWithRelations;
@@ -82,7 +81,7 @@ export class AnilistService {
 
   async update(id: number): Promise<void> {
     const existingAnilist = await this.getAnilist(id);
-    const data = await withRetry(() => this.fetch.fetchAnilistFromGraphQL(id));
+    const data = await this.fetch.fetchAnilistFromGraphQL(id);
     if (!data.Page?.media || data.Page.media.length === 0) {
       throw new Error('No media found');
     }

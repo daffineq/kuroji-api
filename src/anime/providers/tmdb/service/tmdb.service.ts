@@ -11,12 +11,12 @@ import {
 import { TMDB } from '../../../../configs/tmdb.config';
 import { CustomHttpService } from '../../../../http/http.service';
 import { PrismaService } from '../../../../prisma.service';
-import { sanitizeTitle, findBestMatch, ExpectAnime, deepCleanTitle } from '../../../../mapper/mapper.helper';
+import { findBestMatch, ExpectAnime, deepCleanTitle } from '../../../../mapper/mapper.helper';
 import { UpdateType } from '../../../../shared/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service';
 import { TmdbHelper } from '../utils/tmdb-helper';
 import { AnilistWithRelations } from '../../anilist/model/AnilistModels'
-import { sleep, withRetry } from '../../../../shared/utils'
+import { sleep } from '../../../../shared/utils'
 import { getUpdateData } from '../../../../update/update.util'
 
 export interface BasicTmdb {
@@ -74,7 +74,7 @@ export class TmdbService {
     if (existingTmdb) return existingTmdb;
 
     const type = await this.detectType(id);
-    const tmdb = await withRetry(() => this.fetchTmdb(id, type));
+    const tmdb = await this.fetchTmdb(id, type);
 
     return await this.saveTmdb(tmdb as TmdbWithRelations);
   }
@@ -129,7 +129,7 @@ export class TmdbService {
       });
 
       if (!tmdbSeason) {
-        tmdbSeason = await withRetry(() => this.fetchTmdbSeason(tmdb.id, currentSeason));
+        tmdbSeason = await this.fetchTmdbSeason(tmdb.id, currentSeason);
         tmdbSeason.show_id = tmdb.id
 
         await this.saveTmdbSeason(tmdbSeason)
@@ -207,11 +207,9 @@ export class TmdbService {
     if (!bestMatch) {
       throw new Error('No matching TMDb entry found');
     }
-    const fetchedTmdb = await withRetry(() =>
-      this.fetchTmdb(
-        bestMatch.id,
-        bestMatch.media_type,
-      )
+    const fetchedTmdb = await this.fetchTmdb(
+      bestMatch.id,
+      bestMatch.media_type,
     );
     fetchedTmdb.media_type = bestMatch.media_type;
     return await this.saveTmdb(fetchedTmdb);
@@ -256,7 +254,7 @@ export class TmdbService {
   // Update Methods
   async update(id: number): Promise<TmdbWithRelations> {
     const type = await this.detectType(id);
-    const tmdb = await withRetry(() => this.fetchTmdb(id, type));
+    const tmdb = await this.fetchTmdb(id, type);
     await this.saveTmdb(tmdb);
     await this.updateSeason(id);
     return tmdb;
@@ -277,7 +275,7 @@ export class TmdbService {
     }
 
     for (const season of tmdb.seasons) {
-      const tmdbSeason = await withRetry(() => this.fetchTmdbSeason(id, season.season_number || 1));
+      const tmdbSeason = await this.fetchTmdbSeason(id, season.season_number || 1);
       await this.saveTmdbSeason(tmdbSeason);
 
       await sleep(5);
