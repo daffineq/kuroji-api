@@ -28,7 +28,10 @@ services:
     env_file:
       - .env
     environment:
+      - REDIS_USERNAME=
       - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
       - DATABASE_URL=postgresql://prisma:postgres@postgres:5432/kuroji?schema=public
     ports:
       - "3000:3000"

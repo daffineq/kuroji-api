@@ -23,6 +23,11 @@ export default class Config {
   public static readonly TMDB_API = process.env.TMDB_API;
   public static readonly TVDB_API = process.env.TVDB_API;
 
+  public static readonly REDIS_USERNAME = process.env.REDIS_USERNAME;
+  public static readonly REDIS_HOST = process.env.REDIS_HOST;
+  public static readonly REDIS_PORT: number = parseInt(process.env.REDIS_PORT ?? '0');
+  public static readonly REDIS_PASSWORD = process.env.REDIS_PASSWORD;
+
   public static readonly REDIS =
     (process.env.REDIS ?? 'true') === 'true';
   public static readonly REDIS_TIME = process.env.REDIS_TIME ? parseInt(process.env.REDIS_TIME) : 3600;

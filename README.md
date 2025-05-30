@@ -21,6 +21,7 @@
 - [Overview](#-overview)
 - [Features](#-features)
 - [Installation](#-installation)
+- [Hosting on Vercel](#-hosting-on-vercel)
 - [Getting Started](#-getting-started)
 - [API Documentation](#-api-documentation)
 - [Contributing](#-contributing)
@@ -62,6 +63,66 @@ $ npx prisma migrate dev
 # Start the server
 $ bun start:dev
 ```
+
+<details>
+<summary><h2>🏗️ Hosting on Vercel</h2></summary>
+
+To deploy this API on Vercel, you'll need to set up your databases first. Here's a step-by-step guide:
+
+### 1. Database Setup
+
+#### PostgreSQL (Required)
+You'll need a PostgreSQL database with recommended 5GB of storage. Here are some free/affordable options:
+
+- [Neon](https://neon.tech) - Serverless PostgreSQL with a generous free tier (3GB storage)
+- [Supabase](https://supabase.com) - Open source Firebase alternative with PostgreSQL (500MB free tier)
+- [Railway](https://railway.app) - Platform for deploying databases (1GB free tier)
+- [ElephantSQL](https://www.elephantsql.com) - Managed PostgreSQL hosting (20MB free tier)
+
+#### Redis (Optional)
+Redis is used for caching and can be disabled in the `.env` file. If you want to use it, here are some free options:
+
+- [Upstash](https://upstash.com) - Serverless Redis with a generous free tier
+- [Redis Cloud](https://redis.com/try-free/) - Managed Redis by Redis Labs (30MB free tier)
+- [Memoria](https://memoria.dev) - Serverless Redis alternative (100MB free tier)
+
+### 2. Vercel Deployment
+
+1. Fork this repository to your GitHub account
+2. Create a new project on [Vercel](https://vercel.com)
+3. Import your forked repository
+4. Configure the following environment variables in Vercel:
+   ```
+   DATABASE_URL=your_postgresql_connection_string
+   
+   # Optional
+   REDIS_USERNAME=your_redis_username
+   REDIS_HOST=your_redis_host
+   REDIS_PORT=your_redis_port
+   REDIS_PASSWORD=your_redis_password
+
+   CORS=your_allowed_origins
+   ```
+5. Deploy!
+
+> **Note**: Make sure to set up your database indexes after deployment by calling the indexing endpoint.
+
+### 3. Post-Deployment
+
+After deploying to Vercel:
+
+1. Wait for the build to complete
+2. Run database migrations:
+   ```bash
+   npx prisma migrate deploy
+   ```
+3. Start the indexing process:
+   ```
+   PUT https://your-vercel-domain.vercel.app/api/anime/index
+   ```
+
+> **Warning**: The indexing process can take several days to complete. Make sure your database has enough storage and your Vercel deployment has sufficient resources.
+</details>
 
 ## 🏁 Getting Started
 
@@ -1157,3 +1218,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 This project is [MIT licensed](LICENSE).
+
+---
+
+> **Note**: This documentation might be outdated as I'm too lazy to keep it up to date. For the most accurate and up-to-date information, please check the source code directly. The code is the source of truth!

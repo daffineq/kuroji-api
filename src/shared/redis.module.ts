@@ -1,12 +1,15 @@
 import { RedisModule } from '@nestjs-modules/ioredis'
 import { Module } from '@nestjs/common'
+import Config from '../configs/Config'
 
 @Module({
   imports: [
     RedisModule.forRoot({
       options: {
-        host: process.env.REDIS_HOST ?? 'localhost',
-        port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379
+        username: Config.REDIS_USERNAME ?? '',
+        host: Config.REDIS_HOST ?? 'localhost',
+        port: Config.REDIS_PORT ?? 6379,
+        password: Config.REDIS_PASSWORD ?? '',
       },
       type: 'single'
     }),
