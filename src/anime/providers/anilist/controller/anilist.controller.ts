@@ -84,11 +84,6 @@ export class AnilistController {
     return this.stream.getProvidersSingle(id, number);
   }
 
-  @Get('info/:id/providers')
-  async getProvidersMultiple(@Param('id', ParseIntPipe) id: number) {
-    return this.stream.getProvidersMultiple(id);
-  }
-
   @Get('info/:id/episodes/:number')
   async getEpisode(
     @Param('id', ParseIntPipe) id: number,

@@ -170,22 +170,6 @@ export class StreamService {
     }
   }
 
-  async getProvidersMultiple(id: number): Promise<(Episode & { providers: ProviderInfo[] })[]> {
-    const episodes = await this.getEpisodes(id)
-
-    const enrichedEpisodes = await Promise.all(
-      episodes.map(async (ep) => {
-        const providers = await this.getProvidersSingle(id, ep?.number || 0)
-        return {
-          ...ep,
-          providers,
-        }
-      })
-    )
-
-    return enrichedEpisodes
-  }
-
   async getSources(provider: Provider, ep: number, alId: number, dub: boolean = false): Promise<ISource> {
     const providers = await this.getProvidersSingle(alId, ep)
     const epId = providers.find(p => p.provider === provider)?.id
