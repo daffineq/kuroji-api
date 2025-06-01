@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Provider } from '../model/Provider'
-import { SourceType } from '../model/SourceType'
 import { ZoroService } from '../../zoro/service/zoro.service'
 import { AnimekaiService } from '../../animekai/service/animekai.service'
 import { AnimepaheService } from '../../animepahe/service/animepahe.service'
@@ -12,25 +10,7 @@ import Redis from 'ioredis'
 import Config from '../../../../configs/Config'
 import { ISource } from '@consumet/extensions'
 import { TMDB } from '../../../../configs/tmdb.config'
-
-export interface Episode {
-  title: string | null
-  image: string
-  number: number | null
-  overview: string
-  date: string
-  duration: number
-  filler: boolean | null
-  sub: boolean | null
-  dub: boolean | null
-}
-
-export interface ProviderInfo {
-  id: string,
-  filler: boolean,
-  provider: Provider,
-  type: SourceType
-}
+import { Episode, Provider, ProviderInfo, SourceType } from '../model/types'
 
 @Injectable()
 export class StreamService {
@@ -131,11 +111,11 @@ export class StreamService {
 
       const providers: ProviderInfo[] = []
 
-      const zoroPromise = Config.ZORO_ENABLED ? this.aniwatch.getZoroByAnilist(id).catch(() => null) : Promise.resolve(null)
-      const pahePromise = Config.ANIMEPAHE_ENABLED ? this.animepahe.getAnimepaheByAnilist(id).catch(() => null) : Promise.resolve(null)
-      const kaiPromise = Config.ANIMEKAI_ENABLED ? this.animekai.getAnimekaiByAnilist(id).catch(() => null) : Promise.resolve(null)
-
-      const [zoro, pahe, kai] = await Promise.all([zoroPromise, pahePromise, kaiPromise])
+      const [zoro, pahe, kai] = await Promise.all([
+        this.aniwatch.getZoroByAnilist(id).catch(() => null),
+        this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
+        this.animekai.getAnimekaiByAnilist(id).catch(() => null)
+      ])
 
       const pushProvider = (
         id: string,
@@ -146,7 +126,7 @@ export class StreamService {
         providers.push({ id, filler, provider, type })
       }
 
-      if (Config.ZORO_ENABLED && zoro) {
+      if (zoro) {
         const zoroEp = zoro.episodes?.find((e: EpisodeZoro, idx: number) =>
           e.number === ep || idx + 1 === ep
         )
@@ -157,7 +137,7 @@ export class StreamService {
         }
       }
 
-      if (Config.ANIMEPAHE_ENABLED && pahe) {
+      if (pahe) {
         const paheEp = pahe.episodes?.find((e: AnimepaheEpisode, idx: number) =>
           e.number === ep || idx + 1 === ep
         )
@@ -166,7 +146,7 @@ export class StreamService {
         }
       }
 
-      if (Config.ANIMEKAI_ENABLED && kai) {
+      if (kai) {
         const kaiEp = kai.episodes?.find((e: AnimekaiEpisode, idx: number) =>
           e.number === ep || idx + 1 === ep
         )
@@ -182,7 +162,7 @@ export class StreamService {
         JSON.stringify(providers),
         'EX',
         Config.REDIS_TIME
-      );
+      )
 
       return providers
     } catch (e) {
@@ -207,14 +187,6 @@ export class StreamService {
   }
 
   async getSources(provider: Provider, ep: number, alId: number, dub: boolean = false): Promise<ISource> {
-    if (
-      (provider === Provider.zoro && !Config.ZORO_ENABLED) ||
-      (provider === Provider.animepahe && !Config.ANIMEPAHE_ENABLED) ||
-      (provider === Provider.animekai && !Config.ANIMEKAI_ENABLED)
-    ) {
-      throw new Error(`${Provider[provider]} provider is disabled`)
-    }
-
     const providers = await this.getProvidersSingle(alId, ep)
     const epId = providers.find(p => p.provider === provider)?.id
     if (!epId) throw new Error("Episode not found for provider")
@@ -229,7 +201,7 @@ export class StreamService {
     if (!fetchFn) throw new Error("Invalid provider")
 
     try {
-      return fetchFn();
+      return fetchFn()
     } catch {
       throw new Error("No sources found")
     }

@@ -165,18 +165,20 @@ export class AnilistIndexerService {
         }
 
         const providers = [
-          Config.ZORO_ENABLED ? { name: 'Zoro', fn: () => this.zoro.getZoroByAnilist(id) } : null,
-          Config.ANIMEKAI_ENABLED ? { name: 'Animekai', fn: () => this.animekai.getAnimekaiByAnilist(id) } : null,
-          Config.ANIMEPAHE_ENABLED ? { name: 'Animepahe', fn: () => this.animepahe.getAnimepaheByAnilist(id) } : null,
-        ].filter((provider): provider is { name: string; fn: () => Promise<any> } => provider !== null)
+          { name: 'Zoro', fn: () => this.zoro.getZoroByAnilist(id) },
+          { name: 'Animekai', fn: () => this.animekai.getAnimekaiByAnilist(id) },
+          { name: 'Animepahe', fn: () => this.animepahe.getAnimepaheByAnilist(id) }
+        ]
 
-        for (const provider of providers) {
-          try {
-            await provider.fn()
-          } catch (e) {
-            console.warn(`${provider.name} failed for ID ${id}:`, e.message ?? e)
-          }
-        }
+        await Promise.allSettled(
+          providers.map(async provider => {
+            try {
+              await provider.fn()
+            } catch (e) {
+              console.warn(`${provider.name} failed for ID ${id}:`, e.message ?? e)
+            }
+          })
+        )
 
         return
       } catch (e: any) {

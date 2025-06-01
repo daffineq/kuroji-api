@@ -4,8 +4,10 @@ import { PrismaService } from '../../../../prisma.service';
 import { ZoroHelper } from '../utils/zoro-helper';
 import { UpdateType } from '../../../../update/UpdateType';
 import { findBestMatch } from '../../../../mapper/mapper.helper'
-import { ANIME, IAnimeInfo, IAnimeResult, ISource, StreamingServers, SubOrSub } from '@consumet/extensions'
+import { ANIME, IAnimeInfo, IAnimeResult, ISearch, ISource, StreamingServers, SubOrSub } from '@consumet/extensions'
 import { getUpdateData } from '../../../../update/update.util'
+import { CustomHttpService } from '../../../../http/http.service'
+import { UrlConfig } from '../../../../configs/url.config'
 
 export interface ZoroWithRelations extends Zoro {
   episodes: EpisodeZoro[]
@@ -18,6 +20,7 @@ export class ZoroService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly helper: ZoroHelper,
+    private readonly http: CustomHttpService
   ) {}
 
   async getZoro(id: string): Promise<ZoroWithRelations> {
@@ -90,15 +93,20 @@ export class ZoroService {
   }
 
   async getSources(episodeId: string, dub: boolean): Promise<ISource> {
-    return await zoro.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
+    // return await zoro.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
+    return this.http.getResponse(
+      UrlConfig.ZORO + 'watch/' + episodeId + '?dub=' + dub
+    );
   }
 
   async fetchZoro(id: string): Promise<IAnimeInfo> {
-    return await zoro.fetchAnimeInfo(id);
+    // return await zoro.fetchAnimeInfo(id);
+    return this.http.getResponse(UrlConfig.ZORO + 'info?id=' + id);
   }
 
-  async searchZoro(q: string): Promise<IAnimeResult[]> {
-    return (await zoro.search(q)).results;
+  async searchZoro(q: string): Promise<ISearch<IAnimeResult>> {
+    // return (await zoro.search(q)).results;
+    return this.http.getResponse(UrlConfig.ZORO + q);
   }
   
   async findZoroByAnilist(id: number): Promise<IAnimeInfo> {
@@ -125,7 +133,7 @@ export class ZoroService {
       (anilist.title as { romaji: string }).romaji,
     );
 
-    const results = searchResult.map(result => ({
+    const results = searchResult.results.map(result => ({
       title: result.title,
       id: result.id,
       episodes: result.sub

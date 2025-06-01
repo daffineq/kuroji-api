@@ -9,7 +9,6 @@ import {
 import { AnilistService } from '../service/anilist.service';
 import { AnilistIndexerService } from '../service/anilist-indexer/anilist-indexer.service';
 import { StreamService } from '../../stream/service/stream.service';
-import { Provider } from '../../stream/model/Provider';
 import { FilterDto } from '../filter/FilterDto';
 import { AnilistAddService } from '../service/helper/anilist.add.service';
 import { AnilistScheduleService } from '../service/helper/anilist.schedule.service';
@@ -18,6 +17,7 @@ import { AnilistSearchService } from '../service/helper/anilist.search.service';
 import { AnilistRecommendationService } from '../service/helper/anilist.recommendation.service'
 import { LastUpdateResponse, UpdateService } from '../../../../update/update.service'
 import { UpdateType } from '../../../../update/UpdateType'
+import { Provider } from '../../stream/model/types'
 
 @Controller('anime')
 export class AnilistController {

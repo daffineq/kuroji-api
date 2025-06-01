@@ -6,15 +6,9 @@ export default class Config {
   public static readonly ANILIST_INDEXER_UPDATE_ENABLED =
     (process.env.ANILIST_INDEXER_UPDATE_ENABLED ?? 'true') === 'true';
 
-  public static readonly ANIMEPAHE_ENABLED =
-    (process.env.ANIMEPAHE_ENABLED ?? 'true') === 'true';
-  public static readonly ANIMEKAI_ENABLED =
-    (process.env.ANIMEKAI_ENABLED ?? 'true') === 'true';
-  public static readonly ZORO_ENABLED =
-    (process.env.ZORO_ENABLED ?? 'true') === 'true';
-
   public static readonly ANILIST = process.env.ANILIST;
   public static readonly SHIKIMORI = process.env.SHIKIMORI;
+  public static readonly CONSUMET = process.env.CONSUMET;
   public static readonly TMDB = process.env.TMDB;
   public static readonly TVDB = process.env.TVDB;
   public static readonly JIKAN = process.env.JIKAN;

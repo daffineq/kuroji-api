@@ -4,8 +4,10 @@ import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../../mapper/mapper.helper';
 import { UpdateType } from '../../../../update/UpdateType';
 import { AnimePaheHelper } from '../utils/animepahe-helper';
-import { ANIME, IAnimeInfo, IAnimeResult, ISource } from '@consumet/extensions'
+import { ANIME, IAnimeInfo, IAnimeResult, ISearch, ISource } from '@consumet/extensions'
 import { getUpdateData } from '../../../../update/update.util'
+import { CustomHttpService } from '../../../../http/http.service'
+import { UrlConfig } from '../../../../configs/url.config'
 
 export interface AnimepaheWithRelations extends Animepahe {
   externalLinks: AnimepaheExternalLink[],
@@ -18,7 +20,8 @@ const animepahe = new ANIME.AnimePahe();
 export class AnimepaheService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly helper: AnimePaheHelper
+    private readonly helper: AnimePaheHelper,
+    private readonly http: CustomHttpService,
   ) {}
 
   async getAnimepaheByAnilist(id: number): Promise<AnimepaheWithRelations> {
@@ -36,10 +39,6 @@ export class AnimepaheService {
 
     const animepahe = await this.findAnimepahe(id);
     return this.saveAnimepahe(animepahe);
-  }
-
-  async getSources(episodeId: string): Promise<ISource> {
-    return await animepahe.fetchEpisodeSources(episodeId);
   }
 
   async saveAnimepahe(animepahe: IAnimeInfo): Promise<AnimepaheWithRelations> {
@@ -81,12 +80,23 @@ export class AnimepaheService {
     return await this.saveAnimepahe(animepahe);
   }
 
-  async fetchAnimepahe(id: string): Promise<IAnimeInfo> {
-    return await animepahe.fetchAnimeInfo(id);
+  async getSources(episodeId: string): Promise<ISource> {
+    // return await animepahe.fetchEpisodeSources(episodeId);
+    return this.http.getResponse(
+      UrlConfig.ANIMEPAHE + 'watch?episodeId=' + episodeId,
+    );
   }
 
-  async searchAnimepahe(q: string): Promise<IAnimeResult[]> {
-    return (await animepahe.search(q)).results;
+  async fetchAnimepahe(id: string): Promise<IAnimeInfo> {
+    // return await animepahe.fetchAnimeInfo(id);
+    return this.http.getResponse(
+      UrlConfig.ANIMEPAHE + 'info/' + id,
+    );
+  }
+
+  async searchAnimepahe(q: string): Promise<ISearch<IAnimeResult>> {
+    // return (await animepahe.search(q)).results;
+    return this.http.getResponse(UrlConfig.ANIMEPAHE + q);
   }
   
   async findAnimepahe(id: number): Promise<IAnimeInfo> {
@@ -113,7 +123,7 @@ export class AnimepaheService {
       (anilist.title as { romaji: string }).romaji,
     );
 
-    const results = searchResult.map(result => ({
+    const results = searchResult.results.map(result => ({
       title: result.title,
       id: result.id,
       year: typeof result.releaseDate === 'string' ? parseInt(result.releaseDate) : result.releaseDate
