@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { AnimeKai, AnimekaiEpisode } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../../mapper/mapper.helper';
-import { UpdateType } from '../../../../shared/UpdateType';
+import { UpdateType } from '../../../../update/UpdateType';
 import { AnimeKaiHelper } from '../utils/animekai-helper';
-import { ANIME, IAnimeResult, ISource, StreamingServers, SubOrSub } from "@consumet/extensions"
+import { ANIME, IAnimeInfo, IAnimeResult, ISource, StreamingServers, SubOrSub } from "@consumet/extensions"
 import { getUpdateData } from '../../../../update/update.util'
 
 export interface AnimekaiWithRelations extends AnimeKai {
@@ -31,14 +31,14 @@ export class AnimekaiService {
     }
 
     const animekai = await this.findAnimekai(id);
-    return this.saveAnimekai(animekai as AnimekaiWithRelations);
+    return this.saveAnimekai(animekai);
   }
 
   async getSources(episodeId: string, dub: boolean): Promise<ISource> {
     return await animekai.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
   }
 
-  async saveAnimekai(animekai: AnimekaiWithRelations): Promise<AnimekaiWithRelations> {
+  async saveAnimekai(animekai: IAnimeInfo): Promise<AnimekaiWithRelations> {
     await this.prisma.lastUpdated.upsert({
       where: { entityId: String(animekai.id) },
       create: getUpdateData(String(animekai.id), animekai.anilistId ?? 0, UpdateType.ANIMEKAI),
@@ -63,7 +63,7 @@ export class AnimekaiService {
       include: { episodes: true }
     });
 
-    const animekai = await this.fetchAnimekai(id) as AnimekaiWithRelations;
+    const animekai = await this.fetchAnimekai(id);
 
     if (!animekai) {
       throw new Error('Animekai not found');
@@ -74,16 +74,15 @@ export class AnimekaiService {
     return await this.saveAnimekai(animekai);
   }
 
-  async fetchAnimekai(id: string): Promise<AnimeKai> {
-    const info = await animekai.fetchAnimeInfo(id);
-    return info as unknown as AnimeKai;
+  async fetchAnimekai(id: string): Promise<IAnimeInfo> {
+    return await animekai.fetchAnimeInfo(id);;
   }
 
   async searchAnimekai(query: string): Promise<IAnimeResult[]> {
     return (await animekai.fetchSearchSuggestions(query)).results;
   }
 
-  async findAnimekai(id: number): Promise<AnimeKai> {
+  async findAnimekai(id: number): Promise<IAnimeInfo> {
     const anilist = await this.prisma.anilist.findUnique({
       where: { id: id },
       select: {

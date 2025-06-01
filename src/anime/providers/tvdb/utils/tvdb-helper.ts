@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, Tvdb, TvdbLogin, TvdbLanguageTranslation, TvdbLanguage } from '@prisma/client';
+import { Prisma, TvdbLogin, TvdbLanguageTranslation, TvdbLanguage } from '@prisma/client';
 
 @Injectable()
 export class TvdbHelper {
-  getTvdbData(tvdb: any): Prisma.TvdbCreateInput {
+  getTvdbData(tvdb: TvdbInput): Prisma.TvdbCreateInput {
     return {
       id: tvdb.id,
       tmdbId: tvdb.tmdbId ?? undefined,

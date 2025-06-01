@@ -2,8 +2,8 @@ import Config from './Config';
 import { UrlConfig } from './url.config'
 
 export class TVDB {
-  static readonly API_KEY: string =
-    Config.TVDB_API || '';
+  static readonly API_KEY: string | null =
+    Config.TVDB_API || null;
 
   static getLoginUrl(): string {
     return `${UrlConfig.TVDB}login`;

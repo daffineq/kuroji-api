@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { AnilistAiringSchedule, Prisma } from '@prisma/client'
 import { BasicAnilist, BasicKitsu, BasicShikimori } from '../model/BasicAnilist'
-import { ScheduleData } from '../model/AnilistModels'
+import { AnilistWithRelations, ScheduleData } from '../model/AnilistModels'
 import { ShikimoriWithRelations } from '../../shikimori/service/shikimori.service'
 import { getShikimoriInclude } from '../../shikimori/utils/shikimori-helper'
 import { getKitsuInclude } from '../../kitsu/util/kitsu-helper'
 import { KitsuWithRelations } from '../../kitsu/service/kitsu.service'
 import { PrismaService } from '../../../../prisma.service'
+import { FullMediaResponse } from '../model/AnilistResponse'
 
 @Injectable()
 export class AnilistHelper {
@@ -14,7 +15,7 @@ export class AnilistHelper {
     private readonly prisma: PrismaService,
   ) {}
 
-  public async getDataForPrisma(anime: any): Promise<Prisma.AnilistCreateInput> {
+  public async getDataForPrisma(anime: FullMediaResponse): Promise<Prisma.AnilistCreateInput> {
     const isMalExist = anime.idMal ? !!(await this.prisma.anilist.findUnique({
       where: { idMal: anime.idMal },
       select: { id: true },
@@ -197,16 +198,6 @@ export class AnilistHelper {
             }
           })) ?? []
       },
-      // nextAiringEpisode: anime.nextAiringEpisode ? {
-      //   connectOrCreate: {
-      //     where: { id: anime.nextAiringEpisode?.id },
-      //     create: {
-      //       id: anime.nextAiringEpisode?.id,
-      //       episode: anime.nextAiringEpisode?.episode ?? null,
-      //       airingAt: anime.nextAiringEpisode?.airingAt ?? null,
-      //     }
-      //   }
-      // } : undefined,
       tags: {
         connectOrCreate: anime.tags?.map((tag: any) => ({
           where: { id: tag.id },
@@ -277,7 +268,7 @@ export class AnilistHelper {
   }
 }
 
-export function convertAnilistToBasic(anilist: any): BasicAnilist {
+export function convertAnilistToBasic(anilist: AnilistWithRelations): BasicAnilist {
   return {
     id: anilist.id,
     idMal: anilist.idMal ?? undefined,
@@ -289,7 +280,6 @@ export function convertAnilistToBasic(anilist: any): BasicAnilist {
     format: anilist.format ?? undefined,
     status: anilist.status ?? undefined,
     description: anilist.description ?? undefined,
-    moreInfo: anilist.moreInfo ?? undefined,
     startDate: anilist.startDate ?? undefined,
     season: anilist.season ?? undefined,
     seasonYear: anilist.seasonYear ?? undefined,
@@ -304,7 +294,7 @@ export function convertAnilistToBasic(anilist: any): BasicAnilist {
     isLocked: anilist.isLocked ?? undefined,
     isAdult: anilist.isAdult ?? undefined,
     genres: anilist.genres ?? undefined,
-    nextAiringEpisode: findNextAiringInSchedule(anilist.airingSchedule),
+    nextAiringEpisode: findNextAiringInSchedule(anilist?.airingSchedule ?? null),
     shikimori: convertShikimoriToBasic(anilist?.shikimori),
     kitsu: convertKitsuToBasic(anilist?.kitsu),
   }
@@ -460,7 +450,7 @@ export function createScheduleData(data: BasicAnilist[] = [], current: boolean):
   }
 }
 
-export function reorderAnilistItems(raw: any) {
+export function reorderAnilistItems(raw: AnilistWithRelations) {
   if (!raw) return null
 
   return {
@@ -498,7 +488,7 @@ export function reorderAnilistItems(raw: any) {
     synonyms: raw.synonyms,
 
     trailer: raw.trailer,
-    nextAiringEpisode: findNextAiringInSchedule(raw.airingSchedule),
+    nextAiringEpisode: findNextAiringInSchedule(raw?.airingSchedule ?? null),
 
     studios: raw.studios,
     airingSchedule: raw.airingSchedule,
@@ -513,7 +503,7 @@ export function reorderAnilistItems(raw: any) {
   }
 }
 
-export function mapToBasic(data: any): BasicAnilist[] {
+export function mapToBasic(data: AnilistWithRelations[]): BasicAnilist[] {
   return data.map((anilist) =>
     convertAnilistToBasic(anilist),
   )

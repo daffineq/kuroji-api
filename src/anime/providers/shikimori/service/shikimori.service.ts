@@ -9,7 +9,7 @@ import {
   ShikimoriVideo,
 } from '@prisma/client'
 import { PrismaService } from '../../../../prisma.service'
-import { UpdateType } from '../../../../shared/UpdateType'
+import { UpdateType } from '../../../../update/UpdateType'
 import { UrlConfig } from '../../../../configs/url.config'
 import { CustomHttpService } from '../../../../http/http.service'
 import { GraphQL } from '../graphql/shikimori.graphql'
@@ -21,6 +21,7 @@ export interface ShikimoriWithRelations extends Shikimori {
   poster: ShikimoriPoster
   airedOn: AiredOn
   releasedOn: ReleasedOn
+  chronology: BasicIdShik[]
   videos: ShikimoriVideo[]
   screenshots: ShikimoriScreenshot[]
 }

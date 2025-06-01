@@ -5,7 +5,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { AxiosRequestConfig } from 'axios';
 import { firstValueFrom } from 'rxjs';
-import { withRetry } from '../shared/utils'
+import { withRetry } from '../utils/utils'
 
 @Injectable()
 export class CustomHttpService {

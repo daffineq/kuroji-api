@@ -15,7 +15,7 @@ import {
   TvdbRemoteId,
   TvdbTrailer,
 } from '@prisma/client'
-import { UpdateType } from '../../../../shared/UpdateType'
+import { UpdateType } from '../../../../update/UpdateType'
 import { getUpdateData } from '../../../../update/update.util'
 
 export interface BasicTvdb {
@@ -92,7 +92,7 @@ export class TvdbService {
     const tvdb = await this.fetchTvdb(basicTvdb.id, tmdb.media_type || 'series')
 
     tvdb.tmdbId = tmdb.id
-    tvdb.type = tmdb.media_type
+    tvdb.type = tmdb.media_type ?? undefined
 
     return await this.saveTvdb(tvdb)
   }
@@ -118,7 +118,7 @@ export class TvdbService {
     return await this.saveLanguages(langs)
   }
 
-  async saveTvdb(tvdb: TvdbWithRelations): Promise<TvdbWithRelations> {
+  async saveTvdb(tvdb: TvdbInput): Promise<TvdbWithRelations> {
     await this.prisma.lastUpdated.upsert({
       where: { entityId: String(tvdb.id) },
       create: getUpdateData(String(tvdb.id), tvdb.id ?? 0, UpdateType.TVDB),
@@ -193,7 +193,7 @@ export class TvdbService {
     return type === 'movie' ? match.movie : match.series
   }
 
-  async fetchTvdb(id: number, type: string): Promise<TvdbWithRelations> {
+  async fetchTvdb(id: number, type: string): Promise<TvdbInput> {
     const url = type === 'movie' ? TVDB.getMovie(id) : TVDB.getSeries(id)
     return await this.customHttpService.getResponse(url, {
       headers: {

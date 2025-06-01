@@ -5,7 +5,7 @@ import { FilterDto } from '../../filter/FilterDto'
 import { AnilistFilterService } from './anilist.filter.service'
 import { AnilistAddService } from './anilist.add.service'
 import { AnilistHelper, convertAnilistToBasic } from '../../utils/anilist-helper'
-import { ApiResponse } from '../../../../../api/ApiResponse'
+import { ApiResponse } from '../../../../../shared/ApiResponse'
 
 @Injectable()
 export class AnilistSearchService {

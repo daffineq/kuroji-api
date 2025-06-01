@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { Animepahe, AnimepaheEpisode, AnimepaheExternalLink } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../../mapper/mapper.helper';
-import { UpdateType } from '../../../../shared/UpdateType';
+import { UpdateType } from '../../../../update/UpdateType';
 import { AnimePaheHelper } from '../utils/animepahe-helper';
-import { ANIME, IAnimeResult, ISource } from '@consumet/extensions'
+import { ANIME, IAnimeInfo, IAnimeResult, ISource } from '@consumet/extensions'
 import { getUpdateData } from '../../../../update/update.util'
 
 export interface AnimepaheWithRelations extends Animepahe {
@@ -35,14 +35,14 @@ export class AnimepaheService {
     }
 
     const animepahe = await this.findAnimepahe(id);
-    return this.saveAnimepahe(animepahe as AnimepaheWithRelations);
+    return this.saveAnimepahe(animepahe);
   }
 
   async getSources(episodeId: string): Promise<ISource> {
     return await animepahe.fetchEpisodeSources(episodeId);
   }
 
-  async saveAnimepahe(animepahe: Animepahe): Promise<AnimepaheWithRelations> {
+  async saveAnimepahe(animepahe: IAnimeInfo): Promise<AnimepaheWithRelations> {
     await this.prisma.lastUpdated.upsert({
       where: { entityId: String(animepahe.id) },
       create: getUpdateData(String(animepahe.id), animepahe.alId ?? 0, UpdateType.ANIMEPAHE),
@@ -70,7 +70,7 @@ export class AnimepaheService {
       include: { episodes: true }
     });
 
-    const animepahe = await this.fetchAnimepahe(id) as AnimepaheWithRelations;
+    const animepahe = await this.fetchAnimepahe(id);
 
     if (!animepahe) {
       throw new Error('Animepahe not found');
@@ -81,16 +81,15 @@ export class AnimepaheService {
     return await this.saveAnimepahe(animepahe);
   }
 
-  async fetchAnimepahe(id: string): Promise<Animepahe> {
-    const info = await animepahe.fetchAnimeInfo(id);
-    return info as unknown as Animepahe;
+  async fetchAnimepahe(id: string): Promise<IAnimeInfo> {
+    return await animepahe.fetchAnimeInfo(id);
   }
 
   async searchAnimepahe(q: string): Promise<IAnimeResult[]> {
     return (await animepahe.search(q)).results;
   }
   
-  async findAnimepahe(id: number): Promise<Animepahe> {
+  async findAnimepahe(id: number): Promise<IAnimeInfo> {
     const anilist = await this.prisma.anilist.findUnique({
       where: { id: id },
       select: {

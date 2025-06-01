@@ -12,8 +12,8 @@ import { TvdbService, TvdbStatus } from '../anime/providers/tvdb/service/tvdb.se
 import { ZoroService } from '../anime/providers/zoro/service/zoro.service'
 import Config from '../configs/Config'
 import { PrismaService } from '../prisma.service'
-import { UpdateType } from '../shared/UpdateType'
-import { sleep } from '../shared/utils'
+import { UpdateType } from './UpdateType'
+import { sleep } from '../utils/utils'
 import { AnilistWithRelations } from '../anime/providers/anilist/model/AnilistModels'
 import { last } from 'rxjs'
 
@@ -143,8 +143,8 @@ export class UpdateService {
       const airingTime = new Date((anilistData?.nextAiringEpisode?.airingAt || 0) * 1000)
       const timeDiff = Math.abs(airingTime.getTime() - now.getTime())
       
-      // If airing within the next hour
-      if (timeDiff <= ONE_HOUR_MS) {
+      // If airing within the next 2 hours
+      if (timeDiff <= ONE_HOUR_MS * 2) {
         return Temperature.AIRING_NOW
       }
       
@@ -320,7 +320,7 @@ export class UpdateService {
     }
   }
 
-  @Cron(CronExpression.EVERY_30_MINUTES)
+  @Cron(CronExpression.EVERY_HOUR)
   async update(annotateAtId: string | null = null): Promise<void> {
     if (!Config.UPDATE_ENABLED) {
       console.log('Updates are disabled via configuration.')

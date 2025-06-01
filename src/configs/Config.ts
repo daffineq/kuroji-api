@@ -20,9 +20,9 @@ export default class Config {
   public static readonly JIKAN = process.env.JIKAN;
   public static readonly KITSU = process.env.KITSU;
 
-  public static readonly TMDB_API = process.env.TMDB_API;
+  public static readonly TMDB_API = process.env.TMDB_API ?? '5201b54eb0968700e693a30576d7d4dc';
   public static readonly TVDB_API = process.env.TVDB_API;
-
+  
   public static readonly REDIS_USERNAME = process.env.REDIS_USERNAME;
   public static readonly REDIS_HOST = process.env.REDIS_HOST;
   public static readonly REDIS_PORT: number = parseInt(process.env.REDIS_PORT ?? '0');

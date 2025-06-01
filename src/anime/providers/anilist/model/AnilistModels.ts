@@ -3,10 +3,12 @@ import { PageInfo } from '../graphql/types/PageInfo'
 import { BasicAnilist } from './BasicAnilist'
 import { KitsuWithRelations } from '../../kitsu/service/kitsu.service'
 import { ShikimoriWithRelations } from '../../shikimori/service/shikimori.service'
+import { FullMediaResponse } from './AnilistResponse'
+import { ZoroWithRelations } from '../../zoro/service/zoro.service'
 
 export interface AnilistResponse {
   Page: {
-    media: Anilist[];
+    media: FullMediaResponse[];
     pageInfo: {
       total: number;
       perPage: number;
@@ -45,7 +47,8 @@ export interface AnilistWithRelations extends Anilist {
   scoreDistribution?: AnilistScoreDistribution[];
   statusDistribution?: AnilistStatusDistribution[];
   shikimori?: ShikimoriWithRelations;
-  kitsu?: KitsuWithRelations
+  kitsu?: KitsuWithRelations;
+  zoro?: ZoroWithRelations;
 }
 
 export interface Franchise {

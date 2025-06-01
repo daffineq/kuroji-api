@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
-import { UpdateType } from '../../../../shared/UpdateType';
+import { UpdateType } from '../../../../update/UpdateType';
 import { AnilistHelper, getAnilistFindUnique } from '../utils/anilist-helper';
 import { AnilistFetchService } from './helper/anilist.fetch.service'
 import { MediaType } from '../filter/Filter'
@@ -86,7 +86,7 @@ export class AnilistService {
       throw new Error('No media found');
     }
 
-    if (existingAnilist == data.Page.media[0]) throw new Error('No changes in anilist');
+    if (existingAnilist.popularity == data.Page.media[0].popularity) throw new Error('No changes in anilist');
 
     await this.saveAnilist(data);
   }

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
+import { KitsuAnime } from '../model/KitsuResponse'
 
 @Injectable()
 export class KitsuHelper {
-  public getDataForPrisma(rawAnime: any): Prisma.KitsuCreateInput {
-    const anime = rawAnime.data;
+  public getDataForPrisma(anime: KitsuAnime): Prisma.KitsuCreateInput {
     const attrs = anime.attributes;
     const relationships = anime.relationships;
 

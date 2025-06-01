@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { EpisodeZoro, Zoro } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service';
 import { ZoroHelper } from '../utils/zoro-helper';
-import { UpdateType } from '../../../../shared/UpdateType';
+import { UpdateType } from '../../../../update/UpdateType';
 import { findBestMatch } from '../../../../mapper/mapper.helper'
-import { ANIME, IAnimeResult, ISource, StreamingServers, SubOrSub } from '@consumet/extensions'
+import { ANIME, IAnimeInfo, IAnimeResult, ISource, StreamingServers, SubOrSub } from '@consumet/extensions'
 import { getUpdateData } from '../../../../update/update.util'
 
 export interface ZoroWithRelations extends Zoro {
@@ -30,7 +30,7 @@ export class ZoroService {
 
     if (!existingZoro) {
       const zoro = await this.fetchZoro(id);
-      return this.saveZoro(zoro as ZoroWithRelations);
+      return this.saveZoro(zoro);
     }
     return existingZoro;
   }
@@ -45,12 +45,12 @@ export class ZoroService {
 
     if (!existingZoro) {
       const zoro = await this.findZoroByAnilist(id);
-      return this.saveZoro(zoro as ZoroWithRelations);
+      return this.saveZoro(zoro);
     }
     return existingZoro;
   }
 
-  async saveZoro(zoro: ZoroWithRelations): Promise<ZoroWithRelations> {
+  async saveZoro(zoro: IAnimeInfo): Promise<ZoroWithRelations> {
     await this.prisma.lastUpdated.upsert({
       where: { entityId: String(zoro.id) },
       create: getUpdateData(String(zoro.id), zoro.alID ?? 0, UpdateType.ANIWATCH),
@@ -83,7 +83,7 @@ export class ZoroService {
       throw new Error('Zoro not found');
     }
 
-    const zoro = await this.fetchZoro(id) as ZoroWithRelations;
+    const zoro = await this.fetchZoro(id);
     zoro.alID = existingZoro.alID || 0;
 
     return this.saveZoro(zoro);
@@ -93,16 +93,15 @@ export class ZoroService {
     return await zoro.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
   }
 
-  async fetchZoro(id: string): Promise<Zoro> {
-    const info = await zoro.fetchAnimeInfo(id);
-    return info as unknown as Zoro;
+  async fetchZoro(id: string): Promise<IAnimeInfo> {
+    return await zoro.fetchAnimeInfo(id);
   }
 
   async searchZoro(q: string): Promise<IAnimeResult[]> {
     return (await zoro.search(q)).results;
   }
   
-  async findZoroByAnilist(id: number): Promise<Zoro> {
+  async findZoroByAnilist(id: number): Promise<IAnimeInfo> {
     const anilist = await this.prisma.anilist.findUnique({
       where: { id: id },
       select: {

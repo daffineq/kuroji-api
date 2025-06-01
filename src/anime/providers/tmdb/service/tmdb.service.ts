@@ -12,11 +12,11 @@ import { TMDB } from '../../../../configs/tmdb.config';
 import { CustomHttpService } from '../../../../http/http.service';
 import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch, ExpectAnime, deepCleanTitle } from '../../../../mapper/mapper.helper';
-import { UpdateType } from '../../../../shared/UpdateType';
+import { UpdateType } from '../../../../update/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service';
 import { TmdbHelper } from '../utils/tmdb-helper';
 import { AnilistWithRelations } from '../../anilist/model/AnilistModels'
-import { sleep } from '../../../../shared/utils'
+import { sleep } from '../../../../utils/utils'
 import { getUpdateData } from '../../../../update/update.util'
 
 export interface BasicTmdb {
@@ -243,7 +243,7 @@ export class TmdbService {
     }) as TmdbWithRelations;
   }
 
-  async saveTmdbSeason(tmdbSeason: TmdbSeason): Promise<TmdbSeason> {
+  async saveTmdbSeason(tmdbSeason: TmdbSeasonWithRelations): Promise<TmdbSeason> {
     return this.prisma.tmdbSeason.upsert({
       where: { id: tmdbSeason.id },
       update: this.helper.getTmdbSeasonData(tmdbSeason),

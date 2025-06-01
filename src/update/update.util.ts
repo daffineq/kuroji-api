@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client'
-import { UpdateType } from '../shared/UpdateType'
+import { UpdateType } from './UpdateType'
 
 export function getUpdateData(
   entityId: string, 

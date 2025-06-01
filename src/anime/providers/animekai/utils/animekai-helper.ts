@@ -1,12 +1,13 @@
+import { IAnimeEpisode, IAnimeInfo } from '@consumet/extensions'
 import { Injectable } from '@nestjs/common';
-import { AnimeKai, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AnimeKaiHelper {
-  getAnimekaiData(anime: any): Prisma.AnimeKaiCreateInput {
+  getAnimekaiData(anime: IAnimeInfo): Prisma.AnimeKaiCreateInput {
     return {
       id: anime.id,
-      title: anime.title,
+      title: typeof anime.title === 'object' ? anime.title.romaji : anime.title,
       japaneseTitle: anime.japaneseTitle,
       image: anime.image,
       description: anime.description,
@@ -20,7 +21,7 @@ export class AnimeKaiHelper {
       season: anime.season,
       totalEpisodes: anime.totalEpisodes,
       episodes: {
-        connectOrCreate: anime.episodes.map((e: any) => ({
+        connectOrCreate: (anime?.episodes ?? []).map((e: IAnimeEpisode) => ({
           where: { id: e.id },
           create: {
             id: e.id,

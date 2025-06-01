@@ -1,4 +1,4 @@
-import { PageInfo } from '../api/ApiResponse'
+import { PageInfo } from '../shared/ApiResponse'
 
 export function getPageInfo(total: number, perPage: number, page: number): PageInfo {
   const lastPage = Math.ceil(total / perPage)

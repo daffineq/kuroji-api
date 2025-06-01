@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { Anilist } from '@prisma/client'
-import { ApiResponse } from '../../../../../api/ApiResponse'
+import { ApiResponse } from '../../../../../shared/ApiResponse'
 import { FilterDto } from '../../filter/FilterDto'
 import { PrismaService } from '../../../../../prisma.service'
 import { AnilistHelper, getAnilistInclude } from '../../utils/anilist-helper'
-import { firstUpperList, getPageInfo } from '../../../../../shared/utils'
+import { firstUpperList, getPageInfo } from '../../../../../utils/utils'
 import { Language } from '../../filter/Filter'
 
 @Injectable()

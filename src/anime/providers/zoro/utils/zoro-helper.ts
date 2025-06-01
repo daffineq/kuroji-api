@@ -1,27 +1,28 @@
+import { IAnimeEpisode, IAnimeInfo } from '@consumet/extensions'
 import { Injectable } from '@nestjs/common';
-import { Prisma, Zoro } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ZoroHelper {
-  getZoroData(zoro: any): Prisma.ZoroCreateInput {
+  getZoroData(anime: IAnimeInfo): Prisma.ZoroCreateInput {
     return {
-      id: zoro.id,
-      title: zoro.title,
-      malID: zoro.malID,
-      japaneseTitle: zoro.japaneseTitle,
-      image: zoro.image,
-      description: zoro.description,
-      type: zoro.type,
-      url: zoro.url,
+      id: anime.id,
+      title: typeof anime.title === 'object' ? anime.title.romaji : anime.title,
+      malID: anime.malID,
+      japaneseTitle: anime.japaneseTitle,
+      image: anime.image,
+      description: anime.description,
+      type: anime.type,
+      url: anime.url,
       // updatedAt: new Date(),
-      subOrDub: zoro.subOrDub,
-      hasSub: zoro.hasSub,
-      hasDub: zoro.hasDub,
-      status: zoro.status,
-      season: zoro.season,
-      totalEpisodes: zoro.totalEpisodes,
+      subOrDub: anime.subOrDub,
+      hasSub: anime.hasSub,
+      hasDub: anime.hasDub,
+      status: anime.status,
+      season: anime.season,
+      totalEpisodes: anime.totalEpisodes,
       episodes: {
-        connectOrCreate: zoro.episodes.map((e: any) => ({
+        connectOrCreate: (anime?.episodes ?? []).map((e: IAnimeEpisode) => ({
           where: { id: e.id },
           create: {
             id: e.id,
@@ -36,7 +37,7 @@ export class ZoroHelper {
       },
       anilist: {
         connect: {
-          id: zoro.alID
+          id: anime.alID
         }
       },
     };

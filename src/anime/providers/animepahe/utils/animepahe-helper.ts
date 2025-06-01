@@ -1,49 +1,54 @@
+import { IAnimeInfo } from '@consumet/extensions'
+import { ExternalLink, IAnimeEpisode } from '@consumet/extensions/dist/models/types'
 import { Injectable } from '@nestjs/common';
-import { Animepahe, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AnimePaheHelper {
   getAnimePaheData(
-    animePahe: any,
+    anime: IAnimeInfo,
   ): Prisma.AnimepaheCreateInput {
     return {
-      id: animePahe.id,
-      title: animePahe.title,
-      image: animePahe.image,
-      cover: animePahe.cover,
+      id: anime.id,
+      title: typeof anime.title === 'object' ? anime.title.romaji : anime.title,
+      image: anime.image,
+      cover: anime.cover,
       // updatedAt: new Date(),
-      hasSub: animePahe.hasSub,
+      hasSub: anime.hasSub,
       externalLinks: {
-        connectOrCreate: animePahe.externalLinks.map((e: any) => ({
-          where: { id: e.id },
-          create: {
-            id: e.id,
-            url: e.url,
-            sourceName: e.sourceName
-          }
-        })) ?? []
+        connectOrCreate: (anime?.externalLinks ?? [])
+          .filter((e): e is Required<ExternalLink> => 
+            e?.id != null && e?.url != null && e?.sourceName != null)
+          .map((e) => ({
+            where: { id: e.id },
+            create: {
+              id: e.id,
+              url: e.url,
+              sourceName: e.sourceName
+            }
+          }))
       },
-      status: animePahe.status,
-      type: animePahe.type,
-      releaseDate: animePahe.releaseDate,
-      totalEpisodes: animePahe.totalEpisodes,
-      episodePages: animePahe.episodePages,
+      status: anime.status,
+      type: anime.type,
+      releaseDate: anime.releaseDate,
+      totalEpisodes: anime.totalEpisodes,
+      episodePages: anime.episodePages,
       episodes: {
-        connectOrCreate: animePahe.episodes.map((e: any) => ({
+        connectOrCreate: (anime?.episodes ?? []).map((e: IAnimeEpisode) => ({
           where: { id: e.id },
           create: {
-            id: e.id,
-            number: e.number,
-            title: e.title,
-            image: e.image,
-            duration: e.duration,
-            url: e.url
+            id: e?.id,
+            number: e?.number,
+            title: e?.title,
+            image: e?.image,
+            duration: e?.duration?.toString(),
+            url: e?.url
           }
         })) ?? []
       },
       anilist: {
         connect: {
-          id: animePahe.alId
+          id: anime.alId
         }
       }
     };

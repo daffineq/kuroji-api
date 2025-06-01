@@ -17,7 +17,7 @@ import Dimens from '../../../../configs/Dimens';
 import { AnilistSearchService } from '../service/helper/anilist.search.service';
 import { AnilistRecommendationService } from '../service/helper/anilist.recommendation.service'
 import { LastUpdateResponse, UpdateService } from '../../../../update/update.service'
-import { UpdateType } from '../../../../shared/UpdateType'
+import { UpdateType } from '../../../../update/UpdateType'
 
 @Controller('anime')
 export class AnilistController {

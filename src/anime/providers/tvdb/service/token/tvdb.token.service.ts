@@ -15,8 +15,6 @@ export interface LoginResponse {
 
 @Injectable()
 export class TvdbTokenService {
-  private readonly logger = new Logger(TvdbTokenService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly helper: TvdbHelper,
@@ -28,6 +26,7 @@ export class TvdbTokenService {
       where: { expired: false },
       orderBy: { createDate: 'desc' },
     });
+
     if (!login) {
       await this.check();
       const newLogin = await this.prisma.tvdbLogin.findFirst({
@@ -39,6 +38,7 @@ export class TvdbTokenService {
       }
       return newLogin.token;
     }
+
     return login.token;
   }
 
@@ -46,7 +46,7 @@ export class TvdbTokenService {
   public async check(): Promise<void> {
     const count = await this.prisma.tvdbLogin.count();
     if (count === 0) {
-      this.logger.log("No tokens found");
+      console.log("No tokens found");
       await this.createToken();
       return;
     }
@@ -64,10 +64,10 @@ export class TvdbTokenService {
           where: { id: login.id },
           data: { expired: true },
         });
-        this.logger.log("Token expired");
+        console.log("Token expired");
         await this.createToken();
       } else {
-        this.logger.log(`Token valid until: ${expiryDate.toISOString()}`);
+        console.log(`Token valid until: ${expiryDate.toISOString()}`);
       }
     } else {
       await this.createToken();
@@ -77,8 +77,9 @@ export class TvdbTokenService {
   async createToken(): Promise<void> {
     const response = await this.customHttpService.postResponse<LoginResponse>(
       TVDB.getLoginUrl(),
-      { apikey: TVDB.API_KEY }
+      { apikey: TVDB.API_KEY || this.getRandomKey() }
     );
+
     const token = response.data.token;
 
     const tokenData = this.helper.getTvdbLoginData({
@@ -101,5 +102,16 @@ export class TvdbTokenService {
         data: tokenData,
       });
     }
+  }
+
+  private getRandomKey() {
+    const keys = [
+      'f5744a13-9203-4d02-b951-fbd7352c1657',
+      '8f406bec-6ddb-45e7-8f4b-e1861e10f1bb',
+      '5476e702-85aa-45fd-a8da-e74df3840baf',
+      '51020266-18f7-4382-81fc-75a4014fa59f',
+    ]
+
+    return keys[Math.floor(Math.random() * keys.length)];
   }
 }

@@ -44,7 +44,6 @@ export interface BasicAnilist {
   format?: string;
   status?: string;
   description?: string;
-  moreInfo?: string;
 
   startDate?: StartDate;
 

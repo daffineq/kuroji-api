@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
-import { Prisma, Tmdb, TmdbSeason } from '@prisma/client'
-import { TmdbSeasonWithRelations } from '../service/tmdb.service'
+import { Prisma } from '@prisma/client'
+import { TmdbSeasonWithRelations, TmdbWithRelations } from '../service/tmdb.service'
 
 @Injectable()
 export class TmdbHelper {
-  getTmdbData(tmdb: any): Prisma.TmdbCreateInput {
+  getTmdbData(tmdb: TmdbWithRelations): Prisma.TmdbCreateInput {
     return {
       id: tmdb.id,
       adult: tmdb.adult ?? false,
@@ -91,7 +91,7 @@ export class TmdbHelper {
     }
   }
 
-  getTmdbSeasonData(tmdb: any): Prisma.TmdbSeasonCreateInput {
+  getTmdbSeasonData(tmdb: TmdbSeasonWithRelations): Prisma.TmdbSeasonCreateInput {
     return {
       id: tmdb.id,
       air_date: tmdb.air_date ?? undefined,
