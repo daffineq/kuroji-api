@@ -1,11 +1,10 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
-import { SearcnResponse, FranchiseResponse } from '../../model/AnilistModels'
-import { BasicAnilist } from '../../model/BasicAnilist'
 import { FilterDto } from '../../filter/FilterDto'
 import { AnilistFilterService } from './anilist.filter.service'
 import { AnilistAddService } from './anilist.add.service'
 import { AnilistHelper, convertAnilistToBasic } from '../../utils/anilist-helper'
 import { ApiResponse } from '../../../../../shared/ApiResponse'
+import { BasicAnilist, SearcnResponse, FranchiseResponse } from '../../types/types'
 
 @Injectable()
 export class AnilistSearchService {

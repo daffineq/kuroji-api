@@ -8,28 +8,11 @@ import { AnimekaiService } from '../../../animekai/service/animekai.service'
 import { AnimepaheService } from '../../../animepahe/service/animepahe.service'
 import Config from '../../../../../configs/Config'
 import { sleep } from '../../../../../utils/utils'
-import { PageInfo } from '../../graphql/types/PageInfo'
 import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder'
 import { UrlConfig } from '../../../../../configs/url.config'
 import { MediaType } from '../../filter/Filter'
 import AnilistQL from '../../graphql/AnilistQL'
-import { AnilistResponse } from '../../model/AnilistModels'
-
-export interface Ids {
-  sfw: number[]
-  nsfw: number[]
-}
-
-export interface AnilistPageResponse {
-  Page: {
-    pageInfo: PageInfo
-    media: MediaItem[]
-  }  
-}
-
-export interface MediaItem {
-  id: number
-}
+import { Ids, AnilistPageResponse } from './types/types'
 
 @Injectable()
 export class AnilistIndexerService {

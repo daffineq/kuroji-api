@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { KitsuAnime } from '../model/KitsuResponse'
+import { KitsuAnime } from '../types/types'
 
 @Injectable()
 export class KitsuHelper {

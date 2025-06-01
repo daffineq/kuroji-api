@@ -10,7 +10,7 @@ import Redis from 'ioredis'
 import Config from '../../../../configs/Config'
 import { ISource } from '@consumet/extensions'
 import { TMDB } from '../../../../configs/tmdb.config'
-import { Episode, EpisodeDetails, EpisodeImage, Provider, ProviderInfo, SourceType } from '../model/types'
+import { Episode, EpisodeDetails, EpisodeImage, Provider, ProviderInfo, SourceType } from '../types/types'
 
 @Injectable()
 export class StreamService {

@@ -2,19 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { BasicIdAni, AnilistCharacter, AnilistTag } from '@prisma/client';
 import { ApiResponse, PageInfo } from '../../../../../shared/ApiResponse';
 import { TMDB } from '../../../../../configs/tmdb.config';
-import { BasicAnilist } from '../../model/BasicAnilist';
 import { FilterDto } from '../../filter/FilterDto';
 import { PrismaService } from '../../../../../prisma.service';
 import { ShikimoriService } from '../../../shikimori/service/shikimori.service';
 import { TmdbService } from '../../../tmdb/service/tmdb.service';
-import {
-  AnilistWithRelations,
-  Franchise,
-  FranchiseResponse,
-} from '../../model/AnilistModels';
 import { AnilistSearchService } from './anilist.search.service';
 import { getPageInfo } from '../../../../../utils/utils';
 import { AnilistService } from '../anilist.service';
+import { BasicAnilist, AnilistWithRelations, FranchiseResponse, Franchise } from '../../types/types'
 
 @Injectable()
 export class AnilistAddService {

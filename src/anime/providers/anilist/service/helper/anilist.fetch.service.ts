@@ -3,9 +3,9 @@ import { UrlConfig } from '../../../../../configs/url.config'
 import AnilistQL from '../../graphql/AnilistQL'
 import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder'
 import { CustomHttpService } from '../../../../../http/http.service'
-import { AnilistResponse } from '../../model/AnilistModels'
 import { MediaType } from '../../filter/Filter'
 import { Jikan, MoreInfoResponse, VideosResponse } from '../../../../../configs/jikan.config'
+import { AnilistResponse } from '../../types/types'
 
 @Injectable()
 export class AnilistFetchService {

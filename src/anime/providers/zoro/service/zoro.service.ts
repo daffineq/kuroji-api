@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { EpisodeZoro, Zoro } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service';
 import { ZoroHelper } from '../utils/zoro-helper';
 import { UpdateType } from '../../../../update/UpdateType';
@@ -8,10 +7,7 @@ import { ANIME, IAnimeInfo, IAnimeResult, ISearch, ISource, StreamingServers, Su
 import { getUpdateData } from '../../../../update/update.util'
 import { CustomHttpService } from '../../../../http/http.service'
 import { UrlConfig } from '../../../../configs/url.config'
-
-export interface ZoroWithRelations extends Zoro {
-  episodes: EpisodeZoro[]
-}
+import { ZoroWithRelations } from '../types/types'
 
 const zoro = new ANIME.Zoro();
 

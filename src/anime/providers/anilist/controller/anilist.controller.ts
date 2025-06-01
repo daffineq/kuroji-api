@@ -17,7 +17,7 @@ import { AnilistSearchService } from '../service/helper/anilist.search.service';
 import { AnilistRecommendationService } from '../service/helper/anilist.recommendation.service'
 import { LastUpdateResponse, UpdateService } from '../../../../update/update.service'
 import { UpdateType } from '../../../../update/UpdateType'
-import { Provider } from '../../stream/model/types'
+import { Provider } from '../../stream/types/types'
 
 @Controller('anime')
 export class AnilistController {

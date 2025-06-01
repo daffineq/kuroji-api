@@ -2,9 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { startOfWeek, addDays } from 'date-fns'
 import { PrismaService } from '../../../../../prisma.service'
 import { convertAnilistToBasic, createScheduleData, getAnilistInclude } from '../../utils/anilist-helper'
-import { BasicAnilist } from '../../model/BasicAnilist'
-import { Schedule, Weekday } from '../../model/AnilistModels'
-
+import { BasicAnilist, Schedule, Weekday } from '../../types/types'
 @Injectable()
 export class AnilistScheduleService {
   constructor(private readonly prisma: PrismaService) {}

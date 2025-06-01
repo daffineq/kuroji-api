@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { AnilistAiringSchedule, Prisma } from '@prisma/client'
-import { BasicAnilist, BasicKitsu, BasicShikimori } from '../model/BasicAnilist'
-import { AnilistWithRelations, ScheduleData } from '../model/AnilistModels'
-import { ShikimoriWithRelations } from '../../shikimori/service/shikimori.service'
 import { getShikimoriInclude } from '../../shikimori/utils/shikimori-helper'
 import { getKitsuInclude } from '../../kitsu/util/kitsu-helper'
-import { KitsuWithRelations } from '../../kitsu/service/kitsu.service'
 import { PrismaService } from '../../../../prisma.service'
-import { FullMediaResponse } from '../model/AnilistResponse'
+import { FullMediaResponse, AnilistWithRelations, BasicAnilist, BasicShikimori, BasicKitsu, ScheduleData } from '../types/types'
+import { KitsuWithRelations } from '../../kitsu/types/types'
+import { ShikimoriWithRelations } from '../../shikimori/types/types'
 
 @Injectable()
 export class AnilistHelper {

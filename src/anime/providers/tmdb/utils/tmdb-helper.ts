@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { Prisma, TmdbSeasonEpisodeImages } from '@prisma/client'
-import { TmdbSeasonEpisodeImagesWithRelations, TmdbSeasonWithRelations, TmdbWithRelations } from '../service/tmdb.service'
+import { Prisma } from '@prisma/client'
+import { TmdbWithRelations, TmdbSeasonWithRelations, TmdbSeasonEpisodeImagesWithRelations } from '../types/types'
 
 @Injectable()
 export class TmdbHelper {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { BasicIdShik, Prisma, Shikimori } from '@prisma/client'
-import { ShikimoriWithRelations } from '../service/shikimori.service'
+import { ShikimoriWithRelations } from '../types/types'
 
 export type CreateShikimoriData = Prisma.ShikimoriCreateInput
 

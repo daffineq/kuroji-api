@@ -1,12 +1,7 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import {
-  AiredOn,
   BasicIdShik,
-  ReleasedOn,
   Shikimori,
-  ShikimoriPoster,
-  ShikimoriScreenshot,
-  ShikimoriVideo,
 } from '@prisma/client'
 import { PrismaService } from '../../../../prisma.service'
 import { UpdateType } from '../../../../update/UpdateType'
@@ -16,15 +11,7 @@ import { GraphQL } from '../graphql/shikimori.graphql'
 import { getShikimoriInclude, ShikimoriHelper, shikimoriToBasicId } from '../utils/shikimori-helper'
 import Dimens from '../../../../configs/Dimens'
 import { getUpdateData } from '../../../../update/update.util'
-
-export interface ShikimoriWithRelations extends Shikimori {
-  poster: ShikimoriPoster
-  airedOn: AiredOn
-  releasedOn: ReleasedOn
-  chronology: BasicIdShik[]
-  videos: ShikimoriVideo[]
-  screenshots: ShikimoriScreenshot[]
-}
+import { ShikimoriWithRelations } from '../types/types'
 
 @Injectable()
 export class ShikimoriService {

@@ -1,14 +1,8 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   DateDetails,
-  Tmdb,
-  TmdbLastEpisodeToAir,
-  TmdbNextEpisodeToAir,
-  TmdbReleaseSeason,
   TmdbSeason,
   TmdbSeasonEpisode,
-  TmdbSeasonEpisodeImages,
-  TmdbSeasonStillImage,
 } from '@prisma/client';
 import { TMDB } from '../../../../configs/tmdb.config';
 import { CustomHttpService } from '../../../../http/http.service';
@@ -17,49 +11,10 @@ import { findBestMatch, ExpectAnime, deepCleanTitle } from '../../../../mapper/m
 import { UpdateType } from '../../../../update/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service';
 import { TmdbHelper } from '../utils/tmdb-helper';
-import { AnilistWithRelations } from '../../anilist/model/AnilistModels'
 import { sleep } from '../../../../utils/utils'
 import { getUpdateData } from '../../../../update/update.util'
-
-export interface BasicTmdb {
-  id: number;
-  original_name: string;
-  media_type: string;
-  name: string;
-}
-
-export interface TmdbResponse {
-  results: BasicTmdb[];
-}
-
-export interface TmdbWithRelations extends Tmdb {
-  last_episode_to_air?: TmdbLastEpisodeToAir;
-  next_episode_to_air?: TmdbNextEpisodeToAir;
-  seasons: TmdbReleaseSeason[]
-}
-
-export interface TmdbSeasonWithRelations extends TmdbSeason {
-  episodes: TmdbSeasonEpisode[]
-}
-
-export interface TmdbSeasonEpisodeWithRelations extends TmdbSeasonEpisode {
-  images: TmdbSeasonEpisodeImagesWithRelations
-}
-
-export interface TmdbSeasonEpisodeImagesWithRelations extends TmdbSeasonEpisodeImages {
-  stills: TmdbSeasonStillImage[]
-}
-
-export enum TmdbStatus {
-  Rumored = "Rumored",
-  Planned = "Planned",
-  InProduction = "In Production",
-  PostProduction = "Post Production",
-  Released = "Released",
-  ReturningSeries = "Returning Series",
-  Ended = "Ended",
-  Canceled = "Canceled"
-}
+import { AnilistWithRelations } from '../../anilist/types/types'
+import { TmdbWithRelations, TmdbSeasonWithRelations, TmdbSeasonEpisodeWithRelations, TmdbResponse, TmdbSeasonEpisodeImagesWithRelations, BasicTmdb } from '../types/types'
 
 @Injectable()
 export class TmdbService {

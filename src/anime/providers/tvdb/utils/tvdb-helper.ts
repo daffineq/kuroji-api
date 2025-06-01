@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, TvdbLogin, TvdbLanguageTranslation, TvdbLanguage } from '@prisma/client';
+import { TvdbInput } from '../types/types'
 
 @Injectable()
 export class TvdbHelper {

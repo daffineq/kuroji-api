@@ -6,55 +6,12 @@ import { TmdbService } from '../../tmdb/service/tmdb.service'
 import { TvdbTokenService } from './token/tvdb.token.service'
 import { TVDB } from '../../../../configs/tvdb.config'
 import {
-  Tvdb,
-  TvdbAirDays,
-  TvdbAlias,
-  TvdbArtwork,
   TvdbLanguage,
   TvdbLanguageTranslation,
-  TvdbRemoteId,
-  TvdbTrailer,
 } from '@prisma/client'
 import { UpdateType } from '../../../../update/UpdateType'
 import { getUpdateData } from '../../../../update/update.util'
-
-export interface BasicTvdb {
-  id: number
-  name: string
-  slug: string
-  image: string
-}
-
-export interface SearchResponse {
-  data: {
-    movie: BasicTvdb
-    series: BasicTvdb
-    episode: BasicTvdb
-  }[]
-  status: string
-}
-
-export interface RemoteId {
-  id: string
-  type: number
-  sourceName: string
-}
-
-export interface TvdbWithRelations extends Tvdb {
-  status: TvdbStatus
-  aliases: TvdbAlias[]
-  artworks: TvdbArtwork[]
-  remoteIds: TvdbRemoteId[]
-  trailers: TvdbTrailer[]
-  airDays: TvdbAirDays
-}
-
-export enum TvdbStatus {
-  Continuing = 'Continuing',
-  Ended = 'Ended',
-  Cancelled = 'Cancelled',
-  Pilot = 'Pilot',
-}
+import { TvdbWithRelations, BasicTvdb, SearchResponse, TvdbInput } from '../types/types'
 
 @Injectable()
 export class TvdbService {

@@ -4,11 +4,11 @@ import { UpdateType } from '../../../../update/UpdateType';
 import { AnilistHelper, getAnilistFindUnique } from '../utils/anilist-helper';
 import { AnilistFetchService } from './helper/anilist.fetch.service'
 import { MediaType } from '../filter/Filter'
-import { AnilistWithRelations, AnilistResponse } from '../model/AnilistModels'
 import { AnilistUtilService } from './helper/anilist.util.service'
 import { ShikimoriService } from '../../shikimori/service/shikimori.service'
 import { KitsuService } from '../../kitsu/service/kitsu.service'
 import { getUpdateData } from '../../../../update/update.util'
+import { AnilistWithRelations, AnilistResponse } from '../types/types'
 
 @Injectable()
 export class AnilistService {

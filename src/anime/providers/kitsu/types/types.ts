@@ -1,3 +1,11 @@
+import { Kitsu, KitsuTitle, KitsuPosterImage, KitsuCoverImage } from '@prisma/client'
+
+export interface KitsuWithRelations extends Kitsu {
+  titles: KitsuTitle;
+  posterImage: KitsuPosterImage;
+  coverImage: KitsuCoverImage;
+}
+
 export interface KitsuAnime {
   id: string
   anilistId: number

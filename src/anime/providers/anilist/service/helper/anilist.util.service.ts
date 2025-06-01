@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { AnilistHelper, reorderAnilistItems } from '../../utils/anilist-helper'
-import { AnilistWithRelations } from '../../model/AnilistModels'
+import { AnilistWithRelations } from '../../types/types'
 
 @Injectable()
 export class AnilistUtilService {

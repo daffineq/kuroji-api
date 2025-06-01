@@ -1,19 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service'
 import { getKitsuInclude, KitsuHelper } from '../util/kitsu-helper'
-import { Kitsu, KitsuCoverImage, KitsuPosterImage, KitsuTitle } from '@prisma/client'
 import { KITSU } from '../../../../configs/kitsu.config'
 import { CustomHttpService } from '../../../../http/http.service'
 import { findBestMatch } from '../../../../mapper/mapper.helper'
 import { UpdateType } from '../../../../update/UpdateType'
 import { getUpdateData } from '../../../../update/update.util'
-import { KitsuAnime } from '../model/KitsuResponse'
-
-export interface KitsuWithRelations extends Kitsu {
-  titles: KitsuTitle;
-  posterImage: KitsuPosterImage;
-  coverImage: KitsuCoverImage;
-}
+import { KitsuWithRelations, KitsuAnime } from '../types/types'
 
 @Injectable()
 export class KitsuService {

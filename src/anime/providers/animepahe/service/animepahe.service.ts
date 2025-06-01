@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Animepahe, AnimepaheEpisode, AnimepaheExternalLink } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../../mapper/mapper.helper';
 import { UpdateType } from '../../../../update/UpdateType';
@@ -8,11 +7,7 @@ import { ANIME, IAnimeInfo, IAnimeResult, ISearch, ISource } from '@consumet/ext
 import { getUpdateData } from '../../../../update/update.util'
 import { CustomHttpService } from '../../../../http/http.service'
 import { UrlConfig } from '../../../../configs/url.config'
-
-export interface AnimepaheWithRelations extends Animepahe {
-  externalLinks: AnimepaheExternalLink[],
-  episodes: AnimepaheEpisode[],
-}
+import { AnimepaheWithRelations } from '../types/types'
 
 const animepahe = new ANIME.AnimePahe();
 

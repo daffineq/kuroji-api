@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../../../../prisma.service'
 import { ApiResponse } from '../../../../../shared/ApiResponse'
-import { BasicAnilist } from '../../model/BasicAnilist'
 import { AnilistService } from '../anilist.service'
 import { getPageInfo } from '../../../../../utils/utils'
 import { getAnilistInclude, mapToBasic } from '../../utils/anilist-helper'
+import { BasicAnilist } from '../../types/types'
 
 @Injectable()
 export class AnilistRecommendationService {

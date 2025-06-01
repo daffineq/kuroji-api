@@ -1,4 +1,44 @@
-interface TvdbInput {
+import { Tvdb, TvdbAlias, TvdbArtwork, TvdbRemoteId, TvdbTrailer, TvdbAirDays } from '@prisma/client'
+
+export interface BasicTvdb {
+  id: number
+  name: string
+  slug: string
+  image: string
+}
+
+export interface SearchResponse {
+  data: {
+    movie: BasicTvdb
+    series: BasicTvdb
+    episode: BasicTvdb
+  }[]
+  status: string
+}
+
+export interface RemoteId {
+  id: string
+  type: number
+  sourceName: string
+}
+
+export interface TvdbWithRelations extends Tvdb {
+  status: TvdbStatus
+  aliases: TvdbAlias[]
+  artworks: TvdbArtwork[]
+  remoteIds: TvdbRemoteId[]
+  trailers: TvdbTrailer[]
+  airDays: TvdbAirDays
+}
+
+export enum TvdbStatus {
+  Continuing = 'Continuing',
+  Ended = 'Ended',
+  Cancelled = 'Cancelled',
+  Pilot = 'Pilot',
+}
+
+export interface TvdbInput {
   id: number
   tmdbId?: number
   type?: string

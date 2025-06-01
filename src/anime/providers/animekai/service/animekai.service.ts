@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { AnimeKai, AnimekaiEpisode } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../../mapper/mapper.helper';
 import { UpdateType } from '../../../../update/UpdateType';
@@ -8,10 +7,7 @@ import { ANIME, IAnimeInfo, IAnimeResult, ISearch, ISource, StreamingServers, Su
 import { getUpdateData } from '../../../../update/update.util'
 import { CustomHttpService } from '../../../../http/http.service'
 import { UrlConfig } from '../../../../configs/url.config'
-
-export interface AnimekaiWithRelations extends AnimeKai {
-  episodes: AnimekaiEpisode[]
-}
+import { AnimekaiWithRelations } from '../types/types'
 
 const animekai = new ANIME.AnimeKai();
 
@@ -56,7 +52,7 @@ export class AnimekaiService {
     }) as AnimekaiWithRelations;
   }
 
-  async update(id: string): Promise<AnimeKai> {
+  async update(id: string): Promise<AnimekaiWithRelations> {
     const existingAnimekai = await this.prisma.animeKai.findFirst({
       where: { id },
       include: { episodes: true }
