@@ -378,7 +378,7 @@ export class UpdateService {
               await provider.update(lastUpdated.entityId)
               await sleep(SLEEP_BETWEEN_UPDATES, false)
             } else {
-              await sleep(0.01, false);
+              await sleep(0.1, false);
             }
 
             const lastDatePlusMonth = new Date(
