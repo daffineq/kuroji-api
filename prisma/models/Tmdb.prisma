@@ -26,6 +26,8 @@ model Tmdb {
   next_episode_to_air TmdbNextEpisodeToAir? @relation("NextEpisode")
   last_episode_to_air TmdbLastEpisodeToAir? @relation("LastEpisode")
   seasons            TmdbReleaseSeason[] @relation("TmdbReleaseSeason")
+  episodeSeasons     TmdbSeason[]
+  episodes           TmdbSeasonEpisode[]
 }
 
 // Add new model for episode info
@@ -76,7 +78,7 @@ model TmdbReleaseSeason {
   name          String?
   overview      String? // @Lob
   poster_path   String? // handle URL concatenation in your app logic
-  season_number Int?
+  season_number Int
   vote_average  Float?
 
   tmdb Tmdb[] @relation("TmdbReleaseSeason")
@@ -85,30 +87,56 @@ model TmdbReleaseSeason {
 model TmdbSeason {
   id            Int      @id
   air_date      String?
-  show_id       Int?     // although marked with @JsonIgnore, we keep it if you need it
+  show_id       Int     
   name          String?
-  overview      String?  // @Lob
-  poster_path   String?  // handle URL concatenation in your app logic
-  season_number Int?
+  overview      String?  
+  poster_path   String?  
+  season_number Int
   vote_average  Float?
 
+  show          Tmdb    @relation(fields: [show_id], references: [id])
   episodes      TmdbSeasonEpisode[] @relation("TmdbSeasonEpisode")
 }
 
 model TmdbSeasonEpisode {
   id             Int     @id
   air_date       String?
-  episode_number Int?
+  episode_number Int
   episode_type   String?
   name           String?
-  overview       String? // @Lob
+  overview       String? 
   production_code String?
   runtime        Int?
-  season_number  Int?
-  show_id        Int?
-  still_path     String? // handle URL concatenation in your app logic
+  season_number  Int
+  show_id        Int
+  season_id      Int?
+  still_path     String?
   vote_average   Float?
   vote_count     Int?
 
-  tmdbSeason TmdbSeason[] @relation("TmdbSeasonEpisode")
+  show          Tmdb    @relation(map: "TmdbSeasonEpisode_show_fkey", fields: [show_id], references: [id])
+  tmdbSeason    TmdbSeason? @relation("TmdbSeasonEpisode", fields: [season_id], references: [id])
+  images        TmdbSeasonEpisodeImages?
+}
+
+model TmdbSeasonEpisodeImages {
+  id      Int @id
+  episodeId Int @unique
+
+  stills TmdbSeasonStillImage[] @relation("TmdbSeasonEpisodeStills")
+  episode TmdbSeasonEpisode @relation(fields: [episodeId], references: [id])
+}
+
+model TmdbSeasonStillImage {
+  id Int @id @default(autoincrement())
+  aspect_ratio Float?
+  height  Int?
+  width   Int?
+  iso_639_1 String?
+  file_path String?
+  vote_average   Float?
+  vote_count     Int?
+
+  tmdbEpisodeImages TmdbSeasonEpisodeImages @relation("TmdbSeasonEpisodeStills", fields: [episodeImagesId], references: [id])
+  episodeImagesId Int
 }

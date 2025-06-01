@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
-import { TmdbSeasonWithRelations, TmdbWithRelations } from '../service/tmdb.service'
+import { Prisma, TmdbSeasonEpisodeImages } from '@prisma/client'
+import { TmdbSeasonEpisodeImagesWithRelations, TmdbSeasonWithRelations, TmdbWithRelations } from '../service/tmdb.service'
 
 @Injectable()
 export class TmdbHelper {
@@ -95,31 +95,61 @@ export class TmdbHelper {
     return {
       id: tmdb.id,
       air_date: tmdb.air_date ?? undefined,
-      show_id: tmdb.show_id ?? undefined,
       name: tmdb.name ?? undefined,
       overview: tmdb.overview ?? undefined,
       poster_path: tmdb.poster_path ?? undefined,
-      season_number: tmdb.season_number ?? undefined,
+      season_number: tmdb.season_number, // Required field
       vote_average: tmdb.vote_average ?? undefined,
       episodes: {
-        connectOrCreate: tmdb.episodes.map((e: any) => ({
+        connectOrCreate: tmdb.episodes?.map((e: any) => ({
           where: { id: e.id },
           create: {
-            id: e.id ?? undefined,
+            id: e.id,
             air_date: e.air_date ?? undefined,
-            episode_number: e.episode_number ?? undefined,
+            episode_number: e.episode_number,
             episode_type: e.episode_type ?? undefined,
             name: e.name ?? undefined,
             overview: e.overview ?? undefined,
             production_code: e.production_code ?? undefined,
             runtime: e.runtime ?? undefined,
-            season_number: e.season_number ?? undefined,
-            show_id: e.show_id ?? undefined,
+            season_number: e.season_number,
             still_path: e.still_path ?? undefined,
             vote_average: e.vote_average ?? undefined,
             vote_count: e.vote_count ?? undefined,
+            show: {
+              connect: {
+                id: e.show_id
+              }
+            }
           }
         })) ?? []
+      },
+      show: {
+        connect: {
+          id: tmdb.show_id
+        }
+      }
+    }
+  }
+
+  getTmdbEpisodeImagesData(tmdb: TmdbSeasonEpisodeImagesWithRelations): Prisma.TmdbSeasonEpisodeImagesCreateInput {
+    return {
+      id: tmdb.id,
+      stills: {
+        create: tmdb.stills.map(s => ({
+          aspect_ratio: s.aspect_ratio ?? null,
+          height: s.height ?? null,
+          width: s.width ?? null,
+          iso_639_1: s.iso_639_1 ?? null,
+          file_path: s.file_path ?? null,
+          vote_average: s.vote_average ?? null,
+          vote_count: s.vote_count ?? null,
+        })),
+      },
+      episode: {
+        connect: {
+          id: tmdb.episodeId,
+        },
       },
     }
   }

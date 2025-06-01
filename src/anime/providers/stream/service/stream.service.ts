@@ -10,7 +10,7 @@ import Redis from 'ioredis'
 import Config from '../../../../configs/Config'
 import { ISource } from '@consumet/extensions'
 import { TMDB } from '../../../../configs/tmdb.config'
-import { Episode, Provider, ProviderInfo, SourceType } from '../model/types'
+import { Episode, EpisodeDetails, EpisodeImage, Provider, ProviderInfo, SourceType } from '../model/types'
 
 @Injectable()
 export class StreamService {
@@ -70,11 +70,15 @@ export class StreamService {
 
         return {
           title: tmdbEpisode?.name || anilistEpisode?.title || zoroTitle,
-          image: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${tmdbEpisode?.still_path}` || anilistEpisode?.thumbnail || anilist?.coverImage?.extraLarge || "",
+          image: {
+            w300: `${TMDB.getImageUrl('w300')}${tmdbEpisode?.still_path}`,
+            w500: `${TMDB.getImageUrl('w500')}${tmdbEpisode?.still_path}`,
+            original: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${tmdbEpisode?.still_path}`,
+          },
           number,
           overview: tmdbEpisode?.overview ?? "",
           date: tmdbEpisode?.air_date || formattedDate || "",
-          duration: tmdbEpisode?.runtime || anilist?.duration || anilist?.shikimori?.duration || 0,
+          duration: tmdbEpisode?.runtime || anilist?.duration || anilist?.shikimori?.duration || anilist?.kitsu?.episodeLength || 0,
           filler,
           sub,
           dub,
@@ -94,8 +98,30 @@ export class StreamService {
     }
   }
 
-  async getEpisode(id: number, ep: number): Promise<Episode> {
-    return (await this.getEpisodes(id)).find(e => e.number === ep) as Episode;
+  async getEpisode(id: number, ep: number): Promise<EpisodeDetails> {
+    const details = await this.tmdb.getEpisodeDetailsByAnilist(id, ep);
+    const data = (await this.getEpisodes(id)).find(e => e.number === ep) as Episode;
+
+    const images: EpisodeImage[] = details.images.stills.map(s => {
+      return {
+        image: {
+          w300: `${TMDB.getImageUrl('w300')}${s.file_path}`,
+          w500: `${TMDB.getImageUrl('w500')}${s.file_path}`,
+          original: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${s.file_path}`,
+        },
+        aspectRation: s.aspect_ratio ?? 0,
+        height: s.height ?? 0,
+        width: s.width ?? 0,
+        iso_639_1: s.iso_639_1 ?? '',
+        voteAverage: s.vote_average ?? 0,
+        voteCount: s.vote_count ?? 0
+      }
+    })
+
+    return {
+      ...data,
+      images
+    }
   }
 
   async getProvidersSingle(id: number, ep: number): Promise<ProviderInfo[]> {

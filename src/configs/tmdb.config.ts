@@ -23,13 +23,13 @@ export class TMDB {
     return `${UrlConfig.TMDB}tv/${tvId}?api_key=${TMDB.API_KEY}`;
   }
 
-  // Episode Details
-  public static getEpisodeDetails(
+  // Episode Images
+  public static getEpisodeImages(
     tvId: number,
     seasonNumber: number,
     episodeNumber: number,
   ): string {
-    return `${UrlConfig.TMDB}tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}?api_key=${TMDB.API_KEY}`;
+    return `${UrlConfig.TMDB}tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}/images?api_key=${TMDB.API_KEY}`;
   }
 
   // Season Details

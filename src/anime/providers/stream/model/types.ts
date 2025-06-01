@@ -1,3 +1,5 @@
+import { TmdbSeasonEpisodeImagesWithRelations } from '../../tmdb/service/tmdb.service'
+
 export enum SourceType {
   soft_sub = 'soft_sub',
   hard_sub = 'hard_sub',
@@ -12,20 +14,40 @@ export enum Provider {
 }
 
 export interface Episode {
-  title: string | null
-  image: string
-  number: number | null
-  overview: string
-  date: string
-  duration: number
-  filler: boolean | null
-  sub: boolean | null
-  dub: boolean | null
+  title: string | null;
+  image: TmdbImage;
+  number: number | null;
+  overview: string;
+  date: string;
+  duration: number;
+  filler: boolean | null;
+  sub: boolean | null;
+  dub: boolean | null;
+}
+
+export interface EpisodeDetails extends Episode {
+  images: EpisodeImage[];
+}
+
+export interface EpisodeImage {
+  image: TmdbImage;
+  aspectRation: number;
+  height: number;
+  width: number;
+  iso_639_1: string;
+  voteAverage: number;
+  voteCount: number;
 }
 
 export interface ProviderInfo {
-  id: string,
-  filler: boolean,
-  provider: Provider,
-  type: SourceType
+  id: string;
+  filler: boolean;
+  provider: Provider;
+  type: SourceType;
+}
+
+export interface TmdbImage {
+  w300: string;
+  w500: string;
+  original: string;
 }
