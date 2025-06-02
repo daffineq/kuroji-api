@@ -94,8 +94,9 @@ export class AnilistService {
       throw new Error('No media found');
     }
 
-    if (existingAnilist.popularity == data.Page.media[0].popularity)
+    if (existingAnilist.updatedAt == data.Page.media[0].updatedAt) {
       throw new Error('No changes in anilist');
+    }
 
     await this.saveAnilist(data);
   }
