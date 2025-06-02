@@ -10,13 +10,13 @@ import { TmdbModule } from './anime/providers/tmdb/module/tmdb.module';
 import { TvdbModule } from './anime/providers/tvdb/module/tvdb.module';
 import { ZoroModule } from './anime/providers/zoro/module/zoro.module';
 import { UpdateModule } from './update/update.module';
-import { ExceptionsModule } from './exception/module/exceptions.module'
-import { ConsoleModule } from './console/module/console.module'
-import { Redis } from './shared/redis.module'
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
-import Config from './configs/Config'
-import { APP_GUARD } from '@nestjs/core'
-import { ScheduleModule } from '@nestjs/schedule'
+import { ExceptionsModule } from './exception/module/exceptions.module';
+import { ConsoleModule } from './console/module/console.module';
+import { Redis } from './shared/redis.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import Config from './configs/Config';
+import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -43,7 +43,7 @@ import { ScheduleModule } from '@nestjs/schedule'
         },
       ],
     }),
-    Redis
+    Redis,
   ],
   controllers: [AppController],
   providers: [

@@ -5,7 +5,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { AxiosRequestConfig } from 'axios';
 import { firstValueFrom } from 'rxjs';
-import { withRetry } from '../utils/utils'
+import { withRetry } from '../utils/utils';
 
 @Injectable()
 export class CustomHttpService {
@@ -31,7 +31,7 @@ export class CustomHttpService {
       }
 
       if (this.requestCount >= this.MAX_REQUESTS_PER_SECOND) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         continue;
       }
 
@@ -61,8 +61,8 @@ export class CustomHttpService {
 
   private async makeRequest<T>(request: () => Promise<T>): Promise<T> {
     return withRetry(async () => {
-      return this.enqueueRequest(request)
-    })
+      return this.enqueueRequest(request);
+    });
   }
 
   async getResponse<T>(
@@ -73,11 +73,11 @@ export class CustomHttpService {
     return this.makeRequest(async () => {
       const response = await firstValueFrom(
         this.httpService.get<T>(url, config),
-      )
-      const data = response.data as T
+      );
+      const data = response.data as T;
 
       if (jsonPath) {
-        return this.extractJson(data, jsonPath) as T
+        return this.extractJson(data, jsonPath) as T;
       }
 
       return data;
@@ -93,11 +93,11 @@ export class CustomHttpService {
     return this.makeRequest(async () => {
       const response = await firstValueFrom(
         this.httpService.post(url, body, config),
-      )
-      const data = response.data as T
+      );
+      const data = response.data as T;
 
       if (jsonPath) {
-        return this.extractJson(data, jsonPath) as T
+        return this.extractJson(data, jsonPath) as T;
       }
 
       return data;
@@ -113,15 +113,15 @@ export class CustomHttpService {
     return this.makeRequest(async () => {
       const response = await firstValueFrom(
         this.httpService.post(url, { query, variables }),
-      )
-      const data = response.data as T
+      );
+      const data = response.data as T;
 
       if (jsonPath) {
-        return this.extractJson(data, jsonPath) as T
+        return this.extractJson(data, jsonPath) as T;
       }
 
       if (data && typeof data === 'object' && 'data' in data) {
-        return (data as { data: T }).data
+        return (data as { data: T }).data;
       }
       return data;
     });

@@ -2,12 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
 import { ZoroHelper } from '../utils/zoro-helper';
 import { UpdateType } from '../../../../update/UpdateType';
-import { findBestMatch } from '../../../../mapper/mapper.helper'
-import { ANIME, IAnimeInfo, IAnimeResult, ISearch, ISource, StreamingServers, SubOrSub } from '@consumet/extensions'
-import { getUpdateData } from '../../../../update/update.util'
-import { CustomHttpService } from '../../../../http/http.service'
-import { UrlConfig } from '../../../../configs/url.config'
-import { ZoroWithRelations } from '../types/types'
+import { findBestMatch } from '../../../../mapper/mapper.helper';
+import {
+  ANIME,
+  IAnimeInfo,
+  IAnimeResult,
+  ISearch,
+  ISource,
+  StreamingServers,
+  SubOrSub,
+} from '@consumet/extensions';
+import { getUpdateData } from '../../../../update/update.util';
+import { CustomHttpService } from '../../../../http/http.service';
+import { UrlConfig } from '../../../../configs/url.config';
+import { ZoroWithRelations } from '../types/types';
 
 const zoro = new ANIME.Zoro();
 
@@ -16,15 +24,15 @@ export class ZoroService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly helper: ZoroHelper,
-    private readonly http: CustomHttpService
+    private readonly http: CustomHttpService,
   ) {}
 
   async getZoro(id: string): Promise<ZoroWithRelations> {
     const existingZoro = await this.prisma.zoro.findUnique({
       where: { id: id },
       include: {
-        episodes: true
-      }
+        episodes: true,
+      },
     });
 
     if (!existingZoro) {
@@ -38,8 +46,8 @@ export class ZoroService {
     const existingZoro = await this.prisma.zoro.findFirst({
       where: { alID: id },
       include: {
-        episodes: true
-      }
+        episodes: true,
+      },
     });
 
     if (!existingZoro) {
@@ -52,22 +60,30 @@ export class ZoroService {
   async saveZoro(zoro: IAnimeInfo): Promise<ZoroWithRelations> {
     await this.prisma.lastUpdated.upsert({
       where: { entityId: String(zoro.id) },
-      create: getUpdateData(String(zoro.id), zoro.alID ?? 0, UpdateType.ANIWATCH),
-      update: getUpdateData(String(zoro.id), zoro.alID ?? 0, UpdateType.ANIWATCH),
+      create: getUpdateData(
+        String(zoro.id),
+        zoro.alID ?? 0,
+        UpdateType.ANIWATCH,
+      ),
+      update: getUpdateData(
+        String(zoro.id),
+        zoro.alID ?? 0,
+        UpdateType.ANIWATCH,
+      ),
     });
 
     await this.prisma.zoro.upsert({
       where: { id: zoro.id },
       create: this.helper.getZoroData(zoro),
-      update: this.helper.getZoroData(zoro)
+      update: this.helper.getZoroData(zoro),
     });
 
-    return await this.prisma.zoro.findUnique({
+    return (await this.prisma.zoro.findUnique({
       where: { id: zoro.id },
       include: {
-        episodes: true
-      }
-    }) as ZoroWithRelations;
+        episodes: true,
+      },
+    })) as ZoroWithRelations;
   }
 
   async update(id: string): Promise<ZoroWithRelations> {
@@ -75,7 +91,7 @@ export class ZoroService {
       where: { id },
       include: {
         episodes: true,
-      }
+      },
     });
 
     if (!existingZoro) {
@@ -91,7 +107,7 @@ export class ZoroService {
   async getSources(episodeId: string, dub: boolean): Promise<ISource> {
     // return await zoro.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
     return this.http.getResponse(
-      UrlConfig.ZORO + 'watch/' + episodeId + '?dub=' + dub
+      UrlConfig.ZORO + 'watch/' + episodeId + '?dub=' + dub,
     );
   }
 
@@ -104,7 +120,7 @@ export class ZoroService {
     // return (await zoro.search(q)).results;
     return this.http.getResponse(UrlConfig.ZORO + q);
   }
-  
+
   async findZoroByAnilist(id: number): Promise<IAnimeInfo> {
     const anilist = await this.prisma.anilist.findUnique({
       where: { id: id },
@@ -124,15 +140,15 @@ export class ZoroService {
     if (!anilist) {
       throw new Error('Anilist not found');
     }
-    
+
     const searchResult = await this.searchZoro(
       (anilist.title as { romaji: string }).romaji,
     );
 
-    const results = searchResult.results.map(result => ({
+    const results = searchResult.results.map((result) => ({
       title: result.title,
       id: result.id,
-      episodes: result.sub
+      episodes: result.sub,
     }));
 
     const searchCriteria = {
@@ -142,7 +158,7 @@ export class ZoroService {
         native: anilist.title?.native || undefined,
       },
       year: anilist.seasonYear ?? undefined,
-      episodes: anilist.episodes ?? undefined
+      episodes: anilist.episodes ?? undefined,
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);

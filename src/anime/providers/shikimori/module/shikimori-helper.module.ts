@@ -3,6 +3,6 @@ import { ShikimoriHelper } from '../utils/shikimori-helper';
 
 @Module({
   providers: [ShikimoriHelper],
-  exports: [ShikimoriHelper]
+  exports: [ShikimoriHelper],
 })
 export class ShikimoriHelperModule {}

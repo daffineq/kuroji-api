@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TvdbController } from './tvdb.controller';
-import { SharedModule } from '../../../../shared/shared.module'
+import { SharedModule } from '../../../../shared/shared.module';
 
 describe('TvdbController', () => {
   let controller: TvdbController;

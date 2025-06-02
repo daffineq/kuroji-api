@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { StreamService } from './stream.service';
-import { HttpModule } from '@nestjs/axios'
-import { SharedModule } from '../../../../shared/shared.module'
+import { HttpModule } from '@nestjs/axios';
+import { SharedModule } from '../../../../shared/shared.module';
 
 describe('StreamService', () => {
   let service: StreamService;

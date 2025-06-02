@@ -1,6 +1,6 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { TmdbService } from '../service/tmdb.service';
-import e from 'express'
+import e from 'express';
 
 @Controller('anime')
 export class TmdbController {
@@ -18,8 +18,8 @@ export class TmdbController {
 
   @Get('info/:id/tmdb/season/:ep')
   async getTmdbSeasonEpisodeByAnilist(
-    @Param('id', ParseIntPipe) id: number, 
-    @Param('ep', ParseIntPipe) ep: number
+    @Param('id', ParseIntPipe) id: number,
+    @Param('ep', ParseIntPipe) ep: number,
   ) {
     return this.service.getEpisodeDetailsByAnilist(id, ep);
   }

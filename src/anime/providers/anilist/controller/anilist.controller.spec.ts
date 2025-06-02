@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AnilistController } from './anilist.controller';
-import { SharedModule } from '../../../../shared/shared.module'
+import { SharedModule } from '../../../../shared/shared.module';
 
 describe('AnilistController', () => {
   let controller: AnilistController;

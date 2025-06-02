@@ -8,11 +8,11 @@ export default class AnilistQueryBuilder {
 
   constructor() {
     this.variables.page = 1;
-    this.variables.perPage = Dimens.PER_PAGE
+    this.variables.perPage = Dimens.PER_PAGE;
   }
 
   public getByQuery(query: any): this {
-    console.log(query)
+    console.log(query);
 
     // Pagination
     if (query.page) this.setPage(+query.page);
@@ -25,7 +25,8 @@ export default class AnilistQueryBuilder {
     if (query.format) this.setFormat(query.format);
     if (query.season) this.setSeason(query.season);
     if (query.isAdult !== undefined) this.setIsAdult(query.isAdult === 'true');
-    if (query.isLicensed !== undefined) this.setIsLicensed(query.isLicensed === 'true');
+    if (query.isLicensed !== undefined)
+      this.setIsLicensed(query.isLicensed === 'true');
     if (query.countryOfOrigin) this.setCountryOfOrigin(query.countryOfOrigin);
 
     // ID filters
@@ -36,10 +37,12 @@ export default class AnilistQueryBuilder {
     if (query.idNotIn) this.setIdNotIn(query.idNotIn.split(',').map(Number));
     if (query.idMalNot) this.setIdMalNot(+query.idMalNot);
     if (query.idMalIn) this.setIdMalIn(query.idMalIn.split(',').map(Number));
-    if (query.idMalNotIn) this.setIdMalNotIn(query.idMalNotIn.split(',').map(Number));
+    if (query.idMalNotIn)
+      this.setIdMalNotIn(query.idMalNotIn.split(',').map(Number));
 
     // Date filters
-    if (query.startDateGreater) this.setStartDateGreater(query.startDateGreater);
+    if (query.startDateGreater)
+      this.setStartDateGreater(query.startDateGreater);
     if (query.startDateLesser) this.setStartDateLesser(query.startDateLesser);
     if (query.startDateLike) this.setStartDateLike(query.startDateLike);
     if (query.endDateGreater) this.setEndDateGreater(query.endDateGreater);
@@ -67,19 +70,26 @@ export default class AnilistQueryBuilder {
     if (query.genreNotIn) this.setGenreNotIn(query.genreNotIn.split(','));
     if (query.tagIn) this.setTagIn(query.tagIn.split(','));
     if (query.tagNotIn) this.setTagNotIn(query.tagNotIn.split(','));
-    if (query.tagCategoryIn) this.setTagCategoryIn(query.tagCategoryIn.split(','));
-    if (query.tagCategoryNotIn) this.setTagCategoryNotIn(query.tagCategoryNotIn.split(','));
+    if (query.tagCategoryIn)
+      this.setTagCategoryIn(query.tagCategoryIn.split(','));
+    if (query.tagCategoryNotIn)
+      this.setTagCategoryNotIn(query.tagCategoryNotIn.split(','));
 
     // License filters
     if (query.licensedByIn) this.setLicensedByIn(query.licensedByIn.split(','));
-    if (query.licensedByIdIn) this.setLicensedByIdIn(query.licensedByIdIn.split(','));
+    if (query.licensedByIdIn)
+      this.setLicensedByIdIn(query.licensedByIdIn.split(','));
 
     // Score and popularity filters
-    if (query.averageScoreGreater) this.setAverageScoreGreater(+query.averageScoreGreater);
-    if (query.averageScoreLesser) this.setAverageScoreLesser(+query.averageScoreLesser);
+    if (query.averageScoreGreater)
+      this.setAverageScoreGreater(+query.averageScoreGreater);
+    if (query.averageScoreLesser)
+      this.setAverageScoreLesser(+query.averageScoreLesser);
     if (query.averageScoreNot) this.setAverageScoreNot(+query.averageScoreNot);
-    if (query.popularityGreater) this.setPopularityGreater(+query.popularityGreater);
-    if (query.popularityLesser) this.setPopularityLesser(+query.popularityLesser);
+    if (query.popularityGreater)
+      this.setPopularityGreater(+query.popularityGreater);
+    if (query.popularityLesser)
+      this.setPopularityLesser(+query.popularityLesser);
     if (query.popularityNot) this.setPopularityNot(+query.popularityNot);
 
     // Source filters
@@ -90,7 +100,7 @@ export default class AnilistQueryBuilder {
       const sortArray = query.sort.split(',') as MediaSort[];
       this.setSort(sortArray);
     }
-    
+
     return this;
   }
 

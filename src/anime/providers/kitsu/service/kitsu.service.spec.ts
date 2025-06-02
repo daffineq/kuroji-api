@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { KitsuService } from './kitsu.service';
-import { SharedModule } from '../../../../shared/shared.module'
+import { SharedModule } from '../../../../shared/shared.module';
 
 describe('KitsuService', () => {
   let service: KitsuService;

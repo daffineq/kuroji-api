@@ -3,11 +3,19 @@ import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../../mapper/mapper.helper';
 import { UpdateType } from '../../../../update/UpdateType';
 import { AnimeKaiHelper } from '../utils/animekai-helper';
-import { ANIME, IAnimeInfo, IAnimeResult, ISearch, ISource, StreamingServers, SubOrSub } from "@consumet/extensions"
-import { getUpdateData } from '../../../../update/update.util'
-import { CustomHttpService } from '../../../../http/http.service'
-import { UrlConfig } from '../../../../configs/url.config'
-import { AnimekaiWithRelations } from '../types/types'
+import {
+  ANIME,
+  IAnimeInfo,
+  IAnimeResult,
+  ISearch,
+  ISource,
+  StreamingServers,
+  SubOrSub,
+} from '@consumet/extensions';
+import { getUpdateData } from '../../../../update/update.util';
+import { CustomHttpService } from '../../../../http/http.service';
+import { UrlConfig } from '../../../../configs/url.config';
+import { AnimekaiWithRelations } from '../types/types';
 
 const animekai = new ANIME.AnimeKai();
 
@@ -22,7 +30,7 @@ export class AnimekaiService {
   async getAnimekaiByAnilist(id: number): Promise<AnimekaiWithRelations> {
     const existingAnimekai = await this.prisma.animeKai.findFirst({
       where: { anilistId: id },
-      include: { episodes: true }
+      include: { episodes: true },
     });
 
     if (existingAnimekai) {
@@ -36,8 +44,16 @@ export class AnimekaiService {
   async saveAnimekai(animekai: IAnimeInfo): Promise<AnimekaiWithRelations> {
     await this.prisma.lastUpdated.upsert({
       where: { entityId: String(animekai.id) },
-      create: getUpdateData(String(animekai.id), animekai.anilistId ?? 0, UpdateType.ANIMEKAI),
-      update: getUpdateData(String(animekai.id), animekai.anilistId ?? 0, UpdateType.ANIMEKAI),
+      create: getUpdateData(
+        String(animekai.id),
+        animekai.anilistId ?? 0,
+        UpdateType.ANIMEKAI,
+      ),
+      update: getUpdateData(
+        String(animekai.id),
+        animekai.anilistId ?? 0,
+        UpdateType.ANIMEKAI,
+      ),
     });
 
     await this.prisma.animeKai.upsert({
@@ -46,16 +62,16 @@ export class AnimekaiService {
       create: this.helper.getAnimekaiData(animekai),
     });
 
-    return await this.prisma.animeKai.findUnique({
+    return (await this.prisma.animeKai.findUnique({
       where: { id: animekai.id },
-      include: { episodes: true }
-    }) as AnimekaiWithRelations;
+      include: { episodes: true },
+    })) as AnimekaiWithRelations;
   }
 
   async update(id: string): Promise<AnimekaiWithRelations> {
     const existingAnimekai = await this.prisma.animeKai.findFirst({
       where: { id },
-      include: { episodes: true }
+      include: { episodes: true },
     });
 
     const animekai = await this.fetchAnimekai(id);
@@ -72,15 +88,13 @@ export class AnimekaiService {
   async getSources(episodeId: string, dub: boolean): Promise<ISource> {
     // return await animekai.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
     return this.http.getResponse(
-      UrlConfig.ANIMEKAI + 'watch/' + episodeId + '?dub=' + dub
-    )
+      UrlConfig.ANIMEKAI + 'watch/' + episodeId + '?dub=' + dub,
+    );
   }
 
   async fetchAnimekai(id: string): Promise<IAnimeInfo> {
     // return await animekai.fetchAnimeInfo(id);
-    return this.http.getResponse(
-      UrlConfig.ANIMEKAI + 'info?id=' + id,
-    );
+    return this.http.getResponse(UrlConfig.ANIMEKAI + 'info?id=' + id);
   }
 
   async searchAnimekai(query: string): Promise<ISearch<IAnimeResult>> {
@@ -112,7 +126,7 @@ export class AnimekaiService {
       (anilist.title as { romaji: string }).romaji,
     );
 
-    const results = searchResult.results.map(result => ({
+    const results = searchResult.results.map((result) => ({
       title: result.title,
       id: result.id,
     }));
@@ -124,7 +138,7 @@ export class AnimekaiService {
         native: anilist.title?.native || undefined,
       },
       year: anilist.seasonYear ?? undefined,
-      episodes: anilist.episodes ?? undefined
+      episodes: anilist.episodes ?? undefined,
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);

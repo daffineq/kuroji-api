@@ -1,5 +1,5 @@
-import { Zoro, EpisodeZoro } from '@prisma/client'
+import { Zoro, EpisodeZoro } from '@prisma/client';
 
 export interface ZoroWithRelations extends Zoro {
-  episodes: EpisodeZoro[]
+  episodes: EpisodeZoro[];
 }

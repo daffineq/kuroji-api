@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TmdbController } from './tmdb.controller';
-import { SharedModule } from '../../../../shared/shared.module'
+import { SharedModule } from '../../../../shared/shared.module';
 
 describe('TmdbController', () => {
   let controller: TmdbController;

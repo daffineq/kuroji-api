@@ -1,23 +1,32 @@
-import { Injectable } from '@nestjs/common'
-import { AnilistAiringSchedule, Prisma } from '@prisma/client'
-import { getShikimoriInclude } from '../../shikimori/utils/shikimori-helper'
-import { getKitsuInclude } from '../../kitsu/util/kitsu-helper'
-import { PrismaService } from '../../../../prisma.service'
-import { FullMediaResponse, AnilistWithRelations, BasicAnilist, BasicShikimori, BasicKitsu, ScheduleData } from '../types/types'
-import { KitsuWithRelations } from '../../kitsu/types/types'
-import { ShikimoriWithRelations } from '../../shikimori/types/types'
+import { Injectable } from '@nestjs/common';
+import { AnilistAiringSchedule, EpisodeZoro, Prisma } from '@prisma/client';
+import { getShikimoriInclude } from '../../shikimori/utils/shikimori-helper';
+import { getKitsuInclude } from '../../kitsu/util/kitsu-helper';
+import { PrismaService } from '../../../../prisma.service';
+import {
+  AnilistWithRelations,
+  BasicAnilist,
+  BasicShikimori,
+  BasicKitsu,
+  ScheduleData,
+} from '../types/types';
+import { FullMediaResponse } from '../types/response';
+import { KitsuWithRelations } from '../../kitsu/types/types';
+import { ShikimoriWithRelations } from '../../shikimori/types/types';
 
 @Injectable()
 export class AnilistHelper {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  public async getDataForPrisma(anime: FullMediaResponse): Promise<Prisma.AnilistCreateInput> {
-    const isMalExist = anime.idMal ? !!(await this.prisma.anilist.findUnique({
-      where: { idMal: anime.idMal },
-      select: { id: true },
-    })) : false;
+  public async getDataForPrisma(
+    anime: FullMediaResponse,
+  ): Promise<Prisma.AnilistCreateInput> {
+    const isMalExist = anime.idMal
+      ? !!(await this.prisma.anilist.findUnique({
+          where: { idMal: anime.idMal },
+          select: { id: true },
+        }))
+      : false;
 
     return {
       id: anime.id,
@@ -29,8 +38,8 @@ export class AnilistHelper {
             romaji: anime.title?.romaji ?? null,
             english: anime.title?.english ?? null,
             native: anime.title?.native ?? null,
-          }
-        }
+          },
+        },
       },
       coverImage: {
         connectOrCreate: {
@@ -39,9 +48,9 @@ export class AnilistHelper {
             color: anime.coverImage?.color ?? null,
             large: anime.coverImage?.large ?? null,
             medium: anime.coverImage?.medium ?? null,
-            extraLarge: anime.coverImage?.extraLarge ?? null
-          }
-        }
+            extraLarge: anime.coverImage?.extraLarge ?? null,
+          },
+        },
       },
       bannerImage: anime.bannerImage,
       status: anime.status,
@@ -55,9 +64,9 @@ export class AnilistHelper {
           create: {
             day: anime.startDate?.day ?? null,
             month: anime.startDate?.month ?? null,
-            year: anime.startDate?.year ?? null
-          }
-        }
+            year: anime.startDate?.year ?? null,
+          },
+        },
       },
       endDate: {
         connectOrCreate: {
@@ -65,9 +74,9 @@ export class AnilistHelper {
           create: {
             day: anime.endDate?.day ?? null,
             month: anime.endDate?.month ?? null,
-            year: anime.endDate?.year ?? null
-          }
-        }
+            year: anime.endDate?.year ?? null,
+          },
+        },
       },
       season: anime.season,
       seasonYear: anime.seasonYear,
@@ -77,16 +86,18 @@ export class AnilistHelper {
       isLicensed: anime.isLicensed,
       source: anime.source,
       hashtag: anime.hashtag,
-      trailer: anime.trailer ? {
-        connectOrCreate: {
-          where: { id: anime.trailer?.id },
-          create: {
-            id: anime.trailer?.id ?? undefined,
-            site: anime.trailer?.site ?? null,
-            thumbnail: anime.trailer?.thumbnail ?? null
+      trailer: anime.trailer
+        ? {
+            connectOrCreate: {
+              where: { id: anime.trailer?.id },
+              create: {
+                id: anime.trailer?.id ?? undefined,
+                site: anime.trailer?.site ?? null,
+                thumbnail: anime.trailer?.thumbnail ?? null,
+              },
+            },
           }
-        }
-      } : undefined,
+        : undefined,
       isLocked: anime.isLocked,
       isAdult: anime.isAdult,
       averageScore: anime.averageScore,
@@ -98,106 +109,119 @@ export class AnilistHelper {
       genres: anime.genres,
       synonyms: anime.synonyms,
       recommendations: {
-        connectOrCreate: anime.recommendations?.edges
-          ?.filter((edge: any) => edge?.node?.mediaRecommendation?.id != null)
-          .map((edge: any) => ({
-            where: { id: edge.node.mediaRecommendation.id },
-            create: {
-              id: edge.node.mediaRecommendation.id,
-              idMal: edge.node.mediaRecommendation.idMal ?? null
-            }
-          })) ?? []
+        connectOrCreate:
+          anime.recommendations?.edges
+            ?.filter((edge) => edge?.node?.mediaRecommendation?.id != null)
+            .map((edge) => ({
+              where: { id: edge.node.mediaRecommendation.id },
+              create: {
+                id: edge.node.mediaRecommendation.id,
+                idMal: edge.node.mediaRecommendation.idMal ?? null,
+              },
+            })) ?? [],
       },
       characters: {
-        connectOrCreate: anime.characters?.edges
-          ?.filter((edge: any) => edge?.id && edge?.node?.id)
-          .map((edge: any) => ({
-            where: { id: edge.id },
-            create: {
-              id: edge.id,
-              role: edge.role ?? null,
-              character: {
-                connectOrCreate: {
-                  where: { id: edge.node.id },
-                  create: {
-                    id: edge.node.id,
-                    name: edge.node.name ? {
-                      create: {
-                        full: edge.node.name.full ?? null,
-                        native: edge.node.name.native ?? null,
-                        alternative: edge.node.name.alternative ?? []
-                      }
-                    } : undefined,
-                    image: edge.node.image ? {
-                      create: {
-                        large: edge.node.image.large ?? null,
-                        medium: edge.node.image.medium ?? null
-                      }
-                    } : undefined,
-                  }
-                }
-              },
-              voiceActors: {
-                connectOrCreate: edge.voiceActors
-                  ?.filter((va: any) => va?.id)
-                  .map((va: any) => ({
-                    where: { id: va.id },
+        connectOrCreate:
+          anime.characters?.edges
+            ?.filter((edge) => edge?.id && edge?.node?.id)
+            .map((edge) => ({
+              where: { id: edge.id },
+              create: {
+                id: edge.id,
+                role: edge.role ?? null,
+                character: {
+                  connectOrCreate: {
+                    where: { id: edge.node.id },
                     create: {
-                      id: va.id,
-                      language: va.languageV2 ?? null,
-                      name: va.name ? {
+                      id: edge.node.id,
+                      name: edge.node.name
+                        ? {
+                            create: {
+                              full: edge.node.name.full ?? null,
+                              native: edge.node.name.native ?? null,
+                              alternative: edge.node.name.alternative ?? [],
+                            },
+                          }
+                        : undefined,
+                      image: edge.node.image
+                        ? {
+                            create: {
+                              large: edge.node.image.large ?? null,
+                              medium: edge.node.image.medium ?? null,
+                            },
+                          }
+                        : undefined,
+                    },
+                  },
+                },
+                voiceActors: {
+                  connectOrCreate:
+                    edge.voiceActors
+                      ?.filter((va) => va?.id)
+                      .map((va) => ({
+                        where: { id: va.id },
                         create: {
-                          full: va.name.full ?? null,
-                          native: va.name.native ?? null,
-                          alternative: va.name.alternative ?? []
-                        }
-                      } : undefined,
-                      image: va.image ? {
-                        create: {
-                          large: va.image.large ?? null,
-                          medium: va.image.medium ?? null
-                        }
-                      } : undefined
-                    }
-                  })) ?? []
-              }
-            }
-          })) ?? []
+                          id: va.id,
+                          language: va.languageV2 ?? null,
+                          name: va.name
+                            ? {
+                                create: {
+                                  full: va.name.full ?? null,
+                                  native: va.name.native ?? null,
+                                  alternative: va.name.alternative ?? [],
+                                },
+                              }
+                            : undefined,
+                          image: va.image
+                            ? {
+                                create: {
+                                  large: va.image.large ?? null,
+                                  medium: va.image.medium ?? null,
+                                },
+                              }
+                            : undefined,
+                        },
+                      })) ?? [],
+                },
+              },
+            })) ?? [],
       },
       studios: {
-        connectOrCreate: anime.studios?.edges
-          ?.filter((edge: any) => edge?.id && edge?.node?.id)
-          .map((edge: any) => ({
-            where: { id: edge.id },
-            create: {
-              id: edge.id,
-              isMain: edge.isMain ?? false,
-              studio: {
-                connectOrCreate: {
-                  where: { id: edge.node.id },
-                  create: {
-                    id: edge.node.id,
-                    name: edge.node.name ?? null
-                  }
-                }
-              }
-            }
-          })) ?? []
+        connectOrCreate:
+          anime.studios?.edges
+            ?.filter((edge) => edge?.id && edge?.node?.id)
+            .map((edge) => ({
+              where: { id: edge.id },
+              create: {
+                id: edge.id,
+                isMain: edge.isMain ?? false,
+                studio: {
+                  connectOrCreate: {
+                    where: { id: edge.node.id },
+                    create: {
+                      id: edge.node.id,
+                      name: edge.node.name ?? null,
+                    },
+                  },
+                },
+              },
+            })) ?? [],
       },
       airingSchedule: {
-        connectOrCreate: anime.airingSchedule?.edges
-          ?.filter((edge: any) => edge?.node?.id)
-          .map((edge: any) => ({
-            where: { id: edge.node.id },
-            create: {
-              id: edge.node.id,
-              episode: edge.node.episode ?? null,
-              airingAt: edge.node.airingAt ?? null,
-            }
-          })) ?? []
+        connectOrCreate:
+          anime.airingSchedule?.edges
+            ?.filter((edge) => edge?.node?.id)
+            .map((edge) => ({
+              where: { id: edge.node.id },
+              create: {
+                id: edge.node.id,
+                episode: edge.node.episode ?? null,
+                airingAt: edge.node.airingAt ?? null,
+              },
+            })) ?? [],
       },
       tags: {
-        connectOrCreate: anime.tags?.map((tag: any) => ({
+        connectOrCreate: anime.tags?.map((tag) => ({
           where: { id: tag.id },
           create: {
             id: tag.id,
@@ -207,11 +231,11 @@ export class AnilistHelper {
             rank: tag.rank ?? null,
             isSpoiler: tag.isGeneralSpoiler ?? false,
             isAdult: tag.isAdult ?? false,
-          }
-        }))
+          },
+        })),
       },
       rankings: {
-        connectOrCreate: anime.rankings?.map((ranking: any) => ({
+        connectOrCreate: anime.rankings?.map((ranking) => ({
           where: { id: ranking.id },
           create: {
             id: ranking.id,
@@ -222,51 +246,57 @@ export class AnilistHelper {
             season: ranking.season ?? null,
             allTime: ranking.allTime ?? false,
             context: ranking.context ?? null,
-          }
-        }))
+          },
+        })),
       },
       externalLinks: {
-        connectOrCreate: anime.externalLinks?.map((link: any) => ({
-          where: { id: link.id },
-          create: {
-            id: link.id,
-            url: link.url ?? null,
-            site: link.site ?? null,
-            siteId: link.siteId ?? null,
-            type: link.type ?? null,
-            language: link.language ?? null,
-            color: link.color ?? null,
-            icon: link.icon ?? null,
-            notes: link.notes ?? null,
-            isDisabled: link.isDisabled ?? false
-          }
-        })) ?? []
+        connectOrCreate:
+          anime.externalLinks?.map((link) => ({
+            where: { id: link.id },
+            create: {
+              id: link.id,
+              url: link.url ?? null,
+              site: link.site ?? null,
+              siteId: link.siteId ?? null,
+              type: link.type ?? null,
+              language: link.language ?? null,
+              color: link.color ?? null,
+              icon: link.icon ?? null,
+              notes: link.notes ?? null,
+              isDisabled: link.isDisabled ?? false,
+            },
+          })) ?? [],
       },
       streamingEpisodes: {
-        create: anime.streamingEpisodes?.map((episode: any) => ({
-          title: episode.title ?? null,
-          thumbnail: episode.thumbnail ?? null,
-          url: episode.url ?? null,
-          site: episode.site ?? null
-        })) ?? []
+        create:
+          anime.streamingEpisodes?.map((episode) => ({
+            title: episode.title ?? null,
+            thumbnail: episode.thumbnail ?? null,
+            url: episode.url ?? null,
+            site: episode.site ?? null,
+          })) ?? [],
       },
       scoreDistribution: {
-        create: anime.stats.scoreDistribution?.map((score: any) => ({
-          score: score.score ?? null,
-          amount: score.amount ?? null,
-        })) ?? []
+        create:
+          anime.stats.scoreDistribution?.map((score) => ({
+            score: score.score ?? null,
+            amount: score.amount ?? null,
+          })) ?? [],
       },
       statusDistribution: {
-        create: anime.stats.statusDistribution?.map((status: any) => ({
-          status: status.status ?? null,
-          amount: status.amount ?? null,
-        })) ?? []
+        create:
+          anime.stats.statusDistribution?.map((status) => ({
+            status: status.status ?? null,
+            amount: status.amount ?? null,
+          })) ?? [],
       },
-    }
+    };
   }
 }
 
-export function convertAnilistToBasic(anilist: AnilistWithRelations): BasicAnilist {
+export function convertAnilistToBasic(
+  anilist: AnilistWithRelations,
+): BasicAnilist {
   return {
     id: anilist.id,
     idMal: anilist.idMal ?? undefined,
@@ -282,8 +312,12 @@ export function convertAnilistToBasic(anilist: AnilistWithRelations): BasicAnili
     season: anilist.season ?? undefined,
     seasonYear: anilist.seasonYear ?? undefined,
     episodes: anilist.episodes ?? undefined,
-    sub: anilist?.zoro?.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
-    dub: anilist?.zoro?.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
+    sub:
+      anilist?.zoro?.episodes?.filter((e: EpisodeZoro) => e.isSubbed)?.length ??
+      0,
+    dub:
+      anilist?.zoro?.episodes?.filter((e: EpisodeZoro) => e.isDubbed)?.length ??
+      0,
     duration: anilist.duration ?? undefined,
     countryOfOrigin: anilist.countryOfOrigin ?? undefined,
     popularity: anilist.popularity ?? undefined,
@@ -292,15 +326,19 @@ export function convertAnilistToBasic(anilist: AnilistWithRelations): BasicAnili
     isLocked: anilist.isLocked ?? undefined,
     isAdult: anilist.isAdult ?? undefined,
     genres: anilist.genres ?? undefined,
-    nextAiringEpisode: findNextAiringInSchedule(anilist?.airingSchedule ?? null),
+    nextAiringEpisode: findNextAiringInSchedule(
+      anilist?.airingSchedule ?? null,
+    ),
     shikimori: convertShikimoriToBasic(anilist?.shikimori),
     kitsu: convertKitsuToBasic(anilist?.kitsu),
-  }
+  };
 }
 
-export function convertShikimoriToBasic(shikimori?: ShikimoriWithRelations): BasicShikimori | undefined {
+export function convertShikimoriToBasic(
+  shikimori?: ShikimoriWithRelations,
+): BasicShikimori | undefined {
   if (!shikimori) {
-    return undefined
+    return undefined;
   }
   return {
     id: shikimori.id,
@@ -311,13 +349,15 @@ export function convertShikimoriToBasic(shikimori?: ShikimoriWithRelations): Bas
     episodesAired: shikimori.episodesAired ?? undefined,
     url: shikimori.url ?? undefined,
     franchise: shikimori.franchise ?? undefined,
-    poster: shikimori.poster ?? undefined
-  }
+    poster: shikimori.poster ?? undefined,
+  };
 }
 
-export function convertKitsuToBasic(kitsu?: KitsuWithRelations): BasicKitsu | undefined {
+export function convertKitsuToBasic(
+  kitsu?: KitsuWithRelations,
+): BasicKitsu | undefined {
   if (!kitsu) {
-    return undefined
+    return undefined;
   }
   return {
     id: kitsu.id,
@@ -331,52 +371,49 @@ export function convertKitsuToBasic(kitsu?: KitsuWithRelations): BasicKitsu | un
     ageRatingGuide: kitsu.ageRatingGuide ?? undefined,
     posterImage: kitsu.posterImage ?? undefined,
     coverImage: kitsu.coverImage ?? undefined,
-    showType: kitsu.showType ?? undefined
-  }
+    showType: kitsu.showType ?? undefined,
+  };
 }
 
-export function getAnilistFindUnique(id: number): any {
+export function getAnilistFindUnique(id: number): Prisma.AnilistFindUniqueArgs {
   const findUnique = {
-    omit: {
-      recommendations: true,
-    },
     where: { id },
     include: getAnilistInclude(),
-  }
+  };
 
-  return findUnique
+  return findUnique;
 }
 
-export function getAnilistInclude(): any {
+export function getAnilistInclude(): Prisma.AnilistInclude {
   const include = {
     title: {
       omit: {
         id: true,
         anilistId: true,
-      }
+      },
     },
     coverImage: {
       omit: {
         id: true,
         anilistId: true,
-      }
+      },
     },
     startDate: {
       omit: {
         id: true,
         anilistId: true,
-      }
+      },
     },
     endDate: {
       omit: {
         id: true,
         anilistId: true,
-      }
+      },
     },
     trailer: {
       omit: {
         anilistId: true,
-      }
+      },
     },
     studios: {
       omit: {
@@ -384,46 +421,46 @@ export function getAnilistInclude(): any {
         studioId: true,
       },
       include: {
-        studio: true
-      }
+        studio: true,
+      },
     },
     airingSchedule: {
       omit: {
         anilistId: true,
-      }
+      },
     },
     tags: {
       omit: {
         anilistId: true,
-      }
+      },
     },
     rankings: {
       omit: {
         anilistId: true,
-      }
+      },
     },
     externalLinks: {
       omit: {
         anilistId: true,
-      }
+      },
     },
     streamingEpisodes: {
       omit: {
         id: true,
         anilistId: true,
-      }
+      },
     },
     scoreDistribution: {
       omit: {
         id: true,
         anilistId: true,
-      }
+      },
     },
     statusDistribution: {
       omit: {
         id: true,
         anilistId: true,
-      }
+      },
     },
     shikimori: {
       include: getShikimoriInclude(),
@@ -434,22 +471,29 @@ export function getAnilistInclude(): any {
     zoro: {
       include: {
         episodes: true,
-      }
-    }
-  }
+      },
+    },
+  };
 
-  return include
+  return include;
 }
 
-export function createScheduleData(data: BasicAnilist[] = [], current: boolean): ScheduleData {
+export function createScheduleData(
+  data: BasicAnilist[] = [],
+  current: boolean,
+): ScheduleData {
   return {
     current,
-    data: data.sort((a, b) => a.nextAiringEpisode?.airingAt!! - b.nextAiringEpisode?.airingAt!!),
-  }
+    data: data.sort((a, b) => {
+      const aAiring = a.nextAiringEpisode?.airingAt ?? Infinity;
+      const bAiring = b.nextAiringEpisode?.airingAt ?? Infinity;
+      return aAiring - bAiring;
+    }),
+  };
 }
 
 export function reorderAnilistItems(raw: AnilistWithRelations) {
-  if (!raw) return null
+  if (!raw) return null;
 
   return {
     id: raw.id,
@@ -467,8 +511,10 @@ export function reorderAnilistItems(raw: AnilistWithRelations) {
     season: raw.season,
     seasonYear: raw.seasonYear,
     episodes: raw.episodes,
-    sub: raw?.zoro?.episodes?.filter((e: any) => e.isSubbed)?.length ?? 0,
-    dub: raw?.zoro?.episodes?.filter((e: any) => e.isDubbed)?.length ?? 0,
+    sub:
+      raw?.zoro?.episodes?.filter((e: EpisodeZoro) => e.isSubbed)?.length ?? 0,
+    dub:
+      raw?.zoro?.episodes?.filter((e: EpisodeZoro) => e.isDubbed)?.length ?? 0,
     duration: raw.duration,
     countryOfOrigin: raw.countryOfOrigin,
     isLicensed: raw.isLicensed,
@@ -498,25 +544,25 @@ export function reorderAnilistItems(raw: AnilistWithRelations) {
     statusDistribution: raw.statusDistribution,
     shikimori: raw.shikimori,
     kitsu: raw.kitsu,
-  }
+  };
 }
 
 export function mapToBasic(data: AnilistWithRelations[]): BasicAnilist[] {
-  return data.map((anilist) =>
-    convertAnilistToBasic(anilist),
-  )
+  return data.map((anilist) => convertAnilistToBasic(anilist));
 }
 
-export function findNextAiringInSchedule(data: AnilistAiringSchedule[] | null): AnilistAiringSchedule | undefined {
+export function findNextAiringInSchedule(
+  data: AnilistAiringSchedule[] | null,
+): AnilistAiringSchedule | undefined {
   if (!data) {
-    throw new Error("No airing schedule")
+    throw new Error('No airing schedule');
   }
 
   const now = new Date().getTime();
   const nowUnix = Math.floor(now / 1000);
 
-  let nextAiring: AnilistAiringSchedule | undefined = undefined
-  let smallestFutureAiringTime = Infinity
+  let nextAiring: AnilistAiringSchedule | undefined = undefined;
+  let smallestFutureAiringTime = Infinity;
 
   for (const schedule of data) {
     if (schedule.airingAt && schedule.airingAt > nowUnix) {

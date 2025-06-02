@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../prisma.service';
 import { UpdateService } from './update.service';
-import { SharedModule } from '../shared/shared.module'
+import { SharedModule } from '../shared/shared.module';
 
 describe('UpdateService', () => {
   let service: UpdateService;

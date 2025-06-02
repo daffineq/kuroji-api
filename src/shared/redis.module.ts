@@ -1,6 +1,6 @@
-import { RedisModule } from '@nestjs-modules/ioredis'
-import { Module } from '@nestjs/common'
-import Config from '../configs/Config'
+import { RedisModule } from '@nestjs-modules/ioredis';
+import { Module } from '@nestjs/common';
+import Config from '../configs/Config';
 
 @Module({
   imports: [
@@ -11,8 +11,8 @@ import Config from '../configs/Config'
         port: Config.REDIS_PORT ?? 6379,
         password: Config.REDIS_PASSWORD ?? '',
       },
-      type: 'single'
+      type: 'single',
     }),
-  ]
+  ],
 })
 export class Redis {}

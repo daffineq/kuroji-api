@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common'
-import { BasicIdShik, Prisma, Shikimori } from '@prisma/client'
-import { ShikimoriWithRelations } from '../types/types'
+import { Injectable } from '@nestjs/common';
+import { BasicIdShik, Prisma, Shikimori } from '@prisma/client';
+import { ShikimoriWithRelations } from '../types/types';
 
-export type CreateShikimoriData = Prisma.ShikimoriCreateInput
+export type CreateShikimoriData = Prisma.ShikimoriCreateInput;
 
 @Injectable()
 export class ShikimoriHelper {
@@ -31,92 +31,94 @@ export class ShikimoriHelper {
 
       poster: anime.poster
         ? {
-          connectOrCreate: {
-            where: { id: anime.poster.id },
-            create: {
-              id: anime.poster.id,
-              originalUrl: anime.poster.originalUrl,
-              mainUrl: anime.poster.mainUrl,
+            connectOrCreate: {
+              where: { id: anime.poster.id },
+              create: {
+                id: anime.poster.id,
+                originalUrl: anime.poster.originalUrl,
+                mainUrl: anime.poster.mainUrl,
+              },
             },
-          },
-        }
+          }
         : undefined,
 
       airedOn: anime.airedOn
         ? {
-          connectOrCreate: {
-            where: { shikimoriId: anime.id },
-            create: {
-              year: anime.airedOn.year,
-              month: anime.airedOn.month,
-              day: anime.airedOn.day,
-              date: anime.airedOn.date,
-            }
-          },
-        }
+            connectOrCreate: {
+              where: { shikimoriId: anime.id },
+              create: {
+                year: anime.airedOn.year,
+                month: anime.airedOn.month,
+                day: anime.airedOn.day,
+                date: anime.airedOn.date,
+              },
+            },
+          }
         : undefined,
 
       releasedOn: anime.releasedOn
         ? {
-          connectOrCreate: {
-            where: { shikimoriId: anime.id },
-            create: {
-              year: anime.airedOn.year,
-              month: anime.airedOn.month,
-              day: anime.airedOn.day,
-              date: anime.airedOn.date,
-            }
-          },
-        }
+            connectOrCreate: {
+              where: { shikimoriId: anime.id },
+              create: {
+                year: anime.airedOn.year,
+                month: anime.airedOn.month,
+                day: anime.airedOn.day,
+                date: anime.airedOn.date,
+              },
+            },
+          }
         : undefined,
 
       chronology: anime.chronology?.length
         ? {
-          connectOrCreate: anime.chronology.map((c) => ({
-            where: { id: c.id },
-            create: {
-              id: c.id,
-              malId: c.malId ?? null,
-            },
-          })),
-        }
+            connectOrCreate: anime.chronology.map((c) => ({
+              where: { id: c.id },
+              create: {
+                id: c.id,
+                malId: c.malId ?? null,
+              },
+            })),
+          }
         : undefined,
 
       videos: anime.videos?.length
         ? {
-          connectOrCreate: anime.videos.map((v) => ({
-            where: { id: v.id },
-            create: {
-              id: v.id,
-              url: v.url,
-              name: v.name,
-              kind: v.kind,
-              playerUrl: v.playerUrl,
-              imageUrl: v.imageUrl,
-            },
-          })),
-        }
+            connectOrCreate: anime.videos.map((v) => ({
+              where: { id: v.id },
+              create: {
+                id: v.id,
+                url: v.url,
+                name: v.name,
+                kind: v.kind,
+                playerUrl: v.playerUrl,
+                imageUrl: v.imageUrl,
+              },
+            })),
+          }
         : undefined,
 
       screenshots: anime.screenshots?.length
         ? {
-          connectOrCreate: anime.screenshots.map((s) => ({
-            where: { id: s.id },
-            create: {
-              id: s.id,
-              originalUrl: s.originalUrl,
-              x166Url: s.x166Url,
-              x332Url: s.x332Url,
-            },
-          })),
-        }
+            connectOrCreate: anime.screenshots.map((s) => ({
+              where: { id: s.id },
+              create: {
+                id: s.id,
+                originalUrl: s.originalUrl,
+                x166Url: s.x166Url,
+                x332Url: s.x332Url,
+              },
+            })),
+          }
         : undefined,
-      anilist: anime.malId ? {
-        connect: {
-          idMal: +anime.malId
-        }
-      } : undefined
-    }
+      anilist: anime.malId
+        ? {
+            connect: {
+              idMal: +anime.malId,
+            },
+          }
+        : undefined,
+    };
   }
 }
 
@@ -124,31 +126,31 @@ export function shikimoriToBasicId(shikimori: Shikimori): BasicIdShik {
   return {
     id: shikimori.id,
     malId: String(shikimori.malId),
-  }
+  };
 }
 
-export function getShikimoriInclude(): any {
+export function getShikimoriInclude(): Prisma.ShikimoriInclude {
   const include = {
     poster: {
       omit: {
-        shikimoriId: true
-      }
+        shikimoriId: true,
+      },
     },
     airedOn: {
       omit: {
         id: true,
         shikimoriId: true,
-      }
+      },
     },
     releasedOn: {
       omit: {
         id: true,
         shikimoriId: true,
-      }
+      },
     },
     videos: true,
     screenshots: true,
-  }
+  };
 
-  return include
+  return include;
 }

@@ -1,9 +1,8 @@
 import Config from './Config';
-import { UrlConfig } from './url.config'
+import { UrlConfig } from './url.config';
 
 export class TMDB {
-  public static readonly API_KEY: string =
-    Config.TMDB_API || '';
+  public static readonly API_KEY: string = Config.TMDB_API || '';
   public static readonly IMAGE_BASE_URL: string = 'https://image.tmdb.org/t/p/';
   public static readonly IMAGE_BASE_ORIGINAL_URL: string =
     TMDB.getImageUrl('original');

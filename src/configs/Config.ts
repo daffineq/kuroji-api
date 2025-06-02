@@ -14,23 +14,32 @@ export default class Config {
   public static readonly JIKAN = process.env.JIKAN;
   public static readonly KITSU = process.env.KITSU;
 
-  public static readonly TMDB_API = process.env.TMDB_API ?? '5201b54eb0968700e693a30576d7d4dc';
+  public static readonly TMDB_API =
+    process.env.TMDB_API ?? '5201b54eb0968700e693a30576d7d4dc';
   public static readonly TVDB_API = process.env.TVDB_API;
-  
+
   public static readonly REDIS_USERNAME = process.env.REDIS_USERNAME;
   public static readonly REDIS_HOST = process.env.REDIS_HOST;
-  public static readonly REDIS_PORT: number = parseInt(process.env.REDIS_PORT ?? '0');
+  public static readonly REDIS_PORT: number = parseInt(
+    process.env.REDIS_PORT ?? '0',
+  );
   public static readonly REDIS_PASSWORD = process.env.REDIS_PASSWORD;
 
-  public static readonly REDIS =
-    (process.env.REDIS ?? 'true') === 'true';
-  public static readonly REDIS_TIME = process.env.REDIS_TIME ? parseInt(process.env.REDIS_TIME) : 3600;
+  public static readonly REDIS = (process.env.REDIS ?? 'true') === 'true';
+  public static readonly REDIS_TIME = process.env.REDIS_TIME
+    ? parseInt(process.env.REDIS_TIME)
+    : 3600;
 
-  public static readonly CORS: string[] = (process.env.CORS ?? '').split(',').map(s => s.trim()).filter(Boolean);
+  public static readonly CORS: string[] = (process.env.CORS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   public static readonly RATE_LIMIT: number =
     process.env.RATE_LIMIT && parseInt(process.env.RATE_LIMIT) != 0
       ? parseInt(process.env.RATE_LIMIT)
       : Infinity;
-  public static readonly RATE_LIMIT_TTL: number = (process.env.RATE_LIMIT_TTL ? parseInt(process.env.RATE_LIMIT_TTL) : 60) * 1000;
+  public static readonly RATE_LIMIT_TTL: number =
+    (process.env.RATE_LIMIT_TTL ? parseInt(process.env.RATE_LIMIT_TTL) : 60) *
+    1000;
 }

@@ -1,5 +1,12 @@
-import { Controller, Get, Param, ParseIntPipe, Put, Query } from '@nestjs/common';
-import { ZoroService } from '../service/zoro.service'
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Put,
+  Query,
+} from '@nestjs/common';
+import { ZoroService } from '../service/zoro.service';
 
 @Controller('anime')
 export class ZoroController {
@@ -16,7 +23,10 @@ export class ZoroController {
   }
 
   @Get('watch/:id/zoro')
-  async getZoroWatch(@Param('id') id: string, @Query('dub') dub: boolean = false) {
+  async getZoroWatch(
+    @Param('id') id: string,
+    @Query('dub') dub: boolean = false,
+  ) {
     return this.service.getSources(id, dub);
   }
 

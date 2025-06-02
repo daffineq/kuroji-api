@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { UrlConfig } from '../../../../../configs/url.config'
-import AnilistQL from '../../graphql/AnilistQL'
-import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder'
-import { CustomHttpService } from '../../../../../http/http.service'
-import { MediaType } from '../../filter/Filter'
-import { Jikan, MoreInfoResponse, VideosResponse } from '../../../../../configs/jikan.config'
-import { AnilistResponse } from '../../types/types'
+import { UrlConfig } from '../../../../../configs/url.config';
+import AnilistQL from '../../graphql/AnilistQL';
+import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder';
+import { CustomHttpService } from '../../../../../http/http.service';
+import { MediaType } from '../../filter/Filter';
+import {
+  Jikan,
+  MoreInfoResponse,
+  VideosResponse,
+} from '../../../../../configs/jikan.config';
+import { AnilistResponse } from '../../types/types';
 
 @Injectable()
 export class AnilistFetchService {
@@ -15,7 +19,7 @@ export class AnilistFetchService {
     id: number,
     isMal: boolean = false,
   ): Promise<AnilistResponse> {
-    const queryBuilder = new AnilistQueryBuilder()
+    const queryBuilder = new AnilistQueryBuilder();
 
     if (isMal) {
       queryBuilder.setIdMal(id).setPerPage(1);
@@ -25,13 +29,13 @@ export class AnilistFetchService {
 
     queryBuilder.setType(MediaType.ANIME);
 
-    const query = AnilistQL.getQuery(queryBuilder)
+    const query = AnilistQL.getQuery(queryBuilder);
 
     return await this.customHttpService.getGraphQL<AnilistResponse>(
       UrlConfig.ANILIST_GRAPHQL,
       query,
       queryBuilder.build(),
-    )
+    );
   }
 
   async fetchMoreInfo(id: number): Promise<MoreInfoResponse> {

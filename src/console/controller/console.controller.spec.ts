@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConsoleController } from './console.controller';
-import { ConsoleInterceptor } from '../ConsoleInterceptor'
+import { ConsoleInterceptor } from '../ConsoleInterceptor';
 
 describe('ConsoleController', () => {
   let controller: ConsoleController;
@@ -9,7 +9,7 @@ describe('ConsoleController', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [ConsoleInterceptor],
       exports: [ConsoleInterceptor],
-      controllers: [ConsoleController]
+      controllers: [ConsoleController],
     }).compile();
 
     controller = module.get<ConsoleController>(ConsoleController);

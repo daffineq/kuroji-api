@@ -1,5 +1,5 @@
 import { Controller, Get, Param, ParseIntPipe, Put } from '@nestjs/common';
-import { AnimepaheService } from '../service/animepahe.service'
+import { AnimepaheService } from '../service/animepahe.service';
 
 @Controller('anime')
 export class AnimepaheController {

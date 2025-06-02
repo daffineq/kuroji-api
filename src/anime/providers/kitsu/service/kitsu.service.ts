@@ -1,28 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma.service'
-import { getKitsuInclude, KitsuHelper } from '../util/kitsu-helper'
-import { KITSU } from '../../../../configs/kitsu.config'
-import { CustomHttpService } from '../../../../http/http.service'
-import { findBestMatch } from '../../../../mapper/mapper.helper'
-import { UpdateType } from '../../../../update/UpdateType'
-import { getUpdateData } from '../../../../update/update.util'
-import { KitsuWithRelations, KitsuAnime } from '../types/types'
+import { PrismaService } from '../../../../prisma.service';
+import { getKitsuInclude, KitsuHelper } from '../util/kitsu-helper';
+import { KITSU } from '../../../../configs/kitsu.config';
+import { CustomHttpService } from '../../../../http/http.service';
+import { findBestMatch } from '../../../../mapper/mapper.helper';
+import { UpdateType } from '../../../../update/UpdateType';
+import { getUpdateData } from '../../../../update/update.util';
+import { KitsuWithRelations, KitsuAnime } from '../types/types';
 
 @Injectable()
 export class KitsuService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly helper: KitsuHelper,
-    private readonly http: CustomHttpService
+    private readonly http: CustomHttpService,
   ) {}
 
   async getKitsuByAnilist(id: number): Promise<KitsuWithRelations> {
-    const existingKitsu = await this.prisma.kitsu.findFirst({
+    const existingKitsu = (await this.prisma.kitsu.findFirst({
       where: {
         anilistId: id,
       },
       include: getKitsuInclude(),
-    }) as KitsuWithRelations;
+    })) as KitsuWithRelations;
 
     if (existingKitsu) {
       return existingKitsu;
@@ -36,8 +36,16 @@ export class KitsuService {
   async saveKitsu(kitsu: KitsuAnime): Promise<KitsuWithRelations> {
     await this.prisma.lastUpdated.upsert({
       where: { entityId: String(kitsu.id) },
-      create: getUpdateData(String(kitsu.id), kitsu.anilistId ?? 0, UpdateType.KITSU),
-      update: getUpdateData(String(kitsu.id), kitsu.anilistId ?? 0, UpdateType.KITSU),
+      create: getUpdateData(
+        String(kitsu.id),
+        kitsu.anilistId ?? 0,
+        UpdateType.KITSU,
+      ),
+      update: getUpdateData(
+        String(kitsu.id),
+        kitsu.anilistId ?? 0,
+        UpdateType.KITSU,
+      ),
     });
 
     await this.prisma.kitsu.upsert({
@@ -46,17 +54,17 @@ export class KitsuService {
       update: this.helper.getDataForPrisma(kitsu),
     });
 
-    return await this.prisma.kitsu.findUnique({
+    return (await this.prisma.kitsu.findUnique({
       where: { id: kitsu.id },
       include: getKitsuInclude(),
-    }) as KitsuWithRelations;
+    })) as KitsuWithRelations;
   }
 
   async updateKitsu(id: string): Promise<void> {
-    const existingKitsu = await this.prisma.kitsu.findUnique({
+    const existingKitsu = (await this.prisma.kitsu.findUnique({
       where: { id: id },
       include: getKitsuInclude(),
-    }) as KitsuWithRelations;
+    })) as KitsuWithRelations;
 
     if (!existingKitsu) {
       throw new Error('Not found');
@@ -92,7 +100,7 @@ export class KitsuService {
       (anilist.title as { romaji: string }).romaji,
     );
 
-    const results = searchResult.map(result => ({
+    const results = searchResult.map((result) => ({
       title: result.attributes.titles.en,
       id: result.id,
       year: parseInt(result.attributes.startDate.split('-')[0]),
@@ -106,7 +114,7 @@ export class KitsuService {
         native: anilist.title?.native || undefined,
       },
       year: anilist.seasonYear ?? undefined,
-      episodes: anilist.episodes ?? undefined
+      episodes: anilist.episodes ?? undefined,
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);
@@ -121,7 +129,11 @@ export class KitsuService {
   }
 
   async searchKitsu(query: string): Promise<KitsuAnime[]> {
-    return await this.http.getResponse(KITSU.searchKitsu(query), undefined, 'data');
+    return await this.http.getResponse(
+      KITSU.searchKitsu(query),
+      undefined,
+      'data',
+    );
   }
 
   async fetchKitsu(id: string): Promise<KitsuAnime> {

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExceptionsController } from './exceptions.controller';
-import { SharedModule } from '../../shared/shared.module'
+import { SharedModule } from '../../shared/shared.module';
 
 describe('ExceptionsController', () => {
   let controller: ExceptionsController;

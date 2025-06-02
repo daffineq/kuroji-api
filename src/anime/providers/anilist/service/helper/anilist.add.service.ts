@@ -9,7 +9,12 @@ import { TmdbService } from '../../../tmdb/service/tmdb.service';
 import { AnilistSearchService } from './anilist.search.service';
 import { getPageInfo } from '../../../../../utils/utils';
 import { AnilistService } from '../anilist.service';
-import { BasicAnilist, AnilistWithRelations, FranchiseResponse, Franchise } from '../../types/types'
+import {
+  BasicAnilist,
+  AnilistWithRelations,
+  FranchiseResponse,
+  Franchise,
+} from '../../types/types';
 
 @Injectable()
 export class AnilistAddService {
@@ -61,12 +66,12 @@ export class AnilistAddService {
     perPage: number,
     page: number,
   ): Promise<ApiResponse<AnilistCharacter[]>> {
-    const existingAnilist = (await this.prisma.anilist.findUnique({
+    const existingAnilist = await this.prisma.anilist.findUnique({
       where: { id },
       include: {
         characters: true,
       },
-    }));
+    });
 
     const charactersIds = existingAnilist?.characters?.map((c) => c.id);
 

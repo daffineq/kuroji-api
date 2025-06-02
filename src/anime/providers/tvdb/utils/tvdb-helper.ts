@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, TvdbLogin, TvdbLanguageTranslation, TvdbLanguage } from '@prisma/client';
-import { TvdbInput } from '../types/types'
+import {
+  Prisma,
+  TvdbLogin,
+  TvdbLanguageTranslation,
+  TvdbLanguage,
+} from '@prisma/client';
+import { TvdbInput } from '../types/types';
 
 @Injectable()
 export class TvdbHelper {
@@ -18,74 +23,80 @@ export class TvdbHelper {
       year: tvdb.year ?? undefined,
       nameTranslations: tvdb.nameTranslations ?? [],
       overviewTranslations: tvdb.overviewTranslations ?? [],
-      status: tvdb.status ? {
-        connectOrCreate: {
-          where: { id: tvdb.status.id },
-          create: {
-            id: tvdb.status.id ?? undefined,
-            name: tvdb.status.name ?? undefined,
-            recordType: tvdb.status.recordType ?? undefined,
-            keepUpdated: tvdb.status.keepUpdated ?? false,
+      status: tvdb.status
+        ? {
+            connectOrCreate: {
+              where: { id: tvdb.status.id },
+              create: {
+                id: tvdb.status.id ?? undefined,
+                name: tvdb.status.name ?? undefined,
+                recordType: tvdb.status.recordType ?? undefined,
+                keepUpdated: tvdb.status.keepUpdated ?? false,
+              },
+            },
           }
-        }
-      } : undefined,
+        : undefined,
       aliases: {
-        create: tvdb.aliases?.map((alias) => ({
-          name: alias.name ?? undefined,
-          language: alias.language ?? undefined,
-        })) ?? [],
+        create:
+          tvdb.aliases?.map((alias) => ({
+            name: alias.name ?? undefined,
+            language: alias.language ?? undefined,
+          })) ?? [],
       },
       artworks: {
-        connectOrCreate: tvdb.artworks?.map((art) => ({
-          where: { id: art.id },
-          create: {
-            id: art.id ?? undefined,
-            height: art.height ?? undefined,
-            image: art.image ?? undefined,
-            includesText: art.includesText ?? undefined,
-            language: art.language ?? undefined,
-            score: art.score ?? undefined,
-            thumbnail: art.thumbnail ?? undefined,
-            type: art.type ?? undefined,
-            width: art.width ?? undefined,
-          },
-        })) ?? [],
+        connectOrCreate:
+          tvdb.artworks?.map((art) => ({
+            where: { id: art.id },
+            create: {
+              id: art.id ?? undefined,
+              height: art.height ?? undefined,
+              image: art.image ?? undefined,
+              includesText: art.includesText ?? undefined,
+              language: art.language ?? undefined,
+              score: art.score ?? undefined,
+              thumbnail: art.thumbnail ?? undefined,
+              type: art.type ?? undefined,
+              width: art.width ?? undefined,
+            },
+          })) ?? [],
       },
       remoteIds: {
-        connectOrCreate: tvdb.remoteIds?.map((remote) => ({
-          where: { id: remote.id },
-          create: {
-            id: remote.id ?? undefined,
-            type: remote.type ?? undefined,
-            sourceName: remote.sourceName ?? undefined,
-          },
-        })) ?? [],
+        connectOrCreate:
+          tvdb.remoteIds?.map((remote) => ({
+            where: { id: remote.id },
+            create: {
+              id: remote.id ?? undefined,
+              type: remote.type ?? undefined,
+              sourceName: remote.sourceName ?? undefined,
+            },
+          })) ?? [],
       },
       trailers: {
-        connectOrCreate: tvdb.trailers?.map((trailer) => ({
-          where: { id: trailer.id },
-          create: {
-            id: trailer.id ?? undefined,
-            url: trailer.url ?? undefined,
-            name: trailer.name ?? undefined,
-            runtime: trailer.runtime ?? undefined,
-            language: trailer.language ?? undefined,
-          },
-        })) ?? [],
+        connectOrCreate:
+          tvdb.trailers?.map((trailer) => ({
+            where: { id: trailer.id },
+            create: {
+              id: trailer.id ?? undefined,
+              url: trailer.url ?? undefined,
+              name: trailer.name ?? undefined,
+              runtime: trailer.runtime ?? undefined,
+              language: trailer.language ?? undefined,
+            },
+          })) ?? [],
       },
 
       airsDays: tvdb.airsDays
         ? {
-          create: {
-            monday: tvdb.airsDays.monday,
-            tuesday: tvdb.airsDays.tuesday,
-            wednesday: tvdb.airsDays.wednesday,
-            thursday: tvdb.airsDays.thursday,
-            friday: tvdb.airsDays.friday,
-            saturday: tvdb.airsDays.saturday,
-            sunday: tvdb.airsDays.sunday,
-          },
-        }
+            create: {
+              monday: tvdb.airsDays.monday,
+              tuesday: tvdb.airsDays.tuesday,
+              wednesday: tvdb.airsDays.wednesday,
+              thursday: tvdb.airsDays.thursday,
+              friday: tvdb.airsDays.friday,
+              saturday: tvdb.airsDays.saturday,
+              sunday: tvdb.airsDays.sunday,
+            },
+          }
         : undefined,
 
       airsTime: tvdb.airsTime ?? undefined,
@@ -100,7 +111,9 @@ export class TvdbHelper {
     };
   }
 
-  getTvdbLanguageTranslationData(translation: TvdbLanguageTranslation): Prisma.TvdbLanguageTranslationCreateInput {
+  getTvdbLanguageTranslationData(
+    translation: TvdbLanguageTranslation,
+  ): Prisma.TvdbLanguageTranslationCreateInput {
     return {
       tvdbId: translation.tvdbId,
       name: translation.name ?? undefined,
@@ -123,18 +136,18 @@ export class TvdbHelper {
   }
 }
 
-export function getTvdbInclude(): any {
+export function getTvdbInclude(): Prisma.TvdbInclude {
   const include = {
     status: {
       omit: {
         id: true,
         tvdbId: true,
-      }
+      },
     },
     aliases: {
       omit: {
-        id: true
-      }
+        id: true,
+      },
     },
     artworks: true,
     remoteIds: true,
@@ -143,9 +156,9 @@ export function getTvdbInclude(): any {
       omit: {
         id: true,
         tvdbId: true,
-      }
-    }
-  }
+      },
+    },
+  };
 
-  return include
+  return include;
 }

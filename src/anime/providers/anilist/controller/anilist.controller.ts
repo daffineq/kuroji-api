@@ -14,10 +14,12 @@ import { AnilistAddService } from '../service/helper/anilist.add.service';
 import { AnilistScheduleService } from '../service/helper/anilist.schedule.service';
 import Dimens from '../../../../configs/Dimens';
 import { AnilistSearchService } from '../service/helper/anilist.search.service';
-import { AnilistRecommendationService } from '../service/helper/anilist.recommendation.service'
-import { LastUpdateResponse, UpdateService } from '../../../../update/update.service'
-import { UpdateType } from '../../../../update/UpdateType'
-import { Provider } from '../../stream/types/types'
+import {
+  LastUpdateResponse,
+  UpdateService,
+} from '../../../../update/update.service';
+import { UpdateType } from '../../../../update/UpdateType';
+import { Provider } from '../../stream/types/types';
 
 @Controller('anime')
 export class AnilistController {
@@ -26,7 +28,6 @@ export class AnilistController {
     private readonly add: AnilistAddService,
     private readonly search: AnilistSearchService,
     private readonly schedule: AnilistScheduleService,
-    private readonly recommendation: AnilistRecommendationService,
     private readonly stream: StreamService,
     private readonly indexer: AnilistIndexerService,
     private readonly update: UpdateService,
@@ -43,15 +44,6 @@ export class AnilistController {
     @Query() filter: FilterDto,
   ) {
     return this.add.getRecommendations(id, filter);
-  }
-
-  @Get('info/:id/custom/recommendations')
-  async getCustomRecommendations(
-    @Param('id', ParseIntPipe) id: number,
-    @Query('perPage') perPage: number = Dimens.PER_PAGE,
-    @Query('page') page: number = 1,
-  ) {
-    return this.recommendation.getRecommendations(id, page, perPage);
   }
 
   @Get('info/:id/characters')
@@ -154,22 +146,24 @@ export class AnilistController {
     @Query('type') type: string = UpdateType.ANILIST,
     @Query('perPage') perPage: number = Dimens.PER_PAGE,
     @Query('page') page: number = 1,
-  ): Promise<LastUpdateResponse[]>{
+  ): Promise<LastUpdateResponse[]> {
     const parsedExternalId = externalId ? parseInt(externalId) : undefined;
-    const updateType = UpdateType[type.toUpperCase() as keyof typeof UpdateType] || UpdateType.ANILIST;
-    
+    const updateType =
+      UpdateType[type.toUpperCase() as keyof typeof UpdateType] ||
+      UpdateType.ANILIST;
+
     return this.update.getLastUpdates(
-      entityId, 
-      parsedExternalId, 
+      entityId,
+      parsedExternalId,
       updateType,
       page,
-      perPage
+      perPage,
     );
   }
 
   @Put('info/:id/update')
   async updateAnilist(@Param('id', ParseIntPipe) id: number) {
-    return this.service.update(id)
+    return this.service.update(id);
   }
 
   @Put('index')
@@ -187,7 +181,7 @@ export class AnilistController {
   }
 
   @Put('index/stop')
-  async stopIndex() {
+  stopIndex() {
     this.indexer.stop();
     return {
       status: 'Indexing stopped',
@@ -195,9 +189,7 @@ export class AnilistController {
   }
 
   @Put('update')
-  async updateDb(
-    @Query('annotateAtId') annotateAtId: string,
-  ) {
+  updateDb(@Query('annotateAtId') annotateAtId: string) {
     this.update
       .update(annotateAtId)
       .catch((err) => console.error('Update failed:', err)); // just in case it blows up

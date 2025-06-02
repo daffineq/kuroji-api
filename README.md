@@ -18,6 +18,7 @@
 ---
 
 ## 📋 Table of Contents
+
 - [Overview](#-overview)
 - [Features](#-features)
 - [Installation](#-installation)
@@ -72,6 +73,7 @@ To deploy this API on Vercel, you'll need to set up your databases first. Here's
 ### 1. Database Setup
 
 #### PostgreSQL (Required)
+
 You'll need a PostgreSQL database with recommended 5GB of storage. Here are some free/affordable options:
 
 - [Neon](https://neon.tech) - Serverless PostgreSQL with a generous free tier (3GB storage)
@@ -80,6 +82,7 @@ You'll need a PostgreSQL database with recommended 5GB of storage. Here are some
 - [ElephantSQL](https://www.elephantsql.com) - Managed PostgreSQL hosting (20MB free tier)
 
 #### Redis (Optional)
+
 Redis is used for caching and can be disabled in the `.env` file. If you want to use it, here are some free options:
 
 - [Upstash](https://upstash.com) - Serverless Redis with a generous free tier
@@ -92,9 +95,10 @@ Redis is used for caching and can be disabled in the `.env` file. If you want to
 2. Create a new project on [Vercel](https://vercel.com)
 3. Import your forked repository
 4. Configure the following environment variables in Vercel:
+
    ```
    DATABASE_URL=your_postgresql_connection_string
-   
+
    # Optional
    REDIS_USERNAME=your_redis_username
    REDIS_HOST=your_redis_host
@@ -103,6 +107,7 @@ Redis is used for caching and can be disabled in the `.env` file. If you want to
 
    CORS=your_allowed_origins
    ```
+
 5. Deploy!
 
 > **Note**: Make sure to set up your database indexes after deployment by calling the indexing endpoint.
@@ -122,6 +127,7 @@ After deploying to Vercel:
    ```
 
 > **Warning**: The indexing process can take several days to complete. Make sure your database has enough storage and your Vercel deployment has sufficient resources.
+
 </details>
 
 ## 🏁 Getting Started
@@ -179,11 +185,13 @@ This approach is faster for development as it avoids rebuilding the Docker conta
 Before you can retrieve anime data, you must first populate the database using one of these methods:
 
 1. **Automatic Indexing**: Trigger the database indexing process with:
+
    ```
    PUT /api/anime/index
    ```
+
    This will start populating your database with anime information.
-   
+
    > **Warning**: The full indexing process can take over 3 days to complete depending on your system resources and network conditions.
 
 2. **Manual Addition**: Add specific anime to your database by fetching their details:
@@ -206,11 +214,13 @@ The Kuroji API provides a comprehensive set of endpoints for accessing anime dat
 Get detailed information about an anime by its ID.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21
 ```
 
 **Parameters:**
+
 - `id` (path): Anime ID (required)
 </details>
 
@@ -220,57 +230,60 @@ GET https://api.example.com/api/anime/info/21
 Get anime recommendations based on an anime ID.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&sort=popularity_desc
 ```
 
 **Parameters:**
+
 - `id` (path): Anime ID (required)
-- 
+-
+
 ```typescript
 // FilterDto
 {
   // Pagination
   page?: number;            // Page number for results
   perPage?: number;         // Number of results per page
-  
+
   // Basic filters
   id?: number;              // Filter by Anilist ID
   idIn?: number[];          // Filter by multiple Anilist IDs
   idNot?: number;           // Exclude specific Anilist ID
   idNotIn?: number[];       // Exclude multiple Anilist IDs
-  
+
   // Search and query
   query?: string;           // Text search query
-  
+
   // MAL-specific filters
   idMal?: number;           // Filter by MyAnimeList ID
   idMalIn?: number[];       // Filter by multiple MAL IDs
   idMalNot?: number;        // Exclude specific MAL ID
   idMalNotIn?: number[];    // Exclude multiple MAL IDs
-  
+
   // Type filter
   type?: "ANIME" | "MANGA"; // Media type
-  
+
   // Format filters
   format?: "TV" | "TV_SHORT" | "MOVIE" | "SPECIAL" | "OVA" | "ONA" | "MUSIC" | "MANGA" | "NOVEL" | "ONE_SHOT";
   formatIn?: string[];      // Include multiple formats
   formatNot?: string;       // Exclude specific format
   formatNotIn?: string[];   // Exclude multiple formats
-  
+
   // Status filters
   status?: "FINISHED" | "RELEASING" | "NOT_YET_RELEASED" | "CANCELLED" | "HIATUS";
   statusIn?: string[];      // Include multiple statuses
   statusNot?: string;       // Exclude specific status
   statusNotIn?: string[];   // Exclude multiple statuses
-  
+
   // Season filters
   season?: "WINTER" | "SPRING" | "SUMMER" | "FALL";
-  
+
   // Source material filters
-  sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" | 
+  sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" |
               "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
-  
+
   // Language in which anime available
   language?: "sub" | "dub" | "both" | "raw";
 
@@ -280,7 +293,7 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
   countryOfOrigin?: string; // Filter by country code
   nsfw?: boolean;           // Filter NSFW content
   ageRating?: ("G" | "PG" | "PG_13" | "R" | "R+" | "RX")[];  // Filter by age rating
-  
+
   // Date filters
   startDateGreater?: string; // After this date (YYYY-MM-DD)
   startDateLesser?: string;  // Before this date (YYYY-MM-DD)
@@ -288,13 +301,13 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
   endDateGreater?: string;   // After this date (YYYY-MM-DD)
   endDateLesser?: string;    // Before this date (YYYY-MM-DD)
   endDateLike?: string;      // Similar to this date
-  
+
   // Number filters
   episodesGreater?: number; // More than this many episodes
   episodesLesser?: number;  // Less than this many episodes
   durationGreater?: number; // Longer than this (minutes)
   durationLesser?: number;  // Shorter than this (minutes)
-  
+
   // Popularity/score filters
   popularityGreater?: number; // Higher popularity than this
   popularityLesser?: number;  // Lower popularity than this
@@ -302,12 +315,12 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
   scoreGreater?: number;      // Higher score than this
   scoreLesser?: number;       // Lower score than this
   scoreNot?: number;          // Not this score value
-  
+
   // People filters
   characterIn?: string[];     // Include anime with these characters
   voiceActorIn?: string[];    // Include anime with these voice actors
   studioIn?: string[];        // Include anime by these studios
-  
+
   // Tag/genre filters
   genreIn?: string[];         // Include these genres
   genreNotIn?: string[];      // Exclude these genres
@@ -315,7 +328,7 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
   tagNotIn?: string[];        // Exclude these tags
   tagCategoryIn?: string[];   // Include these tag categories
   tagCategoryNotIn?: string[]; // Exclude these tag categories
-  
+
   // Sort options
   sort?: string[];           // Sort options
                              // Available options: id, id_desc, title_romaji, title_romaji_desc,
@@ -326,6 +339,7 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
                              // status, status_desc, updated_at, updated_at_desc
 }
 ```
+
 </details>
 
 <details>
@@ -334,11 +348,13 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
 Get characters from an anime.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/characters?page=1&perPage=20
 ```
 
 **Parameters:**
+
 - `id` (path): Anime ID (required)
 - `page` (query): Page number (default: 1)
 - `perPage` (query): Results per page (default: 20)
@@ -350,59 +366,62 @@ GET https://api.example.com/api/anime/info/21/characters?page=1&perPage=20
 Get chronological order of related anime.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=start_date
 ```
 
 **Parameters:**
+
 - `id` (path): Anime ID (required)
-- 
+-
+
 ```typescript
 // FilterDto
 {
   // Pagination
   page?: number;            // Page number for results
   perPage?: number;         // Number of results per page
-  
+
   // Basic filters
   id?: number;              // Filter by Anilist ID
   idIn?: number[];          // Filter by multiple Anilist IDs
   idNot?: number;           // Exclude specific Anilist ID
   idNotIn?: number[];       // Exclude multiple Anilist IDs
-  
+
   // Search and query
   query?: string;           // Text search query
-  
+
   // MAL-specific filters
   idMal?: number;           // Filter by MyAnimeList ID
   idMalIn?: number[];       // Filter by multiple MAL IDs
   idMalNot?: number;        // Exclude specific MAL ID
   idMalNotIn?: number[];    // Exclude multiple MAL IDs
-  
+
   // Type filter
   type?: "ANIME" | "MANGA"; // Media type
-  
+
   // Format filters
   format?: "TV" | "TV_SHORT" | "MOVIE" | "SPECIAL" | "OVA" | "ONA" | "MUSIC" | "MANGA" | "NOVEL" | "ONE_SHOT";
   formatIn?: string[];      // Include multiple formats
   formatNot?: string;       // Exclude specific format
   formatNotIn?: string[];   // Exclude multiple formats
-  
+
   // Status filters
   status?: "FINISHED" | "RELEASING" | "NOT_YET_RELEASED" | "CANCELLED" | "HIATUS";
   statusIn?: string[];      // Include multiple statuses
   statusNot?: string;       // Exclude specific status
   statusNotIn?: string[];   // Exclude multiple statuses
-  
+
   // Season filters
   season?: "WINTER" | "SPRING" | "SUMMER" | "FALL";
-  
+
   // Source material filters
-  sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" | 
+  sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" |
               "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
-  
+
   // Language in which anime available
-  language?: "sub" | "dub" | "both" | "raw";     
+  language?: "sub" | "dub" | "both" | "raw";
 
   // Content filters
   isAdult?: boolean;        // Filter adult content
@@ -410,7 +429,7 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
   countryOfOrigin?: string; // Filter by country code
   nsfw?: boolean;           // Filter NSFW content
   ageRating?: ("G" | "PG" | "PG_13" | "R" | "R+" | "RX")[];  // Filter by age rating
-  
+
   // Date filters
   startDateGreater?: string; // After this date (YYYY-MM-DD)
   startDateLesser?: string;  // Before this date (YYYY-MM-DD)
@@ -418,13 +437,13 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
   endDateGreater?: string;   // After this date (YYYY-MM-DD)
   endDateLesser?: string;    // Before this date (YYYY-MM-DD)
   endDateLike?: string;      // Similar to this date
-  
+
   // Number filters
   episodesGreater?: number; // More than this many episodes
   episodesLesser?: number;  // Less than this many episodes
   durationGreater?: number; // Longer than this (minutes)
   durationLesser?: number;  // Shorter than this (minutes)
-  
+
   // Popularity/score filters
   popularityGreater?: number; // Higher popularity than this
   popularityLesser?: number;  // Lower popularity than this
@@ -432,12 +451,12 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
   scoreGreater?: number;      // Higher score than this
   scoreLesser?: number;       // Lower score than this
   scoreNot?: number;          // Not this score value
-  
+
   // People filters
   characterIn?: string[];     // Include anime with these characters
   voiceActorIn?: string[];    // Include anime with these voice actors
   studioIn?: string[];        // Include anime by these studios
-  
+
   // Tag/genre filters
   genreIn?: string[];         // Include these genres
   genreNotIn?: string[];      // Exclude these genres
@@ -445,7 +464,7 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
   tagNotIn?: string[];        // Exclude these tags
   tagCategoryIn?: string[];   // Include these tag categories
   tagCategoryNotIn?: string[]; // Exclude these tag categories
-  
+
   // Sort options
   sort?: string[];           // Sort options
                              // Available options: id, id_desc, title_romaji, title_romaji_desc,
@@ -456,6 +475,7 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
                              // status, status_desc, updated_at, updated_at_desc
 }
 ```
+
 </details>
 
 <details>
@@ -464,11 +484,13 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
 Get episode list for an anime.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/episodes
 ```
 
 **Parameters:**
+
 - `id` (path): Anime ID (required)
 </details>
 
@@ -478,11 +500,13 @@ GET https://api.example.com/api/anime/info/21/episodes
 Get details of a specific episode.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/episodes/1
 ```
 
 **Parameters:**
+
 - `id` (path): Anime ID (required)
 - `number` (path): Episode number (required)
 </details>
@@ -493,11 +517,13 @@ GET https://api.example.com/api/anime/info/21/episodes/1
 Get available streaming providers for a specific episode.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/providers/1
 ```
 
 **Parameters:**
+
 - `id` (path): Anime ID (required)
 - `number` (path): Episode number (required)
 </details>
@@ -508,11 +534,13 @@ GET https://api.example.com/api/anime/info/21/providers/1
 Get all available streaming providers for all episodes of an anime.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/providers
 ```
 
 **Parameters:**
+
 - `id` (path): Anime ID (required)
 </details>
 
@@ -522,17 +550,20 @@ GET https://api.example.com/api/anime/info/21/providers
 Get streaming sources for a specific episode.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/watch/21/episodes/1?provider=ANIWATCH&dub=false
 ```
 
 **Parameters:**
+
 - `id` (path): Anime ID (required)
 - `number` (path): Episode number (required)
 - `provider` (query): Provider name (default: "ANIWATCH")
 - `dub` (query): Boolean for dubbed version (default: false)
 
 > **💡 Tip**: It's better to make requests directly to Consumet from your application rather than making requests to this API. This will decrease response time and eliminate an extra hop in the request chain.
+
 </details>
 
 <details>
@@ -541,65 +572,67 @@ GET https://api.example.com/api/anime/watch/21/episodes/1?provider=ANIWATCH&dub=
 Filter anime list based on various criteria.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&genreIn=action,romance&sort=popularity_desc&page=1&perPage=20
 ```
 
 **Parameters:**
+
 ```typescript
 // FilterDto
 {
   // Pagination
   page?: number;            // Page number for results
   perPage?: number;         // Number of results per page
-  
+
   // Basic filters
   id?: number;              // Filter by Anilist ID
   idIn?: number[];          // Filter by multiple Anilist IDs
   idNot?: number;           // Exclude specific Anilist ID
   idNotIn?: number[];       // Exclude multiple Anilist IDs
-  
+
   // Search and query
   query?: string;           // Text search query
-  
+
   // MAL-specific filters
   idMal?: number;           // Filter by MyAnimeList ID
   idMalIn?: number[];       // Filter by multiple MAL IDs
   idMalNot?: number;        // Exclude specific MAL ID
   idMalNotIn?: number[];    // Exclude multiple MAL IDs
-  
+
   // Type filter
   type?: "ANIME" | "MANGA"; // Media type
-  
+
   // Format filters
   format?: "TV" | "TV_SHORT" | "MOVIE" | "SPECIAL" | "OVA" | "ONA" | "MUSIC" | "MANGA" | "NOVEL" | "ONE_SHOT";
   formatIn?: string[];      // Include multiple formats
   formatNot?: string;       // Exclude specific format
   formatNotIn?: string[];   // Exclude multiple formats
-  
+
   // Status filters
   status?: "FINISHED" | "RELEASING" | "NOT_YET_RELEASED" | "CANCELLED" | "HIATUS";
   statusIn?: string[];      // Include multiple statuses
   statusNot?: string;       // Exclude specific status
   statusNotIn?: string[];   // Exclude multiple statuses
-  
+
   // Season filters
   season?: "WINTER" | "SPRING" | "SUMMER" | "FALL";
-  
+
   // Source material filters
-  sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" | 
+  sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" |
               "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
 
   // Language in which anime available
-  language?: "sub" | "dub" | "both" | "raw";                  
-  
+  language?: "sub" | "dub" | "both" | "raw";
+
   // Content filters
   isAdult?: boolean;        // Filter adult content
   isLicensed?: boolean;     // Filter licensed content
   countryOfOrigin?: string; // Filter by country code
   nsfw?: boolean;           // Filter NSFW content
   ageRating?: ("G" | "PG" | "PG_13" | "R" | "R+" | "RX")[];  // Filter by age rating
-  
+
   // Date filters
   startDateGreater?: string; // After this date (YYYY-MM-DD)
   startDateLesser?: string;  // Before this date (YYYY-MM-DD)
@@ -607,13 +640,13 @@ GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&gen
   endDateGreater?: string;   // After this date (YYYY-MM-DD)
   endDateLesser?: string;    // Before this date (YYYY-MM-DD)
   endDateLike?: string;      // Similar to this date
-  
+
   // Number filters
   episodesGreater?: number; // More than this many episodes
   episodesLesser?: number;  // Less than this many episodes
   durationGreater?: number; // Longer than this (minutes)
   durationLesser?: number;  // Shorter than this (minutes)
-  
+
   // Popularity/score filters
   popularityGreater?: number; // Higher popularity than this
   popularityLesser?: number;  // Lower popularity than this
@@ -621,12 +654,12 @@ GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&gen
   scoreGreater?: number;      // Higher score than this
   scoreLesser?: number;       // Lower score than this
   scoreNot?: number;          // Not this score value
-  
+
   // People filters
   characterIn?: string[];     // Include anime with these characters
   voiceActorIn?: string[];    // Include anime with these voice actors
   studioIn?: string[];        // Include anime by these studios
-  
+
   // Tag/genre filters
   genreIn?: string[];         // Include these genres
   genreNotIn?: string[];      // Exclude these genres
@@ -634,7 +667,7 @@ GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&gen
   tagNotIn?: string[];        // Exclude these tags
   tagCategoryIn?: string[];   // Include these tag categories
   tagCategoryNotIn?: string[]; // Exclude these tag categories
-  
+
   // Sort options
   sort?: string[];           // Sort options
                              // Available options: id, id_desc, title_romaji, title_romaji_desc,
@@ -645,6 +678,7 @@ GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&gen
                              // status, status_desc, updated_at, updated_at_desc
 }
 ```
+
 </details>
 
 <details>
@@ -653,11 +687,13 @@ GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&gen
 Search for anime by query string.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/search/one%20piece
 ```
 
 **Parameters:**
+
 - `q` (path): Search query (required)
 </details>
 
@@ -667,11 +703,13 @@ GET https://api.example.com/api/anime/search/one%20piece
 Get random anime.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/random
 ```
 
 **Parameters:** None
+
 </details>
 
 <details>
@@ -680,11 +718,13 @@ GET https://api.example.com/api/anime/random
 Get currently airing anime schedule.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/schedule
 ```
 
 **Parameters:** None
+
 </details>
 
 <details>
@@ -693,67 +733,70 @@ GET https://api.example.com/api/anime/schedule
 Get information about an anime franchise.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popularity_desc&format=TV
 ```
 
 **Parameters:**
+
 - `franchise` (path): Franchise name (required)
-- 
+-
+
 ```typescript
 // FilterDto
 {
   // Pagination
   page?: number;            // Page number for results
   perPage?: number;         // Number of results per page
-  
+
   // Basic filters
   id?: number;              // Filter by Anilist ID
   idIn?: number[];          // Filter by multiple Anilist IDs
   idNot?: number;           // Exclude specific Anilist ID
   idNotIn?: number[];       // Exclude multiple Anilist IDs
-  
+
   // Search and query
   query?: string;           // Text search query
-  
+
   // MAL-specific filters
   idMal?: number;           // Filter by MyAnimeList ID
   idMalIn?: number[];       // Filter by multiple MAL IDs
   idMalNot?: number;        // Exclude specific MAL ID
   idMalNotIn?: number[];    // Exclude multiple MAL IDs
-  
+
   // Type filter
   type?: "ANIME" | "MANGA"; // Media type
-  
+
   // Format filters
   format?: "TV" | "TV_SHORT" | "MOVIE" | "SPECIAL" | "OVA" | "ONA" | "MUSIC" | "MANGA" | "NOVEL" | "ONE_SHOT";
   formatIn?: string[];      // Include multiple formats
   formatNot?: string;       // Exclude specific format
   formatNotIn?: string[];   // Exclude multiple formats
-  
+
   // Status filters
   status?: "FINISHED" | "RELEASING" | "NOT_YET_RELEASED" | "CANCELLED" | "HIATUS";
   statusIn?: string[];      // Include multiple statuses
   statusNot?: string;       // Exclude specific status
   statusNotIn?: string[];   // Exclude multiple statuses
-  
+
   // Season filters
   season?: "WINTER" | "SPRING" | "SUMMER" | "FALL";
-  
+
   // Source material filters
-  sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" | 
+  sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" |
               "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
 
   // Language in which anime available
-  language?: "sub" | "dub" | "both" | "raw";            
-  
+  language?: "sub" | "dub" | "both" | "raw";
+
   // Content filters
   isAdult?: boolean;        // Filter adult content
   isLicensed?: boolean;     // Filter licensed content
   countryOfOrigin?: string; // Filter by country code
   nsfw?: boolean;           // Filter NSFW content
   ageRating?: ("G" | "PG" | "PG_13" | "R" | "R+" | "RX")[];  // Filter by age rating
-  
+
   // Date filters
   startDateGreater?: string; // After this date (YYYY-MM-DD)
   startDateLesser?: string;  // Before this date (YYYY-MM-DD)
@@ -761,13 +804,13 @@ GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popu
   endDateGreater?: string;   // After this date (YYYY-MM-DD)
   endDateLesser?: string;    // Before this date (YYYY-MM-DD)
   endDateLike?: string;      // Similar to this date
-  
+
   // Number filters
   episodesGreater?: number; // More than this many episodes
   episodesLesser?: number;  // Less than this many episodes
   durationGreater?: number; // Longer than this (minutes)
   durationLesser?: number;  // Shorter than this (minutes)
-  
+
   // Popularity/score filters
   popularityGreater?: number; // Higher popularity than this
   popularityLesser?: number;  // Lower popularity than this
@@ -775,12 +818,12 @@ GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popu
   scoreGreater?: number;      // Higher score than this
   scoreLesser?: number;       // Lower score than this
   scoreNot?: number;          // Not this score value
-  
+
   // People filters
   characterIn?: string[];     // Include anime with these characters
   voiceActorIn?: string[];    // Include anime with these voice actors
   studioIn?: string[];        // Include anime by these studios
-  
+
   // Tag/genre filters
   genreIn?: string[];         // Include these genres
   genreNotIn?: string[];      // Exclude these genres
@@ -790,7 +833,7 @@ GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popu
   tagsNotIn?: string[];       // Exclude these tags (alternative)
   tagCategoryIn?: string[];   // Include these tag categories
   tagCategoryNotIn?: string[]; // Exclude these tag categories
-  
+
   // Sort options
   sort?: string[];           // Sort options
                              // Available options: id, id_desc, title_romaji, title_romaji_desc,
@@ -801,6 +844,7 @@ GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popu
                              // status, status_desc, updated_at, updated_at_desc
 }
 ```
+
 </details>
 
 <details>
@@ -809,11 +853,13 @@ GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popu
 Get a list of all available anime genres.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/genres
 ```
 
 **Parameters:** None
+
 </details>
 
 <details>
@@ -822,11 +868,13 @@ GET https://api.example.com/api/anime/genres
 Get a list of all available anime tags.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/tags?page=1&perPage=20
 ```
 
 **Parameters:**
+
 - `page` (query): Page number (default: 1)
 - `perPage` (query): Results per page (default: 20)
 </details>
@@ -837,11 +885,13 @@ GET https://api.example.com/api/anime/tags?page=1&perPage=20
 Start the anime indexing process.
 
 **Example:**
+
 ```
 PUT https://api.example.com/api/anime/index?delay=10
 ```
 
 **Parameters:**
+
 - `delay` (query): Delay between requests in seconds (default: 10)
 - `range` (query): Range of request delay (default: 25)
 </details>
@@ -852,11 +902,13 @@ PUT https://api.example.com/api/anime/index?delay=10
 Stop the anime indexing process.
 
 **Example:**
+
 ```
 PUT https://api.example.com/api/anime/index/stop
 ```
 
 **Parameters:** None
+
 </details>
 </details>
 
@@ -869,14 +921,17 @@ PUT https://api.example.com/api/anime/index/stop
 Get anime information from Shikimori.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/shikimori/info/21
 ```
 
 **Parameters:**
+
 - `id` (path): Anime ID (required)
 
 > **Warning**: It's not available right now
+
 </details>
 
 <details>
@@ -885,11 +940,13 @@ GET https://api.example.com/api/shikimori/info/21
 Update anime information from Shikimori.
 
 **Example:**
+
 ```
 PUT https://api.example.com/api/shikimori/info/21
 ```
 
 **Parameters:**
+
 - `id` (path): Anime ID (required)
 </details>
 
@@ -899,11 +956,13 @@ PUT https://api.example.com/api/shikimori/info/21
 Get franchise information from Shikimori.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/shikimori/franchise/fate
 ```
 
 **Parameters:**
+
 - `franchise` (path): Franchise name (required)
 </details>
 
@@ -913,11 +972,13 @@ GET https://api.example.com/api/shikimori/franchise/fate
 Get list of IDs in a franchise.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/shikimori/franchiseId/fate
 ```
 
 **Parameters:**
+
 - `franchise` (path): Franchise name (required)
 </details>
 </details>
@@ -933,11 +994,13 @@ GET https://api.example.com/api/shikimori/franchiseId/fate
 Get anime information from AnimePahe.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/animepahe
 ```
 
 **Parameters:**
+
 - `id` (path): Anilist ID (required)
 </details>
 
@@ -947,11 +1010,13 @@ GET https://api.example.com/api/anime/info/21/animepahe
 Get streaming sources from AnimePahe.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/watch/animepahe/ep_12345
 ```
 
 **Parameters:**
+
 - `id` (path): AnimePahe episode ID (required)
 </details>
 
@@ -961,11 +1026,13 @@ GET https://api.example.com/api/anime/watch/animepahe/ep_12345
 Get anime information from AnimeKai.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/animekai
 ```
 
 **Parameters:**
+
 - `id` (path): Anilist ID (required)
 </details>
 
@@ -975,11 +1042,13 @@ GET https://api.example.com/api/anime/info/21/animekai
 Get streaming sources from AnimeKai.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/watch/animekai/ep_12345?dub=false
 ```
 
 **Parameters:**
+
 - `id` (path): AnimeKai episode ID (required)
 - `dub` (query): Boolean for dubbed version (default: false)
 </details>
@@ -990,11 +1059,13 @@ GET https://api.example.com/api/anime/watch/animekai/ep_12345?dub=false
 Get anime information from Zoro.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/zoro
 ```
 
 **Parameters:**
+
 - `id` (path): Anilist ID (required)
 </details>
 
@@ -1004,11 +1075,13 @@ GET https://api.example.com/api/anime/info/21/zoro
 Get streaming sources from Zoro.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/watch/zoro/ep_12345?dub=false
 ```
 
 **Parameters:**
+
 - `id` (path): Zoro episode ID (required)
 - `dub` (query): Boolean for dubbed version (default: false)
 </details>
@@ -1023,11 +1096,13 @@ GET https://api.example.com/api/anime/watch/zoro/ep_12345?dub=false
 Get all logged exceptions.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/exceptions?page=1&perPage=20&statusCode=500
 ```
 
 **Parameters:**
+
 ```typescript
 // ExceptionFilterDto
 {
@@ -1036,16 +1111,17 @@ GET https://api.example.com/api/exceptions?page=1&perPage=20&statusCode=500
   path?: string;           // Request path
   message?: string;        // Error message
   method?: string;         // HTTP method (GET, POST, etc.)
-  
+
   // Filter by date range
   fromDate?: string;       // Start date (ISO format)
   toDate?: string;         // End date (ISO format)
-  
+
   // Pagination
   page?: number;           // Page number (min: 1)
   perPage?: number;        // Results per page (min: 1)
 }
 ```
+
 </details>
 
 <details>
@@ -1054,11 +1130,13 @@ GET https://api.example.com/api/exceptions?page=1&perPage=20&statusCode=500
 Delete a logged exception.
 
 **Example:**
+
 ```
 DELETE https://api.example.com/api/exceptions/delete/1
 ```
 
 **Parameters:**
+
 - `id` (path): Exception ID (required)
 </details>
 </details>
@@ -1072,11 +1150,13 @@ DELETE https://api.example.com/api/exceptions/delete/1
 Get all console logs.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/console/logs
 ```
 
 **Parameters:** None
+
 </details>
 
 <details>
@@ -1085,11 +1165,13 @@ GET https://api.example.com/api/console/logs
 Get all console warnings.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/console/warns
 ```
 
 **Parameters:** None
+
 </details>
 
 <details>
@@ -1098,11 +1180,13 @@ GET https://api.example.com/api/console/warns
 Get all console errors.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/console/errors
 ```
 
 **Parameters:** None
+
 </details>
 </details>
 
@@ -1115,11 +1199,13 @@ GET https://api.example.com/api/console/errors
 Get TMDB information using Anilist ID.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/tmdb
 ```
 
 **Parameters:**
+
 - `id` (path): Anilist ID (required)
 </details>
 
@@ -1129,11 +1215,13 @@ GET https://api.example.com/api/anime/info/21/tmdb
 Get TMDB season information for an anime.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/tmdb/season
 ```
 
 **Parameters:**
+
 - `id` (path): Anilist ID (required)
 </details>
 </details>
@@ -1147,11 +1235,13 @@ GET https://api.example.com/api/anime/info/21/tmdb/season
 Get TVDB information using Anilist ID.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/tvdb
 ```
 
 **Parameters:**
+
 - `id` (path): Anilist ID (required)
 </details>
 
@@ -1161,11 +1251,13 @@ GET https://api.example.com/api/anime/info/21/tvdb
 Get TVDB translations for a specific language.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/info/21/tvdb/translations/en
 ```
 
 **Parameters:**
+
 - `id` (path): Anilist ID (required)
 - `language` (path): Language code (required)
 </details>
@@ -1176,11 +1268,13 @@ GET https://api.example.com/api/anime/info/21/tvdb/translations/en
 Get list of available languages in TVDB.
 
 **Example:**
+
 ```
 GET https://api.example.com/api/anime/tvdb/languages
 ```
 
 **Parameters:** None
+
 </details>
 
 <details>
@@ -1189,11 +1283,13 @@ GET https://api.example.com/api/anime/tvdb/languages
 Update the list of available TVDB languages.
 
 **Example:**
+
 ```
 PUT https://api.example.com/api/anime/tvdb/languages
 ```
 
 **Parameters:** None
+
 </details>
 </details>
 

@@ -1,5 +1,12 @@
-import { Controller, Get, Param, ParseIntPipe, Put, Query } from '@nestjs/common';
-import { AnimekaiService } from '../service/animekai.service'
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Put,
+  Query,
+} from '@nestjs/common';
+import { AnimekaiService } from '../service/animekai.service';
 
 @Controller('anime')
 export class AnimekaiController {
@@ -11,7 +18,10 @@ export class AnimekaiController {
   }
 
   @Get('watch/:id/animekai')
-  async getSources(@Param('id') id: string, @Query('dub') dub: boolean = false) {
+  async getSources(
+    @Param('id') id: string,
+    @Query('dub') dub: boolean = false,
+  ) {
     return this.service.getSources(id, dub);
   }
 

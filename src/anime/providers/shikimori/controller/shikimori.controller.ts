@@ -20,12 +20,12 @@ export class ShikimoriController {
   }
 
   @Get('franchise/:franchise')
-  async getFranchise(@Param("franchise") franchise: string) {
+  async getFranchise(@Param('franchise') franchise: string) {
     return this.service.getFranchise(franchise);
   }
 
   @Get('franchiseId/:franchise')
-  async getFranchiseId(@Param("franchise") franchise: string) {
-    return this.service.getFranchiseIds(franchise)
+  async getFranchiseId(@Param('franchise') franchise: string) {
+    return this.service.getFranchiseIds(franchise);
   }
 }

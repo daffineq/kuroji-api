@@ -1,4 +1,4 @@
-import AnilistQueryBuilder from './query/AnilistQueryBuilder'
+import AnilistQueryBuilder from './query/AnilistQueryBuilder';
 
 type FieldTypeMap = { [key: string]: string };
 
@@ -80,11 +80,11 @@ export default class AnilistQL {
     const fields = this.buildFullFields();
     const allVariables = builder.build();
     const mediaVariables = builder.buildMedia();
-    
+
     const variables = Object.keys(allVariables)
       .map((key) => `$${key}: ${this.getGraphQLType(key)}`)
       .join(', ');
-    
+
     const mediaAssignments = Object.keys(mediaVariables)
       .map((key) => `${key}: $${key}`)
       .join(', ');
@@ -252,7 +252,13 @@ export default class AnilistQL {
         id
         url
         site
+        siteId
         type
+        language
+        color
+        icon
+        notes
+        isDisabled
       }
       streamingEpisodes {
         title
@@ -271,7 +277,9 @@ export default class AnilistQL {
         }
       }
       bannerImage
-    `.replace(/\s+/g, ' ').trim();
+    `
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   public static getSimplePageQuery(builder: AnilistQueryBuilder): string {

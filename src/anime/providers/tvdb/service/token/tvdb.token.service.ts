@@ -4,7 +4,7 @@ import { CustomHttpService } from '../../../../../http/http.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { TvdbHelper } from '../../utils/tvdb-helper';
 import { TvdbLogin } from '@prisma/client';
-import { TVDB } from '../../../../../configs/tvdb.config'
+import { TVDB } from '../../../../../configs/tvdb.config';
 
 export interface LoginResponse {
   status: string;
@@ -46,7 +46,7 @@ export class TvdbTokenService {
   public async check(): Promise<void> {
     const count = await this.prisma.tvdbLogin.count();
     if (count === 0) {
-      console.log("No tokens found");
+      console.log('No tokens found');
       await this.createToken();
       return;
     }
@@ -64,7 +64,7 @@ export class TvdbTokenService {
           where: { id: login.id },
           data: { expired: true },
         });
-        console.log("Token expired");
+        console.log('Token expired');
         await this.createToken();
       } else {
         console.log(`Token valid until: ${expiryDate.toISOString()}`);
@@ -77,7 +77,7 @@ export class TvdbTokenService {
   async createToken(): Promise<void> {
     const response = await this.customHttpService.postResponse<LoginResponse>(
       TVDB.getLoginUrl(),
-      { apikey: TVDB.API_KEY || this.getRandomKey() }
+      { apikey: TVDB.API_KEY || this.getRandomKey() },
     );
 
     const token = response.data.token;
@@ -91,7 +91,7 @@ export class TvdbTokenService {
     const existingLogin = await this.prisma.tvdbLogin.findFirst({
       where: { token },
     });
-    
+
     if (existingLogin) {
       await this.prisma.tvdbLogin.update({
         where: { id: existingLogin.id },
@@ -110,7 +110,7 @@ export class TvdbTokenService {
       '8f406bec-6ddb-45e7-8f4b-e1861e10f1bb',
       '5476e702-85aa-45fd-a8da-e74df3840baf',
       '51020266-18f7-4382-81fc-75a4014fa59f',
-    ]
+    ];
 
     return keys[Math.floor(Math.random() * keys.length)];
   }

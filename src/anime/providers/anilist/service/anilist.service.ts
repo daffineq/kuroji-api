@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
 import { UpdateType } from '../../../../update/UpdateType';
 import { AnilistHelper, getAnilistFindUnique } from '../utils/anilist-helper';
-import { AnilistFetchService } from './helper/anilist.fetch.service'
-import { MediaType } from '../filter/Filter'
-import { AnilistUtilService } from './helper/anilist.util.service'
-import { ShikimoriService } from '../../shikimori/service/shikimori.service'
-import { KitsuService } from '../../kitsu/service/kitsu.service'
-import { getUpdateData } from '../../../../update/update.util'
-import { AnilistWithRelations, AnilistResponse } from '../types/types'
+import { AnilistFetchService } from './helper/anilist.fetch.service';
+import { MediaType } from '../filter/Filter';
+import { AnilistUtilService } from './helper/anilist.util.service';
+import { ShikimoriService } from '../../shikimori/service/shikimori.service';
+import { KitsuService } from '../../kitsu/service/kitsu.service';
+import { getUpdateData } from '../../../../update/update.util';
+import { AnilistWithRelations, AnilistResponse } from '../types/types';
 
 @Injectable()
 export class AnilistService {
@@ -25,7 +25,9 @@ export class AnilistService {
     id: number,
     isMal: boolean = false,
   ): Promise<AnilistWithRelations> {
-    let existingAnilist = await this.prisma.anilist.findUnique(getAnilistFindUnique(id));
+    let existingAnilist = await this.prisma.anilist.findUnique(
+      getAnilistFindUnique(id),
+    );
 
     if (existingAnilist) {
       return await this.util.adjustAnilist(existingAnilist);
@@ -43,12 +45,14 @@ export class AnilistService {
 
     await this.saveAnilist(data);
 
-    existingAnilist = await this.prisma.anilist.findUnique(getAnilistFindUnique(id));
+    existingAnilist = await this.prisma.anilist.findUnique(
+      getAnilistFindUnique(id),
+    );
 
     if (!existingAnilist) {
       throw new Error('Not found');
     }
-    
+
     return await this.util.adjustAnilist(existingAnilist);
   }
 
@@ -72,11 +76,15 @@ export class AnilistService {
     });
 
     await Promise.all([
-      ...(anilist.idMal ? [this.shikimori.getShikimori(String(anilist.idMal)).catch(() => null)] : []),
+      ...(anilist.idMal
+        ? [this.shikimori.getShikimori(String(anilist.idMal)).catch(() => null)]
+        : []),
       this.kitsu.getKitsuByAnilist(anilist.id).catch(() => null),
     ]);
 
-    return await this.prisma.anilist.findUnique(getAnilistFindUnique(anilist.id)) as AnilistWithRelations;
+    return (await this.prisma.anilist.findUnique(
+      getAnilistFindUnique(anilist.id),
+    )) as AnilistWithRelations;
   }
 
   async update(id: number): Promise<void> {
@@ -86,7 +94,8 @@ export class AnilistService {
       throw new Error('No media found');
     }
 
-    if (existingAnilist.popularity == data.Page.media[0].popularity) throw new Error('No changes in anilist');
+    if (existingAnilist.popularity == data.Page.media[0].popularity)
+      throw new Error('No changes in anilist');
 
     await this.saveAnilist(data);
   }

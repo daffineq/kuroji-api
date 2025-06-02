@@ -3,11 +3,17 @@ import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../../mapper/mapper.helper';
 import { UpdateType } from '../../../../update/UpdateType';
 import { AnimePaheHelper } from '../utils/animepahe-helper';
-import { ANIME, IAnimeInfo, IAnimeResult, ISearch, ISource } from '@consumet/extensions'
-import { getUpdateData } from '../../../../update/update.util'
-import { CustomHttpService } from '../../../../http/http.service'
-import { UrlConfig } from '../../../../configs/url.config'
-import { AnimepaheWithRelations } from '../types/types'
+import {
+  ANIME,
+  IAnimeInfo,
+  IAnimeResult,
+  ISearch,
+  ISource,
+} from '@consumet/extensions';
+import { getUpdateData } from '../../../../update/update.util';
+import { CustomHttpService } from '../../../../http/http.service';
+import { UrlConfig } from '../../../../configs/url.config';
+import { AnimepaheWithRelations } from '../types/types';
 
 const animepahe = new ANIME.AnimePahe();
 
@@ -25,7 +31,7 @@ export class AnimepaheService {
       include: {
         externalLinks: true,
         episodes: true,
-      }
+      },
     });
 
     if (existingAnimepahe) {
@@ -39,8 +45,16 @@ export class AnimepaheService {
   async saveAnimepahe(animepahe: IAnimeInfo): Promise<AnimepaheWithRelations> {
     await this.prisma.lastUpdated.upsert({
       where: { entityId: String(animepahe.id) },
-      create: getUpdateData(String(animepahe.id), animepahe.alId ?? 0, UpdateType.ANIMEPAHE),
-      update: getUpdateData(String(animepahe.id), animepahe.alId ?? 0, UpdateType.ANIMEPAHE),
+      create: getUpdateData(
+        String(animepahe.id),
+        animepahe.alId ?? 0,
+        UpdateType.ANIMEPAHE,
+      ),
+      update: getUpdateData(
+        String(animepahe.id),
+        animepahe.alId ?? 0,
+        UpdateType.ANIMEPAHE,
+      ),
     });
 
     await this.prisma.animepahe.upsert({
@@ -49,19 +63,19 @@ export class AnimepaheService {
       create: this.helper.getAnimePaheData(animepahe),
     });
 
-    return await this.prisma.animepahe.findFirst({
+    return (await this.prisma.animepahe.findFirst({
       where: { id: animepahe.id },
       include: {
         externalLinks: true,
         episodes: true,
-      }
-    }) as AnimepaheWithRelations;
+      },
+    })) as AnimepaheWithRelations;
   }
 
   async update(id: string): Promise<AnimepaheWithRelations> {
     const existingAnimepahe = await this.prisma.animepahe.findFirst({
       where: { id },
-      include: { episodes: true }
+      include: { episodes: true },
     });
 
     const animepahe = await this.fetchAnimepahe(id);
@@ -69,7 +83,7 @@ export class AnimepaheService {
     if (!animepahe) {
       throw new Error('Animepahe not found');
     }
-    
+
     animepahe.alId = existingAnimepahe?.alId || 0;
 
     return await this.saveAnimepahe(animepahe);
@@ -84,16 +98,14 @@ export class AnimepaheService {
 
   async fetchAnimepahe(id: string): Promise<IAnimeInfo> {
     // return await animepahe.fetchAnimeInfo(id);
-    return this.http.getResponse(
-      UrlConfig.ANIMEPAHE + 'info/' + id,
-    );
+    return this.http.getResponse(UrlConfig.ANIMEPAHE + 'info/' + id);
   }
 
   async searchAnimepahe(q: string): Promise<ISearch<IAnimeResult>> {
     // return (await animepahe.search(q)).results;
     return this.http.getResponse(UrlConfig.ANIMEPAHE + q);
   }
-  
+
   async findAnimepahe(id: number): Promise<IAnimeInfo> {
     const anilist = await this.prisma.anilist.findUnique({
       where: { id: id },
@@ -118,10 +130,13 @@ export class AnimepaheService {
       (anilist.title as { romaji: string }).romaji,
     );
 
-    const results = searchResult.results.map(result => ({
+    const results = searchResult.results.map((result) => ({
       title: result.title,
       id: result.id,
-      year: typeof result.releaseDate === 'string' ? parseInt(result.releaseDate) : result.releaseDate
+      year:
+        typeof result.releaseDate === 'string'
+          ? parseInt(result.releaseDate)
+          : result.releaseDate,
     }));
 
     const searchCriteria = {
@@ -131,7 +146,7 @@ export class AnimepaheService {
         native: anilist.title?.native || undefined,
       },
       year: anilist.seasonYear ?? undefined,
-      episodes: anilist.episodes ?? undefined
+      episodes: anilist.episodes ?? undefined,
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);

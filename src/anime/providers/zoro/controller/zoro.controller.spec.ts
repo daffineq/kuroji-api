@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ZoroController } from './zoro.controller';
-import { ZoroService } from '../service/zoro.service'
-import { ZoroHelper } from '../utils/zoro-helper'
-import { SharedModule } from '../../../../shared/shared.module'
+import { ZoroService } from '../service/zoro.service';
+import { ZoroHelper } from '../utils/zoro-helper';
+import { SharedModule } from '../../../../shared/shared.module';
 
 describe('ZoroController', () => {
   let controller: ZoroController;

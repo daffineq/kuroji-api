@@ -17,7 +17,7 @@ describe('ShikimoriController', () => {
         ShikimoriService,
         PrismaService,
         CustomHttpService,
-        ShikimoriHelper
+        ShikimoriHelper,
       ],
     }).compile();
 

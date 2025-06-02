@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: kuroji
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -17,7 +17,7 @@ services:
     container_name: redis
     restart: always
     ports:
-      - "6379:6379"
+      - '6379:6379'
 
   app:
     build:
@@ -34,7 +34,7 @@ services:
       - REDIS_PASSWORD=
       - DATABASE_URL=postgresql://prisma:postgres@postgres:5432/kuroji?schema=public
     ports:
-      - "3000:3000"
+      - '3000:3000'
     depends_on:
       - postgres
       - redis

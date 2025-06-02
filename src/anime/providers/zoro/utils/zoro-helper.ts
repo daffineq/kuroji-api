@@ -1,4 +1,4 @@
-import { IAnimeEpisode, IAnimeInfo } from '@consumet/extensions'
+import { IAnimeEpisode, IAnimeInfo } from '@consumet/extensions';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
@@ -8,8 +8,8 @@ export class ZoroHelper {
     return {
       id: anime.id,
       title: typeof anime.title === 'object' ? anime.title.romaji : anime.title,
-      malID: anime.malID,
-      japaneseTitle: anime.japaneseTitle,
+      malID: anime.malID as number,
+      japaneseTitle: anime.japaneseTitle as string,
       image: anime.image,
       description: anime.description,
       type: anime.type,
@@ -22,23 +22,24 @@ export class ZoroHelper {
       season: anime.season,
       totalEpisodes: anime.totalEpisodes,
       episodes: {
-        connectOrCreate: (anime?.episodes ?? []).map((e: IAnimeEpisode) => ({
-          where: { id: e.id },
-          create: {
-            id: e.id,
-            number: e.number,
-            title: e.title,
-            isFiller: e.isFiller,
-            isSubbed: e.isSubbed,
-            isDubbed: e.isDubbed,
-            url: e.url
-          }
-        })) ?? []
+        connectOrCreate:
+          (anime?.episodes ?? []).map((e: IAnimeEpisode) => ({
+            where: { id: e.id },
+            create: {
+              id: e.id,
+              number: e.number,
+              title: e.title,
+              isFiller: e.isFiller,
+              isSubbed: e.isSubbed,
+              isDubbed: e.isDubbed,
+              url: e.url,
+            },
+          })) ?? [],
       },
       anilist: {
         connect: {
-          id: anime.alID
-        }
+          id: anime.alID as number,
+        },
       },
     };
   }

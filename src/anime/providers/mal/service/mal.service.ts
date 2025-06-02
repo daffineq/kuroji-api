@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma.service'
-import { CustomHttpService } from '../../../../http/http.service'
+import { PrismaService } from '../../../../prisma.service';
+import { CustomHttpService } from '../../../../http/http.service';
 
 @Injectable()
 export class MalService {
@@ -8,6 +8,4 @@ export class MalService {
     private readonly prisma: PrismaService,
     private readonly http: CustomHttpService,
   ) {}
-
-  
 }
