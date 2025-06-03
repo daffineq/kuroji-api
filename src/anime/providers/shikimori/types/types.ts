@@ -16,3 +16,7 @@ export interface ShikimoriWithRelations extends Shikimori {
   videos: ShikimoriVideo[];
   screenshots: ShikimoriScreenshot[];
 }
+
+export interface ShikimoriResponse {
+  animes: ShikimoriWithRelations[];
+}

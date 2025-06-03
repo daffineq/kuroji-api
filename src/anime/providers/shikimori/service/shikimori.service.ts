@@ -10,9 +10,8 @@ import {
   ShikimoriHelper,
   shikimoriToBasicId,
 } from '../utils/shikimori-helper';
-import Dimens from '../../../../configs/Dimens';
 import { getUpdateData } from '../../../../update/update.util';
-import { ShikimoriWithRelations } from '../types/types';
+import { ShikimoriResponse, ShikimoriWithRelations } from '../types/types';
 
 @Injectable()
 export class ShikimoriService {
@@ -28,16 +27,15 @@ export class ShikimoriService {
     }
 
     const existing = await this.findById(id);
-    if (existing) return this.adjustScreenshots(existing);
+    if (existing) return existing;
 
-    const { animes } = await this.fetchFromGraphQL(id);
-    const anime = animes[0];
+    const data = await this.fetchFromGraphQL(id);
+    console.log(JSON.stringify(data));
+    const anime = data.animes[0];
     if (!anime)
       throw new NotFoundException(`No Shikimori data found for ID: ${id}`);
 
-    await this.saveShikimori(anime as ShikimoriWithRelations);
-    const saved = await this.findById(id);
-    return this.adjustScreenshots(saved!);
+    return await this.saveShikimori(anime);
   }
 
   async getChronology(id: string): Promise<BasicIdShik[]> {
@@ -48,7 +46,7 @@ export class ShikimoriService {
 
     if (!shikimori)
       throw new NotFoundException(`Shikimori not found for ID: ${id}`);
-    return shikimori.chronology as BasicIdShik[];
+    return shikimori.chronology;
   }
 
   async saveShikimori(
@@ -58,12 +56,12 @@ export class ShikimoriService {
       where: { entityId: String(anime.id) },
       create: getUpdateData(
         String(anime.id),
-        anime.malId ?? 0,
+        Number(anime.id),
         UpdateType.SHIKIMORI,
       ),
       update: getUpdateData(
         String(anime.id),
-        anime.malId ?? 0,
+        Number(anime.id),
         UpdateType.SHIKIMORI,
       ),
     });
@@ -78,17 +76,17 @@ export class ShikimoriService {
   }
 
   async update(id: string): Promise<ShikimoriWithRelations> {
-    const { animes } = await this.fetchFromGraphQL(id);
-    const anime = animes[0];
+    const data = await this.fetchFromGraphQL(id);
+    const anime = data.animes[0];
     if (!anime)
       throw new NotFoundException(`Shikimori not found for ID: ${id}`);
 
     const existing = await this.prisma.shikimori.findUnique({ where: { id } });
     if (JSON.stringify(anime) === JSON.stringify(existing)) {
-      return anime as ShikimoriWithRelations;
+      return anime;
     }
 
-    return this.saveShikimori(anime as ShikimoriWithRelations);
+    return this.saveShikimori(anime);
   }
 
   async getFranchise(franchise: string): Promise<Shikimori[]> {
@@ -100,11 +98,15 @@ export class ShikimoriService {
     return items.map((item) => shikimoriToBasicId(item));
   }
 
-  private async fetchFromGraphQL(id: string, page = 1, perPage = 1) {
+  private async fetchFromGraphQL(
+    id: string,
+    page = 1,
+    perPage = 1,
+  ): Promise<ShikimoriResponse> {
     return this.http.getGraphQL(
       UrlConfig.SHIKIMORI_GRAPHQL,
       GraphQL.getShikimoriAnime(id, page, perPage),
-    ) as Promise<{ animes: Shikimori[] }>;
+    );
   }
 
   private async findById(id: string): Promise<ShikimoriWithRelations | null> {
@@ -112,14 +114,5 @@ export class ShikimoriService {
       where: { id },
       include: getShikimoriInclude(),
     }) as Promise<ShikimoriWithRelations | null>;
-  }
-
-  private adjustScreenshots(
-    anime: ShikimoriWithRelations,
-  ): ShikimoriWithRelations {
-    if (anime.screenshots?.length > Dimens.SCREENSHOTS) {
-      anime.screenshots = anime.screenshots.slice(0, Dimens.SCREENSHOTS);
-    }
-    return anime;
   }
 }

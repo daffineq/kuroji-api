@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, Put } from '@nestjs/common';
+import { Controller, Get, Param, Put } from '@nestjs/common';
 import { ShikimoriService } from '../service/shikimori.service';
 
 @Controller('shikimori')
@@ -9,10 +9,10 @@ export class ShikimoriController {
      Removed because it would cause error
   */
 
-  // @Get('info/:id')
-  // async getShikimori(@Param('id') id: string) {
-  //   return this.service.getShikimori(id);
-  // }
+  @Get('info/:id')
+  async getShikimori(@Param('id') id: string) {
+    return this.service.getShikimori(id);
+  }
 
   @Put('info/:id/update')
   async updateShikimori(@Param('id') id: string) {

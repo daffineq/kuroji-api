@@ -111,10 +111,10 @@ export class ShikimoriHelper {
             })),
           }
         : undefined,
-      anilist: anime.malId
+      anilist: anime.id
         ? {
             connect: {
-              idMal: +anime.malId,
+              idMal: +anime.id,
             },
           }
         : undefined,
