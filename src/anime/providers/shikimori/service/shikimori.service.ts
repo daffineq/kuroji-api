@@ -30,7 +30,6 @@ export class ShikimoriService {
     if (existing) return existing;
 
     const data = await this.fetchFromGraphQL(id);
-    console.log(JSON.stringify(data));
     const anime = data.animes[0];
     if (!anime)
       throw new NotFoundException(`No Shikimori data found for ID: ${id}`);
