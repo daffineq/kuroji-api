@@ -48,7 +48,7 @@ export class TmdbService {
     const type = await this.detectType(id);
     const tmdb = await this.fetchTmdb(id, type);
 
-    return await this.saveTmdb(tmdb as TmdbWithRelations);
+    return await this.saveTmdb(tmdb);
   }
 
   async getTmdbByAnilist(id: number): Promise<TmdbWithRelations> {
@@ -95,7 +95,7 @@ export class TmdbService {
 
     const SEASONS = tmdb.number_of_seasons || 1;
 
-    let seasonNumber =
+    const seasonNumber =
       existTmdbSeason.find(
         (season) =>
           season.air_date?.toLowerCase() ===
@@ -122,7 +122,7 @@ export class TmdbService {
       const episodes = tmdbSeason.episodes;
       if (!episodes || episodes.length === 0) continue;
 
-      let startIndex = episodes.findIndex(
+      const startIndex = episodes.findIndex(
         (ep) => ep.air_date === anilistStartDateString,
       );
       if (startIndex === -1) continue;
@@ -487,16 +487,16 @@ export class TmdbService {
   }
 
   async detectType(id: number): Promise<string> {
-    try {
-      await this.customHttpService.getResponse(TMDB.getTvDetails(id));
-      return 'tv';
-    } catch (e1) {
-      try {
-        await this.customHttpService.getResponse(TMDB.getMovieDetails(id));
-        return 'movie';
-      } catch (e2) {
-        throw new Error('ID not found in TMDb as Movie or TV Show.');
-      }
-    }
+    const tvReq = this.customHttpService.getResponse(TMDB.getTvDetails(id));
+    const movieReq = this.customHttpService.getResponse(
+      TMDB.getMovieDetails(id),
+    );
+
+    const [tvRes, movieRes] = await Promise.allSettled([tvReq, movieReq]);
+
+    if (tvRes.status === 'fulfilled') return 'tv';
+    if (movieRes.status === 'fulfilled') return 'movie';
+
+    throw new Error('ID not found in TMDb as Movie or TV Show.');
   }
 }

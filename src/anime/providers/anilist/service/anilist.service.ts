@@ -76,9 +76,7 @@ export class AnilistService {
     });
 
     await Promise.all([
-      ...(anilist.idMal
-        ? [this.shikimori.getShikimori(String(anilist.idMal)).catch(() => null)]
-        : []),
+      this.shikimori.getShikimori(String(anilist.idMal)).catch(() => null),
       this.kitsu.getKitsuByAnilist(anilist.id).catch(() => null),
     ]);
 
