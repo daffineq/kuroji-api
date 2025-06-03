@@ -104,13 +104,14 @@ export class StreamService {
         };
       });
 
-      Config.REDIS &&
-        (await this.redis.set(
+      if (Config.REDIS) {
+        await this.redis.set(
           key,
           JSON.stringify(episodes),
           'EX',
           Config.REDIS_TIME,
-        ));
+        );
+      }
 
       return episodes;
     } catch (e) {
@@ -119,26 +120,28 @@ export class StreamService {
   }
 
   async getEpisode(id: number, ep: number): Promise<EpisodeDetails> {
-    const details = await this.tmdb.getEpisodeDetailsByAnilist(id, ep);
+    const details = await this.tmdb
+      .getEpisodeDetailsByAnilist(id, ep)
+      .catch(() => null);
     const data = (await this.getEpisodes(id)).find(
       (e) => e.number === ep,
     ) as Episode;
 
-    const images: EpisodeImage[] = details.images.stills.map((s) => {
-      return {
-        image: {
-          w300: `${TMDB.getImageUrl('w300')}${s.file_path}`,
-          w500: `${TMDB.getImageUrl('w500')}${s.file_path}`,
-          original: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${s.file_path}`,
-        },
-        aspectRation: s.aspect_ratio ?? 0,
-        height: s.height ?? 0,
-        width: s.width ?? 0,
-        iso_639_1: s.iso_639_1 ?? '',
-        voteAverage: s.vote_average ?? 0,
-        voteCount: s.vote_count ?? 0,
-      };
-    });
+    const images: EpisodeImage[] = details?.images?.stills
+      ? details.images.stills.map((s) => ({
+          image: {
+            w300: `${TMDB.getImageUrl('w300')}${s.file_path}`,
+            w500: `${TMDB.getImageUrl('w500')}${s.file_path}`,
+            original: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${s.file_path}`,
+          },
+          aspectRation: s.aspect_ratio ?? 0,
+          height: s.height ?? 0,
+          width: s.width ?? 0,
+          iso_639_1: s.iso_639_1 ?? '',
+          voteAverage: s.vote_average ?? 0,
+          voteCount: s.vote_count ?? 0,
+        }))
+      : [];
 
     return {
       ...data,
@@ -226,13 +229,14 @@ export class StreamService {
         }
       }
 
-      Config.REDIS &&
-        (await this.redis.set(
+      if (Config.REDIS) {
+        await this.redis.set(
           key,
           JSON.stringify(providers),
           'EX',
           Config.REDIS_TIME,
-        ));
+        );
+      }
 
       return providers;
     } catch (e) {
