@@ -50,13 +50,6 @@ export class KitsuService extends Client {
       ),
     });
 
-    await this.prisma.kitsu.upsert({
-      where: { id: kitsu.id },
-      create: this.helper.getDataForPrisma(kitsu),
-      update: this.helper.getDataForPrisma(kitsu),
-      include: getKitsuInclude(),
-    });
-
     return (await this.prisma.kitsu.upsert({
       where: { id: kitsu.id },
       create: this.helper.getDataForPrisma(kitsu),
