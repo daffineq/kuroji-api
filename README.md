@@ -1088,60 +1088,6 @@ GET https://api.example.com/api/anime/watch/zoro/ep_12345?dub=false
 </details>
 
 <details>
-<summary><h3>⚠️ Exceptions Endpoints</h3></summary>
-
-<details>
-<summary><b>Get All Exceptions</b> - <code>GET /api/exceptions</code></summary>
-
-Get all logged exceptions.
-
-**Example:**
-
-```
-GET https://api.example.com/api/exceptions?page=1&perPage=20&statusCode=500
-```
-
-**Parameters:**
-
-```typescript
-// ExceptionFilterDto
-{
-  // Filter by exception details
-  statusCode?: number;     // HTTP status code
-  path?: string;           // Request path
-  message?: string;        // Error message
-  method?: string;         // HTTP method (GET, POST, etc.)
-
-  // Filter by date range
-  fromDate?: string;       // Start date (ISO format)
-  toDate?: string;         // End date (ISO format)
-
-  // Pagination
-  page?: number;           // Page number (min: 1)
-  perPage?: number;        // Results per page (min: 1)
-}
-```
-
-</details>
-
-<details>
-<summary><b>Delete Exception</b> - <code>DELETE /api/exceptions/delete/:id</code></summary>
-
-Delete a logged exception.
-
-**Example:**
-
-```
-DELETE https://api.example.com/api/exceptions/delete/1
-```
-
-**Parameters:**
-
-- `id` (path): Exception ID (required)
-</details>
-</details>
-
-<details>
 <summary><h3>📋 Console Endpoints</h3></summary>
 
 <details>
@@ -1309,7 +1255,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [Prisma](https://www.prisma.io/) - ORM
 - [Consumet API](https://github.com/consumet/consumet.ts) - For anime scraping inspiration and utilities
 - Various anime API providers for their data
-- Mapping Code by: [Shimizudev](https://github.com/shimizudev)
+- Arigato [Shimizudev](https://github.com/shimizudev) for providing me code
 
 ## 📄 License
 

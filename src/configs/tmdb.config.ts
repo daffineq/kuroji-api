@@ -1,5 +1,4 @@
 import Config from './Config';
-import { UrlConfig } from './url.config';
 
 export class TMDB {
   public static readonly API_KEY: string = Config.TMDB_API || '';
@@ -14,12 +13,12 @@ export class TMDB {
 
   // Movie Details
   public static getMovieDetails(movieId: number): string {
-    return `${UrlConfig.TMDB}movie/${movieId}?api_key=${TMDB.API_KEY}`;
+    return `movie/${movieId}?api_key=${TMDB.API_KEY}`;
   }
 
   // TV Show Details
   public static getTvDetails(tvId: number): string {
-    return `${UrlConfig.TMDB}tv/${tvId}?api_key=${TMDB.API_KEY}`;
+    return `tv/${tvId}?api_key=${TMDB.API_KEY}`;
   }
 
   // Episode Images
@@ -28,73 +27,73 @@ export class TMDB {
     seasonNumber: number,
     episodeNumber: number,
   ): string {
-    return `${UrlConfig.TMDB}tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}/images?api_key=${TMDB.API_KEY}`;
+    return `tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}/images?api_key=${TMDB.API_KEY}`;
   }
 
   // Season Details
   public static getSeasonDetails(tvId: number, seasonNumber: number): string {
-    return `${UrlConfig.TMDB}tv/${tvId}/season/${seasonNumber}?api_key=${TMDB.API_KEY}`;
+    return `tv/${tvId}/season/${seasonNumber}?api_key=${TMDB.API_KEY}`;
   }
 
   // Search (for finding series by name)
   public static searchTvShow(query: string): string {
-    return `${UrlConfig.TMDB}search/tv?query=${encodeURIComponent(query)}&api_key=${TMDB.API_KEY}`;
+    return `search/tv?query=${encodeURIComponent(query)}&api_key=${TMDB.API_KEY}`;
   }
 
   // Multi-search (movies, TV shows, people)
   public static multiSearch(query: string): string {
-    return `${UrlConfig.TMDB}search/multi?query=${encodeURIComponent(query)}&api_key=${TMDB.API_KEY}`;
+    return `search/multi?query=${encodeURIComponent(query)}&api_key=${TMDB.API_KEY}`;
   }
 
   // Trending
   public static getTrending(mediaType: string, timeWindow: string): string {
     // mediaType: "all", "movie", "tv", "person"
     // timeWindow: "day", "week"
-    return `${UrlConfig.TMDB}trending/${mediaType}/${timeWindow}?api_key=${TMDB.API_KEY}`;
+    return `trending/${mediaType}/${timeWindow}?api_key=${TMDB.API_KEY}`;
   }
 
   // Popular TV Shows
   public static getPopularTvShows(): string {
-    return `${UrlConfig.TMDB}tv/popular?api_key=${TMDB.API_KEY}`;
+    return `tv/popular?api_key=${TMDB.API_KEY}`;
   }
 
   // Top Rated TV Shows
   public static getTopRatedTvShows(): string {
-    return `${UrlConfig.TMDB}tv/top_rated?api_key=${TMDB.API_KEY}`;
+    return `tv/top_rated?api_key=${TMDB.API_KEY}`;
   }
 
   // Similar TV Shows
   public static getSimilarTvShows(tvId: number): string {
-    return `${UrlConfig.TMDB}tv/${tvId}/similar?api_key=${TMDB.API_KEY}`;
+    return `tv/${tvId}/similar?api_key=${TMDB.API_KEY}`;
   }
 
   // Recommendations
   public static getRecommendations(tvId: number): string {
-    return `${UrlConfig.TMDB}tv/${tvId}/recommendations?api_key=${TMDB.API_KEY}`;
+    return `tv/${tvId}/recommendations?api_key=${TMDB.API_KEY}`;
   }
 
   // Releases (General)
   public static getRelease(id: number, type: string): string {
-    return `${UrlConfig.TMDB}${type}/${id}/release_dates?api_key=${TMDB.API_KEY}`;
+    return `${type}/${id}/release_dates?api_key=${TMDB.API_KEY}`;
   }
 
   // Credits (Cast & Crew)
   public static getCredits(tvId: number): string {
-    return `${UrlConfig.TMDB}tv/${tvId}/credits?api_key=${TMDB.API_KEY}`;
+    return `tv/${tvId}/credits?api_key=${TMDB.API_KEY}`;
   }
 
   // External IDs (for AniList/MAL/TVDB mapping)
   public static getExternalIds(tvId: number): string {
-    return `${UrlConfig.TMDB}tv/${tvId}/external_ids?api_key=${TMDB.API_KEY}`;
+    return `tv/${tvId}/external_ids?api_key=${TMDB.API_KEY}`;
   }
 
   // Videos (Trailers, Clips, etc.)
   public static getVideos(tvId: number): string {
-    return `${UrlConfig.TMDB}tv/${tvId}/videos?api_key=${TMDB.API_KEY}`;
+    return `tv/${tvId}/videos?api_key=${TMDB.API_KEY}`;
   }
 
   // Reviews
   public static getReviews(tvId: number): string {
-    return `${UrlConfig.TMDB}tv/${tvId}/reviews?api_key=${TMDB.API_KEY}`;
+    return `tv/${tvId}/reviews?api_key=${TMDB.API_KEY}`;
   }
 }

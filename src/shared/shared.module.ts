@@ -1,42 +1,39 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
-import { CustomHttpService } from '../http/http.service';
 import { PrismaService } from '../prisma.service';
-import { AnilistService } from '../anime/providers/anilist/service/anilist.service';
-import { AnilistHelper } from '../anime/providers/anilist/utils/anilist-helper';
-import { AnimekaiService } from '../anime/providers/animekai/service/animekai.service';
-import { AnimeKaiHelper } from '../anime/providers/animekai/utils/animekai-helper';
-import { AnimepaheService } from '../anime/providers/animepahe/service/animepahe.service';
-import { AnimePaheHelper } from '../anime/providers/animepahe/utils/animepahe-helper';
-import { ShikimoriService } from '../anime/providers/shikimori/service/shikimori.service';
-import { ShikimoriHelper } from '../anime/providers/shikimori/utils/shikimori-helper';
-import { TmdbService } from '../anime/providers/tmdb/service/tmdb.service';
-import { TmdbHelper } from '../anime/providers/tmdb/utils/tmdb-helper';
-import { TvdbService } from '../anime/providers/tvdb/service/tvdb.service';
-import { TvdbHelper } from '../anime/providers/tvdb/utils/tvdb-helper';
-import { TvdbTokenService } from '../anime/providers/tvdb/service/token/tvdb.token.service';
-import { UpdateService } from '../update/update.service';
-import { ZoroService } from '../anime/providers/zoro/service/zoro.service';
-import { ZoroHelper } from '../anime/providers/zoro/utils/zoro-helper';
-import { StreamService } from '../anime/providers/stream/service/stream.service';
-import { AnilistIndexerService } from '../anime/providers/anilist/service/anilist-indexer/anilist-indexer.service';
-import { AnilistAddService } from '../anime/providers/anilist/service/helper/anilist.add.service';
-import { AnilistFilterService } from '../anime/providers/anilist/service/helper/anilist.filter.service';
-import { AnilistFetchService } from '../anime/providers/anilist/service/helper/anilist.fetch.service';
-import { ExceptionsService } from '../exception/service/exceptions.service';
-import { AnilistScheduleService } from '../anime/providers/anilist/service/helper/anilist.schedule.service';
-import { ShikimoriHelperModule } from '../anime/providers/shikimori/module/shikimori-helper.module';
+import { AnilistService } from '../providers/anime/anilist/service/anilist.service';
+import { AnilistHelper } from '../providers/anime/anilist/utils/anilist-helper';
+import { AnimekaiService } from '../providers/anime/animekai/service/animekai.service';
+import { AnimeKaiHelper } from '../providers/anime/animekai/utils/animekai-helper';
+import { AnimepaheService } from '../providers/anime/animepahe/service/animepahe.service';
+import { AnimePaheHelper } from '../providers/anime/animepahe/utils/animepahe-helper';
+import { ShikimoriService } from '../providers/anime/shikimori/service/shikimori.service';
+import { ShikimoriHelper } from '../providers/anime/shikimori/utils/shikimori-helper';
+import { TmdbService } from '../providers/anime/tmdb/service/tmdb.service';
+import { TmdbHelper } from '../providers/anime/tmdb/utils/tmdb-helper';
+import { TvdbService } from '../providers/anime/tvdb/service/tvdb.service';
+import { TvdbHelper } from '../providers/anime/tvdb/utils/tvdb-helper';
+import { TvdbTokenService } from '../providers/anime/tvdb/service/token/tvdb.token.service';
+import { UpdateService } from '../providers/update/update.service';
+import { ZoroService } from '../providers/anime/zoro/service/zoro.service';
+import { ZoroHelper } from '../providers/anime/zoro/utils/zoro-helper';
+import { StreamService } from '../providers/anime/stream/service/stream.service';
+import { AnilistIndexerService } from '../providers/anime/anilist/service/anilist-indexer/anilist-indexer.service';
+import { AnilistAddService } from '../providers/anime/anilist/service/helper/anilist.add.service';
+import { AnilistFilterService } from '../providers/anime/anilist/service/helper/anilist.filter.service';
+import { AnilistFetchService } from '../providers/anime/anilist/service/helper/anilist.fetch.service';
+import { AnilistScheduleService } from '../providers/anime/anilist/service/helper/anilist.schedule.service';
+import { ShikimoriHelperModule } from '../providers/anime/shikimori/module/shikimori-helper.module';
 import { Redis } from './redis.module';
-import { AnilistSearchService } from '../anime/providers/anilist/service/helper/anilist.search.service';
-import { AnilistUtilService } from '../anime/providers/anilist/service/helper/anilist.util.service';
-import { KitsuService } from '../anime/providers/kitsu/service/kitsu.service';
-import { KitsuHelper } from '../anime/providers/kitsu/util/kitsu-helper';
+import { AnilistSearchService } from '../providers/anime/anilist/service/helper/anilist.search.service';
+import { AnilistUtilService } from '../providers/anime/anilist/service/helper/anilist.util.service';
+import { KitsuService } from '../providers/anime/kitsu/service/kitsu.service';
+import { KitsuHelper } from '../providers/anime/kitsu/util/kitsu-helper';
 
 @Module({
   imports: [HttpModule, ShikimoriHelperModule, Redis],
   providers: [
     PrismaService,
-    CustomHttpService,
     AnilistService,
     AnilistAddService,
     AnilistFilterService,
@@ -63,11 +60,9 @@ import { KitsuHelper } from '../anime/providers/kitsu/util/kitsu-helper';
     KitsuHelper,
     UpdateService,
     StreamService,
-    ExceptionsService,
   ],
   exports: [
     PrismaService,
-    CustomHttpService,
     AnilistService,
     AnilistAddService,
     AnilistFilterService,
@@ -92,7 +87,6 @@ import { KitsuHelper } from '../anime/providers/kitsu/util/kitsu-helper';
     KitsuHelper,
     UpdateService,
     StreamService,
-    ExceptionsService,
   ],
 })
 export class SharedModule {}

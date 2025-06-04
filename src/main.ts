@@ -4,7 +4,6 @@ import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 import { config } from 'dotenv';
-import { ExceptionsHandler } from './exception/handler/ExceptionsHandler';
 import { PrismaService } from './prisma.service';
 import * as express from 'express';
 import { join } from 'path';
@@ -37,7 +36,6 @@ async function bootstrap() {
   );
   app.use(express.static(join(__dirname, '..', 'public')));
   app.setGlobalPrefix('api');
-  app.useGlobalFilters(new ExceptionsHandler(app.get(PrismaService)));
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

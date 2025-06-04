@@ -2,21 +2,21 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AnilistModule } from './anime/providers/anilist/module/anilist.module';
-import { AnimekaiModule } from './anime/providers/animekai/module/animekai.module';
-import { AnimepaheModule } from './anime/providers/animepahe/module/animepahe.module';
-import { ShikimoriModule } from './anime/providers/shikimori/module/shikimori.module';
-import { TmdbModule } from './anime/providers/tmdb/module/tmdb.module';
-import { TvdbModule } from './anime/providers/tvdb/module/tvdb.module';
-import { ZoroModule } from './anime/providers/zoro/module/zoro.module';
-import { UpdateModule } from './update/update.module';
-import { ExceptionsModule } from './exception/module/exceptions.module';
+import { AnilistModule } from './providers/anime/anilist/module/anilist.module';
+import { AnimekaiModule } from './providers/anime/animekai/module/animekai.module';
+import { AnimepaheModule } from './providers/anime/animepahe/module/animepahe.module';
+import { ShikimoriModule } from './providers/anime/shikimori/module/shikimori.module';
+import { TmdbModule } from './providers/anime/tmdb/module/tmdb.module';
+import { TvdbModule } from './providers/anime/tvdb/module/tvdb.module';
+import { ZoroModule } from './providers/anime/zoro/module/zoro.module';
+import { UpdateModule } from './providers/update/update.module';
 import { ConsoleModule } from './console/module/console.module';
 import { Redis } from './shared/redis.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import Config from './configs/Config';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
+import { KitsuModule } from './providers/anime/kitsu/module/kitsu.module';
 
 @Module({
   imports: [
@@ -28,8 +28,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     AnimekaiModule,
     TmdbModule,
     TvdbModule,
+    KitsuModule,
     UpdateModule,
-    ExceptionsModule,
     ConsoleModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
