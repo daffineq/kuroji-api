@@ -1,4 +1,3 @@
-import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { AnilistService } from '../providers/anime/anilist/service/anilist.service';
@@ -31,7 +30,7 @@ import { KitsuService } from '../providers/anime/kitsu/service/kitsu.service';
 import { KitsuHelper } from '../providers/anime/kitsu/util/kitsu-helper';
 
 @Module({
-  imports: [HttpModule, ShikimoriHelperModule, Redis],
+  imports: [ShikimoriHelperModule, Redis],
   providers: [
     PrismaService,
     AnilistService,
