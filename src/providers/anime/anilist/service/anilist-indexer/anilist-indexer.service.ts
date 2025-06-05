@@ -117,7 +117,7 @@ export class AnilistIndexerService extends Client {
     const query = AnilistQL.getSimplePageQuery(builder);
     const variables = builder.build();
 
-    const { data } = await this.client.post<AnilistPageResponse>(
+    const { data, error } = await this.client.post<AnilistPageResponse>(
       `${this.baseUrl}`,
       {
         json: {
@@ -127,6 +127,10 @@ export class AnilistIndexerService extends Client {
         jsonPath: 'data',
       },
     );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
