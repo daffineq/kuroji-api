@@ -182,7 +182,7 @@ export class TvdbService extends Client {
   }
 
   async fetchByRemoteId(id: string, type: string): Promise<BasicTvdb> {
-    const { data } = await this.client.get<SearchResponse>(
+    const { data, error } = await this.client.get<SearchResponse>(
       TVDB.getRemoteId(id),
       {
         headers: {
@@ -190,6 +190,10 @@ export class TvdbService extends Client {
         },
       },
     );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('No data found');
@@ -205,12 +209,16 @@ export class TvdbService extends Client {
 
   async fetchTvdb(id: number, type: string): Promise<TvdbInput> {
     const url = type === 'movie' ? TVDB.getMovie(id) : TVDB.getSeries(id);
-    const { data } = await this.client.get<TvdbInput>(url, {
+    const { data, error } = await this.client.get<TvdbInput>(url, {
       headers: {
         Authorization: `Bearer ${await this.tokenService.getToken()}`,
       },
       jsonPath: 'data',
     });
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -229,12 +237,19 @@ export class TvdbService extends Client {
         ? TVDB.getMovieTranslations(id, lang)
         : TVDB.getSeriesTranslations(id, lang);
 
-    const { data } = await this.client.get<TvdbLanguageTranslation>(url, {
-      headers: {
-        Authorization: `Bearer ${await this.tokenService.getToken()}`,
+    const { data, error } = await this.client.get<TvdbLanguageTranslation>(
+      url,
+      {
+        headers: {
+          Authorization: `Bearer ${await this.tokenService.getToken()}`,
+        },
+        jsonPath: 'data',
       },
-      jsonPath: 'data',
-    });
+    );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -244,7 +259,7 @@ export class TvdbService extends Client {
   }
 
   async fetchLanguages(): Promise<TvdbLanguage[]> {
-    const { data } = await this.client.get<TvdbLanguage[]>(
+    const { data, error } = await this.client.get<TvdbLanguage[]>(
       TVDB.getLanguages(),
       {
         headers: {
@@ -253,6 +268,10 @@ export class TvdbService extends Client {
         jsonPath: 'data',
       },
     );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');

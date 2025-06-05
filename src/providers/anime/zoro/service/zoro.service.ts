@@ -106,9 +106,13 @@ export class ZoroService extends Client {
 
   async getSources(episodeId: string, dub: boolean): Promise<ISource> {
     // return await zoro.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
-    const { data } = await this.client.get<ISource>(
+    const { data, error } = await this.client.get<ISource>(
       `watch/${episodeId}?dub=${dub}`,
     );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -119,7 +123,11 @@ export class ZoroService extends Client {
 
   async fetchZoro(id: string): Promise<IAnimeInfo> {
     // return await zoro.fetchAnimeInfo(id);
-    const { data } = await this.client.get<IAnimeInfo>(`info?id=${id}`);
+    const { data, error } = await this.client.get<IAnimeInfo>(`info?id=${id}`);
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -130,7 +138,11 @@ export class ZoroService extends Client {
 
   async searchZoro(q: string): Promise<ISearch<IAnimeResult>> {
     // return (await zoro.search(q)).results;
-    const { data } = await this.client.get<ISearch<IAnimeResult>>(q);
+    const { data, error } = await this.client.get<ISearch<IAnimeResult>>(q);
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');

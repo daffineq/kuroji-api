@@ -127,12 +127,16 @@ export class KitsuService extends Client {
   }
 
   async searchKitsu(query: string): Promise<KitsuAnime[]> {
-    const { data } = await this.client.get<KitsuAnime[]>(
+    const { data, error } = await this.client.get<KitsuAnime[]>(
       KITSU.searchKitsu(query),
       {
         jsonPath: 'data',
       },
     );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -142,9 +146,16 @@ export class KitsuService extends Client {
   }
 
   async fetchKitsu(id: string): Promise<KitsuAnime> {
-    const { data } = await this.client.get<KitsuAnime>(KITSU.getKitsu(id), {
-      jsonPath: 'data',
-    });
+    const { data, error } = await this.client.get<KitsuAnime>(
+      KITSU.getKitsu(id),
+      {
+        jsonPath: 'data',
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');

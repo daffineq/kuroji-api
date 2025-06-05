@@ -223,7 +223,11 @@ export class TmdbService extends Client {
   async fetchTmdb(id: number, type: string): Promise<TmdbWithRelations> {
     const url =
       type === 'tv' ? TMDB.getTvDetails(id) : TMDB.getMovieDetails(id);
-    const { data } = await this.client.get<TmdbWithRelations>(url);
+    const { data, error } = await this.client.get<TmdbWithRelations>(url);
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -236,9 +240,13 @@ export class TmdbService extends Client {
     id: number,
     seasonNumber: number,
   ): Promise<TmdbSeasonWithRelations> {
-    const { data } = await this.client.get<TmdbSeasonWithRelations>(
+    const { data, error } = await this.client.get<TmdbSeasonWithRelations>(
       TMDB.getSeasonDetails(id, seasonNumber),
     );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -280,9 +288,13 @@ export class TmdbService extends Client {
   }
 
   async searchTmdb(query: string): Promise<TmdbResponse> {
-    const { data } = await this.client.get<TmdbResponse>(
+    const { data, error } = await this.client.get<TmdbResponse>(
       TMDB.multiSearch(query),
     );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -296,10 +308,14 @@ export class TmdbService extends Client {
     seasonNumber: number,
     episode: number,
   ): Promise<TmdbSeasonEpisodeImagesWithRelations> {
-    const { data } =
+    const { data, error } =
       await this.client.get<TmdbSeasonEpisodeImagesWithRelations>(
         TMDB.getEpisodeImages(tvId, seasonNumber, episode),
       );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');

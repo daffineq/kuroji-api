@@ -4,7 +4,6 @@ import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 import { config } from 'dotenv';
-import { PrismaService } from './prisma.service';
 import * as express from 'express';
 import { join } from 'path';
 import Config from './configs/Config';

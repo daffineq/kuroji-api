@@ -84,9 +84,13 @@ export class AnimekaiService extends Client {
 
   async getSources(episodeId: string, dub: boolean): Promise<ISource> {
     // return await animekai.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
-    const { data } = await this.client.get<ISource>(
+    const { data, error } = await this.client.get<ISource>(
       `watch/${episodeId}?dub=${dub}`,
     );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -97,7 +101,11 @@ export class AnimekaiService extends Client {
 
   async fetchAnimekai(id: string): Promise<IAnimeInfo> {
     // return await animekai.fetchAnimeInfo(id);
-    const { data } = await this.client.get<IAnimeInfo>(`info?id=${id}`);
+    const { data, error } = await this.client.get<IAnimeInfo>(`info?id=${id}`);
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -108,7 +116,11 @@ export class AnimekaiService extends Client {
 
   async searchAnimekai(q: string): Promise<ISearch<IAnimeResult>> {
     // return (await animekai.search(q)).results;
-    const { data } = await this.client.get<ISearch<IAnimeResult>>(q);
+    const { data, error } = await this.client.get<ISearch<IAnimeResult>>(q);
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');

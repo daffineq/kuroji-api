@@ -98,9 +98,13 @@ export class AnimepaheService extends Client {
 
   async getSources(episodeId: string): Promise<ISource> {
     // return await animepahe.fetchEpisodeSources(episodeId);
-    const { data } = await this.client.get<ISource>(
+    const { data, error } = await this.client.get<ISource>(
       `watch?episodeId=${episodeId}`,
     );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -111,7 +115,11 @@ export class AnimepaheService extends Client {
 
   async fetchAnimepahe(id: string): Promise<IAnimeInfo> {
     // return await animepahe.fetchAnimeInfo(id);
-    const { data } = await this.client.get<IAnimeInfo>(`info?id=${id}`);
+    const { data, error } = await this.client.get<IAnimeInfo>(`info?id=${id}`);
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -122,7 +130,11 @@ export class AnimepaheService extends Client {
 
   async searchAnimepahe(q: string): Promise<ISearch<IAnimeResult>> {
     // return (await animepahe.search(q)).results;
-    const { data } = await this.client.get<ISearch<IAnimeResult>>(q);
+    const { data, error } = await this.client.get<ISearch<IAnimeResult>>(q);
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');

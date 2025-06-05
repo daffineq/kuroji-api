@@ -34,7 +34,7 @@ export class AnilistFetchService extends Client {
     const query = AnilistQL.getQuery(queryBuilder);
     const variables = queryBuilder.build();
 
-    const { data } = await this.client.post<AnilistResponse>(
+    const { data, error } = await this.client.post<AnilistResponse>(
       `${this.baseUrl}`,
       {
         json: {
@@ -45,6 +45,10 @@ export class AnilistFetchService extends Client {
       },
     );
 
+    if (error) {
+      throw error;
+    }
+
     if (!data) {
       throw new Error('Data is null');
     }
@@ -53,9 +57,13 @@ export class AnilistFetchService extends Client {
   }
 
   async fetchMoreInfo(id: number): Promise<MoreInfoResponse> {
-    const { data } = await this.client.get<MoreInfoResponse>(
+    const { data, error } = await this.client.get<MoreInfoResponse>(
       Jikan.getMoreInfo(id),
     );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
@@ -65,7 +73,13 @@ export class AnilistFetchService extends Client {
   }
 
   async fetchVideos(id: number): Promise<VideosResponse> {
-    const { data } = await this.client.get<VideosResponse>(Jikan.getVideos(id));
+    const { data, error } = await this.client.get<VideosResponse>(
+      Jikan.getVideos(id),
+    );
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');

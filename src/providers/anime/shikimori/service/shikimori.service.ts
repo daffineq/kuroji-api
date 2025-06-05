@@ -103,12 +103,16 @@ export class ShikimoriService extends Client {
     perPage = 1,
   ): Promise<ShikimoriResponse> {
     const query = GraphQL.getShikimoriAnime(id, page, perPage);
-    const { data } = await this.client.post<ShikimoriResponse>(``, {
+    const { data, error } = await this.client.post<ShikimoriResponse>(``, {
       json: {
         query,
       },
       jsonPath: 'data',
     });
+
+    if (error) {
+      throw error;
+    }
 
     if (!data) {
       throw new Error('Data is null');
