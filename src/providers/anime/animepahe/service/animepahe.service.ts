@@ -58,16 +58,6 @@ export class AnimepaheService extends Client {
       ),
     });
 
-    await this.prisma.animepahe.upsert({
-      where: { id: animepahe.id },
-      update: this.helper.getAnimePaheData(animepahe),
-      create: this.helper.getAnimePaheData(animepahe),
-      include: {
-        externalLinks: true,
-        episodes: true,
-      },
-    });
-
     return await this.prisma.animepahe.upsert({
       where: { id: animepahe.id },
       update: this.helper.getAnimePaheData(animepahe),
@@ -115,7 +105,7 @@ export class AnimepaheService extends Client {
 
   async fetchAnimepahe(id: string): Promise<IAnimeInfo> {
     // return await animepahe.fetchAnimeInfo(id);
-    const { data, error } = await this.client.get<IAnimeInfo>(`info?id=${id}`);
+    const { data, error } = await this.client.get<IAnimeInfo>(`info/${id}`);
 
     if (error) {
       throw error;
