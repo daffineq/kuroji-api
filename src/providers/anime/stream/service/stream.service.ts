@@ -171,11 +171,29 @@ export class StreamService {
 
       const providers: ProviderInfo[] = [];
 
-      const [zoro, pahe, kai] = await Promise.all([
-        this.aniwatch.getZoroByAnilist(id).catch(() => null),
-        this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
-        this.animekai.getAnimekaiByAnilist(id).catch(() => null),
-      ]);
+      const promises: Promise<any>[] = [];
+
+      if (Config.ZORO_ENABLED) {
+        promises.push(this.aniwatch.getZoroByAnilist(id).catch(() => null));
+      } else {
+        promises.push(Promise.resolve(null));
+      }
+
+      if (Config.ANIMEPAHE_ENABLED) {
+        promises.push(
+          this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
+        );
+      } else {
+        promises.push(Promise.resolve(null));
+      }
+
+      if (Config.ANIMEKAI_ENABLED) {
+        promises.push(this.animekai.getAnimekaiByAnilist(id).catch(() => null));
+      } else {
+        promises.push(Promise.resolve(null));
+      }
+
+      const [zoro, pahe, kai] = await Promise.all(promises);
 
       const pushProvider = (
         id: string,
@@ -186,7 +204,7 @@ export class StreamService {
         providers.push({ id, filler, provider, type });
       };
 
-      if (zoro) {
+      if (Config.ZORO_ENABLED && zoro) {
         const zoroEp = zoro.episodes?.find(
           (e: EpisodeZoro, idx: number) => e.number === ep || idx + 1 === ep,
         );
@@ -204,7 +222,7 @@ export class StreamService {
         }
       }
 
-      if (pahe) {
+      if (Config.ANIMEPAHE_ENABLED && pahe) {
         const paheEp = pahe.episodes?.find(
           (e: AnimepaheEpisode, idx: number) =>
             e.number === ep || idx + 1 === ep,
@@ -214,7 +232,7 @@ export class StreamService {
         }
       }
 
-      if (kai) {
+      if (Config.ANIMEKAI_ENABLED && kai) {
         const kaiEp = kai.episodes?.find(
           (e: AnimekaiEpisode, idx: number) =>
             e.number === ep || idx + 1 === ep,
@@ -263,11 +281,21 @@ export class StreamService {
     const epId = providers.find((p) => p.provider === provider)?.id;
     if (!epId) throw new Error('Episode not found for provider');
 
-    const fetchMap = {
-      [Provider.zoro]: async () => this.aniwatch.getSources(epId, dub),
-      [Provider.animekai]: async () => this.animekai.getSources(epId, dub),
-      [Provider.animepahe]: async () => this.animepahe.getSources(epId),
-    };
+    const fetchMap: { [key: string]: () => Promise<ISource> } = {};
+
+    if (Config.ZORO_ENABLED) {
+      fetchMap[Provider.zoro] = async () => this.aniwatch.getSources(epId, dub);
+    }
+
+    if (Config.ANIMEKAI_ENABLED) {
+      fetchMap[Provider.animekai] = async () =>
+        this.animekai.getSources(epId, dub);
+    }
+
+    if (Config.ANIMEPAHE_ENABLED) {
+      fetchMap[Provider.animepahe] = async () =>
+        this.animepahe.getSources(epId);
+    }
 
     const fetchFn = fetchMap[provider];
     if (!fetchFn) throw new Error('Invalid provider');

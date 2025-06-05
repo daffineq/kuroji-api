@@ -165,17 +165,28 @@ export class AnilistIndexerService extends Client {
           return;
         }
 
-        const providers = [
-          { name: 'Zoro', fn: () => this.zoro.getZoroByAnilist(id) },
-          {
+        const providers: Array<{ name: string; fn: () => Promise<any> }> = [];
+
+        if (Config.ZORO_ENABLED) {
+          providers.push({
+            name: 'Zoro',
+            fn: () => this.zoro.getZoroByAnilist(id),
+          });
+        }
+
+        if (Config.ANIMEKAI_ENABLED) {
+          providers.push({
             name: 'Animekai',
             fn: () => this.animekai.getAnimekaiByAnilist(id),
-          },
-          {
+          });
+        }
+
+        if (Config.ANIMEPAHE_ENABLED) {
+          providers.push({
             name: 'Animepahe',
             fn: () => this.animepahe.getAnimepaheByAnilist(id),
-          },
-        ];
+          });
+        }
 
         await Promise.allSettled(
           providers.map(async (provider) => {
