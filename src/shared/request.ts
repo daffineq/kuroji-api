@@ -279,9 +279,9 @@ export class KurojiClient {
       retryAfter,
     };
 
-    if (response.status === 429) {
-      await sleep(retryAfter);
-    }
+    // if (response.status === 429) {
+    //   await sleep(retryAfter);
+    // }
   }
 
   /**
