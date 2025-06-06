@@ -1,4 +1,5 @@
 import ky, { HTTPError, type Options as KyOptions } from 'ky';
+import { sleep } from '../utils/utils';
 
 /**
  * Represents rate limit information.
@@ -162,6 +163,7 @@ export class KurojiClient {
     this.baseUrl = baseUrl;
     this.client = ky.create({
       prefixUrl: baseUrl,
+      timeout: 15000, // 15 seconds timeout
       hooks: {
         beforeRequest: [
           (request) => {
@@ -182,8 +184,10 @@ export class KurojiClient {
         beforeRetry: [
           async ({ error }) => {
             if (error instanceof HTTPError && error.response.status === 429) {
-              const delay = this.rateLimitInfo.retryAfter * 1000;
-              await new Promise((resolve) => setTimeout(resolve, delay));
+              console.warn(
+                `Rate Limit hit, sleeping for ${this.rateLimitInfo.retryAfter}s`,
+              );
+              await sleep(this.rateLimitInfo.retryAfter, false);
             }
           },
         ],
