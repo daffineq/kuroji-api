@@ -262,7 +262,6 @@ export class KurojiClient {
    * @param {Response} response - The response from the request.
    * @returns {Promise<void>} - A promise that resolves when the rate limit information has been handled.
    */
-  // eslint-disable-next-line @typescript-eslint/require-await
   private async handleRateLimit(response: Response): Promise<void> {
     const remaining = Number.parseInt(
       response.headers.get('x-ratelimit-remaining') || 'Infinity',

@@ -389,7 +389,7 @@ export class UpdateService {
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async update(annotateAtId: string | null = null): Promise<void> {
     if (!Config.UPDATE_ENABLED) {
       console.log('Updates are disabled via configuration.');
