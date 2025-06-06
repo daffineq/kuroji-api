@@ -1,4 +1,5 @@
 import ky, { HTTPError, type Options as KyOptions } from 'ky';
+import { sleep } from '../utils/utils';
 
 /**
  * Represents rate limit information.
@@ -278,6 +279,10 @@ export class KurojiClient {
       reset,
       retryAfter,
     };
+
+    if (response.status === 429) {
+      await sleep(retryAfter);
+    }
   }
 
   /**
