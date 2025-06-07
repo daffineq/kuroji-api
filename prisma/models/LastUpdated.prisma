@@ -1,7 +1,10 @@
 model LastUpdated {
-  entityId  String   @id @unique
+  id         Int      @id @default(autoincrement())
+  entityId   String
   externalId Int?
-  type      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  type       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@unique([entityId, type], name: "unique_update")
 }

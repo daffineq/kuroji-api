@@ -37,7 +37,12 @@ export class KitsuService extends Client {
 
   async saveKitsu(kitsu: KitsuAnime): Promise<KitsuWithRelations> {
     await this.prisma.lastUpdated.upsert({
-      where: { entityId: String(kitsu.id) },
+      where: {
+        unique_update: {
+          entityId: String(kitsu.id),
+          type: UpdateType.KITSU,
+        },
+      },
       create: getUpdateData(
         String(kitsu.id),
         kitsu.anilistId,

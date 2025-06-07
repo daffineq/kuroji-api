@@ -17,6 +17,7 @@ import Config from './configs/Config';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { KitsuModule } from './providers/anime/kitsu/module/kitsu.module';
+import { ToolsModule } from './providers/tools/module/tools.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { KitsuModule } from './providers/anime/kitsu/module/kitsu.module';
     TvdbModule,
     KitsuModule,
     UpdateModule,
+    ToolsModule,
     ConsoleModule,
     ConfigModule.forRoot({
       envFilePath: '.env',

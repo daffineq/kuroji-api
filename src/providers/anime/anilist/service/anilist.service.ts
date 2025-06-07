@@ -65,7 +65,12 @@ export class AnilistService {
     const anilist = data.Page.media[0];
 
     await this.prisma.lastUpdated.upsert({
-      where: { entityId: String(anilist.id) },
+      where: {
+        unique_update: {
+          entityId: String(anilist.id),
+          type: UpdateType.ANILIST,
+        },
+      },
       create: getUpdateData(String(anilist.id), anilist.id, UpdateType.ANILIST),
       update: getUpdateData(String(anilist.id), anilist.id, UpdateType.ANILIST),
     });

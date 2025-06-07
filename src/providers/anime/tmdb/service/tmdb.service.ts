@@ -327,7 +327,12 @@ export class TmdbService extends Client {
   // Database Operations
   async saveTmdb(tmdb: TmdbWithRelations): Promise<TmdbWithRelations> {
     await this.prisma.lastUpdated.upsert({
-      where: { entityId: String(tmdb.id) },
+      where: {
+        unique_update: {
+          entityId: String(tmdb.id),
+          type: UpdateType.TMDB,
+        },
+      },
       create: getUpdateData(String(tmdb.id), tmdb.id ?? 0, UpdateType.TMDB),
       update: getUpdateData(String(tmdb.id), tmdb.id ?? 0, UpdateType.TMDB),
     });

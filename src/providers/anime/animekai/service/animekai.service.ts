@@ -44,7 +44,12 @@ export class AnimekaiService extends Client {
 
   async saveAnimekai(animekai: IAnimeInfo): Promise<AnimekaiWithRelations> {
     await this.prisma.lastUpdated.upsert({
-      where: { entityId: String(animekai.id) },
+      where: {
+        unique_update: {
+          entityId: String(animekai.id),
+          type: UpdateType.ANIMEKAI,
+        },
+      },
       create: getUpdateData(
         String(animekai.id),
         animekai.anilistId,

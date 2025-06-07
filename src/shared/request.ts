@@ -180,22 +180,10 @@ export class KurojiClient {
             await this.handleRateLimit(response);
           },
         ],
-        beforeRetry: [
-          ({ error }) => {
-            if (error instanceof HTTPError && error.response.status === 429) {
-              console.warn(
-                `Rate Limit hit, sleeping for ${this.rateLimitInfo.retryAfter}s`,
-              );
-            }
-          },
-        ],
       },
       retry: {
         limit: 2,
         methods: ['get', 'post', 'put', 'delete', 'patch'],
-        statusCodes: [403, 429],
-        afterStatusCodes: [403, 429],
-        backoffLimit: 60 * 1000,
       },
     });
 
@@ -279,9 +267,10 @@ export class KurojiClient {
       retryAfter,
     };
 
-    // if (response.status === 429) {
-    //   await sleep(retryAfter);
-    // }
+    if (response.status === 429) {
+      console.warn(`Rate Limit hit, sleeping for ${retryAfter}s`);
+      await sleep(retryAfter);
+    }
   }
 
   /**

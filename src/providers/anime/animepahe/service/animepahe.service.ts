@@ -45,7 +45,12 @@ export class AnimepaheService extends Client {
 
   async saveAnimepahe(animepahe: IAnimeInfo): Promise<AnimepaheWithRelations> {
     await this.prisma.lastUpdated.upsert({
-      where: { entityId: String(animepahe.id) },
+      where: {
+        unique_update: {
+          entityId: String(animepahe.id),
+          type: UpdateType.ANIMEPAHE,
+        },
+      },
       create: getUpdateData(
         String(animepahe.id),
         animepahe.alId,

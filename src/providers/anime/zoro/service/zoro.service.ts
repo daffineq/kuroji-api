@@ -66,7 +66,12 @@ export class ZoroService extends Client {
 
   async saveZoro(zoro: IAnimeInfo): Promise<ZoroWithRelations> {
     await this.prisma.lastUpdated.upsert({
-      where: { entityId: String(zoro.id) },
+      where: {
+        unique_update: {
+          entityId: String(zoro.id),
+          type: UpdateType.ANIWATCH,
+        },
+      },
       create: getUpdateData(String(zoro.id), zoro.alID, UpdateType.ANIWATCH),
       update: getUpdateData(String(zoro.id), zoro.alID, UpdateType.ANIWATCH),
     });

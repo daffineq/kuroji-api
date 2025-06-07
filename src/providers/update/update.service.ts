@@ -471,7 +471,9 @@ export class UpdateService {
                 `Deleting old LastUpdated entry for ${provider.type} ID:${lastUpdated.entityId}`,
               );
               await this.prisma.lastUpdated.delete({
-                where: { entityId: lastUpdated.entityId },
+                where: {
+                  id: lastUpdated.id,
+                },
               });
             }
           } catch (itemError) {

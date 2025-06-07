@@ -126,7 +126,12 @@ export class TvdbService extends Client {
 
   async saveTvdb(tvdb: TvdbInput): Promise<TvdbWithRelations> {
     await this.prisma.lastUpdated.upsert({
-      where: { entityId: String(tvdb.id) },
+      where: {
+        unique_update: {
+          entityId: String(tvdb.id),
+          type: UpdateType.TVDB,
+        },
+      },
       create: getUpdateData(String(tvdb.id), tvdb.id ?? 0, UpdateType.TVDB),
       update: getUpdateData(String(tvdb.id), tvdb.id ?? 0, UpdateType.TVDB),
     });

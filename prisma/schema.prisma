@@ -307,11 +307,14 @@ model TmdbSeasonStillImage {
 
 // LastUpdated.prisma
 model LastUpdated {
-  entityId  String   @id @unique
+  id         Int      @id @default(autoincrement())
+  entityId   String
   externalId Int?
-  type      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  type       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@unique([entityId, type], name: "unique_update")
 }
 
 
@@ -597,21 +600,6 @@ model AnilistIndexerState {
   id               String   @id @default("anime")
   lastFetchedPage  Int
   updatedAt        DateTime @updatedAt
-}
-
-// Exception.prisma
-model Exception {
-  id              Int      @id @default(autoincrement())
-  date            DateTime @default(now())
-  statusCode      Int?
-  timestamp       String?
-  path            String?
-  method          String?
-  message         String?
-  file            String?
-  line            String?
-  stack           String?
-  headers         String?
 }
 
 // Animekai.prisma

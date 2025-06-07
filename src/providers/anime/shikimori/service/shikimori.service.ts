@@ -53,7 +53,12 @@ export class ShikimoriService extends Client {
     anime: ShikimoriWithRelations,
   ): Promise<ShikimoriWithRelations> {
     await this.prisma.lastUpdated.upsert({
-      where: { entityId: String(anime.id) },
+      where: {
+        unique_update: {
+          entityId: String(anime.id),
+          type: UpdateType.SHIKIMORI,
+        },
+      },
       create: getUpdateData(
         String(anime.id),
         Number(anime.id),
