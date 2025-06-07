@@ -266,11 +266,6 @@ export class KurojiClient {
       reset,
       retryAfter,
     };
-
-    if (response.status === 429) {
-      console.warn(`Rate Limit hit, sleeping for ${retryAfter}s`);
-      await sleep(retryAfter);
-    }
   }
 
   /**
