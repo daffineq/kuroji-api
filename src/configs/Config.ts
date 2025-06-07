@@ -49,4 +49,12 @@ export default class Config {
   public static readonly RATE_LIMIT_TTL: number =
     (process.env.RATE_LIMIT_TTL ? parseInt(process.env.RATE_LIMIT_TTL) : 60) *
     1000;
+
+  public static readonly DEFAULT_PER_PAGE: number = process.env.DEFAULT_PER_PAGE
+    ? parseInt(process.env.DEFAULT_PER_PAGE)
+    : 25;
+
+  public static readonly DEFAULT_PAGE: number = process.env.DEFAULT_PAGE
+    ? parseInt(process.env.DEFAULT_PAGE)
+    : 1;
 }

@@ -9,10 +9,7 @@ export interface LogEntry {
 @Injectable()
 export class ConsoleInterceptor {
   private logs: LogEntry[] = [];
-  private warns: LogEntry[] = [];
-  private errors: LogEntry[] = [];
-
-  private maxSize = 100;
+  private maxSize = 500;
 
   constructor() {
     const origLog = console.log;
@@ -20,43 +17,82 @@ export class ConsoleInterceptor {
     const origError = console.error;
 
     console.log = (...args: any[]) => {
-      this.addToList(this.logs, args, 'log');
+      this.addLog(args, 'log');
       origLog(...args);
     };
 
     console.warn = (...args: any[]) => {
-      this.addToList(this.warns, args, 'warn');
+      this.addLog(args, 'warn');
       origWarn(...args);
     };
 
     console.error = (...args: any[]) => {
-      this.addToList(this.errors, args, 'error');
+      this.addLog(args, 'error');
       origError(...args);
     };
   }
 
-  private addToList(list: LogEntry[], args: any[], type: LogEntry['type']) {
+  private addLog(args: any[], type: LogEntry['type']) {
     const entry: LogEntry = {
-      message: args.join(' '),
+      message: args
+        .map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
+        .join(' '),
       date: new Date().toISOString(),
       type,
     };
 
-    list.push(entry);
-    if (list.length > this.maxSize) {
-      list.shift();
+    this.logs.push(entry);
+    if (this.logs.length > this.maxSize) {
+      this.logs.shift();
     }
   }
 
-  getLogs(): LogEntry[] {
-    return [...this.logs].reverse();
+  private sortLogs(logs: LogEntry[], order: 'asc' | 'desc'): LogEntry[] {
+    return logs.sort((a, b) => {
+      const diff = new Date(a.date).getTime() - new Date(b.date).getTime();
+      return order === 'asc' ? diff : -diff;
+    });
   }
 
-  getWarns(): LogEntry[] {
-    return [...this.warns].reverse();
+  private paginate<T>(items: T[], page = 1, limit = 50): T[] {
+    const start = (page - 1) * limit;
+    return items.slice(start, start + limit);
   }
 
-  getErrors(): LogEntry[] {
-    return [...this.errors].reverse();
+  getAll(order: 'asc' | 'desc' = 'desc', page = 1, limit = 50): LogEntry[] {
+    return this.paginate(this.sortLogs([...this.logs], order), page, limit);
+  }
+
+  getLogs(order: 'asc' | 'desc' = 'desc', page = 1, limit = 50): LogEntry[] {
+    return this.paginate(
+      this.sortLogs(
+        this.logs.filter((log) => log.type === 'log'),
+        order,
+      ),
+      page,
+      limit,
+    );
+  }
+
+  getWarns(order: 'asc' | 'desc' = 'desc', page = 1, limit = 50): LogEntry[] {
+    return this.paginate(
+      this.sortLogs(
+        this.logs.filter((log) => log.type === 'warn'),
+        order,
+      ),
+      page,
+      limit,
+    );
+  }
+
+  getErrors(order: 'asc' | 'desc' = 'desc', page = 1, limit = 50): LogEntry[] {
+    return this.paginate(
+      this.sortLogs(
+        this.logs.filter((log) => log.type === 'error'),
+        order,
+      ),
+      page,
+      limit,
+    );
   }
 }

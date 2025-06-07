@@ -6,7 +6,7 @@ import {
   IsString,
   IsArray,
 } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { Type, Transform, TransformFnParams } from 'class-transformer';
 import {
   MediaFormat,
   MediaSeason,
@@ -17,12 +17,28 @@ import {
   Language,
   AgeRating,
 } from './Filter';
+import Config from '../../../../configs/Config';
 
-const TransformToArray = () =>
+function TransformWithDefault<T extends string | number | boolean>(
+  defaultValue: T,
+) {
+  return Transform(({ value }: TransformFnParams): T => {
+    if (value === undefined || value === null || value === '')
+      return defaultValue;
+
+    if (typeof defaultValue === 'number') return Number(value) as T;
+    if (typeof defaultValue === 'boolean')
+      return (value === 'true' || value === true) as T;
+
+    return value as T;
+  });
+}
+
+const TransformToArray = (d: MediaSort | undefined = undefined) =>
   Transform(({ value }: { value: unknown }) => {
     if (Array.isArray(value)) return value as string[];
     if (typeof value === 'string') return value.split(',');
-    return [value];
+    return [value ?? d];
   });
 
 const TransformToBoolean = () => Transform(({ value }) => value === 'true');
@@ -32,21 +48,135 @@ export class FilterDto {
     Object.assign(this, partial);
   }
 
+  // Pagination
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @TransformWithDefault(Config.DEFAULT_PER_PAGE)
+  perPage: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @TransformWithDefault(Config.DEFAULT_PAGE)
+  page: number;
+
+  // Sorting
   @IsOptional()
   @IsArray()
-  @TransformToArray()
+  @TransformToArray(MediaSort.SCORE_DESC)
   @IsEnum(MediaSort, { each: true })
   sort?: MediaSort[];
 
+  // IDs
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  perPage?: number;
+  id?: number;
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @Type(() => Number)
+  idIn?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @Type(() => Number)
+  idNotIn?: number[];
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  page?: number;
+  idNot?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  idMal?: number;
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @Type(() => Number)
+  idMalIn?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @Type(() => Number)
+  idMalNotIn?: number[];
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  idMalNot?: number;
+
+  // Format / Type / Status
+  @IsOptional()
+  @IsEnum(MediaFormat)
+  @Type(() => String)
+  format?: MediaFormat;
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @IsEnum(MediaFormat, { each: true })
+  @Type(() => String)
+  formatIn?: MediaFormat[];
+
+  @IsOptional()
+  @IsEnum(MediaFormat)
+  @Type(() => String)
+  formatNot?: MediaFormat;
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @IsEnum(MediaFormat, { each: true })
+  @Type(() => String)
+  formatNotIn?: MediaFormat[];
+
+  @IsOptional()
+  @IsEnum(MediaType)
+  @Type(() => String)
+  type?: MediaType;
+
+  @IsOptional()
+  @IsEnum(MediaStatus)
+  @Type(() => String)
+  status?: MediaStatus;
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @IsEnum(MediaStatus, { each: true })
+  @Type(() => String)
+  statusIn?: MediaStatus[];
+
+  @IsOptional()
+  @IsEnum(MediaStatus)
+  @Type(() => String)
+  statusNot?: MediaStatus;
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @IsEnum(MediaStatus, { each: true })
+  @Type(() => String)
+  statusNotIn?: MediaStatus[];
+
+  // Season / Language / Source / Age
+  @IsOptional()
+  @IsEnum(MediaSeason)
+  @Type(() => String)
+  season?: MediaSeason;
+
+  @IsOptional()
+  @IsEnum(Language)
+  @Type(() => String)
+  language?: Language;
 
   @IsOptional()
   @IsArray()
@@ -56,46 +186,34 @@ export class FilterDto {
   sourceIn?: MediaSource[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  popularityLesser?: number;
+  @IsArray()
+  @TransformToArray()
+  @IsEnum(AgeRating, { each: true })
+  @Type(() => String)
+  ageRating?: AgeRating[];
+
+  // Boolean flags
+  @IsOptional()
+  @IsBoolean()
+  @TransformToBoolean()
+  isAdult?: boolean;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  popularityGreater?: number;
+  @IsBoolean()
+  @TransformToBoolean()
+  nsfw?: boolean;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  popularityNot?: number;
+  @IsBoolean()
+  @TransformToBoolean()
+  isLicensed?: boolean;
 
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  scoreLesser?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  scoreGreater?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  scoreNot?: number;
-
+  // Tags & genres
   @IsOptional()
   @IsArray()
   @TransformToArray()
   @Type(() => String)
-  tagCategoryNotIn?: string[];
-
-  @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @Type(() => String)
-  tagCategoryIn?: string[];
+  tagIn?: string[];
 
   @IsOptional()
   @IsArray()
@@ -107,8 +225,27 @@ export class FilterDto {
   @IsArray()
   @TransformToArray()
   @Type(() => String)
-  tagIn?: string[];
+  tagCategoryIn?: string[];
 
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @Type(() => String)
+  tagCategoryNotIn?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @Type(() => String)
+  genreIn?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @Type(() => String)
+  genreNotIn?: string[];
+
+  // People/Studios
   @IsOptional()
   @IsArray()
   @TransformToArray()
@@ -127,17 +264,42 @@ export class FilterDto {
   @Type(() => String)
   voiceActorIn?: string[];
 
+  // Popularity / Score
   @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @Type(() => String)
-  genreNotIn?: string[];
+  @IsNumber()
+  @Type(() => Number)
+  popularityGreater?: number;
 
   @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @Type(() => String)
-  genreIn?: string[];
+  @IsNumber()
+  @Type(() => Number)
+  popularityLesser?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  popularityNot?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  scoreGreater?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  scoreLesser?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  scoreNot?: number;
+
+  // Duration / Episodes
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  durationGreater?: number;
 
   @IsOptional()
   @IsNumber()
@@ -147,81 +309,28 @@ export class FilterDto {
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  durationGreater?: number;
+  episodesGreater?: number;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
   episodesLesser?: number;
 
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  episodesGreater?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  airingAtLesser?: number;
-
+  // Airing dates
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
   airingAtGreater?: number;
 
   @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @IsEnum(MediaStatus, { each: true })
-  @Type(() => String)
-  statusNotIn?: MediaStatus[];
+  @IsNumber()
+  @Type(() => Number)
+  airingAtLesser?: number;
 
-  @IsOptional()
-  @IsEnum(MediaStatus)
-  @Type(() => String)
-  statusNot?: MediaStatus;
-
-  @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @IsEnum(MediaStatus, { each: true })
-  @Type(() => String)
-  statusIn?: MediaStatus[];
-
-  @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @IsEnum(MediaFormat, { each: true })
-  @Type(() => String)
-  formatNotIn?: MediaFormat[];
-
-  @IsOptional()
-  @IsEnum(MediaFormat)
-  @Type(() => String)
-  formatNot?: MediaFormat;
-
-  @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @IsEnum(MediaFormat, { each: true })
-  @Type(() => String)
-  formatIn?: MediaFormat[];
-
+  // Start / End Dates
   @IsOptional()
   @IsString()
-  endDateLike?: string;
-
-  @IsOptional()
-  @IsString()
-  endDateLesser?: string;
-
-  @IsOptional()
-  @IsString()
-  endDateGreater?: string;
-
-  @IsOptional()
-  @IsString()
-  startDateLike?: string;
+  startDateGreater?: string;
 
   @IsOptional()
   @IsString()
@@ -229,42 +338,21 @@ export class FilterDto {
 
   @IsOptional()
   @IsString()
-  startDateGreater?: string;
+  startDateLike?: string;
 
   @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @Type(() => Number)
-  idMalNotIn?: number[];
+  @IsString()
+  endDateGreater?: string;
 
   @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @Type(() => Number)
-  idMalIn?: number[];
+  @IsString()
+  endDateLesser?: string;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idMalNot?: number;
+  @IsString()
+  endDateLike?: string;
 
-  @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @Type(() => Number)
-  idNotIn?: number[];
-
-  @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @Type(() => Number)
-  idIn?: number[];
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idNot?: number;
-
+  // Misc
   @IsOptional()
   @IsString()
   query?: string;
@@ -272,61 +360,4 @@ export class FilterDto {
   @IsOptional()
   @IsString()
   countryOfOrigin?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  @TransformToBoolean()
-  isAdult?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @TransformToBoolean()
-  nsfw?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @TransformToBoolean()
-  isLicensed?: boolean;
-
-  @IsOptional()
-  @IsEnum(MediaFormat)
-  @Type(() => String)
-  format?: MediaFormat;
-
-  @IsOptional()
-  @IsEnum(MediaType)
-  @Type(() => String)
-  type?: MediaType;
-
-  @IsOptional()
-  @IsEnum(MediaStatus)
-  @Type(() => String)
-  status?: MediaStatus;
-
-  @IsOptional()
-  @IsEnum(MediaSeason)
-  @Type(() => String)
-  season?: MediaSeason;
-
-  @IsOptional()
-  @IsEnum(Language)
-  @Type(() => String)
-  language?: Language;
-
-  @IsOptional()
-  @IsArray()
-  @TransformToArray()
-  @IsEnum(AgeRating, { each: true })
-  @Type(() => String)
-  ageRating?: AgeRating[];
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idMal?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  id?: number;
 }

@@ -336,8 +336,8 @@ export class AnilistFilterService {
     const whereCondition = { AND: conditions };
 
     // ========== Pagination ==========
-    const perPage = filter.perPage || 25;
-    const currentPage = filter.page || 1;
+    const perPage = filter.perPage;
+    const currentPage = filter.page;
     const skip = (currentPage - 1) * perPage;
 
     // ========== Sorting ==========

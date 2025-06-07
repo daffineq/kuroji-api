@@ -1,4 +1,4 @@
-import Dimens from '../../../../../configs/Dimens';
+import Config from '../../../../../configs/Config';
 import { MediaSort } from '../../filter/Filter';
 
 type FlexibleField = string | number | boolean | object | null | undefined;
@@ -7,8 +7,8 @@ export default class AnilistQueryBuilder {
   private variables: { [key: string]: FlexibleField } = {};
 
   constructor() {
-    this.variables.page = 1;
-    this.variables.perPage = Dimens.PER_PAGE;
+    this.variables.page = Config.DEFAULT_PAGE;
+    this.variables.perPage = Config.DEFAULT_PER_PAGE;
   }
 
   public getByQuery(query: any): this {

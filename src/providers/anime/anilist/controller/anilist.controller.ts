@@ -12,7 +12,6 @@ import { StreamService } from '../../stream/service/stream.service';
 import { FilterDto } from '../filter/FilterDto';
 import { AnilistAddService } from '../service/helper/anilist.add.service';
 import { AnilistScheduleService } from '../service/helper/anilist.schedule.service';
-import Dimens from '../../../../configs/Dimens';
 import { AnilistSearchService } from '../service/helper/anilist.search.service';
 import {
   LastUpdateResponse,
@@ -20,6 +19,7 @@ import {
 } from '../../../update/update.service';
 import { UpdateType } from '../../../update/UpdateType';
 import { Provider } from '../../stream/types/types';
+import Config from '../../../../configs/Config';
 
 @Controller('anime')
 export class AnilistController {
@@ -49,8 +49,8 @@ export class AnilistController {
   @Get('info/:id/characters')
   async getCharacters(
     @Param('id', ParseIntPipe) id: number,
-    @Query('perPage') perPage: number = Dimens.PER_PAGE,
-    @Query('page') page: number = 1,
+    @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
+    @Query('page') page: number = Config.DEFAULT_PAGE,
   ) {
     return this.add.getCharacters(id, perPage, page);
   }
@@ -133,8 +133,8 @@ export class AnilistController {
 
   @Get('tags')
   async getTags(
-    @Query('perPage') perPage: number = Dimens.PER_PAGE,
-    @Query('page') page: number = 1,
+    @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
+    @Query('page') page: number = Config.DEFAULT_PAGE,
   ) {
     return this.add.getAllTags(page, perPage);
   }
@@ -144,8 +144,8 @@ export class AnilistController {
     @Query('entityId') entityId?: string,
     @Query('externalId') externalId?: string,
     @Query('type') type: string = UpdateType.ANILIST,
-    @Query('perPage') perPage: number = Dimens.PER_PAGE,
-    @Query('page') page: number = 1,
+    @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
+    @Query('page') page: number = Config.DEFAULT_PAGE,
   ): Promise<LastUpdateResponse[]> {
     const parsedExternalId = externalId ? parseInt(externalId) : undefined;
     const updateType =
