@@ -47,6 +47,7 @@ export class FilterDto {
   // Sorting
   @IsOptional()
   @IsArray()
+  @TransformToArray()
   @IsEnum(MediaSort, { each: true })
   sort?: MediaSort[] = [MediaSort.SCORE_DESC];
 
