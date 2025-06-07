@@ -19,26 +19,11 @@ import {
 } from './Filter';
 import Config from '../../../../configs/Config';
 
-function TransformWithDefault<T extends string | number | boolean>(
-  defaultValue: T,
-) {
-  return Transform(({ value }: TransformFnParams): T => {
-    if (value === undefined || value === null || value === '')
-      return defaultValue;
-
-    if (typeof defaultValue === 'number') return Number(value) as T;
-    if (typeof defaultValue === 'boolean')
-      return (value === 'true' || value === true) as T;
-
-    return value as T;
-  });
-}
-
-const TransformToArray = (d: MediaSort | undefined = undefined) =>
+const TransformToArray = () =>
   Transform(({ value }: { value: unknown }) => {
     if (Array.isArray(value)) return value as string[];
     if (typeof value === 'string') return value.split(',');
-    return [value ?? d];
+    return [value];
   });
 
 const TransformToBoolean = () => Transform(({ value }) => value === 'true');
@@ -52,21 +37,18 @@ export class FilterDto {
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  @TransformWithDefault(Config.DEFAULT_PER_PAGE)
-  perPage: number;
+  perPage: number = Config.DEFAULT_PER_PAGE;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  @TransformWithDefault(Config.DEFAULT_PAGE)
-  page: number;
+  page: number = Config.DEFAULT_PAGE;
 
   // Sorting
   @IsOptional()
   @IsArray()
-  @TransformToArray(MediaSort.SCORE_DESC)
   @IsEnum(MediaSort, { each: true })
-  sort?: MediaSort[];
+  sort?: MediaSort[] = [MediaSort.SCORE_DESC];
 
   // IDs
   @IsOptional()

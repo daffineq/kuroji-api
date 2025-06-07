@@ -3,6 +3,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Post,
   Put,
   Query,
 } from '@nestjs/common';
@@ -166,7 +167,18 @@ export class AnilistController {
     return this.service.update(id);
   }
 
-  @Put('index')
+  @Put('update')
+  updateDb(@Query('annotateAtId') annotateAtId: string) {
+    this.update
+      .update(annotateAtId)
+      .catch((err) => console.error('Update failed:', err)); // just in case it blows up
+
+    return {
+      status: 'Update started',
+    };
+  }
+
+  @Post('index')
   index(
     @Query('delay') delay: number = 10,
     @Query('range') range: number = 25,
@@ -180,22 +192,11 @@ export class AnilistController {
     };
   }
 
-  @Put('index/stop')
+  @Post('index/stop')
   stopIndex() {
     this.indexer.stop();
     return {
       status: 'Indexing stopped',
-    };
-  }
-
-  @Put('update')
-  updateDb(@Query('annotateAtId') annotateAtId: string) {
-    this.update
-      .update(annotateAtId)
-      .catch((err) => console.error('Update failed:', err)); // just in case it blows up
-
-    return {
-      status: 'Update started',
     };
   }
 }

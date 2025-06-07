@@ -3,17 +3,14 @@ import { Anilist } from '@prisma/client';
 import { ApiResponse } from '../../../../../shared/ApiResponse';
 import { FilterDto } from '../../filter/FilterDto';
 import { PrismaService } from '../../../../../prisma.service';
-import { AnilistHelper, getAnilistInclude } from '../../utils/anilist-helper';
+import { getAnilistInclude } from '../../utils/anilist-helper';
 import { firstUpperList, getPageInfo } from '../../../../../utils/utils';
 import { Language } from '../../filter/Filter';
 import { NestedSort, SortDirection } from '../../types/types';
 
 @Injectable()
 export class AnilistFilterService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly helper: AnilistHelper,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getAnilistByFilter(filter: FilterDto): Promise<ApiResponse<Anilist[]>> {
     const conditions: any[] = [];
