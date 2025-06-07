@@ -321,84 +321,92 @@ export class KurojiClient {
       response: null,
     };
 
+    const transformedUrl = this.transformUrlForProxy(url);
+
     try {
-      if (this.rateLimitInfo.remaining <= 0) {
-        response.isOnRateLimit = true;
-        const now = Math.floor(Date.now() / 1000);
-        const waitTime = Math.max(this.rateLimitInfo.reset - now, 0);
-        await new Promise((resolve) => setTimeout(resolve, waitTime * 1000));
-      }
+      let attempt = 0;
+      const maxAttempts = 3;
 
-      const transformedUrl = this.transformUrlForProxy(url);
-
-      const apiResponse = await this.client(transformedUrl, {
-        method,
-        ...options,
-        headers: {
-          ...options?.headers,
-        },
-      });
-
-      if (options?.manualParse) {
-        response.response = apiResponse;
-        response.isFetched = true;
-        response.isLoaded = true;
-      } else {
-        const contentType = apiResponse.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          const jsonData = await apiResponse.json();
-
-          // Process jsonPath if provided
-          if (options?.jsonPath) {
-            response.data = extractJson(jsonData, options.jsonPath) as T;
-          } else {
-            response.data = jsonData as T;
-          }
-        } else {
-          const textResponse = await apiResponse.text();
-          try {
-            const jsonData = JSON.parse(textResponse) as unknown;
-
-            // Process jsonPath if provided
-            if (options?.jsonPath) {
-              response.data = extractJson(jsonData, options.jsonPath) as T;
-            } else {
-              response.data = jsonData as T;
-            }
-          } catch {
-            response.data = textResponse as T;
-          }
+      while (attempt < maxAttempts) {
+        if (this.rateLimitInfo.remaining <= 0) {
+          const now = Math.floor(Date.now() / 1000);
+          const waitTime = Math.max(this.rateLimitInfo.reset - now, 0);
+          console.warn(`[rate-limit] sleeping ${waitTime}s due to 0 remaining`);
+          await sleep(waitTime);
         }
-
-        response.isFetched = true;
-        response.isLoaded = true;
-      }
-    } catch (error) {
-      if (error instanceof HTTPError) {
-        const errorBody = await error.response.text().catch(() => '');
-        let errorMessage = `HTTP ${error.response.status}`;
 
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          const jsonError = JSON.parse(errorBody);
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          errorMessage += `: ${jsonError.message || error.message}`;
-        } catch {
-          errorMessage += errorBody ? `: ${errorBody}` : `: ${error.message}`;
-        }
+          const apiResponse = await this.client(transformedUrl, {
+            method,
+            ...options,
+            headers: {
+              ...options?.headers,
+            },
+          });
 
-        response.error = new Error(errorMessage);
-        response.isHTTPError = true;
-      } else {
-        response.error = error as Error;
+          if (options?.manualParse) {
+            response.response = apiResponse;
+            response.isFetched = true;
+            response.isLoaded = true;
+          } else {
+            const contentType = apiResponse.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+              const jsonData = await apiResponse.json();
+
+              if (options?.jsonPath) {
+                response.data = extractJson(jsonData, options.jsonPath) as T;
+              } else {
+                response.data = jsonData as T;
+              }
+            } else {
+              const textResponse = await apiResponse.text();
+              try {
+                const jsonData = JSON.parse(textResponse) as unknown;
+
+                if (options?.jsonPath) {
+                  response.data = extractJson(jsonData, options.jsonPath) as T;
+                } else {
+                  response.data = jsonData as T;
+                }
+              } catch {
+                response.data = textResponse as T;
+              }
+            }
+
+            response.isFetched = true;
+            response.isLoaded = true;
+          }
+
+          response.isFetching = false;
+          response.isLoading = false;
+          return response;
+        } catch (err) {
+          if (err instanceof HTTPError && err.response.status === 429) {
+            const retryAfter = Number.parseInt(
+              err.response.headers.get('retry-after') || '60',
+            );
+            response.isOnRateLimit = true;
+            console.warn(
+              `[429] Rate limit hit. Sleeping for ${retryAfter}s and retrying...`,
+            );
+            await sleep(retryAfter);
+            attempt++;
+            continue;
+          }
+
+          throw err;
+        }
       }
-    } finally {
+
+      throw new Error('Too many retries');
+    } catch (err) {
+      response.error = err;
+      response.isHTTPError = err instanceof HTTPError;
       response.isLoading = false;
       response.isFetching = false;
       response.isPending = false;
+      return response;
     }
-
-    return response;
   }
 
   /**
