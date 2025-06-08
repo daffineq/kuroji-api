@@ -26,6 +26,14 @@ const TransformToArray = () =>
     return [value];
   });
 
+const TransformToNumberArray = () =>
+  Transform(({ value }) => {
+    if (Array.isArray(value)) return value.map((v) => Number(v));
+    if (typeof value === 'string')
+      return value.split(',').map((v) => Number(v));
+    return [Number(value)];
+  });
+
 const TransformToBoolean = () => Transform(({ value }) => value === 'true');
 
 export class FilterDto {
@@ -59,14 +67,12 @@ export class FilterDto {
 
   @IsOptional()
   @IsArray()
-  @TransformToArray()
-  @Type(() => Number)
+  @TransformToNumberArray()
   idIn?: number[];
 
   @IsOptional()
   @IsArray()
-  @TransformToArray()
-  @Type(() => Number)
+  @TransformToNumberArray()
   idNotIn?: number[];
 
   @IsOptional()
@@ -81,14 +87,12 @@ export class FilterDto {
 
   @IsOptional()
   @IsArray()
-  @TransformToArray()
-  @Type(() => Number)
+  @TransformToNumberArray()
   idMalIn?: number[];
 
   @IsOptional()
   @IsArray()
-  @TransformToArray()
-  @Type(() => Number)
+  @TransformToNumberArray()
   idMalNotIn?: number[];
 
   @IsOptional()
