@@ -15,6 +15,8 @@
 
 <p align="center">Kuroji API is a powerful and flexible API for accessing anime information, streaming sources, and related content from various providers.</p>
 
+> **Warning**: I'm lazy as hell. This documentation is probably crusty, outdated, and barely maintained. For anything real, go dig in the source code — that's where the truth lives.
+
 ---
 
 ## 📋 Table of Contents
@@ -702,16 +704,39 @@ GET https://api.example.com/api/anime/search/one%20piece
 <details>
 <summary><b>Get Random</b> - <code>GET /api/anime/random</code></summary>
 
-Get random anime.
+Get random anime based on specified criteria.
 
 **Example:**
 
 ```
-GET https://api.example.com/api/anime/random
+GET https://api.example.com/api/anime/random?type=popular&genre=action&minPopularity=10000&minScore=75&maxTrendingRank=500
 ```
 
-**Parameters:** None
+**Parameters:**
 
+```typescript
+// RandomDto
+{
+  type?: "popular" | "highlyRated" | "trending" | "any";  // Type of random selection
+  genre?: string;                                         // Filter by genre
+  minPopularity?: number;                                 // Minimum popularity score (default: 10000)
+  minScore?: number;                                      // Minimum average score (default: 75)
+  maxTrendingRank?: number;                              // Maximum trending rank (default: 500)
+}
+```
+
+**Type Options:**
+- `popular`: Get random anime from popular titles
+- `highlyRated`: Get random anime with high ratings
+- `trending`: Get random anime from trending titles
+- `any`: Get completely random anime (default)
+
+**Notes:**
+- If no parameters are provided, returns a completely random anime
+- When using `type=popular`, `minPopularity` determines the minimum popularity threshold
+- When using `type=highlyRated`, `minScore` determines the minimum average score
+- When using `type=trending`, `maxTrendingRank` determines the maximum trending rank
+- The `genre` parameter can be combined with any type to further filter results
 </details>
 
 <details>
@@ -1344,5 +1369,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 This project is [MIT licensed](LICENSE).
 
 ---
-
-> **Note**: This documentation might be outdated as I'm too lazy to keep it up to date. For the most accurate and up-to-date information, please check the source code directly. The code is the source of truth!

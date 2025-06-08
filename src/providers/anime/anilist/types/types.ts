@@ -23,6 +23,8 @@ import { PageInfo } from '../graphql/types/PageInfo';
 import { KitsuWithRelations } from '../../kitsu/types/types';
 import { ShikimoriWithRelations } from '../../shikimori/types/types';
 import { ZoroWithRelations } from '../../zoro/types/types';
+import { Type } from 'class-transformer';
+import { IsOptional, IsEnum, IsString, IsInt, Min } from 'class-validator';
 
 export interface AnilistResponse {
   Page: {
@@ -169,3 +171,38 @@ export interface BasicAnilist {
 
 export type SortDirection = 'asc' | 'desc';
 export type NestedSort = { [key: string]: SortDirection | NestedSort };
+
+export enum RandomType {
+  POPULAR = 'popular',
+  HIGHLY_RATED = 'highlyRated',
+  TRENDING = 'trending',
+  ANY = 'any',
+}
+
+export class RandomDto {
+  @IsOptional()
+  @IsEnum(RandomType)
+  type?: RandomType = RandomType.ANY;
+
+  @IsOptional()
+  @IsString()
+  genre?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  minPopularity?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  minScore?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  maxTrendingRank?: number;
+}

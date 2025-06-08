@@ -23,7 +23,6 @@ export class AnilistAddService {
     private readonly tmdbService: TmdbService,
     private readonly search: AnilistSearchService,
     private readonly shikimori: ShikimoriService,
-    private readonly anilist: AnilistService,
   ) {}
 
   async getChronology(
@@ -201,23 +200,5 @@ export class AnilistAddService {
       pageInfo,
       data,
     };
-  }
-
-  async getRandom(): Promise<AnilistWithRelations> {
-    const count = await this.prisma.anilist.count();
-    const skip = Math.floor(Math.random() * count);
-
-    const data = await this.prisma.anilist.findFirst({
-      skip,
-      select: {
-        id: true,
-      },
-    });
-
-    if (!data) {
-      throw new Error('No objects in database');
-    }
-
-    return await this.anilist.getAnilist(data?.id);
   }
 }

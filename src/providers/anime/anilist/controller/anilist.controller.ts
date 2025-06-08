@@ -21,6 +21,8 @@ import {
 import { UpdateType } from '../../../update/UpdateType';
 import { Provider } from '../../stream/types/types';
 import Config from '../../../../configs/config';
+import { AnilistRandomService } from '../service/helper/anilist.random.service';
+import { RandomDto } from '../types/types';
 
 @Controller('anime')
 export class AnilistController {
@@ -31,6 +33,7 @@ export class AnilistController {
     private readonly schedule: AnilistScheduleService,
     private readonly stream: StreamService,
     private readonly indexer: AnilistIndexerService,
+    private readonly random: AnilistRandomService,
     private readonly update: UpdateService,
   ) {}
 
@@ -115,8 +118,8 @@ export class AnilistController {
   }
 
   @Get('random')
-  async getRandom() {
-    return this.add.getRandom();
+  async getRandom(@Query() query: RandomDto) {
+    return this.random.getRandom(query);
   }
 
   @Get('franchise/:franchise')

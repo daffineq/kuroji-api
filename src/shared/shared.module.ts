@@ -29,6 +29,7 @@ import { AnilistUtilService } from '../providers/anime/anilist/service/helper/an
 import { KitsuService } from '../providers/anime/kitsu/service/kitsu.service';
 import { KitsuHelper } from '../providers/anime/kitsu/util/kitsu-helper';
 import { AppLockService } from './app.lock.service';
+import { AnilistRandomService } from '../providers/anime/anilist/service/helper/anilist.random.service';
 
 @Module({
   imports: [ShikimoriHelperModule, Redis],
@@ -41,6 +42,7 @@ import { AppLockService } from './app.lock.service';
     AnilistScheduleService,
     AnilistIndexerService,
     AnilistSearchService,
+    AnilistRandomService,
     AnilistUtilService,
     ShikimoriService,
     AnilistHelper,
@@ -71,6 +73,7 @@ import { AppLockService } from './app.lock.service';
     AnilistScheduleService,
     AnilistIndexerService,
     AnilistSearchService,
+    AnilistRandomService,
     AnilistUtilService,
     ShikimoriService,
     AnilistHelper,
