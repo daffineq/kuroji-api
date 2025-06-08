@@ -1,4 +1,4 @@
-import Config from './Config';
+import Config from './config';
 
 export class TMDB {
   public static readonly API_KEY: string = Config.TMDB_API || '';

@@ -1,4 +1,4 @@
-import Config from '../../../../../configs/Config';
+import Config from '../../../../../configs/config';
 import { MediaSort } from '../../filter/Filter';
 
 type FlexibleField = string | number | boolean | object | null | undefined;

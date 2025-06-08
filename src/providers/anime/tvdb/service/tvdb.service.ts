@@ -21,7 +21,7 @@ import { Client } from '../../../model/client';
 import { UrlConfig } from '../../../../configs/url.config';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
-import Config from '../../../../configs/Config';
+import Config from '../../../../configs/config';
 
 @Injectable()
 export class TvdbService extends Client {

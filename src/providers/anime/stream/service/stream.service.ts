@@ -7,7 +7,7 @@ import { TmdbService } from '../../tmdb/service/tmdb.service';
 import { AnimekaiEpisode, AnimepaheEpisode, EpisodeZoro } from '@prisma/client';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
-import Config from '../../../../configs/Config';
+import Config from '../../../../configs/config';
 import { ISource } from '@consumet/extensions';
 import { TMDB } from '../../../../configs/tmdb.config';
 import {

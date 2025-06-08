@@ -86,7 +86,7 @@ export class ShikimoriService extends Client {
       throw new NotFoundException(`Shikimori not found for ID: ${id}`);
 
     const existing = await this.prisma.shikimori.findUnique({ where: { id } });
-    if (JSON.stringify(anime) === JSON.stringify(existing)) {
+    if (anime.updatedAt === existing?.updatedAt) {
       return anime;
     }
 

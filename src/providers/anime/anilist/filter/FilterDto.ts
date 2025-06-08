@@ -6,7 +6,7 @@ import {
   IsString,
   IsArray,
 } from 'class-validator';
-import { Type, Transform, TransformFnParams } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import {
   MediaFormat,
   MediaSeason,
@@ -17,7 +17,7 @@ import {
   Language,
   AgeRating,
 } from './Filter';
-import Config from '../../../../configs/Config';
+import Config from '../../../../configs/config';
 
 const TransformToArray = () =>
   Transform(({ value }: { value: unknown }) => {

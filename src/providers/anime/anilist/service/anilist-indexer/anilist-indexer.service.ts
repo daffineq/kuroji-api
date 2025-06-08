@@ -5,7 +5,7 @@ import { AnilistService } from '../anilist.service';
 import { ZoroService } from '../../../zoro/service/zoro.service';
 import { AnimekaiService } from '../../../animekai/service/animekai.service';
 import { AnimepaheService } from '../../../animepahe/service/animepahe.service';
-import Config from '../../../../../configs/Config';
+import Config from '../../../../../configs/config';
 import { sleep } from '../../../../../utils/utils';
 import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder';
 import { UrlConfig } from '../../../../../configs/url.config';

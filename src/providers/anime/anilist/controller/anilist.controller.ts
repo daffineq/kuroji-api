@@ -20,7 +20,7 @@ import {
 } from '../../../update/update.service';
 import { UpdateType } from '../../../update/UpdateType';
 import { Provider } from '../../stream/types/types';
-import Config from '../../../../configs/Config';
+import Config from '../../../../configs/config';
 
 @Controller('anime')
 export class AnilistController {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { LastUpdated } from '@prisma/client';
-import Config from '../../configs/Config';
+import Config from '../../configs/config';
 import { PrismaService } from '../../prisma.service';
 import { UpdateType } from './UpdateType';
 import { sleep } from '../../utils/utils';
@@ -92,7 +92,7 @@ export class UpdateService {
       {
         update: (id: any) => this.zoroService.update(String(id)),
         type: UpdateType.ANIWATCH,
-      }, // Assuming ANIWATCH is Zoro
+      },
       {
         update: (id: any) => this.shikimoriService.update(String(id)),
         type: UpdateType.SHIKIMORI,

@@ -6,7 +6,7 @@ import { AppModule } from './app.module';
 import { config } from 'dotenv';
 import * as express from 'express';
 import { join } from 'path';
-import Config from './configs/Config';
+import Config from './configs/config';
 import { UndefinedToNullInterceptor } from './shared/UndefinedToNullInterceptor';
 
 config();

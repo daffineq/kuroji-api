@@ -1,4 +1,4 @@
-import Config from './Config';
+import Config from './config';
 
 export class TVDB {
   static readonly API_KEY: string | null = Config.TVDB_API || null;

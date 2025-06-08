@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ConsoleInterceptor } from '../ConsoleInterceptor';
-import Config from '../../configs/Config';
+import Config from '../../configs/config';
 
 @Controller('console')
 export class ConsoleController {
