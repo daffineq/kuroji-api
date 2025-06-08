@@ -141,6 +141,7 @@ class RateLimiter {
   private queue: (() => Promise<void>)[] = [];
   private interval: number;
   private isProcessing = false;
+  private nextAvailableTime = 0;
 
   constructor(requestsPerSecond: number) {
     this.interval = 1 / requestsPerSecond;
@@ -149,11 +150,21 @@ class RateLimiter {
   async schedule<T>(fn: () => Promise<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       this.queue.push(async () => {
+        const now = Date.now() / 1000;
+
+        const waitTime = Math.max(0, this.nextAvailableTime - now);
+        if (waitTime > 0) {
+          await sleep(waitTime, false);
+        }
+
+        this.nextAvailableTime =
+          Math.max(now, this.nextAvailableTime) + this.interval;
+
         try {
           const result = await fn();
           resolve(result);
         } catch (err) {
-          reject(err);
+          reject(err instanceof Error ? err : new Error(String(err)));
         }
       });
 
@@ -168,7 +179,6 @@ class RateLimiter {
     while (this.queue.length > 0) {
       const job = this.queue.shift();
       if (job) await job();
-      await sleep(this.interval);
     }
 
     this.isProcessing = false;
