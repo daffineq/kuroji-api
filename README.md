@@ -123,7 +123,7 @@ After deploying to Vercel:
    ```
 3. Start the indexing process:
    ```
-   PUT https://your-vercel-domain.vercel.app/api/anime/index
+   POST https://your-vercel-domain.vercel.app/api/anime/index
    ```
 
 > **Warning**: The indexing process can take several days to complete. Make sure your database has enough storage and your Vercel deployment has sufficient resources.
@@ -187,7 +187,7 @@ Before you can retrieve anime data, you must first populate the database using o
 1. **Automatic Indexing**: Trigger the database indexing process with:
 
    ```
-   PUT /api/anime/index
+   POST /api/anime/index
    ```
 
    This will start populating your database with anime information.
