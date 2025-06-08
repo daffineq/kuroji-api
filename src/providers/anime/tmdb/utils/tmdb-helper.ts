@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { DateDetails, Prisma, TmdbSeasonEpisode } from '@prisma/client';
 import {
   TmdbWithRelations,
   TmdbSeasonWithRelations,
   TmdbSeasonEpisodeImagesWithRelations,
+  BasicTmdb,
 } from '../types/types';
+import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper';
+import { AnilistWithRelations } from '../../anilist/types/types';
+import { getDateStringFromAnilist } from '../../anilist/utils/anilist-helper';
 
 @Injectable()
 export class TmdbHelper {
@@ -177,4 +181,103 @@ export class TmdbHelper {
       },
     };
   }
+}
+
+export function findBestMatchFromCandidates(
+  anilist: AnilistWithRelations,
+  candidates: TmdbWithRelations[],
+): TmdbWithRelations | null {
+  const anilistStartDateString = getDateStringFromAnilist(
+    (anilist.startDate as DateDetails) || {},
+  );
+
+  const searchAnime: ExpectAnime = {
+    title: {
+      romaji: (anilist.title as { romaji: string }).romaji,
+      english: (anilist.title as { english: string }).english,
+      native: (anilist.title as { native: string }).native,
+    },
+    year: anilist.startDate?.year ?? undefined,
+    episodes: anilist.episodes ?? undefined,
+  };
+
+  const mediaTypeFiltered = candidates.filter(
+    (tmdb) =>
+      tmdb.media_type?.toLowerCase() === anilist.format?.toLowerCase() &&
+      tmdb.first_air_date === anilistStartDateString,
+  );
+
+  const bestMatch = findBestMatch(searchAnime, mediaTypeFiltered);
+  if (bestMatch) {
+    return bestMatch.result;
+  }
+
+  return null;
+}
+
+export function findBestMatchFromSearch(
+  anilist: AnilistWithRelations,
+  results: BasicTmdb[] | undefined,
+): BasicTmdb | null {
+  if (!results || !Array.isArray(results)) return null;
+
+  const anilistStartDateString = getDateStringFromAnilist(
+    (anilist.startDate as DateDetails) || {},
+  );
+
+  const searchAnime: ExpectAnime = {
+    title: {
+      romaji: (anilist.title as { romaji: string }).romaji,
+      english: (anilist.title as { english: string }).english,
+      native: (anilist.title as { native: string }).native,
+    },
+    year: anilist.startDate?.year ?? undefined,
+    episodes: anilist.episodes ?? undefined,
+  };
+
+  const resultsFiltered = results.filter(
+    (tmdb) =>
+      tmdb.media_type?.toLowerCase() === anilist.format?.toLowerCase() &&
+      tmdb.first_air_date === anilistStartDateString,
+  );
+
+  const bestMatch = findBestMatch(
+    searchAnime,
+    resultsFiltered.map((result) => ({
+      id: result.id,
+      title: {
+        english: result.name,
+        native: result.original_name,
+      },
+    })),
+  );
+
+  if (bestMatch) {
+    return results.find((r) => r.id === bestMatch.result.id) || null;
+  }
+
+  return null;
+}
+
+export function filterSeasonEpisodes(
+  seasonData: TmdbSeasonWithRelations,
+): TmdbSeasonWithRelations {
+  const filteredEpisodes = seasonData.episodes.map((episode) => ({
+    id: episode.id,
+    air_date: episode.air_date,
+    episode_number: episode.episode_number,
+    episode_type: episode.episode_type,
+    name: episode.name,
+    overview: episode.overview,
+    production_code: episode.production_code,
+    runtime: episode.runtime,
+    season_number: episode.season_number,
+    show_id: episode.show_id,
+    still_path: episode.still_path,
+    vote_average: episode.vote_average,
+    vote_count: episode.vote_count,
+  })) as TmdbSeasonEpisode[];
+
+  seasonData.episodes = filteredEpisodes;
+  return seasonData;
 }

@@ -44,16 +44,7 @@ export class AnilistService {
       throw new Error('Nuh uh, no mangas here');
     }
 
-    await this.saveAnilist(data);
-
-    existingAnilist = await this.prisma.anilist.findUnique(
-      getAnilistFindUnique(id),
-    );
-
-    if (!existingAnilist) {
-      throw new Error('Not found');
-    }
-
+    existingAnilist = await this.saveAnilist(data);
     return await this.util.adjustAnilist(existingAnilist);
   }
 

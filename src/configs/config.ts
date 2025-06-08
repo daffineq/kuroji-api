@@ -1,6 +1,10 @@
 export default class Config {
   public static readonly BASE = process.env.PUBLIC_URL;
 
+  public static readonly PORT = process.env.PORT
+    ? parseInt(process.env.PORT)
+    : 3000;
+
   public static readonly UPDATE_ENABLED =
     (process.env.UPDATE_ENABLED ?? 'true') === 'true';
   public static readonly ANILIST_INDEXER_UPDATE_ENABLED =

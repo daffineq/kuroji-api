@@ -28,7 +28,8 @@ export interface LastUpdateResponse {
   entityId: string;
   externalId: number | null;
   type: string;
-  createdAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   temperature: string;
 }
 
@@ -533,8 +534,6 @@ export class UpdateService {
         );
         return {
           ...item,
-          createdAt: item.createdAt.toISOString(),
-          updatedAt: item.updatedAt.toISOString(),
           temperature: Temperature[temperature],
         };
       }),

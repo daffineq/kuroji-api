@@ -14,6 +14,7 @@ export interface BasicTmdb {
   original_name: string;
   media_type: string;
   name: string;
+  first_air_date: string;
 }
 
 export interface TmdbResponse {

@@ -103,12 +103,17 @@ export class KitsuService extends Client {
       (anilist.title as { romaji: string }).romaji,
     );
 
-    const results = searchResult.map((result) => ({
-      title: result.attributes.titles.en,
-      id: result.id,
-      year: parseInt(result.attributes.startDate.split('-')[0]),
-      episodes: result.attributes.episodeCount,
-    }));
+    const results = searchResult.map((result) => {
+      const startDate = result.attributes.startDate;
+      const year = startDate ? parseInt(startDate.split('-')[0]) : undefined;
+
+      return {
+        title: result.attributes.titles.en,
+        id: result.id,
+        year,
+        episodes: result.attributes.episodeCount,
+      };
+    });
 
     const searchCriteria = {
       title: {

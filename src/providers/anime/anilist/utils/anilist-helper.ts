@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { AnilistAiringSchedule, EpisodeZoro, Prisma } from '@prisma/client';
+import {
+  AnilistAiringSchedule,
+  DateDetails,
+  EpisodeZoro,
+  Prisma,
+} from '@prisma/client';
 import { getShikimoriInclude } from '../../shikimori/utils/shikimori-helper';
 import { getKitsuInclude } from '../../kitsu/util/kitsu-helper';
 import { PrismaService } from '../../../../prisma.service';
@@ -574,4 +579,18 @@ export function findNextAiringInSchedule(
   }
 
   return nextAiring;
+}
+
+export function getDateStringFromAnilist(date: DateDetails): string | null {
+  const { year, month, day } = date;
+
+  let anilistStartDateString: string | null = null;
+
+  if (year && month && day) {
+    anilistStartDateString = `${year.toString().padStart(4, '0')}-${month
+      .toString()
+      .padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+  }
+
+  return anilistStartDateString;
 }

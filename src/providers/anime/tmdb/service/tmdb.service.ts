@@ -9,20 +9,23 @@ import {
 } from '../../../mapper/mapper.helper';
 import { UpdateType } from '../../../update/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service';
-import { TmdbHelper } from '../utils/tmdb-helper';
+import {
+  filterSeasonEpisodes,
+  findBestMatchFromSearch,
+  TmdbHelper,
+} from '../utils/tmdb-helper';
 import { sleep } from '../../../../utils/utils';
 import { getUpdateData } from '../../../update/update.util';
-import { AnilistWithRelations } from '../../anilist/types/types';
 import {
   TmdbWithRelations,
   TmdbSeasonWithRelations,
   TmdbSeasonEpisodeWithRelations,
   TmdbResponse,
   TmdbSeasonEpisodeImagesWithRelations,
-  BasicTmdb,
 } from '../types/types';
 import { Client } from '../../../model/client';
 import { UrlConfig } from '../../../../configs/url.config';
+import { getDateStringFromAnilist } from '../../anilist/utils/anilist-helper';
 
 @Injectable()
 export class TmdbService extends Client {
@@ -67,27 +70,13 @@ export class TmdbService extends Client {
       throw new Error(`No seasons found for TMDb ID: ${tmdb.id}`);
     }
 
-    const { year, month, day } = (anilist.startDate as DateDetails) || {};
-    const {
-      year: endYear,
-      month: endMonth,
-      day: endDay,
-    } = (anilist.endDate as DateDetails) || {};
+    const anilistStartDateString = getDateStringFromAnilist(
+      (anilist.startDate as DateDetails) || {},
+    );
 
-    let anilistStartDateString: string | null = null;
-    let anilistEndDateString: string | null = null;
-
-    if (year && month && day) {
-      anilistStartDateString = `${year.toString().padStart(4, '0')}-${month
-        .toString()
-        .padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-    }
-
-    if (endYear && endMonth && endDay) {
-      anilistEndDateString = `${endYear.toString().padStart(4, '0')}-${endMonth
-        .toString()
-        .padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-    }
+    const anilistEndDateString = getDateStringFromAnilist(
+      (anilist.endDate as DateDetails) || {},
+    );
 
     if (!anilistStartDateString) {
       return Promise.reject(
@@ -97,7 +86,11 @@ export class TmdbService extends Client {
 
     const SEASONS = tmdb.number_of_seasons || 1;
 
-    const seasonNumber =
+    const trimmedEpisodes: TmdbSeasonEpisode[] = [];
+    let foundStart = false;
+    let foundEnd = false;
+
+    const startSeason =
       existTmdbSeason.find(
         (season) =>
           season.air_date?.toLowerCase() ===
@@ -105,7 +98,7 @@ export class TmdbService extends Client {
       )?.season_number || 1;
 
     for (
-      let currentSeason = seasonNumber;
+      let currentSeason = startSeason;
       currentSeason <= SEASONS;
       currentSeason++
     ) {
@@ -124,39 +117,45 @@ export class TmdbService extends Client {
       const episodes = tmdbSeason.episodes;
       if (!episodes || episodes.length === 0) continue;
 
-      const startIndex = episodes.findIndex(
-        (ep) => ep.air_date === anilistStartDateString,
-      );
-      if (startIndex === -1) continue;
-
-      const trimmedEpisodes: TmdbSeasonEpisode[] = [];
-
       const today = new Date().toISOString().split('T')[0];
 
-      for (let i = startIndex; i < episodes.length; i++) {
-        const ep = {
-          ...episodes[i],
+      for (let i = 0; i < episodes.length; i++) {
+        const ep = episodes[i];
+
+        if (!foundStart) {
+          if (ep.air_date !== anilistStartDateString) continue;
+          foundStart = true;
+        }
+
+        if (!ep.air_date || ep.air_date > today) break;
+
+        trimmedEpisodes.push({
+          ...ep,
           episode_number: trimmedEpisodes.length + 1,
-        };
+        });
 
-        if (ep.air_date && ep.air_date > today) break;
-
-        trimmedEpisodes.push(ep);
-        if (ep.air_date === anilistEndDateString) break;
+        if (anilistEndDateString && ep.air_date === anilistEndDateString) {
+          foundEnd = true;
+          break;
+        }
       }
 
-      if (trimmedEpisodes.length === 0) continue;
-
-      const newSeason: TmdbSeasonWithRelations = {
-        ...tmdbSeason,
-        episodes: trimmedEpisodes,
-        show_id: tmdb.id,
-      };
-
-      return newSeason;
+      if (foundEnd) break;
     }
 
-    throw new Error('Not found');
+    if (trimmedEpisodes.length === 0) {
+      throw new Error(
+        'Could not find any matching episodes between start and end date',
+      );
+    }
+
+    const newSeason: TmdbSeasonWithRelations = {
+      ...existTmdbSeason.find((s) => s.season_number === startSeason)!,
+      episodes: trimmedEpisodes,
+      show_id: tmdb.id,
+    };
+
+    return newSeason;
   }
 
   async getEpisodeDetails(
@@ -252,7 +251,7 @@ export class TmdbService extends Client {
       throw new Error('Data is null');
     }
 
-    return this.filterSeasonEpisodes(data);
+    return filterSeasonEpisodes(data);
   }
 
   async fetchTmdbByAnilist(id: number): Promise<TmdbWithRelations> {
@@ -266,15 +265,12 @@ export class TmdbService extends Client {
 
     let searchResults = await this.searchTmdb(deepCleanTitle(title));
 
-    let bestMatch = this.findBestMatchFromSearch(
-      anilist,
-      searchResults.results,
-    );
+    let bestMatch = findBestMatchFromSearch(anilist, searchResults.results);
     if (!bestMatch && (anilist.title as { english: string }).english) {
       searchResults = await this.searchTmdb(
         (anilist.title as { english: string }).english,
       );
-      bestMatch = this.findBestMatchFromSearch(anilist, searchResults.results);
+      bestMatch = findBestMatchFromSearch(anilist, searchResults.results);
     }
     if (!bestMatch) {
       throw new Error('No matching TMDb entry found');
@@ -444,91 +440,6 @@ export class TmdbService extends Client {
     }
 
     throw new Error('No matching TMDb entry found');
-  }
-
-  findBestMatchFromCandidates(
-    anilist: AnilistWithRelations,
-    candidates: TmdbWithRelations[],
-  ): TmdbWithRelations | null {
-    const searchAnime: ExpectAnime = {
-      title: {
-        romaji: (anilist.title as { romaji: string }).romaji,
-        english: (anilist.title as { english: string }).english,
-        native: (anilist.title as { native: string }).native,
-      },
-      year: anilist.startDate?.year ?? undefined,
-      episodes: anilist.episodes ?? undefined,
-    };
-
-    const mediaTypeFiltered = candidates.filter(
-      (tmdb) =>
-        tmdb.media_type?.toLowerCase() === anilist.format?.toLowerCase(),
-    );
-
-    const bestMatch = findBestMatch(searchAnime, mediaTypeFiltered);
-    if (bestMatch) {
-      return bestMatch.result;
-    }
-
-    return null;
-  }
-
-  findBestMatchFromSearch(
-    anilist: AnilistWithRelations,
-    results: BasicTmdb[] | undefined,
-  ): BasicTmdb | null {
-    if (!results || !Array.isArray(results)) return null;
-
-    const searchAnime: ExpectAnime = {
-      title: {
-        romaji: (anilist.title as { romaji: string }).romaji,
-        english: (anilist.title as { english: string }).english,
-        native: (anilist.title as { native: string }).native,
-      },
-      year: anilist.startDate?.year ?? undefined,
-      episodes: anilist.episodes ?? undefined,
-    };
-
-    const bestMatch = findBestMatch(
-      searchAnime,
-      results.map((result) => ({
-        id: result.id,
-        title: {
-          english: result.name,
-          native: result.original_name,
-        },
-      })),
-    );
-
-    if (bestMatch) {
-      return results.find((r) => r.id === bestMatch.result.id) || null;
-    }
-
-    return null;
-  }
-
-  // Helper Methods
-  private filterSeasonEpisodes(
-    seasonData: TmdbSeasonWithRelations,
-  ): TmdbSeasonWithRelations {
-    const filteredEpisodes = seasonData.episodes.map((episode) => ({
-      id: episode.id,
-      air_date: episode.air_date,
-      episode_number: episode.episode_number,
-      episode_type: episode.episode_type,
-      name: episode.name,
-      overview: episode.overview,
-      production_code: episode.production_code,
-      runtime: episode.runtime,
-      season_number: episode.season_number,
-      show_id: episode.show_id,
-      still_path: episode.still_path,
-      vote_average: episode.vote_average,
-      vote_count: episode.vote_count,
-    })) as TmdbSeasonEpisode[];
-
-    seasonData.episodes = filteredEpisodes;
-    return seasonData;
   }
 
   async detectType(id: number): Promise<string> {
