@@ -28,6 +28,7 @@ import { AnilistSearchService } from '../providers/anime/anilist/service/helper/
 import { AnilistUtilService } from '../providers/anime/anilist/service/helper/anilist.util.service';
 import { KitsuService } from '../providers/anime/kitsu/service/kitsu.service';
 import { KitsuHelper } from '../providers/anime/kitsu/util/kitsu-helper';
+import { AppLockService } from './app.lock.service';
 
 @Module({
   imports: [ShikimoriHelperModule, Redis],
@@ -59,6 +60,7 @@ import { KitsuHelper } from '../providers/anime/kitsu/util/kitsu-helper';
     KitsuHelper,
     UpdateService,
     StreamService,
+    AppLockService,
   ],
   exports: [
     PrismaService,
@@ -86,6 +88,7 @@ import { KitsuHelper } from '../providers/anime/kitsu/util/kitsu-helper';
     KitsuHelper,
     UpdateService,
     StreamService,
+    AppLockService,
   ],
 })
 export class SharedModule {}

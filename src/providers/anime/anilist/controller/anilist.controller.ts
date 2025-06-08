@@ -168,13 +168,19 @@ export class AnilistController {
   }
 
   @Put('update')
-  updateDb(@Query('annotateAtId') annotateAtId: string) {
-    this.update
-      .update(annotateAtId)
-      .catch((err) => console.error('Update failed:', err)); // just in case it blows up
+  updateDb() {
+    this.update.update().catch((err) => console.error('Update failed:', err)); // just in case it blows up
 
     return {
       status: 'Update started',
+    };
+  }
+
+  @Put('update/stop')
+  stopUpdate() {
+    this.update.stop();
+    return {
+      status: 'Update stopped',
     };
   }
 

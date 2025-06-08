@@ -225,6 +225,22 @@ GET https://api.example.com/api/anime/info/21
 </details>
 
 <details>
+<summary><b>Get Anime Artworks</b> - <code>GET /api/anime/info/:id/artworks</code></summary>
+
+Get artwork information for an anime from TVDB.
+
+**Example:**
+
+```
+GET https://api.example.com/api/anime/info/21/artworks
+```
+
+**Parameters:**
+
+- `id` (path): Anime ID (required)
+</details>
+
+<details>
 <summary><b>Get Anime Recommendations</b> - <code>GET /api/anime/info/:id/recommendations</code></summary>
 
 Get anime recommendations based on an anime ID.
@@ -238,8 +254,6 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
 **Parameters:**
 
 - `id` (path): Anime ID (required)
--
-
 ```typescript
 // FilterDto
 {
@@ -292,7 +306,7 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
   isLicensed?: boolean;     // Filter licensed content
   countryOfOrigin?: string; // Filter by country code
   nsfw?: boolean;           // Filter NSFW content
-  ageRating?: ("G" | "PG" | "PG_13" | "R" | "R+" | "RX")[];  // Filter by age rating
+  ageRating?: ("G" | "PG" | "R" | "R18")[];  // Filter by age rating
 
   // Date filters
   startDateGreater?: string; // After this date (YYYY-MM-DD)
@@ -301,6 +315,10 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
   endDateGreater?: string;   // After this date (YYYY-MM-DD)
   endDateLesser?: string;    // Before this date (YYYY-MM-DD)
   endDateLike?: string;      // Similar to this date
+
+  // Airing filters
+  airingAtGreater?: number;  // After this timestamp (Unix timestamp)
+  airingAtLesser?: number;   // Before this timestamp (Unix timestamp)
 
   // Number filters
   episodesGreater?: number; // More than this many episodes
@@ -339,7 +357,6 @@ GET https://api.example.com/api/anime/info/21/recommendations?page=1&perPage=10&
                              // status, status_desc, updated_at, updated_at_desc
 }
 ```
-
 </details>
 
 <details>
@@ -374,8 +391,6 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
 **Parameters:**
 
 - `id` (path): Anime ID (required)
--
-
 ```typescript
 // FilterDto
 {
@@ -428,7 +443,7 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
   isLicensed?: boolean;     // Filter licensed content
   countryOfOrigin?: string; // Filter by country code
   nsfw?: boolean;           // Filter NSFW content
-  ageRating?: ("G" | "PG" | "PG_13" | "R" | "R+" | "RX")[];  // Filter by age rating
+  ageRating?: ("G" | "PG" | "R" | "R18")[];  // Filter by age rating
 
   // Date filters
   startDateGreater?: string; // After this date (YYYY-MM-DD)
@@ -437,6 +452,10 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
   endDateGreater?: string;   // After this date (YYYY-MM-DD)
   endDateLesser?: string;    // Before this date (YYYY-MM-DD)
   endDateLike?: string;      // Similar to this date
+
+  // Airing filters
+  airingAtGreater?: number;  // After this timestamp (Unix timestamp)
+  airingAtLesser?: number;   // Before this timestamp (Unix timestamp)
 
   // Number filters
   episodesGreater?: number; // More than this many episodes
@@ -475,7 +494,6 @@ GET https://api.example.com/api/anime/info/21/chronology?page=1&perPage=10&sort=
                              // status, status_desc, updated_at, updated_at_desc
 }
 ```
-
 </details>
 
 <details>
@@ -529,22 +547,6 @@ GET https://api.example.com/api/anime/info/21/providers/1
 </details>
 
 <details>
-<summary><b>Get All Providers</b> - <code>GET /api/anime/info/:id/providers</code></summary>
-
-Get all available streaming providers for all episodes of an anime.
-
-**Example:**
-
-```
-GET https://api.example.com/api/anime/info/21/providers
-```
-
-**Parameters:**
-
-- `id` (path): Anime ID (required)
-</details>
-
-<details>
 <summary><b>Get Streaming Sources</b> - <code>GET /api/anime/watch/:id/episodes/:number</code></summary>
 
 Get streaming sources for a specific episode.
@@ -552,18 +554,15 @@ Get streaming sources for a specific episode.
 **Example:**
 
 ```
-GET https://api.example.com/api/anime/watch/21/episodes/1?provider=ANIWATCH&dub=false
+GET https://api.example.com/api/anime/watch/21/episodes/1?provider=zoro&dub=false
 ```
 
 **Parameters:**
 
 - `id` (path): Anime ID (required)
 - `number` (path): Episode number (required)
-- `provider` (query): Provider name (default: "ANIWATCH")
+- `provider` (query): Provider name (default: "zoro")
 - `dub` (query): Boolean for dubbed version (default: false)
-
-> **💡 Tip**: It's better to make requests directly to Consumet from your application rather than making requests to this API. This will decrease response time and eliminate an extra hop in the request chain.
-
 </details>
 
 <details>
@@ -631,7 +630,7 @@ GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&gen
   isLicensed?: boolean;     // Filter licensed content
   countryOfOrigin?: string; // Filter by country code
   nsfw?: boolean;           // Filter NSFW content
-  ageRating?: ("G" | "PG" | "PG_13" | "R" | "R+" | "RX")[];  // Filter by age rating
+  ageRating?: ("G" | "PG" | "R" | "R18")[];  // Filter by age rating
 
   // Date filters
   startDateGreater?: string; // After this date (YYYY-MM-DD)
@@ -640,6 +639,10 @@ GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&gen
   endDateGreater?: string;   // After this date (YYYY-MM-DD)
   endDateLesser?: string;    // Before this date (YYYY-MM-DD)
   endDateLike?: string;      // Similar to this date
+
+  // Airing filters
+  airingAtGreater?: number;  // After this timestamp (Unix timestamp)
+  airingAtLesser?: number;   // Before this timestamp (Unix timestamp)
 
   // Number filters
   episodesGreater?: number; // More than this many episodes
@@ -678,7 +681,6 @@ GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&gen
                              // status, status_desc, updated_at, updated_at_desc
 }
 ```
-
 </details>
 
 <details>
@@ -741,8 +743,6 @@ GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popu
 **Parameters:**
 
 - `franchise` (path): Franchise name (required)
--
-
 ```typescript
 // FilterDto
 {
@@ -795,7 +795,7 @@ GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popu
   isLicensed?: boolean;     // Filter licensed content
   countryOfOrigin?: string; // Filter by country code
   nsfw?: boolean;           // Filter NSFW content
-  ageRating?: ("G" | "PG" | "PG_13" | "R" | "R+" | "RX")[];  // Filter by age rating
+  ageRating?: ("G" | "PG" | "R" | "R18")[];  // Filter by age rating
 
   // Date filters
   startDateGreater?: string; // After this date (YYYY-MM-DD)
@@ -804,6 +804,10 @@ GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popu
   endDateGreater?: string;   // After this date (YYYY-MM-DD)
   endDateLesser?: string;    // Before this date (YYYY-MM-DD)
   endDateLike?: string;      // Similar to this date
+
+  // Airing filters
+  airingAtGreater?: number;  // After this timestamp (Unix timestamp)
+  airingAtLesser?: number;   // Before this timestamp (Unix timestamp)
 
   // Number filters
   episodesGreater?: number; // More than this many episodes
@@ -829,8 +833,6 @@ GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popu
   genreNotIn?: string[];      // Exclude these genres
   tagIn?: string[];           // Include these tags
   tagNotIn?: string[];        // Exclude these tags
-  tagsIn?: string[];          // Include these tags (alternative)
-  tagsNotIn?: string[];       // Exclude these tags (alternative)
   tagCategoryIn?: string[];   // Include these tag categories
   tagCategoryNotIn?: string[]; // Exclude these tag categories
 
@@ -844,7 +846,6 @@ GET https://api.example.com/api/anime/franchise/fate?page=1&perPage=20&sort=popu
                              // status, status_desc, updated_at, updated_at_desc
 }
 ```
-
 </details>
 
 <details>
@@ -880,14 +881,80 @@ GET https://api.example.com/api/anime/tags?page=1&perPage=20
 </details>
 
 <details>
-<summary><b>Start Indexing</b> - <code>PUT /api/anime/index</code></summary>
+<summary><b>Get Last Updates</b> - <code>GET /api/anime/updates</code></summary>
+
+Get the last updates for anime.
+
+**Example:**
+
+```
+GET https://api.example.com/api/anime/updates?type=anilist&page=1&perPage=20
+```
+
+**Parameters:**
+
+- `entityId` (query): Entity ID (optional)
+- `externalId` (query): External ID (optional)
+- `type` (query): Update type (default: "anilist")
+- `page` (query): Page number (default: 1)
+- `perPage` (query): Results per page (default: 20)
+</details>
+
+<details>
+<summary><b>Update Anime Info</b> - <code>PUT /api/anime/info/:id/update</code></summary>
+
+Update anime information.
+
+**Example:**
+
+```
+PUT https://api.example.com/api/anime/info/21/update
+```
+
+**Parameters:**
+
+- `id` (path): Anime ID (required)
+</details>
+
+<details>
+<summary><b>Start Update</b> - <code>PUT /api/anime/update</code></summary>
+
+Start the anime update process.
+
+**Example:**
+
+```
+PUT https://api.example.com/api/anime/update
+```
+
+**Parameters:** None
+
+</details>
+
+<details>
+<summary><b>Stop Update</b> - <code>PUT /api/anime/update/stop</code></summary>
+
+Stop the anime update process.
+
+**Example:**
+
+```
+PUT https://api.example.com/api/anime/update/stop
+```
+
+**Parameters:** None
+
+</details>
+
+<details>
+<summary><b>Start Indexing</b> - <code>POST /api/anime/index</code></summary>
 
 Start the anime indexing process.
 
 **Example:**
 
 ```
-PUT https://api.example.com/api/anime/index?delay=10
+POST https://api.example.com/api/anime/index?delay=10&range=25
 ```
 
 **Parameters:**
@@ -897,14 +964,14 @@ PUT https://api.example.com/api/anime/index?delay=10
 </details>
 
 <details>
-<summary><b>Stop Indexing</b> - <code>PUT /api/anime/index/stop</code></summary>
+<summary><b>Stop Indexing</b> - <code>POST /api/anime/index/stop</code></summary>
 
 Stop the anime indexing process.
 
 **Example:**
 
 ```
-PUT https://api.example.com/api/anime/index/stop
+POST https://api.example.com/api/anime/index/stop
 ```
 
 **Parameters:** None
@@ -916,7 +983,7 @@ PUT https://api.example.com/api/anime/index/stop
 <summary><h3>🌸 Shikimori Endpoints</h3></summary>
 
 <details>
-<summary><b>Get Shikimori Anime Info</b> - <code>GET /api/shikimori/info/:id</code></summary>
+<summary><b>Get Shikimori Info</b> - <code>GET /api/shikimori/info/:id</code></summary>
 
 Get anime information from Shikimori.
 
@@ -929,20 +996,17 @@ GET https://api.example.com/api/shikimori/info/21
 **Parameters:**
 
 - `id` (path): Anime ID (required)
-
-> **Warning**: It's not available right now
-
 </details>
 
 <details>
-<summary><b>Update Shikimori Anime Info</b> - <code>PUT /api/shikimori/info/:id</code></summary>
+<summary><b>Update Shikimori Info</b> - <code>PUT /api/shikimori/info/:id/update</code></summary>
 
 Update anime information from Shikimori.
 
 **Example:**
 
 ```
-PUT https://api.example.com/api/shikimori/info/21
+PUT https://api.example.com/api/shikimori/info/21/update
 ```
 
 **Parameters:**
@@ -986,8 +1050,6 @@ GET https://api.example.com/api/shikimori/franchiseId/fate
 <details>
 <summary><h3>📺 Streaming Sources Endpoints</h3></summary>
 
-> **Note**: The streaming providers share common endpoint patterns. Use the correct provider ID when making requests.
-
 <details>
 <summary><b>AnimePahe Anime Info</b> - <code>GET /api/anime/info/:id/animepahe</code></summary>
 
@@ -1005,14 +1067,14 @@ GET https://api.example.com/api/anime/info/21/animepahe
 </details>
 
 <details>
-<summary><b>AnimePahe Streaming Sources</b> - <code>GET /api/anime/watch/animepahe/:id</code></summary>
+<summary><b>AnimePahe Streaming Sources</b> - <code>GET /api/anime/watch/:id/animepahe</code></summary>
 
 Get streaming sources from AnimePahe.
 
 **Example:**
 
 ```
-GET https://api.example.com/api/anime/watch/animepahe/ep_12345
+GET https://api.example.com/api/anime/watch/ep_12345/animepahe
 ```
 
 **Parameters:**
@@ -1037,14 +1099,14 @@ GET https://api.example.com/api/anime/info/21/animekai
 </details>
 
 <details>
-<summary><b>AnimeKai Streaming Sources</b> - <code>GET /api/anime/watch/animekai/:id</code></summary>
+<summary><b>AnimeKai Streaming Sources</b> - <code>GET /api/anime/watch/:id/animekai</code></summary>
 
 Get streaming sources from AnimeKai.
 
 **Example:**
 
 ```
-GET https://api.example.com/api/anime/watch/animekai/ep_12345?dub=false
+GET https://api.example.com/api/anime/watch/ep_12345/animekai?dub=false
 ```
 
 **Parameters:**
@@ -1070,69 +1132,20 @@ GET https://api.example.com/api/anime/info/21/zoro
 </details>
 
 <details>
-<summary><b>Zoro Streaming Sources</b> - <code>GET /api/anime/watch/zoro/:id</code></summary>
+<summary><b>Zoro Streaming Sources</b> - <code>GET /api/anime/watch/:id/zoro</code></summary>
 
 Get streaming sources from Zoro.
 
 **Example:**
 
 ```
-GET https://api.example.com/api/anime/watch/zoro/ep_12345?dub=false
+GET https://api.example.com/api/anime/watch/ep_12345/zoro?dub=false
 ```
 
 **Parameters:**
 
 - `id` (path): Zoro episode ID (required)
 - `dub` (query): Boolean for dubbed version (default: false)
-</details>
-</details>
-
-<details>
-<summary><h3>📋 Console Endpoints</h3></summary>
-
-<details>
-<summary><b>Get Console Logs</b> - <code>GET /api/console/logs</code></summary>
-
-Get all console logs.
-
-**Example:**
-
-```
-GET https://api.example.com/api/console/logs
-```
-
-**Parameters:** None
-
-</details>
-
-<details>
-<summary><b>Get Console Warnings</b> - <code>GET /api/console/warns</code></summary>
-
-Get all console warnings.
-
-**Example:**
-
-```
-GET https://api.example.com/api/console/warns
-```
-
-**Parameters:** None
-
-</details>
-
-<details>
-<summary><b>Get Console Errors</b> - <code>GET /api/console/errors</code></summary>
-
-Get all console errors.
-
-**Example:**
-
-```
-GET https://api.example.com/api/console/errors
-```
-
-**Parameters:** None
-
 </details>
 </details>
 
@@ -1164,6 +1177,75 @@ Get TMDB season information for an anime.
 
 ```
 GET https://api.example.com/api/anime/info/21/tmdb/season
+```
+
+**Parameters:**
+
+- `id` (path): Anilist ID (required)
+</details>
+
+<details>
+<summary><b>Get TMDB Season Episode</b> - <code>GET /api/anime/info/:id/tmdb/season/:ep</code></summary>
+
+Get TMDB episode information for a specific episode.
+
+**Example:**
+
+```
+GET https://api.example.com/api/anime/info/21/tmdb/season/1
+```
+
+**Parameters:**
+
+- `id` (path): Anilist ID (required)
+- `ep` (path): Episode number (required)
+</details>
+
+<details>
+<summary><b>Update TMDB Info</b> - <code>GET /api/anime/info/:id/tmdb/update</code></summary>
+
+Update TMDB information for an anime.
+
+**Example:**
+
+```
+GET https://api.example.com/api/anime/info/21/tmdb/update
+```
+
+**Parameters:**
+
+- `id` (path): Anilist ID (required)
+</details>
+</details>
+
+<details>
+<summary><h3>🎨 Kitsu Endpoints</h3></summary>
+
+<details>
+<summary><b>Get Kitsu Info</b> - <code>GET /api/anime/info/:id/kitsu</code></summary>
+
+Get Kitsu information using Anilist ID.
+
+**Example:**
+
+```
+GET https://api.example.com/api/anime/info/21/kitsu
+```
+
+**Parameters:**
+
+- `id` (path): Anilist ID (required)
+</details>
+
+<details>
+<summary><b>Update Kitsu Info</b> - <code>PUT /api/anime/info/:id/kitsu/update</code></summary>
+
+Update Kitsu information for an anime.
+
+**Example:**
+
+```
+PUT https://api.example.com/api/anime/info/21/kitsu/update
 ```
 
 **Parameters:**

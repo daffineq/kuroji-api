@@ -57,4 +57,9 @@ export default class Config {
   public static readonly DEFAULT_PAGE: number = process.env.DEFAULT_PAGE
     ? parseInt(process.env.DEFAULT_PAGE)
     : 1;
+
+  public static readonly INDEXER_RUNNING_KEY =
+    process.env.INDEXER_RUNNING_KEY ?? 'isIndexerRunning';
+  public static readonly UPDATE_RUNNING_KEY =
+    process.env.UPDATE_RUNNING_KEY ?? 'isUpdateRunning';
 }

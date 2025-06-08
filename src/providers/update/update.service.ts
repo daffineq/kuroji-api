@@ -17,6 +17,7 @@ import { TvdbService } from '../anime/tvdb/service/tvdb.service';
 import { ZoroService } from '../anime/zoro/service/zoro.service';
 import { MediaStatus } from '../anime/anilist/filter/Filter';
 import { ETvdbStatus } from '../anime/tvdb/types/types';
+import { AppLockService } from '../../shared/app.lock.service';
 
 interface IProvider {
   update: (id: string | number) => Promise<any>;
@@ -62,7 +63,6 @@ enum UpdateInterval {
 
 @Injectable()
 export class UpdateService {
-  private isRunning = false;
   private readonly providers: IProvider[];
 
   constructor(
@@ -74,6 +74,7 @@ export class UpdateService {
     private readonly tmdbService: TmdbService,
     private readonly tvdbService: TvdbService,
     private readonly kitsuService: KitsuService,
+    private readonly lock: AppLockService,
     private readonly prisma: PrismaService,
   ) {
     this.providers = [
@@ -390,107 +391,112 @@ export class UpdateService {
   }
 
   @Cron(CronExpression.EVERY_30_MINUTES)
-  async update(annotateAtId: string | null = null): Promise<void> {
+  async update(): Promise<void> {
     if (!Config.UPDATE_ENABLED) {
       console.log('Updates are disabled via configuration.');
       return;
     }
 
-    if (this.isRunning) {
+    if (this.lock.isLocked(Config.INDEXER_RUNNING_KEY)) {
+      console.log('Indexer is running. Skipping this update cycle.');
+      return;
+    }
+
+    if (!this.lock.acquire(Config.UPDATE_RUNNING_KEY)) {
       console.log('Update cycle is already running. Skipping this cycle.');
       return;
     }
 
-    this.isRunning = true;
-    console.log('Starting update cycle...');
+    try {
+      console.log('Starting update cycle...');
 
-    for (const provider of this.providers) {
-      try {
-        const lastUpdates = await this.prisma.lastUpdated.findMany({
-          where: { type: provider.type },
-          orderBy: { updatedAt: 'desc' },
-        });
+      for (const provider of this.providers) {
+        try {
+          const lastUpdates = await this.prisma.lastUpdated.findMany({
+            where: { type: provider.type },
+            orderBy: { updatedAt: 'desc' },
+          });
 
-        if (!lastUpdates.length) {
-          console.log(`No items to update for provider: ${provider.type}`);
-          continue;
-        }
-
-        console.log(
-          `Processing ${lastUpdates.length} items for provider: ${provider.type}`,
-        );
-
-        for (const lastUpdated of lastUpdates) {
-          try {
-            const now = new Date();
-            const lastTime = lastUpdated.updatedAt
-              ? lastUpdated.updatedAt.getTime()
-              : lastUpdated.createdAt.getTime();
-            const type = lastUpdated.type as UpdateType;
-
-            const temperature = await this._calculateTemperature(
-              lastUpdated,
-              type,
-            );
-            const updateInterval = UpdateService.getUpdateInterval(
-              temperature,
-              type,
-            );
-
-            const shouldUpdate = lastTime + updateInterval <= now.getTime();
-
-            if (String(annotateAtId) === String(lastUpdated.entityId)) {
-              console.log(
-                `Info for id ${lastUpdated.entityId} (Type: ${provider.type}):`,
-                `\n- Temperature: ${Temperature[temperature]}`,
-                `\n- Last Updated: ${lastUpdated.createdAt.toISOString()}`,
-                `\n- Update Interval: ${updateInterval / ONE_HOUR_MS}h`,
-                `\n- Will Update: ${shouldUpdate}`,
-                `\n- Time until update: ${((lastTime + updateInterval - now.getTime()) / ONE_HOUR_MS).toFixed(2)}h`,
-              );
-            }
-
-            if (shouldUpdate) {
-              console.log(
-                `Updating ${provider.type} ID:${lastUpdated.entityId} (Temp: ${Temperature[temperature]}, Interval: ${updateInterval / ONE_HOUR_MS}h), Items Left: ${lastUpdates.length - lastUpdates.indexOf(lastUpdated) - 1}`,
-              );
-              await provider.update(lastUpdated.entityId);
-              await sleep(SLEEP_BETWEEN_UPDATES, false);
-            } else {
-              await sleep(0.1, false);
-            }
-
-            const lastDatePlusMonth = new Date(
-              lastUpdated.createdAt.getFullYear(),
-              lastUpdated.createdAt.getMonth() + 1,
-              lastUpdated.createdAt.getDate(),
-            );
-
-            if (lastDatePlusMonth.getTime() < now.getTime()) {
-              console.log(
-                `Deleting old LastUpdated entry for ${provider.type} ID:${lastUpdated.entityId}`,
-              );
-              await this.prisma.lastUpdated.delete({
-                where: {
-                  id: lastUpdated.id,
-                },
-              });
-            }
-          } catch (itemError) {
-            console.error(
-              `Error processing item ${lastUpdated.entityId} for ${provider.type}:`,
-              itemError,
-            );
+          if (!lastUpdates.length) {
+            console.log(`No items to update for provider: ${provider.type}`);
             continue;
           }
-        }
-      } catch (e: any) {
-        console.error(`Error in provider ${provider.type}:`, e.message);
-      }
-    }
 
-    this.isRunning = false;
-    console.log('Update cycle finished.');
+          console.log(
+            `Processing ${lastUpdates.length} items for provider: ${provider.type}`,
+          );
+
+          for (const lastUpdated of lastUpdates) {
+            try {
+              if (!this.lock.isLocked(Config.UPDATE_RUNNING_KEY)) {
+                console.log('Updating stopped');
+                return;
+              }
+
+              const now = new Date();
+              const lastTime = lastUpdated.updatedAt
+                ? lastUpdated.updatedAt.getTime()
+                : lastUpdated.createdAt.getTime();
+              const type = lastUpdated.type as UpdateType;
+
+              const temperature = await this._calculateTemperature(
+                lastUpdated,
+                type,
+              );
+              const updateInterval = UpdateService.getUpdateInterval(
+                temperature,
+                type,
+              );
+
+              const shouldUpdate = lastTime + updateInterval <= now.getTime();
+
+              if (shouldUpdate) {
+                console.log(
+                  `Updating ${provider.type} ID:${lastUpdated.entityId} (Temp: ${Temperature[temperature]}, Interval: ${updateInterval / ONE_HOUR_MS}h), Items Left: ${lastUpdates.length - lastUpdates.indexOf(lastUpdated) - 1}`,
+                );
+                await provider.update(lastUpdated.entityId);
+                await sleep(SLEEP_BETWEEN_UPDATES, false);
+              } else {
+                await sleep(0.1, false);
+              }
+
+              const lastDatePlusMonth = new Date(
+                lastUpdated.createdAt.getFullYear(),
+                lastUpdated.createdAt.getMonth() + 1,
+                lastUpdated.createdAt.getDate(),
+              );
+
+              if (lastDatePlusMonth.getTime() < now.getTime()) {
+                console.log(
+                  `Deleting old LastUpdated entry for ${provider.type} ID:${lastUpdated.entityId}`,
+                );
+                await this.prisma.lastUpdated.delete({
+                  where: {
+                    id: lastUpdated.id,
+                  },
+                });
+              }
+            } catch (itemError) {
+              console.error(
+                `Error processing item ${lastUpdated.entityId} for ${provider.type}:`,
+                itemError,
+              );
+              continue;
+            }
+          }
+        } catch (e: any) {
+          console.error(`Error in provider ${provider.type}:`, e.message);
+        }
+      }
+
+      console.log('Update cycle finished.');
+    } finally {
+      this.lock.release(Config.UPDATE_RUNNING_KEY);
+    }
+  }
+
+  public stop(): void {
+    this.lock.release(Config.UPDATE_RUNNING_KEY);
   }
 
   async getLastUpdates(

@@ -13,56 +13,60 @@ import { MediaType } from '../../filter/Filter';
 import AnilistQL from '../../graphql/AnilistQL';
 import { AnilistPageResponse } from './types/types';
 import { Client } from '../../../../model/client';
+import { AppLockService } from '../../../../../shared/app.lock.service';
 
 @Injectable()
 export class AnilistIndexerService extends Client {
-  private isRunning = false;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly service: AnilistService,
     private readonly zoro: ZoroService,
     private readonly animekai: AnimekaiService,
     private readonly animepahe: AnimepaheService,
+    private readonly lock: AppLockService,
   ) {
     super(UrlConfig.ANILIST_GRAPHQL);
   }
 
   public async index(delay: number = 10, range: number = 25): Promise<void> {
-    if (this.isRunning) {
+    if (this.lock.isLocked(Config.UPDATE_RUNNING_KEY)) {
+      console.log('Updating is running, skip this round.');
+      return;
+    }
+
+    if (!this.lock.acquire(Config.INDEXER_RUNNING_KEY)) {
       console.log('Already running, skip this round.');
       return;
     }
 
-    this.isRunning = true;
-    let page = await this.getLastFetchedPage();
-    const perPage = 50;
+    try {
+      let page = await this.getLastFetchedPage();
+      let hasNextPage: boolean = true;
+      const perPage = 50;
 
-    while (this.isRunning) {
-      console.log(`Fetching ids page ${page}`);
+      while (hasNextPage) {
+        console.log(`Fetching ids page ${page}`);
 
-      const response = await this.getIdsGraphql(page, perPage);
-      const ids = response.Page.media.map((m) => m.id);
-      const hasNextPage = response.Page.pageInfo.hasNextPage;
+        const response = await this.getIdsGraphql(page, perPage);
+        const ids = response.Page.media.map((m) => m.id);
+        hasNextPage = response.Page.pageInfo.hasNextPage;
 
-      const existingIdsRaw = await this.prisma.releaseIndex.findMany({
-        where: {
-          id: { in: ids.map((id) => id.toString()) },
-        },
-        select: { id: true },
-      });
+        const existingIdsRaw = await this.prisma.releaseIndex.findMany({
+          where: {
+            id: { in: ids.map((id) => id.toString()) },
+          },
+          select: { id: true },
+        });
 
-      const existingIdsSet = new Set(existingIdsRaw.map((e) => e.id));
-      const newIds = ids.filter((id) => !existingIdsSet.has(id.toString()));
+        const existingIdsSet = new Set(existingIdsRaw.map((e) => e.id));
+        const newIds = ids.filter((id) => !existingIdsSet.has(id.toString()));
 
-      for (const id of newIds) {
-        if (!this.isRunning) {
-          console.log('Indexing manually stopped');
-          this.isRunning = false;
-          return;
-        }
+        for (const id of newIds) {
+          if (!this.lock.isLocked(Config.INDEXER_RUNNING_KEY)) {
+            console.log('Indexing manually stopped');
+            return;
+          }
 
-        try {
           console.log(`Indexing new release: ${id}`);
 
           await this.safeGetAnilist(id);
@@ -71,31 +75,29 @@ export class AnilistIndexerService extends Client {
             update: {},
             create: { id: id.toString() },
           });
-        } catch (e) {
-          this.isRunning = false;
-          throw e;
+
+          await sleep(this.getRandomInt(delay, delay + range));
         }
 
-        await sleep(this.getRandomInt(delay, delay + range));
+        await this.setLastFetchedPage(page);
+
+        if (!hasNextPage) break;
+        page++;
       }
 
-      await this.setLastFetchedPage(page);
-
-      if (!hasNextPage) break;
-      page++;
+      console.log('Indexing complete, shutting it down');
+    } finally {
+      this.lock.release(Config.INDEXER_RUNNING_KEY);
     }
-
-    this.isRunning = false;
-    console.log('Indexing complete, shutting it down');
   }
 
   public stop(): void {
-    this.isRunning = false;
+    this.lock.release(Config.INDEXER_RUNNING_KEY);
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_NOON)
   public async updateIndex(): Promise<void> {
-    if (!Config.ANILIST_INDEXER_UPDATE_ENABLED || this.isRunning) {
+    if (!Config.ANILIST_INDEXER_UPDATE_ENABLED) {
       console.log('Scheduled updates are disabled. Skipping update.');
       return;
     }
