@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Put } from '@nestjs/common';
 import { TmdbService } from '../service/tmdb.service';
 import e from 'express';
 
@@ -24,7 +24,7 @@ export class TmdbController {
     return this.service.getEpisodeDetailsByAnilist(id, ep);
   }
 
-  @Get('info/:id/tmdb/update')
+  @Put('info/:id/tmdb/update')
   async updateTmdbByAnilist(@Param('id', ParseIntPipe) id: number) {
     const data = await this.getTmdbByAnilist(id);
     return this.service.update(data.id);

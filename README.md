@@ -1227,14 +1227,14 @@ GET https://api.example.com/api/anime/info/21/tmdb/season/1
 </details>
 
 <details>
-<summary><b>Update TMDB Info</b> - <code>GET /api/anime/info/:id/tmdb/update</code></summary>
+<summary><b>Update TMDB Info</b> - <code>PUT /api/anime/info/:id/tmdb/update</code></summary>
 
 Update TMDB information for an anime.
 
 **Example:**
 
 ```
-GET https://api.example.com/api/anime/info/21/tmdb/update
+PUT https://api.example.com/api/anime/info/21/tmdb/update
 ```
 
 **Parameters:**

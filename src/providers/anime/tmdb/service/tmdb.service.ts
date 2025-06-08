@@ -395,6 +395,7 @@ export class TmdbService extends Client {
         id,
         season.season_number || 1,
       );
+      tmdbSeason.show_id = tmdb.id;
       await this.saveTmdbSeason(tmdbSeason);
 
       await sleep(15);
