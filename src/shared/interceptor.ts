@@ -12,8 +12,10 @@ export class Interceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     return next.handle().pipe(
       map((data: unknown) => {
-        const safe = JSON.parse(JSON.stringify(data)) as unknown;
-        return convertDates(undefinedToNull(safe));
+        const safe = JSON.parse(
+          JSON.stringify(undefinedToNull(data)),
+        ) as unknown;
+        return convertDates(safe);
       }),
     );
   }
