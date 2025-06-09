@@ -31,10 +31,10 @@ export class AnilistFilterService {
       if (value !== undefined) conditions.push({ [key as any]: value });
     }
 
-    if (filter.nsfw) {
+    if (filter.nsfw === false) {
       conditions.push({
-        kitsu: {
-          nsfw: filter.nsfw,
+        shikimori: {
+          rating: { not: 'rx' },
         },
       });
     }
@@ -72,6 +72,17 @@ export class AnilistFilterService {
                 some: {
                   isDubbed: true,
                   isSubbed: true,
+                },
+              },
+            },
+          });
+          break;
+        case Language.ALL:
+          conditions.push({
+            zoro: {
+              episodes: {
+                some: {
+                  OR: [{ isDubbed: true }, { isSubbed: true }],
                 },
               },
             },
@@ -184,8 +195,8 @@ export class AnilistFilterService {
 
     if (filter.ageRating) {
       conditions.push({
-        kitsu: {
-          ageRating: { in: filter.ageRating },
+        shikimori: {
+          rating: { in: filter.ageRating },
         },
       });
     }

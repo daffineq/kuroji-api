@@ -104,6 +104,7 @@ export interface BasicShikimori {
   licenseNameRu?: string;
   episodes?: number;
   episodesAired?: number;
+  rating?: string;
   url?: string;
   franchise?: string;
   poster?: ShikimoriPoster;

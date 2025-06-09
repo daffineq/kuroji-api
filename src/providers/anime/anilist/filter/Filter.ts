@@ -80,12 +80,15 @@ export enum Language {
   SUB = 'sub',
   DUB = 'dub',
   BOTH = 'both',
+  ALL = 'all',
   RAW = 'raw',
 }
 
 export enum AgeRating {
-  G = 'G',
-  PG = 'PG',
-  R = 'R',
-  R18 = 'R18',
+  G = 'g',
+  PG = 'pg',
+  PG_13 = 'pg_13',
+  R = 'r',
+  R_PLUS = 'r_plus',
+  RX = 'rx',
 }

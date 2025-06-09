@@ -334,8 +334,8 @@ export function convertAnilistToBasic(
     nextAiringEpisode: findNextAiringInSchedule(
       anilist?.airingSchedule ?? null,
     ),
-    shikimori: convertShikimoriToBasic(anilist?.shikimori),
-    kitsu: convertKitsuToBasic(anilist?.kitsu),
+    shikimori: convertShikimoriToBasic(anilist?.shikimori) ?? undefined,
+    kitsu: convertKitsuToBasic(anilist?.kitsu) ?? undefined,
   };
 }
 
@@ -352,6 +352,7 @@ export function convertShikimoriToBasic(
     licenseNameRu: shikimori.licenseNameRu ?? undefined,
     episodes: shikimori.episodes ?? undefined,
     episodesAired: shikimori.episodesAired ?? undefined,
+    rating: shikimori.rating ?? undefined,
     url: shikimori.url ?? undefined,
     franchise: shikimori.franchise ?? undefined,
     poster: shikimori.poster ?? undefined,
