@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../mapper/mapper.helper';
 import { UpdateType } from '../../../update/UpdateType';
-import { AnimeKaiHelper } from '../utils/animekai-helper';
 import {
   ANIME,
   IAnimeInfo,
@@ -16,15 +15,13 @@ import { getUpdateData } from '../../../update/update.util';
 import { UrlConfig } from '../../../../configs/url.config';
 import { AnimekaiWithRelations } from '../types/types';
 import { Client } from '../../../model/client';
+import { getAnimekaiData } from '../utils/animekai-helper';
 
 const animekai = new ANIME.AnimeKai();
 
 @Injectable()
 export class AnimekaiService extends Client {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly helper: AnimeKaiHelper,
-  ) {
+  constructor(private readonly prisma: PrismaService) {
     super(UrlConfig.ANIMEKAI);
   }
 
@@ -64,8 +61,8 @@ export class AnimekaiService extends Client {
 
     return await this.prisma.animeKai.upsert({
       where: { id: animekai.id },
-      update: this.helper.getAnimekaiData(animekai),
-      create: this.helper.getAnimekaiData(animekai),
+      update: getAnimekaiData(animekai),
+      create: getAnimekaiData(animekai),
       include: { episodes: true },
     });
   }

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
-import { ZoroHelper } from '../utils/zoro-helper';
 import { UpdateType } from '../../../update/UpdateType';
 import { findBestMatch } from '../../../mapper/mapper.helper';
 import {
@@ -16,15 +15,13 @@ import { getUpdateData } from '../../../update/update.util';
 import { UrlConfig } from '../../../../configs/url.config';
 import { ZoroWithRelations } from '../types/types';
 import { Client } from '../../../model/client';
+import { getZoroData } from '../utils/zoro-helper';
 
 const zoro = new ANIME.Zoro();
 
 @Injectable()
 export class ZoroService extends Client {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly helper: ZoroHelper,
-  ) {
+  constructor(private readonly prisma: PrismaService) {
     super(UrlConfig.ZORO);
   }
 
@@ -78,8 +75,8 @@ export class ZoroService extends Client {
 
     return await this.prisma.zoro.upsert({
       where: { id: zoro.id },
-      create: this.helper.getZoroData(zoro),
-      update: this.helper.getZoroData(zoro),
+      create: getZoroData(zoro),
+      update: getZoroData(zoro),
       include: {
         episodes: true,
       },

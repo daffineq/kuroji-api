@@ -1,14 +1,14 @@
 model Zoro {
   id            String        @id
-  title         String?   
-  malID         Int? 
+  title         String?
+  malID         Int?
   alID          Int?          @unique
   japaneseTitle String?
   image         String?
   description   String?
   type          String?
   url           String?
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt     Int?
   subOrDub      String?
   hasSub        Boolean?
   hasDub        Boolean?
@@ -21,7 +21,7 @@ model Zoro {
 }
 
 model EpisodeZoro {
-  id       String  @id
+  id       String   @id
   number   Int?
   title    String?
   isFiller Boolean?

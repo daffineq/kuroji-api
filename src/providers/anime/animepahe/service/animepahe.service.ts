@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../mapper/mapper.helper';
 import { UpdateType } from '../../../update/UpdateType';
-import { AnimePaheHelper } from '../utils/animepahe-helper';
 import {
   ANIME,
   IAnimeInfo,
@@ -14,15 +13,13 @@ import { getUpdateData } from '../../../update/update.util';
 import { UrlConfig } from '../../../../configs/url.config';
 import { AnimepaheWithRelations } from '../types/types';
 import { Client } from '../../../model/client';
+import { getAnimePaheData } from '../utils/animepahe-helper';
 
 const animepahe = new ANIME.AnimePahe();
 
 @Injectable()
 export class AnimepaheService extends Client {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly helper: AnimePaheHelper,
-  ) {
+  constructor(private readonly prisma: PrismaService) {
     super(UrlConfig.ANIMEPAHE);
   }
 
@@ -65,8 +62,8 @@ export class AnimepaheService extends Client {
 
     return await this.prisma.animepahe.upsert({
       where: { id: animepahe.id },
-      update: this.helper.getAnimePaheData(animepahe),
-      create: this.helper.getAnimePaheData(animepahe),
+      update: getAnimePaheData(animepahe),
+      create: getAnimePaheData(animepahe),
       include: {
         externalLinks: true,
         episodes: true,

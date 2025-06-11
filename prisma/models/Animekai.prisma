@@ -1,33 +1,33 @@
 model AnimeKai {
-  id             String        @id
-  anilistId      Int?          @unique
-  title          String?
-  japaneseTitle  String?
-  image          String?
-  description    String?
-  type           String?
-  url            String?
-  updatedAt DateTime @default(now()) @updatedAt
-  subOrDub       String?
-  hasSub         Boolean?
-  hasDub         Boolean?
-  status         String?
-  season         String?
-  totalEpisodes  Int?
+  id            String   @id
+  anilistId     Int?     @unique
+  title         String?
+  japaneseTitle String?
+  image         String?
+  description   String?
+  type          String?
+  url           String?
+  updatedAt     Int?
+  subOrDub      String?
+  hasSub        Boolean?
+  hasDub        Boolean?
+  status        String?
+  season        String?
+  totalEpisodes Int?
 
-  episodes       AnimekaiEpisode[] @relation("AnimekaiEpisode")
+  episodes AnimekaiEpisode[] @relation("AnimekaiEpisode")
 
   anilist Anilist? @relation(fields: [anilistId], references: [id])
 }
 
 model AnimekaiEpisode {
-  id         String   @id
-  number     Int?
-  title      String?
-  isFiller   Boolean?
-  isSubbed   Boolean?
-  isDubbed   Boolean?
-  url        String?
+  id       String   @id
+  number   Int?
+  title    String?
+  isFiller Boolean?
+  isSubbed Boolean?
+  isDubbed Boolean?
+  url      String?
 
   animekai AnimeKai[] @relation("AnimekaiEpisode")
 }

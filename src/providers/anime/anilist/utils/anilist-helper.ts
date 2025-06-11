@@ -33,6 +33,14 @@ export class AnilistHelper {
         }))
       : false;
 
+    const now = Math.floor(Date.now() / 1000);
+
+    const pastAirings = anime.airingSchedule.edges
+      .map((edge) => edge.node.airingAt)
+      .filter((airingAt) => airingAt <= now);
+
+    const latest = pastAirings.length > 0 ? Math.max(...pastAirings) : 0;
+
     return {
       id: anime.id,
       idMal: isMalExist ? undefined : (anime.idMal ?? undefined),
@@ -113,6 +121,7 @@ export class AnilistHelper {
       favourites: anime.favourites,
       genres: anime.genres,
       synonyms: anime.synonyms,
+      latest,
       recommendations: {
         connectOrCreate:
           anime.recommendations?.edges
@@ -536,6 +545,7 @@ export function reorderAnilistItems(raw: AnilistWithRelations) {
     favourites: raw.favourites,
     genres: raw.genres,
     synonyms: raw.synonyms,
+    latest: raw.latest,
 
     trailer: raw.trailer,
     nextAiringEpisode: findNextAiringInSchedule(raw?.airingSchedule ?? null),

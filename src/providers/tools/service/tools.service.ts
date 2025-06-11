@@ -3,10 +3,73 @@ import { PrismaService } from '../../../prisma.service';
 import { UpdateType } from '../../update/UpdateType';
 import { getUpdateData } from '../../update/update.util';
 import { sleep } from '../../../utils/utils';
+import { IAnimeInfo } from '@consumet/extensions';
+import { AnimekaiService } from '../../anime/animekai/service/animekai.service';
+import { AnimepaheService } from '../../anime/animepahe/service/animepahe.service';
+import { ZoroService } from '../../anime/zoro/service/zoro.service';
 
 @Injectable()
 export class ToolsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly animekaiService: AnimekaiService,
+    private readonly animepaheService: AnimepaheService,
+    private readonly zoroService: ZoroService,
+  ) {}
+
+  async updateAllAnimekai() {
+    const entries = await this.prisma.animeKai.findMany({
+      include: { episodes: true },
+    });
+
+    console.log(`Updating ${entries.length} Animekai entries...`);
+
+    for (const entry of entries) {
+      try {
+        await this.animekaiService.saveAnimekai(entry as IAnimeInfo);
+        console.log(`Updated Animekai ${entry.id}`);
+      } catch (e) {
+        console.error(`Failed to update Animekai ${entry.id}:`, e.message);
+      }
+      await sleep(0.1);
+    }
+  }
+
+  async updateAllAnimepahe() {
+    const entries = await this.prisma.animepahe.findMany({
+      include: { episodes: true, externalLinks: true },
+    });
+
+    console.log(`Updating ${entries.length} Animepahe entries...`);
+
+    for (const entry of entries) {
+      try {
+        await this.animepaheService.saveAnimepahe(entry as IAnimeInfo);
+        console.log(`Updated Animepahe ${entry.id}`);
+      } catch (e) {
+        console.error(`Failed to update Animepahe ${entry.id}:`, e.message);
+      }
+      await sleep(0.1);
+    }
+  }
+
+  async updateAllZoro() {
+    const entries = await this.prisma.zoro.findMany({
+      include: { episodes: true },
+    });
+
+    console.log(`Updating ${entries.length} Zoro entries...`);
+
+    for (const entry of entries) {
+      try {
+        await this.zoroService.saveZoro(entry as IAnimeInfo);
+        console.log(`Updated Zoro ${entry.id}`);
+      } catch (e) {
+        console.error(`Failed to update Zoro ${entry.id}:`, e.message);
+      }
+      await sleep(0.1);
+    }
+  }
 
   async fixUpdatesForAnilist() {
     return this.fixUpdates(

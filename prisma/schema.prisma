@@ -9,43 +9,44 @@ datasource db {
 
 // Animepahe.prisma
 model Animepahe {
-  id             String              @id
-  alId           Int?                @unique 
-  title          String?
-  image          String?
-  cover          String?
-  updatedAt DateTime @default(now()) @updatedAt
-  hasSub         Boolean?
-  externalLinks  AnimepaheExternalLink[] @relation("AnimepaheExLink")
-  status         String?
-  type           String?
-  releaseDate    String?
-  totalEpisodes  Int?
-  episodePages   Int?
+  id            String                  @id
+  alId          Int?                    @unique
+  title         String?
+  image         String?
+  cover         String?
+  updatedAt     Int?
+  hasSub        Boolean?
+  externalLinks AnimepaheExternalLink[] @relation("AnimepaheExLink")
+  status        String?
+  type          String?
+  releaseDate   String?
+  totalEpisodes Int?
+  episodePages  Int?
 
-  episodes       AnimepaheEpisode[] @relation("AnimepaheEpisode")
+  episodes AnimepaheEpisode[] @relation("AnimepaheEpisode")
 
   anilist Anilist? @relation(fields: [alId], references: [id])
 }
 
 model AnimepaheEpisode {
-  id          String   @id
-  number      Int?
-  title       String?
-  image       String?
-  duration    String?
-  url         String?
+  id       String  @id
+  number   Int?
+  title    String?
+  image    String?
+  duration String?
+  url      String?
 
   animepahe Animepahe[] @relation("AnimepaheEpisode")
 }
 
 model AnimepaheExternalLink {
-  id          String   @id
-  url         String
-  sourceName  String
+  id         String @id
+  url        String
+  sourceName String
 
   animepahe Animepahe[] @relation("AnimepaheExLink")
 }
+
 
 // Shikimori.prisma
 model Shikimori {
@@ -350,8 +351,9 @@ model Anilist {
   favourites      Int?
   genres          String[]
   synonyms        String[]
+  latest          Int?          @default(0)
 
-  trailer           AnilistTrailer?           @relation("AnilistTrailer")
+  trailer AnilistTrailer? @relation("AnilistTrailer")
 
   // Normalized collections
   recommendations    BasicIdAni[]                @relation("AnilistRecs")
@@ -365,11 +367,11 @@ model Anilist {
   scoreDistribution  AnilistScoreDistribution[]  @relation("AnilistScoreDistribution")
   statusDistribution AnilistStatusDistribution[] @relation("AnilistStatusDistribution")
 
-  animepahe          Animepahe?
-  animekai           AnimeKai?
-  zoro               Zoro?
-  shikimori          Shikimori?
-  kitsu              Kitsu?
+  animepahe Animepahe?
+  animekai  AnimeKai?
+  zoro      Zoro?
+  shikimori Shikimori?
+  kitsu     Kitsu?
 }
 
 model AnilistTitle {
@@ -421,9 +423,9 @@ model AnilistCharacterEdge {
   characterId Int
   role        String?
 
-  anilist   Anilist          @relation("AnilistCharacters", fields: [anilistId], references: [id])
-  character AnilistCharacter @relation(fields: [characterId], references: [id])
-  voiceActors VoiceActor[]   @relation("CharacterVoiceActors")
+  anilist     Anilist          @relation("AnilistCharacters", fields: [anilistId], references: [id])
+  character   AnilistCharacter @relation(fields: [characterId], references: [id])
+  voiceActors VoiceActor[]     @relation("CharacterVoiceActors")
 }
 
 model AnilistCharacter {
@@ -432,7 +434,7 @@ model AnilistCharacter {
   name  AnilistCharacterName?  @relation("CharacterName")
   image AnilistCharacterImage? @relation("CharacterImage")
 
-  animeLinks  AnilistCharacterEdge[]
+  animeLinks AnilistCharacterEdge[]
 }
 
 model VoiceActor {
@@ -484,14 +486,14 @@ model AnilistVoiceImage {
 }
 
 model AnilistTag {
-  id               Int      @id
-  anilistId        Int
-  name             String?  @unique
-  description      String?
-  category         String?
-  rank             Int?
-  isSpoiler        Boolean?
-  isAdult          Boolean?
+  id          Int      @id
+  anilistId   Int
+  name        String?  @unique
+  description String?
+  category    String?
+  rank        Int?
+  isSpoiler   Boolean?
+  isAdult     Boolean?
 
   anilist Anilist @relation("AnilistTags", fields: [anilistId], references: [id])
 }
@@ -541,10 +543,10 @@ model AnilistStudio {
 }
 
 model AnilistAiringSchedule {
-  id              Int  @id
-  anilistId       Int
-  episode         Int?
-  airingAt        Int?
+  id        Int  @id
+  anilistId Int
+  episode   Int?
+  airingAt  Int?
 
   anilist Anilist @relation("AnilistAiringSchedules", fields: [anilistId], references: [id])
 }
@@ -595,6 +597,7 @@ model BasicIdAni {
   Anilist Anilist[] @relation("AnilistRecs")
 }
 
+
 // Indexer.prisma
 model AnilistIndexerState {
   id               String   @id @default("anime")
@@ -604,38 +607,39 @@ model AnilistIndexerState {
 
 // Animekai.prisma
 model AnimeKai {
-  id             String        @id
-  anilistId      Int?          @unique
-  title          String?
-  japaneseTitle  String?
-  image          String?
-  description    String?
-  type           String?
-  url            String?
-  updatedAt DateTime @default(now()) @updatedAt
-  subOrDub       String?
-  hasSub         Boolean?
-  hasDub         Boolean?
-  status         String?
-  season         String?
-  totalEpisodes  Int?
+  id            String   @id
+  anilistId     Int?     @unique
+  title         String?
+  japaneseTitle String?
+  image         String?
+  description   String?
+  type          String?
+  url           String?
+  updatedAt     Int?
+  subOrDub      String?
+  hasSub        Boolean?
+  hasDub        Boolean?
+  status        String?
+  season        String?
+  totalEpisodes Int?
 
-  episodes       AnimekaiEpisode[] @relation("AnimekaiEpisode")
+  episodes AnimekaiEpisode[] @relation("AnimekaiEpisode")
 
   anilist Anilist? @relation(fields: [anilistId], references: [id])
 }
 
 model AnimekaiEpisode {
-  id         String   @id
-  number     Int?
-  title      String?
-  isFiller   Boolean?
-  isSubbed   Boolean?
-  isDubbed   Boolean?
-  url        String?
+  id       String   @id
+  number   Int?
+  title    String?
+  isFiller Boolean?
+  isSubbed Boolean?
+  isDubbed Boolean?
+  url      String?
 
   animekai AnimeKai[] @relation("AnimekaiEpisode")
 }
+
 
 // Kitsu.prisma
 model Kitsu {
@@ -867,15 +871,15 @@ model KitsuAnimeStaff {
 // Zoro.prisma
 model Zoro {
   id            String        @id
-  title         String?   
-  malID         Int? 
+  title         String?
+  malID         Int?
   alID          Int?          @unique
   japaneseTitle String?
   image         String?
   description   String?
   type          String?
   url           String?
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt     Int?
   subOrDub      String?
   hasSub        Boolean?
   hasDub        Boolean?
@@ -888,7 +892,7 @@ model Zoro {
 }
 
 model EpisodeZoro {
-  id       String  @id
+  id       String   @id
   number   Int?
   title    String?
   isFiller Boolean?

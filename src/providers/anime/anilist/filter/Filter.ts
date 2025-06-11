@@ -74,6 +74,8 @@ export enum MediaSort {
   STATUS_DESC = 'status_desc',
   UPDATED_AT = 'updated_at',
   UPDATED_AT_DESC = 'updated_at_desc',
+  LATEST = 'latest',
+  LATEST_DESC = 'latest_desc',
 }
 
 export enum Language {

@@ -53,7 +53,7 @@ enum UpdateInterval {
   HOUR_6 = 6 * ONE_HOUR_MS,
   HOUR_9 = 9 * ONE_HOUR_MS,
   HOUR_12 = 12 * ONE_HOUR_MS,
-  DAY_1 = 24 * ONE_HOUR_MS,
+  DAY_1 = 1 * 24 * ONE_HOUR_MS,
   DAY_2 = 2 * 24 * ONE_HOUR_MS,
   DAY_3 = 3 * 24 * ONE_HOUR_MS,
   DAY_5 = 5 * 24 * ONE_HOUR_MS,
@@ -121,7 +121,7 @@ export class UpdateService {
         type: UpdateType.TVDB,
       },
       {
-        update: (id: any) => this.kitsuService.updateKitsu(id),
+        update: (id: any) => this.kitsuService.updateKitsu(String(id)),
         type: UpdateType.KITSU,
       },
     ];

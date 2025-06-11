@@ -29,8 +29,9 @@ model Anilist {
   favourites      Int?
   genres          String[]
   synonyms        String[]
+  latest          Int?          @default(0)
 
-  trailer           AnilistTrailer?           @relation("AnilistTrailer")
+  trailer AnilistTrailer? @relation("AnilistTrailer")
 
   // Normalized collections
   recommendations    BasicIdAni[]                @relation("AnilistRecs")
@@ -44,11 +45,11 @@ model Anilist {
   scoreDistribution  AnilistScoreDistribution[]  @relation("AnilistScoreDistribution")
   statusDistribution AnilistStatusDistribution[] @relation("AnilistStatusDistribution")
 
-  animepahe          Animepahe?
-  animekai           AnimeKai?
-  zoro               Zoro?
-  shikimori          Shikimori?
-  kitsu              Kitsu?
+  animepahe Animepahe?
+  animekai  AnimeKai?
+  zoro      Zoro?
+  shikimori Shikimori?
+  kitsu     Kitsu?
 }
 
 model AnilistTitle {
@@ -100,9 +101,9 @@ model AnilistCharacterEdge {
   characterId Int
   role        String?
 
-  anilist   Anilist          @relation("AnilistCharacters", fields: [anilistId], references: [id])
-  character AnilistCharacter @relation(fields: [characterId], references: [id])
-  voiceActors VoiceActor[]   @relation("CharacterVoiceActors")
+  anilist     Anilist          @relation("AnilistCharacters", fields: [anilistId], references: [id])
+  character   AnilistCharacter @relation(fields: [characterId], references: [id])
+  voiceActors VoiceActor[]     @relation("CharacterVoiceActors")
 }
 
 model AnilistCharacter {
@@ -111,7 +112,7 @@ model AnilistCharacter {
   name  AnilistCharacterName?  @relation("CharacterName")
   image AnilistCharacterImage? @relation("CharacterImage")
 
-  animeLinks  AnilistCharacterEdge[]
+  animeLinks AnilistCharacterEdge[]
 }
 
 model VoiceActor {
@@ -163,14 +164,14 @@ model AnilistVoiceImage {
 }
 
 model AnilistTag {
-  id               Int      @id
-  anilistId        Int
-  name             String?  @unique
-  description      String?
-  category         String?
-  rank             Int?
-  isSpoiler        Boolean?
-  isAdult          Boolean?
+  id          Int      @id
+  anilistId   Int
+  name        String?  @unique
+  description String?
+  category    String?
+  rank        Int?
+  isSpoiler   Boolean?
+  isAdult     Boolean?
 
   anilist Anilist @relation("AnilistTags", fields: [anilistId], references: [id])
 }
@@ -220,10 +221,10 @@ model AnilistStudio {
 }
 
 model AnilistAiringSchedule {
-  id              Int  @id
-  anilistId       Int
-  episode         Int?
-  airingAt        Int?
+  id        Int  @id
+  anilistId Int
+  episode   Int?
+  airingAt  Int?
 
   anilist Anilist @relation("AnilistAiringSchedules", fields: [anilistId], references: [id])
 }

@@ -1,38 +1,38 @@
 model Animepahe {
-  id             String              @id
-  alId           Int?                @unique 
-  title          String?
-  image          String?
-  cover          String?
-  updatedAt DateTime @default(now()) @updatedAt
-  hasSub         Boolean?
-  externalLinks  AnimepaheExternalLink[] @relation("AnimepaheExLink")
-  status         String?
-  type           String?
-  releaseDate    String?
-  totalEpisodes  Int?
-  episodePages   Int?
+  id            String                  @id
+  alId          Int?                    @unique
+  title         String?
+  image         String?
+  cover         String?
+  updatedAt     Int?
+  hasSub        Boolean?
+  externalLinks AnimepaheExternalLink[] @relation("AnimepaheExLink")
+  status        String?
+  type          String?
+  releaseDate   String?
+  totalEpisodes Int?
+  episodePages  Int?
 
-  episodes       AnimepaheEpisode[] @relation("AnimepaheEpisode")
+  episodes AnimepaheEpisode[] @relation("AnimepaheEpisode")
 
   anilist Anilist? @relation(fields: [alId], references: [id])
 }
 
 model AnimepaheEpisode {
-  id          String   @id
-  number      Int?
-  title       String?
-  image       String?
-  duration    String?
-  url         String?
+  id       String  @id
+  number   Int?
+  title    String?
+  image    String?
+  duration String?
+  url      String?
 
   animepahe Animepahe[] @relation("AnimepaheEpisode")
 }
 
 model AnimepaheExternalLink {
-  id          String   @id
-  url         String
-  sourceName  String
+  id         String @id
+  url        String
+  sourceName String
 
   animepahe Animepahe[] @relation("AnimepaheExLink")
 }
