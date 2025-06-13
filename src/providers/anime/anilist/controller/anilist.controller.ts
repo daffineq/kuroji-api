@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -105,6 +106,11 @@ export class AnilistController {
   @Get('filter')
   async filterAnilist(@Query() filter: FilterDto) {
     return this.search.getAnilists(filter);
+  }
+
+  @Post('filter/batch')
+  async getBatch(@Body() filters: Record<string, any>): Promise<any> {
+    return this.search.getAnilistsBatched(filters);
   }
 
   @Get('search/:q')

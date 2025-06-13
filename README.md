@@ -686,6 +686,142 @@ GET https://api.example.com/api/anime/filter?format=TV&season=FALL&year=2023&gen
 </details>
 
 <details>
+<summary><b>Batch Filter Anime</b> - <code>POST /api/anime/filter/batch</code></summary>
+
+Execute multiple anime filters in a single request.
+
+**Example:**
+
+```bash
+POST https://api.example.com/api/anime/filter/batch
+Content-Type: application/json
+
+{
+    "popular": {
+        "sort": "score_desc"
+    },
+    "trending": {
+        "status": "RELEASING",
+        "sort": "trending_desc"
+    }
+}
+```
+
+**Parameters:**
+
+Each key in the request body should contain a `FilterDto` object with the same parameters as the single filter endpoint:
+
+```typescript
+// Request Body Structure
+{
+  [key: string]: FilterDto; // Each key maps to a FilterDto object
+}
+
+// FilterDto
+{
+  // Pagination
+  page?: number;            // Page number for results
+  perPage?: number;         // Number of results per page
+
+  // Basic filters
+  id?: number;              // Filter by Anilist ID
+  idIn?: number[];          // Filter by multiple Anilist IDs
+  idNot?: number;           // Exclude specific Anilist ID
+  idNotIn?: number[];       // Exclude multiple Anilist IDs
+
+  // Search and query
+  query?: string;           // Text search query
+
+  // MAL-specific filters
+  idMal?: number;           // Filter by MyAnimeList ID
+  idMalIn?: number[];       // Filter by multiple MAL IDs
+  idMalNot?: number;        // Exclude specific MAL ID
+  idMalNotIn?: number[];    // Exclude multiple MAL IDs
+
+  // Type filter
+  type?: "ANIME" | "MANGA"; // Media type
+
+  // Format filters
+  format?: "TV" | "TV_SHORT" | "MOVIE" | "SPECIAL" | "OVA" | "ONA" | "MUSIC" | "MANGA" | "NOVEL" | "ONE_SHOT";
+  formatIn?: string[];      // Include multiple formats
+  formatNot?: string;       // Exclude specific format
+  formatNotIn?: string[];   // Exclude multiple formats
+
+  // Status filters
+  status?: "FINISHED" | "RELEASING" | "NOT_YET_RELEASED" | "CANCELLED" | "HIATUS";
+  statusIn?: string[];      // Include multiple statuses
+  statusNot?: string;       // Exclude specific status
+  statusNotIn?: string[];   // Exclude multiple statuses
+
+  // Season filters
+  season?: "WINTER" | "SPRING" | "SUMMER" | "FALL";
+
+  // Source material filters
+  sourceIn?: ("ORIGINAL" | "MANGA" | "LIGHT_NOVEL" | "VISUAL_NOVEL" |
+              "VIDEO_GAME" | "OTHER" | "NOVEL" | "DOUJINSHI" | "ANIME")[];
+
+  // Language in which anime available
+  language?: "sub" | "dub" | "both" | "all" | "raw";
+
+  // Content filters
+  isAdult?: boolean;        // Filter adult content
+  isLicensed?: boolean;     // Filter licensed content
+  countryOfOrigin?: string; // Filter by country code
+  nsfw?: boolean;           // Filter NSFW content
+  ageRating?: ("g" | "pg" | "pg_13" | "r" | "r_plus" | "rx")[];  // Filter by age rating
+
+  // Date filters
+  startDateGreater?: string; // After this date (YYYY-MM-DD)
+  startDateLesser?: string;  // Before this date (YYYY-MM-DD)
+  startDateLike?: string;    // Similar to this date
+  endDateGreater?: string;   // After this date (YYYY-MM-DD)
+  endDateLesser?: string;    // Before this date (YYYY-MM-DD)
+  endDateLike?: string;      // Similar to this date
+
+  // Airing filters
+  airingAtGreater?: number;  // After this timestamp (Unix timestamp)
+  airingAtLesser?: number;   // Before this timestamp (Unix timestamp)
+
+  // Number filters
+  episodesGreater?: number; // More than this many episodes
+  episodesLesser?: number;  // Less than this many episodes
+  durationGreater?: number; // Longer than this (minutes)
+  durationLesser?: number;  // Shorter than this (minutes)
+
+  // Popularity/score filters
+  popularityGreater?: number; // Higher popularity than this
+  popularityLesser?: number;  // Lower popularity than this
+  popularityNot?: number;     // Not this popularity value
+  scoreGreater?: number;      // Higher score than this
+  scoreLesser?: number;       // Lower score than this
+  scoreNot?: number;          // Not this score value
+
+  // People filters
+  characterIn?: string[];     // Include anime with these characters
+  voiceActorIn?: string[];    // Include anime with these voice actors
+  studioIn?: string[];        // Include anime by these studios
+
+  // Tag/genre filters
+  genreIn?: string[];         // Include these genres
+  genreNotIn?: string[];      // Exclude these genres
+  tagIn?: string[];           // Include these tags
+  tagNotIn?: string[];        // Exclude these tags
+  tagCategoryIn?: string[];   // Include these tag categories
+  tagCategoryNotIn?: string[]; // Exclude these tag categories
+
+  // Sort options
+  sort?: string[];           // Sort options
+                             // Available options: id, id_desc, title_romaji, title_romaji_desc,
+                             // title_english, title_english_desc, title_native, title_native_desc,
+                             // type, type_desc, format, format_desc, start_date, start_date_desc,
+                             // end_date, end_date_desc, score, score_desc, popularity, popularity_desc,
+                             // trending, trending_desc, episodes, episodes_desc, duration, duration_desc,
+                             // status, status_desc, updated_at, updated_at_desc
+}
+```
+</details>
+
+<details>
 <summary><b>Search Anime</b> - <code>GET /api/anime/search/:q</code></summary>
 
 Search for anime by query string.

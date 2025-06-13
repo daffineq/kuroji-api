@@ -5,6 +5,8 @@ import { AnilistAddService } from './anilist.add.service';
 import { ApiResponse } from '../../../../../shared/ApiResponse';
 import { BasicAnilist, SearcnResponse } from '../../types/types';
 import { convertAnilistToBasic } from '../../utils/anilist-helper';
+import { plainToClass } from 'class-transformer';
+import { validate } from 'class-validator';
 
 @Injectable()
 export class AnilistSearchService {
@@ -24,6 +26,26 @@ export class AnilistSearchService {
     return { pageInfo: response.pageInfo, data: basicAnilist } as ApiResponse<
       BasicAnilist[]
     >;
+  }
+
+  async getAnilistsBatched(filters: Record<string, any>): Promise<any> {
+    const results = await Promise.all(
+      Object.entries(filters).map(async ([key, filterData]) => {
+        const filter = plainToClass(FilterDto, filterData);
+
+        const errors = await validate(filter);
+        if (errors.length > 0) {
+          throw new Error(
+            `Validation failed for ${key}: ${JSON.stringify(errors)}`,
+          );
+        }
+
+        const data = await this.getAnilists(filter);
+        return [key, data];
+      }),
+    );
+
+    return Object.fromEntries(results);
   }
 
   async searchAnilist(q: string): Promise<SearcnResponse<BasicAnilist[]>> {
