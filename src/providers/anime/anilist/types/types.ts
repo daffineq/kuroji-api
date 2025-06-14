@@ -154,6 +154,7 @@ export interface BasicAnilist {
   duration?: number;
 
   countryOfOrigin?: string;
+  source?: string;
   popularity?: number;
   favourites?: number;
 

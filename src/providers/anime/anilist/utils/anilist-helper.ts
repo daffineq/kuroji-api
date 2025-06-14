@@ -334,6 +334,7 @@ export function convertAnilistToBasic(
       0,
     duration: anilist.duration ?? undefined,
     countryOfOrigin: anilist.countryOfOrigin ?? undefined,
+    source: anilist.source ?? undefined,
     popularity: anilist.popularity ?? undefined,
     favourites: anilist.favourites ?? undefined,
     score: anilist.score ?? undefined,
