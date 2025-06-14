@@ -8,7 +8,6 @@ import { ShikimoriService } from '../../../shikimori/service/shikimori.service';
 import { TmdbService } from '../../../tmdb/service/tmdb.service';
 import { AnilistSearchService } from './anilist.search.service';
 import { getPageInfo } from '../../../../../utils/utils';
-import { AnilistService } from '../anilist.service';
 import {
   BasicAnilist,
   AnilistWithRelations,
@@ -138,7 +137,23 @@ export class AnilistAddService {
     filter.idMalIn = [...(filter.idMalIn ?? []), ...franchiseIds];
     const franchises = await this.search.getAnilists(filter);
 
-    const firstFranchise = franchises.data?.[0];
+    const firstFranchise = franchises.data.reduce(
+      (best, item) => {
+        const popularity = item.popularity ?? 0;
+        const favourites = item.favourites ?? 0;
+        const score = item.score ?? 0;
+
+        const combinedScore = popularity + favourites + score * 10;
+
+        const bestPopularity = best ? (best.popularity ?? 0) : 0;
+        const bestFavourites = best ? (best.favourites ?? 0) : 0;
+        const bestScore = best ? (best.score ?? 0) : 0;
+        const bestCombined = bestPopularity + bestFavourites + bestScore * 10;
+
+        return combinedScore > bestCombined ? item : best;
+      },
+      null as BasicAnilist | null,
+    );
 
     if (!firstFranchise) {
       return {
