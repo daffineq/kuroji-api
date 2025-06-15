@@ -1,4 +1,5 @@
 import { PageInfo } from '../shared/ApiResponse';
+import * as crypto from 'crypto';
 
 export function getPageInfo(
   total: number,
@@ -32,32 +33,17 @@ export function firstUpperList(arr: string[]): string[] {
   return arr.map(firstUpper);
 }
 
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  retries = 3,
-): Promise<T> {
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      return await fn();
-    } catch (err: any) {
-      const status = err?.response?.status || err?.status;
+export function hashFilters(input: Record<string, any>): string {
+  const sorted = Object.entries(input)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, val]) => {
+      const sortedVal = Object.entries(val)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => `${k}=${Array.isArray(v) ? v.join(',') : v}`)
+        .join(';');
+      return `${key}={${sortedVal}}`;
+    })
+    .join(':');
 
-      if (status === 429) {
-        const retryAfter =
-          parseInt(err?.response?.headers?.['retry-after']) || 20;
-
-        console.warn(
-          `⏳ Rate limited, waiting ${retryAfter}s... [Attempt ${attempt + 1}/${retries}]`,
-        );
-        await sleep(retryAfter);
-      } else {
-        // not a 429, bail out
-        throw err;
-      }
-    }
-  }
-
-  throw new Error(
-    `💥 Failed after ${retries + 1} attempts due to repeated 429s.`,
-  );
+  return crypto.createHash('sha1').update(sorted).digest('hex');
 }

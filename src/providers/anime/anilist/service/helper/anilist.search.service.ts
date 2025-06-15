@@ -3,11 +3,19 @@ import { FilterDto } from '../../filter/FilterDto';
 import { AnilistFilterService } from './anilist.filter.service';
 import { AnilistAddService } from './anilist.add.service';
 import { ApiResponse } from '../../../../../shared/ApiResponse';
-import { BasicAnilist, SearcnResponse } from '../../types/types';
+import {
+  AnilistResponse,
+  BasicAnilist,
+  SearcnResponse,
+} from '../../types/types';
 import { convertAnilistToBasic } from '../../utils/anilist-helper';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
 import { MediaSort } from '../../filter/Filter';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
+import { hashFilters } from '../../../../../utils/utils';
+import Config from '../../../../../configs/config';
 
 @Injectable()
 export class AnilistSearchService {
@@ -15,6 +23,7 @@ export class AnilistSearchService {
     private readonly filter: AnilistFilterService,
     @Inject(forwardRef(() => AnilistAddService))
     private readonly add: AnilistAddService,
+    @InjectRedis() private readonly redis: Redis,
   ) {}
 
   async getAnilists(filter: FilterDto): Promise<ApiResponse<BasicAnilist[]>> {
@@ -29,7 +38,21 @@ export class AnilistSearchService {
     >;
   }
 
-  async getAnilistsBatched(filters: Record<string, any>): Promise<any> {
+  async getAnilistsBatched(
+    filters: Record<string, any>,
+  ): Promise<Record<string, ApiResponse<BasicAnilist[]>>> {
+    const key = `filter:batched:${hashFilters(filters)}`;
+
+    if (Config.REDIS) {
+      const cached = await this.redis.get(key);
+      if (cached) {
+        return JSON.parse(cached) as Record<
+          string,
+          ApiResponse<BasicAnilist[]>
+        >;
+      }
+    }
+
     const results = await Promise.all(
       Object.entries(filters).map(async ([key, filterData]) => {
         const filter = plainToClass(FilterDto, filterData);
@@ -42,11 +65,17 @@ export class AnilistSearchService {
         }
 
         const data = await this.getAnilists(filter);
-        return [key, data];
+        return [key, data] as [string, ApiResponse<BasicAnilist[]>];
       }),
     );
 
-    return Object.fromEntries(results);
+    const obj = Object.fromEntries(results);
+
+    if (Config.REDIS) {
+      await this.redis.set(key, JSON.stringify(obj), 'EX', Config.REDIS_TIME);
+    }
+
+    return obj;
   }
 
   async searchAnilist(
