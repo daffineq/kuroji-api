@@ -64,6 +64,8 @@ export enum MediaSort {
   SCORE_DESC = 'score_desc',
   POPULARITY = 'popularity',
   POPULARITY_DESC = 'popularity_desc',
+  FAVOURITES = 'favourites',
+  FAVOURITES_DESC = 'favourites_desc',
   TRENDING = 'trending',
   TRENDING_DESC = 'trending_desc',
   EPISODES = 'episodes',

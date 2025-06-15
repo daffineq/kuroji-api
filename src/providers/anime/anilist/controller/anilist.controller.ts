@@ -114,8 +114,12 @@ export class AnilistController {
   }
 
   @Get('search/:q')
-  async searchAnilist(@Param('q') q: string) {
-    return this.search.searchAnilist(q);
+  async searchAnilist(
+    @Param('q') q: string,
+    @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
+    @Query('page') page: number = Config.DEFAULT_PAGE,
+  ) {
+    return this.search.searchAnilist(q, page, perPage);
   }
 
   @Get('schedule')

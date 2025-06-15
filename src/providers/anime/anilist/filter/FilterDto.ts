@@ -195,6 +195,10 @@ export class FilterDto {
   @TransformToBoolean()
   isLicensed?: boolean;
 
+  @IsOptional()
+  @IsString()
+  franchise?: string;
+
   // Tags & genres
   @IsOptional()
   @IsArray()

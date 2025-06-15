@@ -14,6 +14,7 @@ import {
   FranchiseResponse,
   Franchise,
 } from '../../types/types';
+import { MediaSort } from '../../filter/Filter';
 
 @Injectable()
 export class AnilistAddService {
@@ -131,13 +132,21 @@ export class AnilistAddService {
     franchiseName: string,
     filter: FilterDto,
   ): Promise<FranchiseResponse<BasicAnilist[]>> {
-    const franchiseBasic = await this.shikimori.getFranchiseIds(franchiseName);
+    const baseFilter = { ...filter, franchise: franchiseName };
+    const franchises = await this.search.getAnilists(baseFilter);
 
-    const franchiseIds = franchiseBasic.map((r) => Number(r.malId));
-    filter.idMalIn = [...(filter.idMalIn ?? []), ...franchiseIds];
-    const franchises = await this.search.getAnilists(filter);
+    const firstPageFilter = {
+      ...baseFilter,
+      page: 1,
+      sort: [
+        MediaSort.POPULARITY_DESC,
+        MediaSort.FAVOURITES_DESC,
+        MediaSort.SCORE_DESC,
+      ],
+    };
+    const franchises1Page = await this.search.getAnilists(firstPageFilter);
 
-    const firstFranchise = franchises.data.reduce(
+    const firstFranchise = franchises1Page.data.reduce(
       (best, item) => {
         const popularity = item.popularity ?? 0;
         const favourites = item.favourites ?? 0;

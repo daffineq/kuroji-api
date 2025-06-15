@@ -39,6 +39,14 @@ export class AnilistFilterService {
       });
     }
 
+    if (filter.franchise) {
+      conditions.push({
+        shikimori: {
+          franchise: filter.franchise,
+        },
+      });
+    }
+
     // ========== Language Filter ==========
     if (filter.language) {
       switch (filter.language) {
