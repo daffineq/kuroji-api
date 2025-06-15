@@ -43,6 +43,22 @@ export enum MediaSource {
   ANIME = 'ANIME',
 }
 
+export enum MediaCountry {
+  JP = 'JP',
+  US = 'US',
+  KR = 'KR',
+  CN = 'CN',
+  TW = 'TW',
+  TH = 'TH',
+  FR = 'FR',
+  CA = 'CA',
+  DE = 'DE',
+  AU = 'AU',
+  GB = 'GB',
+  RU = 'RU',
+  OTHER = 'OTHER',
+}
+
 export enum MediaSort {
   ID = 'id',
   ID_DESC = 'id_desc',

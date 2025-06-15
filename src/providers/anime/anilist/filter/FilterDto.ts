@@ -16,6 +16,7 @@ import {
   MediaSource,
   Language,
   AgeRating,
+  MediaCountry,
 } from './Filter';
 import Config from '../../../../configs/config';
 
@@ -100,7 +101,7 @@ export class FilterDto {
   @Type(() => Number)
   idMalNot?: number;
 
-  // Format / Type / Status
+  // Format / Country / Type / Status
   @IsOptional()
   @IsEnum(MediaFormat)
   @Type(() => String)
@@ -124,6 +125,30 @@ export class FilterDto {
   @IsEnum(MediaFormat, { each: true })
   @Type(() => String)
   formatNotIn?: MediaFormat[];
+
+  @IsOptional()
+  @IsEnum(MediaCountry)
+  @Type(() => String)
+  country?: MediaCountry;
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @IsEnum(MediaCountry, { each: true })
+  @Type(() => String)
+  countryIn?: MediaCountry[];
+
+  @IsOptional()
+  @IsEnum(MediaCountry)
+  @Type(() => String)
+  countryNot?: MediaCountry;
+
+  @IsOptional()
+  @IsArray()
+  @TransformToArray()
+  @IsEnum(MediaCountry, { each: true })
+  @Type(() => String)
+  countryNotIn?: MediaCountry[];
 
   @IsOptional()
   @IsEnum(MediaType)
