@@ -45,18 +45,9 @@ export enum MediaSource {
 
 export enum MediaCountry {
   JP = 'JP',
-  US = 'US',
   KR = 'KR',
   CN = 'CN',
   TW = 'TW',
-  TH = 'TH',
-  FR = 'FR',
-  CA = 'CA',
-  DE = 'DE',
-  AU = 'AU',
-  GB = 'GB',
-  RU = 'RU',
-  OTHER = 'OTHER',
 }
 
 export enum MediaSort {

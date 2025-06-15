@@ -26,7 +26,6 @@ export class AnilistFilterService {
       ['season', filter.season],
       ['isAdult', filter.isAdult],
       ['isLicensed', filter.isLicensed],
-      ['countryOfOrigin', filter.countryOfOrigin],
     ];
     for (const [key, value] of basicFields) {
       if (value !== undefined) conditions.push({ [key as any]: value });

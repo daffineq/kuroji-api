@@ -372,8 +372,4 @@ export class FilterDto {
   @IsOptional()
   @IsString()
   query?: string;
-
-  @IsOptional()
-  @IsString()
-  countryOfOrigin?: string;
 }
