@@ -27,7 +27,7 @@ interface JsonObject {
 }
 type JsonArray = JsonValue[];
 
-function undefinedToNull(obj: unknown): unknown {
+export function undefinedToNull(obj: unknown): unknown {
   if (Array.isArray(obj)) {
     return obj.map((item) => undefinedToNull(item));
   } else if (obj !== null && typeof obj === 'object') {
@@ -41,7 +41,7 @@ function undefinedToNull(obj: unknown): unknown {
   return obj;
 }
 
-function convertDates(obj: unknown): unknown {
+export function convertDates(obj: unknown): unknown {
   if (Array.isArray(obj)) {
     return obj.map((item) => convertDates(item));
   }

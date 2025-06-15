@@ -22,6 +22,7 @@ import { UrlConfig } from '../../../../configs/url.config';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import Config from '../../../../configs/config';
+import { undefinedToNull } from '../../../../shared/interceptor';
 
 @Injectable()
 export class TvdbService extends Client {
@@ -87,7 +88,7 @@ export class TvdbService extends Client {
     if (Config.REDIS) {
       await this.redis.set(
         key,
-        JSON.stringify(artworks),
+        JSON.stringify(undefinedToNull(artworks)),
         'EX',
         Config.REDIS_TIME,
       );

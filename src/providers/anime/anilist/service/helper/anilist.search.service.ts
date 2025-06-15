@@ -16,6 +16,7 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { hashFilters } from '../../../../../utils/utils';
 import Config from '../../../../../configs/config';
+import { undefinedToNull } from '../../../../../shared/interceptor';
 
 @Injectable()
 export class AnilistSearchService {
@@ -72,7 +73,12 @@ export class AnilistSearchService {
     const obj = Object.fromEntries(results);
 
     if (Config.REDIS) {
-      await this.redis.set(key, JSON.stringify(obj), 'EX', Config.REDIS_TIME);
+      await this.redis.set(
+        key,
+        JSON.stringify(undefinedToNull(obj)),
+        'EX',
+        Config.REDIS_TIME,
+      );
     }
 
     return obj;

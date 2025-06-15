@@ -18,6 +18,7 @@ import {
   ProviderInfo,
   SourceType,
 } from '../types/types';
+import { undefinedToNull } from '../../../../shared/interceptor';
 
 @Injectable()
 export class StreamService {
@@ -96,7 +97,7 @@ export class StreamService {
       if (Config.REDIS) {
         await this.redis.set(
           key,
-          JSON.stringify(episodes),
+          JSON.stringify(undefinedToNull(episodes)),
           'EX',
           Config.REDIS_TIME,
         );
@@ -149,7 +150,7 @@ export class StreamService {
     if (Config.REDIS) {
       await this.redis.set(
         key,
-        JSON.stringify(episode),
+        JSON.stringify(undefinedToNull(episode)),
         'EX',
         Config.REDIS_TIME,
       );
@@ -259,7 +260,7 @@ export class StreamService {
       if (Config.REDIS) {
         await this.redis.set(
           key,
-          JSON.stringify(providers),
+          JSON.stringify(undefinedToNull(providers)),
           'EX',
           Config.REDIS_TIME,
         );
