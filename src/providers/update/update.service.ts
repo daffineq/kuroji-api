@@ -526,7 +526,7 @@ export class UpdateService {
     return result;
   }
 
-  @Cron(CronExpression.EVERY_6_HOURS)
+  @Cron(CronExpression.EVERY_HOUR)
   async updateMeta(): Promise<void> {
     await this.update(meta);
   }
