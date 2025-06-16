@@ -368,6 +368,21 @@ export class FilterDto {
   @IsString()
   endDateLike?: string;
 
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  seasonYearGreater?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  seasonYearLesser?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  seasonYear?: number;
+
   // Misc
   @IsOptional()
   @IsString()

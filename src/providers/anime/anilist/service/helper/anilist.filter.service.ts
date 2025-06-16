@@ -26,6 +26,7 @@ export class AnilistFilterService {
       ['season', filter.season],
       ['isAdult', filter.isAdult],
       ['isLicensed', filter.isLicensed],
+      ['seasonYear', filter.seasonYear],
     ];
     for (const [key, value] of basicFields) {
       if (value !== undefined) conditions.push({ [key as any]: value });
@@ -175,6 +176,8 @@ export class AnilistFilterService {
       ['duration', 'lt', filter.durationLesser],
       ['episodes', 'gt', filter.episodesGreater],
       ['episodes', 'lt', filter.episodesLesser],
+      ['seasonYear', 'gt', filter.seasonYearGreater],
+      ['seasonYear', 'lt', filter.seasonYearLesser],
       ['popularity', 'gt', filter.popularityGreater],
       ['popularity', 'lt', filter.popularityLesser],
       ['popularity', 'not', filter.popularityNot],
