@@ -386,7 +386,9 @@ export class AnilistFilterService {
   private getSortOrder(sort?: string[]): NestedSort[] {
     if (!sort?.length) return [];
 
-    const sortFields = sort.map((sortField): NestedSort[] => {
+    const orderByArray: NestedSort[] = [];
+
+    sort.forEach((sortField) => {
       const parts = sortField.split('_');
       let direction: SortDirection = 'asc';
 
@@ -399,32 +401,34 @@ export class AnilistFilterService {
       const field = parts.join('_');
 
       if (field === 'start_date') {
-        return [
-          { startDate: { year: direction } },
-          { startDate: { month: direction } },
-          { startDate: { day: direction } },
-        ];
+        orderByArray.push({ startDate: { year: direction } });
+        orderByArray.push({ startDate: { month: direction } });
+        orderByArray.push({ startDate: { day: direction } });
+        return;
       }
 
       if (field === 'end_date') {
-        return [
-          { endDate: { year: direction } },
-          { endDate: { month: direction } },
-          { endDate: { day: direction } },
-        ];
+        orderByArray.push({ endDate: { year: direction } });
+        return;
       }
 
-      if (field === 'updated_at') return [{ zoro: { updatedAt: direction } }];
+      if (field === 'updated_at') {
+        orderByArray.push({ zoro: { updatedAt: direction } });
+        return;
+      }
 
       if (parts.length > 1) {
         let nested: NestedSort = { [parts.pop()!]: direction };
-        while (parts.length) nested = { [parts.pop()!]: nested };
-        return [nested];
+        while (parts.length) {
+          nested = { [parts.pop()!]: nested };
+        }
+        orderByArray.push(nested);
+        return;
       }
 
-      return [{ [parts[0]]: direction }];
+      orderByArray.push({ [field]: direction });
     });
 
-    return sortFields.flat();
+    return orderByArray;
   }
 }
