@@ -8,3 +8,8 @@ model LastUpdated {
 
   @@unique([entityId, type], name: "unique_update")
 }
+
+model UpdateTemperature {
+  id          Int    @id @default(autoincrement())
+  temperature String
+}

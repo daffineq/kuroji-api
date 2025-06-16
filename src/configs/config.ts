@@ -66,4 +66,6 @@ export default class Config {
     process.env.INDEXER_RUNNING_KEY ?? 'isIndexerRunning';
   public static readonly UPDATE_RUNNING_KEY =
     process.env.UPDATE_RUNNING_KEY ?? 'isUpdateRunning';
+
+  public static readonly SECURITY_PASSWORD = process.env.SECURITY_PASSWORD;
 }

@@ -95,7 +95,7 @@ export class AnilistIndexerService extends Client {
     this.lock.release(Config.INDEXER_RUNNING_KEY);
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_NOON)
+  @Cron(CronExpression.EVERY_DAY_AT_NOON, { timeZone: 'Europe/London' })
   public async updateIndex(): Promise<void> {
     if (!Config.ANILIST_INDEXER_UPDATE_ENABLED) {
       console.log('Scheduled updates are disabled. Skipping update.');

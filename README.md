@@ -1088,7 +1088,9 @@ Start the anime update process.
 PUT https://api.example.com/api/anime/update
 ```
 
-**Parameters:** None
+**Parameters:**
+
+- `key` (query): Your security password (required)
 
 </details>
 
@@ -1103,7 +1105,9 @@ Stop the anime update process.
 PUT https://api.example.com/api/anime/update/stop
 ```
 
-**Parameters:** None
+**Parameters:**
+
+- `key` (query): Your security password (required)
 
 </details>
 
@@ -1120,6 +1124,7 @@ POST https://api.example.com/api/anime/index?delay=10&range=25
 
 **Parameters:**
 
+- `key` (query): Your security password (required)
 - `delay` (query): Delay between requests in seconds (default: 10)
 - `range` (query): Range of request delay (default: 25)
 </details>
@@ -1135,7 +1140,9 @@ Stop the anime indexing process.
 POST https://api.example.com/api/anime/index/stop
 ```
 
-**Parameters:** None
+**Parameters:**
+
+- `key` (query): Your security password (required)
 
 </details>
 </details>

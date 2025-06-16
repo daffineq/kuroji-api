@@ -45,6 +45,15 @@ export enum Temperature {
 const ONE_HOUR_MS = 60 * 60 * 1000;
 const SLEEP_BETWEEN_UPDATES = 25;
 
+const PRIORITY_LIMITS = {
+  [Temperature.AIRING_NOW]: 200, // Check more frequently
+  [Temperature.AIRING_TODAY]: 150,
+  [Temperature.HOT]: 100,
+  [Temperature.WARM]: 50,
+  [Temperature.COLD]: 25, // Check less frequently
+  [Temperature.UNKNOWN]: 10,
+};
+
 enum UpdateInterval {
   MINUTE_5 = 5 * 60 * 1000,
   MINUTE_10 = 10 * 60 * 1000,
@@ -139,7 +148,7 @@ export class UpdateService {
     temperature: Temperature,
     type: UpdateType,
   ): number {
-    const variation = 0.2; // 20% variation
+    const variation = 0.2;
 
     switch (temperature) {
       case Temperature.AIRING_NOW:
@@ -161,6 +170,118 @@ export class UpdateService {
           ? this.getRandomInterval(UpdateInterval.DAY_28, variation)
           : this.getRandomInterval(UpdateInterval.DAY_14, variation);
     }
+  }
+
+  private async getStoredTemperature(
+    lastUpdated: LastUpdated,
+  ): Promise<Temperature> {
+    const temperature = await this.prisma.updateTemperature.findFirst({
+      where: { id: lastUpdated.id },
+    });
+
+    if (temperature != null) {
+      return Temperature[temperature.temperature as keyof typeof Temperature];
+    }
+
+    return Temperature.COLD;
+  }
+
+  private async getHighPriorityUpdates(
+    type: UpdateType,
+    maxItems: number = 500,
+  ): Promise<LastUpdated[]> {
+    const now = new Date();
+
+    // Priority 1: AIRING_NOW items (updated more than 15 minutes ago)
+    const airingNow = await this.prisma.lastUpdated.findMany({
+      where: {
+        type,
+        updatedAt: {
+          lt: new Date(now.getTime() - UpdateInterval.MINUTE_15),
+        },
+      },
+      orderBy: { updatedAt: 'asc' },
+      take: Math.min(PRIORITY_LIMITS[Temperature.AIRING_NOW], maxItems),
+    });
+
+    let remaining = maxItems - airingNow.length;
+    if (remaining <= 0) return airingNow;
+
+    // Priority 2: AIRING_TODAY items (updated more than 1 hour ago)
+    const airingToday = await this.prisma.lastUpdated.findMany({
+      where: {
+        type,
+        updatedAt: {
+          lt: new Date(now.getTime() - UpdateInterval.HOUR_1),
+          gte: new Date(now.getTime() - UpdateInterval.MINUTE_15),
+        },
+      },
+      orderBy: { updatedAt: 'asc' },
+      take: Math.min(PRIORITY_LIMITS[Temperature.AIRING_TODAY], remaining),
+    });
+
+    remaining -= airingToday.length;
+    if (remaining <= 0) return [...airingNow, ...airingToday];
+
+    // Priority 3: HOT items based on interval
+    const hotInterval = meta.includes(type)
+      ? UpdateInterval.DAY_1
+      : UpdateInterval.HOUR_12;
+    const hotItems = await this.prisma.lastUpdated.findMany({
+      where: {
+        type,
+        updatedAt: {
+          lt: new Date(now.getTime() - hotInterval),
+        },
+      },
+      orderBy: { updatedAt: 'asc' },
+      take: Math.min(PRIORITY_LIMITS[Temperature.HOT], remaining),
+    });
+
+    remaining -= hotItems.length;
+    if (remaining <= 0) return [...airingNow, ...airingToday, ...hotItems];
+
+    // Priority 4: WARM items
+    const warmInterval = meta.includes(type)
+      ? UpdateInterval.DAY_7
+      : UpdateInterval.DAY_3;
+    const warmItems = await this.prisma.lastUpdated.findMany({
+      where: {
+        type,
+        updatedAt: {
+          lt: new Date(now.getTime() - warmInterval),
+        },
+      },
+      orderBy: { updatedAt: 'asc' },
+      take: Math.min(PRIORITY_LIMITS[Temperature.WARM], remaining),
+    });
+
+    remaining -= warmItems.length;
+    if (remaining <= 0)
+      return [...airingNow, ...airingToday, ...hotItems, ...warmItems];
+
+    // Priority 5: COLD items (least priority)
+    const coldInterval = meta.includes(type)
+      ? UpdateInterval.DAY_28
+      : UpdateInterval.DAY_14;
+    const coldItems = await this.prisma.lastUpdated.findMany({
+      where: {
+        type,
+        updatedAt: {
+          lt: new Date(now.getTime() - coldInterval),
+        },
+      },
+      orderBy: { updatedAt: 'asc' },
+      take: Math.min(PRIORITY_LIMITS[Temperature.COLD], remaining),
+    });
+
+    return [
+      ...airingNow,
+      ...airingToday,
+      ...hotItems,
+      ...warmItems,
+      ...coldItems,
+    ];
   }
 
   private async _getAnilistData(lastUpdated: LastUpdated, type: UpdateType) {
@@ -186,37 +307,28 @@ export class UpdateService {
 
     const now = new Date();
 
-    // Check for immediate airing episodes
     if (anilistData.nextAiringEpisode) {
       const airingTime = new Date(
         (anilistData?.nextAiringEpisode?.airingAt || 0) * 1000,
       );
       const timeDiff = Math.abs(airingTime.getTime() - now.getTime());
 
-      // If airing within the next 2 hours
       if (timeDiff <= ONE_HOUR_MS * 2 && !meta.includes(type)) {
         return Temperature.AIRING_NOW;
       }
 
-      // If airing today
       if (airingTime.toDateString() === now.toDateString()) {
         return Temperature.AIRING_TODAY;
       }
     }
 
     const status = anilistData.status as MediaStatus;
-
-    // Calculate anime's current relevance score
     const relevanceScore = this._calculateRelevanceScore(anilistData, now);
 
     switch (status) {
       case MediaStatus.RELEASING:
-        // // For releasing shows, consider popularity and trending metrics
-        // if (relevanceScore >= 6) return Temperature.HOT
         return Temperature.HOT;
-
       case MediaStatus.NOT_YET_RELEASED:
-        // For upcoming shows, check proximity to release date
         if (anilistData.startDate) {
           const startDate = new Date(
             anilistData.startDate.year!,
@@ -230,20 +342,14 @@ export class UpdateService {
           if (daysUntilStart <= 30) return Temperature.WARM;
         }
         return Temperature.COLD;
-
       case MediaStatus.FINISHED:
-        // For finished shows, consider recent popularity and classic status
         if (relevanceScore >= 7) return Temperature.HOT;
         if (relevanceScore >= 5) return Temperature.WARM;
         return Temperature.COLD;
-
       case MediaStatus.CANCELLED:
         return Temperature.COLD;
-
       case MediaStatus.HIATUS:
-        // For shows on hiatus, check if they're still popular
         return relevanceScore >= 6 ? Temperature.WARM : Temperature.COLD;
-
       default:
         return Temperature.UNKNOWN;
     }
@@ -255,7 +361,6 @@ export class UpdateService {
   ): number {
     let score = 0;
 
-    // Popularity and trending factors (0-3 points)
     if (anilist.popularity) {
       if (anilist.popularity > 100000) score += 3;
       else if (anilist.popularity > 50000) score += 2;
@@ -268,7 +373,6 @@ export class UpdateService {
       else if (anilist.trending > 100) score += 1;
     }
 
-    // Recent activity (0-2 points)
     if (anilist.updatedAt) {
       const daysSinceUpdate =
         (now.getTime() - anilist.updatedAt * 1000) / (24 * 60 * 60 * 1000);
@@ -276,7 +380,6 @@ export class UpdateService {
       else if (daysSinceUpdate < 7) score += 1;
     }
 
-    // Rankings consideration (0-2 points)
     const topRanking = anilist.rankings?.find(
       (r) => (r.allTime && r.rank) || 0 <= 100,
     );
@@ -285,11 +388,9 @@ export class UpdateService {
       else score += 1;
     }
 
-    // Score and favorites (0-2 points)
     if (anilist.averageScore && anilist.averageScore > 80) score += 1;
     if (anilist.favourites && anilist.favourites > 10000) score += 1;
 
-    // Season relevance (0-1 point)
     if (anilist.season && anilist.seasonYear) {
       const currentYear = now.getFullYear();
       const currentSeason = this._getCurrentSeason(now);
@@ -386,8 +487,59 @@ export class UpdateService {
     } else if (type === UpdateType.TVDB) {
       return this._getTvdbTemperature(lastUpdated);
     } else {
-      // For ANILIST, SHIKIMORI, ANIMEKAI, ANIMEPAHE, ANIWATCH, KITSU
       return this._getAnilistBasedTemperature(lastUpdated, type);
+    }
+  }
+
+  async calculateAndStoreTemperatures(
+    type: UpdateType,
+    batchSize: number = 1000,
+  ): Promise<void> {
+    console.log(`Pre-calculating temperatures for ${type}...`);
+
+    let offset = 0;
+    let processed = 0;
+
+    while (true) {
+      const items = await this.prisma.lastUpdated.findMany({
+        where: { type },
+        skip: offset,
+        take: batchSize,
+        orderBy: { updatedAt: 'asc' },
+      });
+
+      if (items.length === 0) break;
+
+      const updates = await Promise.all(
+        items.map(async (item) => {
+          const temp = await this._calculateTemperature(item, type);
+          return {
+            id: item.id,
+            temperature: Temperature[temp],
+          };
+        }),
+      );
+
+      for (const update of updates) {
+        await this.prisma.updateTemperature.upsert({
+          where: { id: update.id },
+          create: {
+            id: update.id,
+            temperature: update.temperature,
+          },
+          update: {
+            temperature: update.temperature,
+          },
+        });
+      }
+
+      processed += items.length;
+      offset += batchSize;
+
+      console.log(
+        `Processed ${processed} temperature calculations for ${type}`,
+      );
+      await sleep(0.1, false);
     }
   }
 
@@ -409,73 +561,58 @@ export class UpdateService {
     }
 
     try {
-      console.log('Starting update cycle...');
+      console.log('Starting SMART priority-based update cycle...');
 
       for (const provider of this.providers) {
-        try {
-          if (types.includes(provider.type)) {
-            const lastUpdates = await this.prisma.lastUpdated.findMany({
-              where: { type: provider.type },
-              orderBy: { updatedAt: 'desc' },
-            });
+        if (!types.includes(provider.type)) continue;
 
-            if (!lastUpdates.length) {
-              console.log(`No items to update for provider: ${provider.type}`);
+        try {
+          const itemsToUpdate = await this.getHighPriorityUpdates(
+            provider.type,
+            500,
+          );
+
+          if (itemsToUpdate.length === 0) {
+            console.log(
+              `No high-priority items to update for ${provider.type}`,
+            );
+            continue;
+          }
+
+          console.log(
+            `Processing ${itemsToUpdate.length} HIGH-PRIORITY items for ${provider.type}`,
+          );
+
+          for (const item of itemsToUpdate) {
+            try {
+              if (!this.lock.isLocked(Config.UPDATE_RUNNING_KEY)) {
+                console.log('Update stopped');
+                return;
+              }
+
+              const temp = await this.getStoredTemperature(item);
+              console.log(
+                `Updating ${provider.type} ID:${item.entityId} (Temp: ${Temperature[temp]}) - ${itemsToUpdate.length - itemsToUpdate.indexOf(item)} left`,
+              );
+
+              await provider.update(item.entityId);
+              await sleep(SLEEP_BETWEEN_UPDATES, false);
+            } catch (itemError) {
+              console.error(
+                `Error updating ${provider.type} ID:${item.entityId}:`,
+                itemError,
+              );
               continue;
             }
-
-            console.log(
-              `Processing ${lastUpdates.length} items for provider: ${provider.type}`,
-            );
-
-            for (const lastUpdated of lastUpdates) {
-              try {
-                if (!this.lock.isLocked(Config.UPDATE_RUNNING_KEY)) {
-                  console.log('Updating stopped');
-                  return;
-                }
-
-                const now = new Date();
-                const lastTime = lastUpdated.updatedAt
-                  ? lastUpdated.updatedAt.getTime()
-                  : lastUpdated.createdAt.getTime();
-                const type = lastUpdated.type as UpdateType;
-
-                const temperature = await this._calculateTemperature(
-                  lastUpdated,
-                  type,
-                );
-                const updateInterval = UpdateService.getUpdateInterval(
-                  temperature,
-                  type,
-                );
-
-                const shouldUpdate = lastTime + updateInterval <= now.getTime();
-
-                if (shouldUpdate) {
-                  console.log(
-                    `Updating ${provider.type} ID:${lastUpdated.entityId} (Temp: ${Temperature[temperature]}, Interval: ${updateInterval / ONE_HOUR_MS}h), Items Left: ${lastUpdates.length - lastUpdates.indexOf(lastUpdated) - 1}`,
-                  );
-                  await provider.update(lastUpdated.entityId);
-                  await sleep(SLEEP_BETWEEN_UPDATES, false);
-                } else {
-                  await sleep(0.1, false);
-                }
-              } catch (itemError) {
-                console.error(
-                  `Error processing item ${lastUpdated.entityId} for ${provider.type}:`,
-                  itemError,
-                );
-                continue;
-              }
-            }
           }
+
+          console.log(`Finished ${provider.type} high-priority updates`);
         } catch (e: any) {
           console.error(`Error in provider ${provider.type}:`, e.message);
         }
       }
 
-      console.log('Update cycle finished.');
+      console.log('SMART update cycle finished.');
     } finally {
       this.lock.release(Config.UPDATE_RUNNING_KEY);
     }
@@ -485,48 +622,12 @@ export class UpdateService {
     this.lock.release(Config.UPDATE_RUNNING_KEY);
   }
 
-  async getLastUpdates(
-    entityId?: string,
-    externalId?: number,
-    type: UpdateType = UpdateType.ANILIST,
-    page: number = 1,
-    perPage: number = 20,
-  ): Promise<LastUpdateResponse[]> {
-    let where: any = {};
-
-    if (entityId) {
-      where = { entityId };
-    } else {
-      where = { type };
-      if (externalId) where.externalId = externalId;
-    }
-
-    const skip = (page - 1) * perPage;
-    const take = perPage;
-
-    const data = await this.prisma.lastUpdated.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take,
-    });
-
-    const result = await Promise.all(
-      data.map(async (item) => {
-        const temperature = await this._calculateTemperature(
-          item,
-          item.type as UpdateType,
-        );
-        return {
-          ...item,
-          temperature: Temperature[temperature],
-        };
-      }),
-    );
-    return result;
+  @Cron(CronExpression.EVERY_30_MINUTES) // Check high-priority stuff frequently
+  async updateHighPriority(): Promise<void> {
+    await this.update(streaming); // Streaming sources need frequent updates
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_HOUR) // Meta sources less frequently
   async updateMeta(): Promise<void> {
     await this.update(meta);
   }
@@ -536,8 +637,13 @@ export class UpdateService {
     await this.update([UpdateType.TMDB]);
   }
 
-  @Cron(CronExpression.EVERY_30_MINUTES)
-  async updateStreaming(): Promise<void> {
-    await this.update(streaming);
+  // Daily temperature calculation
+  @Cron(CronExpression.EVERY_DAY_AT_3PM, { timeZone: 'Europe/London' })
+  async recalculateTemperatures(): Promise<void> {
+    console.log('Starting daily temperature recalculation...');
+    for (const type of Object.values(UpdateType)) {
+      await this.calculateAndStoreTemperatures(type as UpdateType);
+    }
+    console.log('Temperature recalculation completed.');
   }
 }

@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { AnilistService } from '../service/anilist.service';
 import { AnilistIndexerService } from '../service/anilist-indexer/anilist-indexer.service';
@@ -24,6 +25,7 @@ import { Provider } from '../../stream/types/types';
 import Config from '../../../../configs/config';
 import { AnilistRandomService } from '../service/helper/anilist.random.service';
 import { RandomDto } from '../types/types';
+import { SecretKeyGuard } from '../../../../shared/secret-key.guard';
 
 @Controller('anime')
 export class AnilistController {
@@ -153,34 +155,13 @@ export class AnilistController {
     return this.add.getAllTags(page, perPage);
   }
 
-  @Get('updates')
-  async getLastUpdates(
-    @Query('entityId') entityId?: string,
-    @Query('externalId') externalId?: string,
-    @Query('type') type: string = UpdateType.ANILIST,
-    @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
-    @Query('page') page: number = Config.DEFAULT_PAGE,
-  ): Promise<LastUpdateResponse[]> {
-    const parsedExternalId = externalId ? parseInt(externalId) : undefined;
-    const updateType =
-      UpdateType[type.toUpperCase() as keyof typeof UpdateType] ||
-      UpdateType.ANILIST;
-
-    return this.update.getLastUpdates(
-      entityId,
-      parsedExternalId,
-      updateType,
-      page,
-      perPage,
-    );
-  }
-
   @Put('info/:id/update')
   async updateAnilist(@Param('id', ParseIntPipe) id: number) {
     return this.service.update(id);
   }
 
   @Put('update')
+  @UseGuards(SecretKeyGuard)
   updateDb() {
     this.update.update().catch((err) => console.error('Update failed:', err)); // just in case it blows up
 
@@ -189,7 +170,20 @@ export class AnilistController {
     };
   }
 
+  @Put('update/recalculate')
+  @UseGuards(SecretKeyGuard)
+  recalculateDb() {
+    this.update
+      .recalculateTemperatures()
+      .catch((err) => console.error('Recalculation failed:', err)); // just in case it blows up
+
+    return {
+      status: 'Recalculation started',
+    };
+  }
+
   @Put('update/stop')
+  @UseGuards(SecretKeyGuard)
   stopUpdate() {
     this.update.stop();
     return {
@@ -198,6 +192,7 @@ export class AnilistController {
   }
 
   @Post('index')
+  @UseGuards(SecretKeyGuard)
   index(
     @Query('delay') delay: number = 10,
     @Query('range') range: number = 25,
@@ -212,6 +207,7 @@ export class AnilistController {
   }
 
   @Post('index/stop')
+  @UseGuards(SecretKeyGuard)
   stopIndex() {
     this.indexer.stop();
     return {
