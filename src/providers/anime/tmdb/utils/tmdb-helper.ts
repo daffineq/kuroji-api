@@ -183,14 +183,34 @@ export class TmdbHelper {
   }
 }
 
+const ALLOWED_COUNTRIES = ['JP', 'KR', 'CN'];
+const ALLOWED_LANGUAGES = ['ja', 'ko', 'zh'];
+
+const isProbablyAnime = (tmdb: BasicTmdb): boolean => {
+  const countryMatch =
+    tmdb.origin_country?.some((c) => ALLOWED_COUNTRIES.includes(c)) ?? false;
+
+  const languageMatch = ALLOWED_LANGUAGES.includes(tmdb.original_language);
+
+  return countryMatch || languageMatch;
+};
+
+function tmdbToBasic(tmdb: TmdbWithRelations): BasicTmdb {
+  return {
+    id: tmdb.id,
+    original_name: tmdb.original_name ?? '',
+    media_type: tmdb.media_type ?? '',
+    name: tmdb.name ?? '',
+    first_air_date: tmdb.first_air_date ?? '',
+    original_language: tmdb.original_language ?? '',
+    origin_country: tmdb.origin_country,
+  };
+}
+
 export function findBestMatchFromCandidates(
   anilist: AnilistWithRelations,
   candidates: TmdbWithRelations[],
 ): TmdbWithRelations | null {
-  const anilistStartDateString = getDateStringFromAnilist(
-    (anilist.startDate as DateDetails) || {},
-  );
-
   const searchAnime: ExpectAnime = {
     title: {
       romaji: (anilist.title as { romaji: string }).romaji,
@@ -201,10 +221,8 @@ export function findBestMatchFromCandidates(
     episodes: anilist.episodes ?? undefined,
   };
 
-  const mediaTypeFiltered = candidates.filter(
-    (tmdb) =>
-      tmdb.media_type?.toLowerCase() === anilist.format?.toLowerCase() &&
-      tmdb.first_air_date === anilistStartDateString,
+  const mediaTypeFiltered = candidates.filter((tmdb) =>
+    isProbablyAnime(tmdbToBasic(tmdb)),
   );
 
   const bestMatch = findBestMatch(searchAnime, mediaTypeFiltered);
@@ -221,10 +239,6 @@ export function findBestMatchFromSearch(
 ): BasicTmdb | null {
   if (!results || !Array.isArray(results)) return null;
 
-  const anilistStartDateString = getDateStringFromAnilist(
-    (anilist.startDate as DateDetails) || {},
-  );
-
   const searchAnime: ExpectAnime = {
     title: {
       romaji: (anilist.title as { romaji: string }).romaji,
@@ -235,11 +249,7 @@ export function findBestMatchFromSearch(
     episodes: anilist.episodes ?? undefined,
   };
 
-  const resultsFiltered = results.filter(
-    (tmdb) =>
-      tmdb.media_type?.toLowerCase() === anilist.format?.toLowerCase() &&
-      tmdb.first_air_date === anilistStartDateString,
-  );
+  const resultsFiltered = results.filter((tmdb) => isProbablyAnime(tmdb));
 
   const bestMatch = findBestMatch(
     searchAnime,

@@ -15,6 +15,8 @@ export interface BasicTmdb {
   media_type: string;
   name: string;
   first_air_date: string;
+  original_language: string;
+  origin_country: string[];
 }
 
 export interface TmdbResponse {

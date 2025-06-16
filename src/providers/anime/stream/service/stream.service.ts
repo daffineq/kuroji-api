@@ -17,6 +17,7 @@ import {
   Provider,
   ProviderInfo,
   SourceType,
+  TmdbImage,
 } from '../types/types';
 import { undefinedToNull } from '../../../../shared/interceptor';
 
@@ -79,11 +80,7 @@ export class StreamService {
 
         return {
           title: tmdbEpisode?.name || zoroTitle,
-          image: {
-            w300: `${TMDB.getImageUrl('w300')}${tmdbEpisode?.still_path}`,
-            w500: `${TMDB.getImageUrl('w500')}${tmdbEpisode?.still_path}`,
-            original: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${tmdbEpisode?.still_path}`,
-          },
+          image: this.getImage(tmdbEpisode?.still_path),
           number,
           overview: tmdbEpisode?.overview ?? '',
           date: tmdbEpisode?.air_date || formattedDate || '',
@@ -128,11 +125,7 @@ export class StreamService {
 
     const images: EpisodeImage[] = details?.images?.stills
       ? details.images.stills.map((s) => ({
-          image: {
-            w300: `${TMDB.getImageUrl('w300')}${s.file_path}`,
-            w500: `${TMDB.getImageUrl('w500')}${s.file_path}`,
-            original: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${s.file_path}`,
-          },
+          image: this.getImage(s.file_path),
           aspectRation: s.aspect_ratio ?? 0,
           height: s.height ?? 0,
           width: s.width ?? 0,
@@ -306,5 +299,15 @@ export class StreamService {
     } catch {
       throw new Error('No sources found');
     }
+  }
+
+  getImage(image: string | undefined | null): TmdbImage | null {
+    if (!image) return null;
+
+    return {
+      w300: `${TMDB.getImageUrl('w300')}${image}`,
+      w500: `${TMDB.getImageUrl('w500')}${image}`,
+      original: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${image}`,
+    };
   }
 }

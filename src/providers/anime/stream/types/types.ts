@@ -13,7 +13,7 @@ export enum Provider {
 
 export interface Episode {
   title: string | null;
-  image: TmdbImage;
+  image: TmdbImage | null;
   number: number | null;
   overview: string;
   date: string;
@@ -28,7 +28,7 @@ export interface EpisodeDetails extends Episode {
 }
 
 export interface EpisodeImage {
-  image: TmdbImage;
+  image: TmdbImage | null;
   aspectRation: number;
   height: number;
   width: number;
