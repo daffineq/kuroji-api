@@ -43,10 +43,12 @@ export enum Temperature {
 }
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
-const SLEEP_BETWEEN_UPDATES = 10;
+const SLEEP_BETWEEN_UPDATES = 25;
 
 enum UpdateInterval {
   MINUTE_5 = 5 * 60 * 1000,
+  MINUTE_10 = 10 * 60 * 1000,
+  MINUTE_15 = 15 * 60 * 1000,
   MINUTE_30 = 30 * 60 * 1000,
   HOUR_1 = 1 * ONE_HOUR_MS,
   HOUR_3 = 3 * ONE_HOUR_MS,
@@ -141,9 +143,9 @@ export class UpdateService {
 
     switch (temperature) {
       case Temperature.AIRING_NOW:
-        return this.getRandomInterval(UpdateInterval.MINUTE_5, variation);
+        return this.getRandomInterval(UpdateInterval.MINUTE_15, variation);
       case Temperature.AIRING_TODAY:
-        return this.getRandomInterval(UpdateInterval.MINUTE_30, variation);
+        return this.getRandomInterval(UpdateInterval.HOUR_1, variation);
       case Temperature.HOT:
         return meta.includes(type)
           ? this.getRandomInterval(UpdateInterval.DAY_1, variation)
@@ -197,9 +199,9 @@ export class UpdateService {
       }
 
       // If airing today
-      // if (airingTime.toDateString() === now.toDateString()) {
-      //   return Temperature.AIRING_TODAY
-      // }
+      if (airingTime.toDateString() === now.toDateString()) {
+        return Temperature.AIRING_TODAY;
+      }
     }
 
     const status = anilistData.status as MediaStatus;
