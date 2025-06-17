@@ -18,6 +18,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { KitsuModule } from './providers/anime/kitsu/module/kitsu.module';
 import { ToolsModule } from './providers/tools/module/tools.module';
+import { CustomThrottlerGuard } from './shared/throttler.guard';
 
 @Module({
   imports: [
@@ -52,7 +53,7 @@ import { ToolsModule } from './providers/tools/module/tools.module';
     AppService,
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: CustomThrottlerGuard,
     },
   ],
 })
