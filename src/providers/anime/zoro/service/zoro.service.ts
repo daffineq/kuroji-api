@@ -83,9 +83,9 @@ export class ZoroService extends Client {
     });
   }
 
-  async update(id: string): Promise<ZoroWithRelations> {
+  async update(id: number): Promise<ZoroWithRelations> {
     const existingZoro = await this.prisma.zoro.findFirst({
-      where: { id },
+      where: { alID: id },
       include: {
         episodes: true,
       },
@@ -95,7 +95,7 @@ export class ZoroService extends Client {
       throw new Error('Zoro not found');
     }
 
-    const zoro = await this.fetchZoro(id);
+    const zoro = await this.fetchZoro(existingZoro.id);
 
     if (!zoro) {
       throw new Error('Zoro not fetched');
@@ -104,6 +104,11 @@ export class ZoroService extends Client {
     zoro.alID = existingZoro.alID || 0;
 
     return this.saveZoro(zoro);
+  }
+
+  async updateByAnilist(id: number) {
+    const zoro = await this.getZoroByAnilist(id);
+    return await this.update(zoro.id);
   }
 
   async getSources(episodeId: string, dub: boolean): Promise<ISource> {

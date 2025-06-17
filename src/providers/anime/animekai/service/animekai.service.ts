@@ -67,13 +67,17 @@ export class AnimekaiService extends Client {
     });
   }
 
-  async update(id: string): Promise<AnimekaiWithRelations> {
+  async update(id: number): Promise<AnimekaiWithRelations> {
     const existingAnimekai = await this.prisma.animeKai.findFirst({
-      where: { id },
+      where: { anilistId: id },
       include: { episodes: true },
     });
 
-    const animekai = await this.fetchAnimekai(id);
+    if (!existingAnimekai) {
+      throw new Error('Animekai not found');
+    }
+
+    const animekai = await this.fetchAnimekai(existingAnimekai.id);
 
     if (!animekai) {
       throw new Error('Animekai not found');

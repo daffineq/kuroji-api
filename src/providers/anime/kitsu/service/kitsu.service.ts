@@ -63,7 +63,7 @@ export class KitsuService extends Client {
     })) as KitsuWithRelations;
   }
 
-  async updateKitsu(id: string): Promise<void> {
+  async update(id: string): Promise<void> {
     const existingKitsu = (await this.prisma.kitsu.findUnique({
       where: { id: id },
       include: getKitsuInclude(),
@@ -77,6 +77,11 @@ export class KitsuService extends Client {
     rawKitsu.anilistId = existingKitsu.anilistId ?? 0;
 
     await this.saveKitsu(rawKitsu);
+  }
+
+  async updateByAnilist(id: number) {
+    const kitsu = await this.getKitsuByAnilist(id);
+    return await this.update(kitsu.id);
   }
 
   async findKitsuByAnilist(id: number): Promise<KitsuAnime> {

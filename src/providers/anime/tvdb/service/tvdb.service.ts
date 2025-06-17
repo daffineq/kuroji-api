@@ -172,6 +172,11 @@ export class TvdbService extends Client {
     }
   }
 
+  async updateByAnilist(id: number) {
+    const tvdb = await this.getTvdbByAnilist(id);
+    return await this.update(tvdb.id);
+  }
+
   async updateLanguages(): Promise<TvdbLanguage[]> {
     const langs = await this.fetchLanguages();
     return await this.saveLanguages(langs);

@@ -16,11 +16,7 @@ import { FilterDto } from '../filter/FilterDto';
 import { AnilistAddService } from '../service/helper/anilist.add.service';
 import { AnilistScheduleService } from '../service/helper/anilist.schedule.service';
 import { AnilistSearchService } from '../service/helper/anilist.search.service';
-import {
-  LastUpdateResponse,
-  UpdateService,
-} from '../../../update/update.service';
-import { UpdateType } from '../../../update/UpdateType';
+import { UpdateService } from '../../../update/update.service';
 import { Provider } from '../../stream/types/types';
 import Config from '../../../../configs/config';
 import { AnilistRandomService } from '../service/helper/anilist.random.service';

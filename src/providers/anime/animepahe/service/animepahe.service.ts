@@ -71,13 +71,17 @@ export class AnimepaheService extends Client {
     });
   }
 
-  async update(id: string): Promise<AnimepaheWithRelations> {
+  async update(id: number): Promise<AnimepaheWithRelations> {
     const existingAnimepahe = await this.prisma.animepahe.findFirst({
-      where: { id },
+      where: { alId: id },
       include: { episodes: true },
     });
 
-    const animepahe = await this.fetchAnimepahe(id);
+    if (!existingAnimepahe) {
+      throw new Error('No animepahe');
+    }
+
+    const animepahe = await this.fetchAnimepahe(existingAnimepahe.id);
 
     if (!animepahe) {
       throw new Error('Animepahe not found');
