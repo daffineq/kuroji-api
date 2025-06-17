@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DateDetails, Prisma, TmdbSeasonEpisode } from '@prisma/client';
+import { Prisma, TmdbSeasonEpisode } from '@prisma/client';
 import {
   TmdbWithRelations,
   TmdbSeasonWithRelations,
@@ -8,7 +8,6 @@ import {
 } from '../types/types';
 import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper';
 import { AnilistWithRelations } from '../../anilist/types/types';
-import { getDateStringFromAnilist } from '../../anilist/utils/anilist-helper';
 
 @Injectable()
 export class TmdbHelper {

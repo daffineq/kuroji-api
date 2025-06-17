@@ -183,7 +183,7 @@ export class UpdateService {
       return Temperature[temperature.temperature as keyof typeof Temperature];
     }
 
-    return Temperature.COLD;
+    return Temperature.UNKNOWN;
   }
 
   private async getHighPriorityUpdates(
