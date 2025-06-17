@@ -148,7 +148,7 @@ export class UpdateService {
                 `[${providerName}] Updating with AniList ID ${anime.id}...`,
               );
               await provider.update(anime.id);
-              console.log(`  ✅ [${providerName}] Success`);
+              console.log(`[${providerName}] Success`);
             }
           } catch (providerErr) {
             console.error(
