@@ -591,6 +591,11 @@ export class UpdateService {
               }
 
               const temp = await this.getStoredTemperature(item);
+
+              if (temp === Temperature.UNKNOWN) {
+                continue;
+              }
+
               console.log(
                 `Updating ${provider.type} ID:${item.entityId} (Temp: ${Temperature[temp]}) - ${itemsToUpdate.length - itemsToUpdate.indexOf(item)} left`,
               );
