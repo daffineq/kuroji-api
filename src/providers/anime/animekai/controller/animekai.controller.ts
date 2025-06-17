@@ -27,7 +27,6 @@ export class AnimekaiController {
 
   @Put('info/:id/animekai/update')
   async updateAnimekaiByAnilist(@Param('id', ParseIntPipe) id: number) {
-    const data = await this.getAnimekaiByAnilist(id);
-    return this.service.update(data.id);
+    return this.service.update(id);
   }
 }

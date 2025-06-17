@@ -11,8 +11,7 @@ export class KitsuController {
   }
 
   @Put('info/:id/kitsu/update')
-  async updateAnilist(@Param('id', ParseIntPipe) id: number) {
-    const data = await this.kitsu.getKitsuByAnilist(id);
-    return this.kitsu.updateKitsu(data.id);
+  async updateKitsu(@Param('id', ParseIntPipe) id: number) {
+    return this.kitsu.updateByAnilist(id);
   }
 }

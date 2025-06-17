@@ -106,11 +106,6 @@ export class ZoroService extends Client {
     return this.saveZoro(zoro);
   }
 
-  async updateByAnilist(id: number) {
-    const zoro = await this.getZoroByAnilist(id);
-    return await this.update(zoro.id);
-  }
-
   async getSources(episodeId: string, dub: boolean): Promise<ISource> {
     // return await zoro.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
     const { data, error } = await this.client.get<ISource>(

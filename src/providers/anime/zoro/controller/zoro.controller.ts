@@ -32,7 +32,6 @@ export class ZoroController {
 
   @Put('info/:id/zoro/update')
   async updateZoroByAnilist(@Param('id', ParseIntPipe) id: number) {
-    const data = await this.getZoroByAnilist(id);
-    return this.service.update(data.id);
+    return this.service.update(id);
   }
 }

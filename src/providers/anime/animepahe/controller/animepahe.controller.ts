@@ -17,7 +17,6 @@ export class AnimepaheController {
 
   @Put('info/:id/animepahe/update')
   async updateAnimepaheByAnilist(@Param('id', ParseIntPipe) id: number) {
-    const data = await this.getAnimepaheByAnilist(id);
-    return this.service.update(data.id);
+    return this.service.update(id);
   }
 }

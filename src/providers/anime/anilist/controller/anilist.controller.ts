@@ -166,26 +166,26 @@ export class AnilistController {
     };
   }
 
-  @Put('update/recalculate')
-  @UseGuards(SecretKeyGuard)
-  recalculateDb() {
-    this.update
-      .recalculateTemperatures()
-      .catch((err) => console.error('Recalculation failed:', err)); // just in case it blows up
+  // @Put('update/recalculate')
+  // @UseGuards(SecretKeyGuard)
+  // recalculateDb() {
+  //   this.update
+  //     .recalculateTemperatures()
+  //     .catch((err) => console.error('Recalculation failed:', err)); // just in case it blows up
 
-    return {
-      status: 'Recalculation started',
-    };
-  }
+  //   return {
+  //     status: 'Recalculation started',
+  //   };
+  // }
 
-  @Put('update/stop')
-  @UseGuards(SecretKeyGuard)
-  stopUpdate() {
-    this.update.stop();
-    return {
-      status: 'Update stopped',
-    };
-  }
+  // @Put('update/stop')
+  // @UseGuards(SecretKeyGuard)
+  // stopUpdate() {
+  //   this.update.stop();
+  //   return {
+  //     status: 'Update stopped',
+  //   };
+  // }
 
   @Post('index')
   @UseGuards(SecretKeyGuard)
