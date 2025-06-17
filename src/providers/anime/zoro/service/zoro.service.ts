@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
-import { UpdateType } from '../../../update/UpdateType';
 import { findBestMatch } from '../../../mapper/mapper.helper';
 import {
   ANIME,
@@ -11,7 +10,6 @@ import {
   StreamingServers,
   SubOrSub,
 } from '@consumet/extensions';
-import { getUpdateData } from '../../../update/update.util';
 import { UrlConfig } from '../../../../configs/url.config';
 import { ZoroWithRelations } from '../types/types';
 import { Client } from '../../../model/client';
@@ -62,17 +60,6 @@ export class ZoroService extends Client {
   }
 
   async saveZoro(zoro: IAnimeInfo): Promise<ZoroWithRelations> {
-    await this.prisma.lastUpdated.upsert({
-      where: {
-        unique_update: {
-          entityId: String(zoro.id),
-          type: UpdateType.ANIWATCH,
-        },
-      },
-      create: getUpdateData(String(zoro.id), zoro.alID, UpdateType.ANIWATCH),
-      update: getUpdateData(String(zoro.id), zoro.alID, UpdateType.ANIWATCH),
-    });
-
     return await this.prisma.zoro.upsert({
       where: { id: zoro.id },
       create: getZoroData(zoro),

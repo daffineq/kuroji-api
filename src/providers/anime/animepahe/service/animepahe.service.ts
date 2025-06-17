@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../mapper/mapper.helper';
-import { UpdateType } from '../../../update/UpdateType';
 import {
   ANIME,
   IAnimeInfo,
@@ -9,7 +8,6 @@ import {
   ISearch,
   ISource,
 } from '@consumet/extensions';
-import { getUpdateData } from '../../../update/update.util';
 import { UrlConfig } from '../../../../configs/url.config';
 import { AnimepaheWithRelations } from '../types/types';
 import { Client } from '../../../model/client';
@@ -41,25 +39,6 @@ export class AnimepaheService extends Client {
   }
 
   async saveAnimepahe(animepahe: IAnimeInfo): Promise<AnimepaheWithRelations> {
-    await this.prisma.lastUpdated.upsert({
-      where: {
-        unique_update: {
-          entityId: String(animepahe.id),
-          type: UpdateType.ANIMEPAHE,
-        },
-      },
-      create: getUpdateData(
-        String(animepahe.id),
-        animepahe.alId,
-        UpdateType.ANIMEPAHE,
-      ),
-      update: getUpdateData(
-        String(animepahe.id),
-        animepahe.alId,
-        UpdateType.ANIMEPAHE,
-      ),
-    });
-
     return await this.prisma.animepahe.upsert({
       where: { id: animepahe.id },
       update: getAnimePaheData(animepahe),

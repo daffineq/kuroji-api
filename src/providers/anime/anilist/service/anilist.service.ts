@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
-import { UpdateType } from '../../../update/UpdateType';
 import { AnilistHelper, getAnilistFindUnique } from '../utils/anilist-helper';
 import { AnilistFetchService } from './helper/anilist.fetch.service';
 import { MediaType } from '../filter/Filter';
 import { AnilistUtilService } from './helper/anilist.util.service';
 import { ShikimoriService } from '../../shikimori/service/shikimori.service';
 import { KitsuService } from '../../kitsu/service/kitsu.service';
-import { getUpdateData } from '../../../update/update.util';
 import { AnilistWithRelations, AnilistResponse } from '../types/types';
 
 @Injectable()
@@ -54,17 +52,6 @@ export class AnilistService {
     }
 
     const anilist = data.Page.media[0];
-
-    await this.prisma.lastUpdated.upsert({
-      where: {
-        unique_update: {
-          entityId: String(anilist.id),
-          type: UpdateType.ANILIST,
-        },
-      },
-      create: getUpdateData(String(anilist.id), anilist.id, UpdateType.ANILIST),
-      update: getUpdateData(String(anilist.id), anilist.id, UpdateType.ANILIST),
-    });
 
     await this.prisma.anilist.upsert({
       where: { id: anilist.id },

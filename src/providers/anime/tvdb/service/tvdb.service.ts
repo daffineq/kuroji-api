@@ -9,8 +9,6 @@ import {
   TvdbLanguage,
   TvdbLanguageTranslation,
 } from '@prisma/client';
-import { UpdateType } from '../../../update/UpdateType';
-import { getUpdateData } from '../../../update/update.util';
 import {
   TvdbWithRelations,
   BasicTvdb,
@@ -126,17 +124,6 @@ export class TvdbService extends Client {
   }
 
   async saveTvdb(tvdb: TvdbInput): Promise<TvdbWithRelations> {
-    await this.prisma.lastUpdated.upsert({
-      where: {
-        unique_update: {
-          entityId: String(tvdb.id),
-          type: UpdateType.TVDB,
-        },
-      },
-      create: getUpdateData(String(tvdb.id), tvdb.id ?? 0, UpdateType.TVDB),
-      update: getUpdateData(String(tvdb.id), tvdb.id ?? 0, UpdateType.TVDB),
-    });
-
     return (await this.prisma.tvdb.upsert({
       where: { id: tvdb.id },
       update: this.helper.getTvdbData(tvdb),

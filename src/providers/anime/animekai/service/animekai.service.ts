@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service';
 import { findBestMatch } from '../../../mapper/mapper.helper';
-import { UpdateType } from '../../../update/UpdateType';
 import {
   ANIME,
   IAnimeInfo,
@@ -11,7 +10,6 @@ import {
   StreamingServers,
   SubOrSub,
 } from '@consumet/extensions';
-import { getUpdateData } from '../../../update/update.util';
 import { UrlConfig } from '../../../../configs/url.config';
 import { AnimekaiWithRelations } from '../types/types';
 import { Client } from '../../../model/client';
@@ -40,25 +38,6 @@ export class AnimekaiService extends Client {
   }
 
   async saveAnimekai(animekai: IAnimeInfo): Promise<AnimekaiWithRelations> {
-    await this.prisma.lastUpdated.upsert({
-      where: {
-        unique_update: {
-          entityId: String(animekai.id),
-          type: UpdateType.ANIMEKAI,
-        },
-      },
-      create: getUpdateData(
-        String(animekai.id),
-        animekai.anilistId,
-        UpdateType.ANIMEKAI,
-      ),
-      update: getUpdateData(
-        String(animekai.id),
-        animekai.anilistId,
-        UpdateType.ANIMEKAI,
-      ),
-    });
-
     return await this.prisma.animeKai.upsert({
       where: { id: animekai.id },
       update: getAnimekaiData(animekai),

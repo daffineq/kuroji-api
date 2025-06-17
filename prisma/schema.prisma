@@ -303,24 +303,6 @@ model TmdbSeasonStillImage {
 }
 
 
-// LastUpdated.prisma
-model LastUpdated {
-  id         Int      @id @default(autoincrement())
-  entityId   String
-  externalId Int?
-  type       String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
-
-  @@unique([entityId, type], name: "unique_update")
-}
-
-model UpdateTemperature {
-  id          Int    @id @default(autoincrement())
-  temperature String
-}
-
-
 // Anilist.prisma
 model Anilist {
   id              Int           @id

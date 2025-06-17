@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { BasicIdShik, Shikimori } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service';
-import { UpdateType } from '../../../update/UpdateType';
 import { UrlConfig } from '../../../../configs/url.config';
 import { GraphQL } from '../graphql/shikimori.graphql';
 import {
@@ -9,7 +8,6 @@ import {
   ShikimoriHelper,
   shikimoriToBasicId,
 } from '../utils/shikimori-helper';
-import { getUpdateData } from '../../../update/update.util';
 import { ShikimoriResponse, ShikimoriWithRelations } from '../types/types';
 import { Client } from '../../../model/client';
 
@@ -52,25 +50,6 @@ export class ShikimoriService extends Client {
   async saveShikimori(
     anime: ShikimoriWithRelations,
   ): Promise<ShikimoriWithRelations> {
-    await this.prisma.lastUpdated.upsert({
-      where: {
-        unique_update: {
-          entityId: String(anime.id),
-          type: UpdateType.SHIKIMORI,
-        },
-      },
-      create: getUpdateData(
-        String(anime.id),
-        Number(anime.id),
-        UpdateType.SHIKIMORI,
-      ),
-      update: getUpdateData(
-        String(anime.id),
-        Number(anime.id),
-        UpdateType.SHIKIMORI,
-      ),
-    });
-
     return (await this.prisma.shikimori.upsert({
       where: { id: anime.id },
       update: this.helper.getDataForPrisma(anime),

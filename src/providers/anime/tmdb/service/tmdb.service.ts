@@ -7,7 +7,6 @@ import {
   ExpectAnime,
   deepCleanTitle,
 } from '../../../mapper/mapper.helper';
-import { UpdateType } from '../../../update/UpdateType';
 import { AnilistService } from '../../anilist/service/anilist.service';
 import {
   filterSeasonEpisodes,
@@ -15,7 +14,6 @@ import {
   TmdbHelper,
 } from '../utils/tmdb-helper';
 import { sleep } from '../../../../utils/utils';
-import { getUpdateData } from '../../../update/update.util';
 import {
   TmdbWithRelations,
   TmdbSeasonWithRelations,
@@ -322,17 +320,6 @@ export class TmdbService extends Client {
 
   // Database Operations
   async saveTmdb(tmdb: TmdbWithRelations): Promise<TmdbWithRelations> {
-    await this.prisma.lastUpdated.upsert({
-      where: {
-        unique_update: {
-          entityId: String(tmdb.id),
-          type: UpdateType.TMDB,
-        },
-      },
-      create: getUpdateData(String(tmdb.id), tmdb.id ?? 0, UpdateType.TMDB),
-      update: getUpdateData(String(tmdb.id), tmdb.id ?? 0, UpdateType.TMDB),
-    });
-
     return (await this.prisma.tmdb.upsert({
       where: { id: tmdb.id },
       update: this.helper.getTmdbData(tmdb),

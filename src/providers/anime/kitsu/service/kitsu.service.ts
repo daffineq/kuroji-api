@@ -3,8 +3,6 @@ import { PrismaService } from '../../../../prisma.service';
 import { getKitsuInclude, KitsuHelper } from '../util/kitsu-helper';
 import { KITSU } from '../../../../configs/kitsu.config';
 import { findBestMatch } from '../../../mapper/mapper.helper';
-import { UpdateType } from '../../../update/UpdateType';
-import { getUpdateData } from '../../../update/update.util';
 import { KitsuWithRelations, KitsuAnime } from '../types/types';
 import { Client } from '../../../model/client';
 import { UrlConfig } from '../../../../configs/url.config';
@@ -36,25 +34,6 @@ export class KitsuService extends Client {
   }
 
   async saveKitsu(kitsu: KitsuAnime): Promise<KitsuWithRelations> {
-    await this.prisma.lastUpdated.upsert({
-      where: {
-        unique_update: {
-          entityId: String(kitsu.id),
-          type: UpdateType.KITSU,
-        },
-      },
-      create: getUpdateData(
-        String(kitsu.id),
-        kitsu.anilistId,
-        UpdateType.KITSU,
-      ),
-      update: getUpdateData(
-        String(kitsu.id),
-        kitsu.anilistId,
-        UpdateType.KITSU,
-      ),
-    });
-
     return (await this.prisma.kitsu.upsert({
       where: { id: kitsu.id },
       create: this.helper.getDataForPrisma(kitsu),
