@@ -86,6 +86,17 @@ const streaming = [
   UpdateType.ANIMEKAI,
 ];
 
+const all = [
+  UpdateType.ANILIST,
+  UpdateType.SHIKIMORI,
+  UpdateType.KITSU,
+  UpdateType.TMDB,
+  UpdateType.TVDB,
+  UpdateType.ANIWATCH,
+  UpdateType.ANIMEPAHE,
+  UpdateType.ANIMEKAI,
+];
+
 @Injectable()
 export class UpdateService {
   private readonly providers: IProvider[];
@@ -142,34 +153,6 @@ export class UpdateService {
     const min = base - base * variation;
     const max = base + base * variation;
     return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
-
-  private static getUpdateInterval(
-    temperature: Temperature,
-    type: UpdateType,
-  ): number {
-    const variation = 0.2;
-
-    switch (temperature) {
-      case Temperature.AIRING_NOW:
-        return this.getRandomInterval(UpdateInterval.MINUTE_15, variation);
-      case Temperature.AIRING_TODAY:
-        return this.getRandomInterval(UpdateInterval.HOUR_1, variation);
-      case Temperature.HOT:
-        return meta.includes(type)
-          ? this.getRandomInterval(UpdateInterval.DAY_1, variation)
-          : this.getRandomInterval(UpdateInterval.HOUR_12, variation);
-      case Temperature.WARM:
-        return meta.includes(type)
-          ? this.getRandomInterval(UpdateInterval.DAY_7, variation)
-          : this.getRandomInterval(UpdateInterval.DAY_3, variation);
-      case Temperature.COLD:
-      case Temperature.UNKNOWN:
-      default:
-        return meta.includes(type)
-          ? this.getRandomInterval(UpdateInterval.DAY_28, variation)
-          : this.getRandomInterval(UpdateInterval.DAY_14, variation);
-    }
   }
 
   private async getStoredTemperature(
@@ -627,19 +610,24 @@ export class UpdateService {
     this.lock.release(Config.UPDATE_RUNNING_KEY);
   }
 
-  @Cron(CronExpression.EVERY_30_MINUTES) // Check high-priority stuff frequently
-  async updateHighPriority(): Promise<void> {
-    await this.update(streaming); // Streaming sources need frequent updates
-  }
+  // @Cron(CronExpression.EVERY_30_MINUTES) // Check high-priority stuff frequently
+  // async updateHighPriority(): Promise<void> {
+  //   await this.update(streaming); // Streaming sources need frequent updates
+  // }
 
-  @Cron(CronExpression.EVERY_HOUR) // Meta sources less frequently
-  async updateMeta(): Promise<void> {
-    await this.update(meta);
-  }
+  // @Cron(CronExpression.EVERY_HOUR) // Meta sources less frequently
+  // async updateMeta(): Promise<void> {
+  //   await this.update(meta);
+  // }
 
-  @Cron(CronExpression.EVERY_2_HOURS)
-  async updateTmdb(): Promise<void> {
-    await this.update([UpdateType.TMDB]);
+  // @Cron(CronExpression.EVERY_2_HOURS)
+  // async updateTmdb(): Promise<void> {
+  //   await this.update([UpdateType.TMDB]);
+  // }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async updateAll(): Promise<void> {
+    await this.update(all);
   }
 
   // Daily temperature calculation
