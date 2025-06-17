@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BasicIdAni, AnilistCharacter, AnilistTag } from '@prisma/client';
 import { ApiResponse, PageInfo } from '../../../../../shared/ApiResponse';
-import { TMDB } from '../../../../../configs/tmdb.config';
 import { FilterDto } from '../../filter/FilterDto';
 import { PrismaService } from '../../../../../prisma.service';
 import { ShikimoriService } from '../../../shikimori/service/shikimori.service';
@@ -15,6 +14,7 @@ import {
   Franchise,
 } from '../../types/types';
 import { MediaSort } from '../../filter/Filter';
+import { getImage } from '../../../tmdb/types/types';
 
 @Injectable()
 export class AnilistAddService {
@@ -176,15 +176,17 @@ export class AnilistAddService {
       .getTmdbByAnilist(firstFranchise.id)
       .catch(() => null);
 
-    const franchise: Franchise = {
-      cover: firstFranchise.shikimori?.poster?.originalUrl ?? '',
-      banner: tmdbFirst?.backdrop_path
-        ? TMDB.IMAGE_BASE_ORIGINAL_URL + tmdbFirst.backdrop_path
-        : firstFranchise.bannerImage,
-      title: (tmdbFirst?.name || firstFranchise.title?.romaji) ?? '',
-      franchise: franchiseName,
-      description: tmdbFirst?.overview || firstFranchise.description,
-    };
+    let franchise: Franchise | null = null;
+
+    if (tmdbFirst) {
+      franchise = {
+        cover: getImage(tmdbFirst.poster_path),
+        banner: getImage(tmdbFirst.backdrop_path),
+        title: tmdbFirst.name,
+        franchise: franchiseName,
+        description: tmdbFirst.overview,
+      };
+    }
 
     const response: FranchiseResponse<BasicAnilist[]> = {
       pageInfo: franchises.pageInfo,

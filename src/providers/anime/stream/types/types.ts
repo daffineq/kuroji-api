@@ -1,3 +1,5 @@
+import { TmdbImage } from '../../tmdb/types/types';
+
 export enum SourceType {
   soft_sub = 'soft_sub',
   hard_sub = 'hard_sub',
@@ -42,10 +44,4 @@ export interface ProviderInfo {
   filler: boolean;
   provider: Provider;
   type: SourceType;
-}
-
-export interface TmdbImage {
-  w300: string;
-  w500: string;
-  original: string;
 }

@@ -25,6 +25,7 @@ import { ShikimoriWithRelations } from '../../shikimori/types/types';
 import { ZoroWithRelations } from '../../zoro/types/types';
 import { Type } from 'class-transformer';
 import { IsOptional, IsEnum, IsString, IsInt, Min } from 'class-validator';
+import { TmdbImage } from '../../tmdb/types/types';
 
 export interface AnilistResponse {
   Page: {
@@ -41,7 +42,7 @@ export interface AnilistResponse {
 
 export interface FranchiseResponse<T> {
   pageInfo: PageInfo;
-  franchise: Franchise;
+  franchise: Franchise | null;
   data: T;
 }
 
@@ -72,11 +73,11 @@ export interface AnilistWithRelations extends Anilist {
 }
 
 export interface Franchise {
-  cover?: string;
-  banner?: string;
-  title?: string;
-  franchise?: string;
-  description?: string;
+  cover?: TmdbImage | null;
+  banner?: TmdbImage | null;
+  title?: string | null;
+  franchise?: string | null;
+  description?: string | null;
 }
 
 export type Weekday =

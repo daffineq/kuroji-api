@@ -8,6 +8,7 @@ import {
   TmdbSeasonEpisodeImages,
   TmdbSeasonStillImage,
 } from '@prisma/client';
+import { TMDB } from '../../../../configs/tmdb.config';
 
 export interface BasicTmdb {
   id: number;
@@ -51,4 +52,20 @@ export enum TmdbStatus {
   ReturningSeries = 'Returning Series',
   Ended = 'Ended',
   Canceled = 'Canceled',
+}
+
+export interface TmdbImage {
+  w300: string;
+  w500: string;
+  original: string;
+}
+
+export function getImage(image: string | undefined | null): TmdbImage | null {
+  if (!image) return null;
+
+  return {
+    w300: `${TMDB.getImageUrl('w300')}${image}`,
+    w500: `${TMDB.getImageUrl('w500')}${image}`,
+    original: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${image}`,
+  };
 }
