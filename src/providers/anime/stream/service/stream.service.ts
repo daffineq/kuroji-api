@@ -9,7 +9,6 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import Config from '../../../../configs/config';
 import { ISource } from '@consumet/extensions';
-import { TMDB } from '../../../../configs/tmdb.config';
 import {
   Episode,
   EpisodeDetails,
@@ -19,7 +18,7 @@ import {
   SourceType,
 } from '../types/types';
 import { undefinedToNull } from '../../../../shared/interceptor';
-import { getImage, TmdbImage } from '../../tmdb/types/types';
+import { getImage } from '../../tmdb/types/types';
 
 @Injectable()
 export class StreamService {
@@ -69,21 +68,24 @@ export class StreamService {
           anilist?.airingSchedule?.find((s) => s.episode == number)?.airingAt ||
           0;
 
-        const formattedDate = new Date(airDate * 1000).toLocaleDateString(
-          'en-US',
-          {
-            month: 'short',
-            day: '2-digit',
-            year: 'numeric',
-          },
-        );
+        const formattedDate = tmdbEpisode?.air_date
+          ? new Date(tmdbEpisode.air_date).toLocaleDateString('en-US', {
+              month: 'short',
+              day: '2-digit',
+              year: 'numeric',
+            })
+          : new Date(airDate * 1000).toLocaleDateString('en-US', {
+              month: 'short',
+              day: '2-digit',
+              year: 'numeric',
+            });
 
         return {
           title: tmdbEpisode?.name || zoroTitle,
           image: getImage(tmdbEpisode?.still_path),
           number,
           overview: tmdbEpisode?.overview ?? '',
-          date: tmdbEpisode?.air_date || formattedDate || '',
+          date: formattedDate || '',
           duration: tmdbEpisode?.runtime || anilist?.duration || 0,
           filler,
           sub,
