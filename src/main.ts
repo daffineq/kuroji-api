@@ -6,6 +6,7 @@ import * as express from 'express';
 import { join } from 'path';
 import Config from './configs/config';
 import { Interceptor } from './shared/interceptor';
+import { AllExceptionsFilter } from './shared/exceptions.filter';
 
 config();
 
@@ -19,6 +20,7 @@ Object.defineProperty(BigInt.prototype, 'toJSON', {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalInterceptors(new Interceptor());
+  app.useGlobalFilters(new AllExceptionsFilter());
   app.enableCors({
     origin: Config.CORS,
     credentials: true,
