@@ -156,15 +156,15 @@ export class AnilistController {
     return this.service.update(id);
   }
 
-  @Put('update')
-  @UseGuards(SecretKeyGuard)
-  updateDb() {
-    this.update.update().catch((err) => console.error('Update failed:', err)); // just in case it blows up
+  // @Put('update')
+  // @UseGuards(SecretKeyGuard)
+  // updateDb() {
+  //   this.update.update().catch((err) => console.error('Update failed:', err)); // just in case it blows up
 
-    return {
-      status: 'Update started',
-    };
-  }
+  //   return {
+  //     status: 'Update started',
+  //   };
+  // }
 
   // @Put('update/recalculate')
   // @UseGuards(SecretKeyGuard)
