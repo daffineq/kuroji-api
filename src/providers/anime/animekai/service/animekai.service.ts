@@ -127,6 +127,13 @@ export class AnimekaiService extends Client {
         },
         seasonYear: true,
         episodes: true,
+        shikimori: {
+          select: {
+            english: true,
+            japanese: true,
+            episodesAired: true,
+          },
+        },
       },
     });
 
@@ -146,11 +153,14 @@ export class AnimekaiService extends Client {
     const searchCriteria = {
       title: {
         romaji: anilist.title?.romaji || undefined,
-        english: anilist.title?.english || undefined,
-        native: anilist.title?.native || undefined,
+        english:
+          anilist.shikimori?.english || anilist.title?.english || undefined,
+        native:
+          anilist.shikimori?.japanese || anilist.title?.native || undefined,
       },
       year: anilist.seasonYear ?? undefined,
-      episodes: anilist.episodes ?? undefined,
+      episodes:
+        anilist.shikimori?.episodesAired ?? anilist.episodes ?? undefined,
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DateDetails, TmdbSeason, TmdbSeasonEpisode } from '@prisma/client';
+import { TmdbSeason } from '@prisma/client';
 import { TMDB } from '../../../../configs/tmdb.config';
 import { PrismaService } from '../../../../prisma.service';
 import {
@@ -17,13 +17,11 @@ import { sleep } from '../../../../utils/utils';
 import {
   TmdbWithRelations,
   TmdbSeasonWithRelations,
-  TmdbSeasonEpisodeWithRelations,
   TmdbResponse,
   TmdbSeasonEpisodeImagesWithRelations,
 } from '../types/types';
 import { Client } from '../../../model/client';
 import { UrlConfig } from '../../../../configs/url.config';
-import { getDateStringFromAnilist } from '../../anilist/utils/anilist-helper';
 
 @Injectable()
 export class TmdbService extends Client {
@@ -56,164 +54,6 @@ export class TmdbService extends Client {
 
   async getTmdbByAnilist(id: number): Promise<TmdbWithRelations> {
     return await this.findTmdb(id);
-  }
-
-  async getTmdbSeasonByAnilist(id: number): Promise<TmdbSeasonWithRelations> {
-    const anilist = await this.anilistService.getAnilist(id);
-    const tmdb = await this.findTmdb(id);
-
-    const existTmdbSeason = tmdb.seasons;
-
-    if (!existTmdbSeason || existTmdbSeason.length === 0) {
-      throw new Error(`No seasons found for TMDb ID: ${tmdb.id}`);
-    }
-
-    const anilistStartDateString = getDateStringFromAnilist(
-      (anilist.startDate as DateDetails) || {},
-    );
-
-    const anilistEndDateString = getDateStringFromAnilist(
-      (anilist.endDate as DateDetails) || {},
-    );
-
-    if (!anilistStartDateString) {
-      return Promise.reject(
-        new Error('Missing start date from AniList: ' + anilist.id),
-      );
-    }
-
-    const SEASONS = tmdb.number_of_seasons || 1;
-
-    const trimmedEpisodes: TmdbSeasonEpisode[] = [];
-    let foundStart = false;
-    let foundEnd = false;
-
-    const startSeason =
-      existTmdbSeason.find(
-        (season) =>
-          season.air_date?.toLowerCase() ===
-          anilistStartDateString.toLowerCase(),
-      )?.season_number || 1;
-
-    for (
-      let currentSeason = startSeason;
-      currentSeason <= SEASONS;
-      currentSeason++
-    ) {
-      let tmdbSeason = await this.prisma.tmdbSeason.findFirst({
-        where: { show_id: tmdb.id, season_number: currentSeason },
-        include: { episodes: true },
-      });
-
-      if (!tmdbSeason) {
-        tmdbSeason = await this.fetchTmdbSeason(tmdb.id, currentSeason);
-        tmdbSeason.show_id = tmdb.id;
-
-        await this.saveTmdbSeason(tmdbSeason);
-      }
-
-      const episodes = tmdbSeason.episodes;
-      if (!episodes || episodes.length === 0) continue;
-
-      const today = new Date().toISOString().split('T')[0];
-
-      for (let i = 0; i < episodes.length; i++) {
-        const ep = episodes[i];
-
-        if (!foundStart) {
-          if (ep.air_date !== anilistStartDateString) continue;
-          foundStart = true;
-        }
-
-        if (!ep.air_date || ep.air_date > today) break;
-
-        trimmedEpisodes.push({
-          ...ep,
-          episode_number: trimmedEpisodes.length + 1,
-        });
-
-        if (anilistEndDateString && ep.air_date === anilistEndDateString) {
-          foundEnd = true;
-          break;
-        }
-      }
-
-      if (foundEnd) break;
-    }
-
-    if (trimmedEpisodes.length === 0) {
-      throw new Error(
-        'Could not find any matching episodes between start and end date',
-      );
-    }
-
-    const newSeason: TmdbSeasonWithRelations = {
-      ...existTmdbSeason.find((s) => s.season_number === startSeason)!,
-      episodes: trimmedEpisodes,
-      show_id: tmdb.id,
-    };
-
-    return newSeason;
-  }
-
-  async getEpisodeDetails(
-    epId: number,
-  ): Promise<TmdbSeasonEpisodeWithRelations> {
-    const include = {
-      images: {
-        include: {
-          stills: {
-            omit: {
-              id: true,
-              episodeImagesId: true,
-            },
-          },
-        },
-        omit: {
-          episodeId: true,
-        },
-      },
-    };
-
-    const existingEpisode = (await this.prisma.tmdbSeasonEpisode.findUnique({
-      where: { id: epId },
-      include,
-    })) as TmdbSeasonEpisodeWithRelations;
-
-    if (!existingEpisode) {
-      throw new Error('No episode found');
-    }
-
-    if (existingEpisode.images) {
-      return existingEpisode;
-    }
-
-    const images = await this.fetchEpisodeImages(
-      existingEpisode.show_id,
-      existingEpisode.season_number,
-      existingEpisode.episode_number,
-    );
-    images.episodeId = existingEpisode.id;
-    await this.saveImages(images);
-
-    return (await this.prisma.tmdbSeasonEpisode.findUnique({
-      where: { id: epId },
-      include,
-    })) as TmdbSeasonEpisodeWithRelations;
-  }
-
-  async getEpisodeDetailsByAnilist(
-    id: number,
-    ep: number,
-  ): Promise<TmdbSeasonEpisodeWithRelations> {
-    const season = await this.getTmdbSeasonByAnilist(id);
-    const epId = season.episodes.find((e) => e.episode_number === ep)?.id;
-
-    if (!epId) {
-      throw new Error('Episode id not found');
-    }
-
-    return await this.getEpisodeDetails(epId);
   }
 
   // Data Fetching Methods

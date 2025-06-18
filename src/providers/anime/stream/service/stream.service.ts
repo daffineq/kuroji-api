@@ -3,7 +3,6 @@ import { ZoroService } from '../../zoro/service/zoro.service';
 import { AnimekaiService } from '../../animekai/service/animekai.service';
 import { AnimepaheService } from '../../animepahe/service/animepahe.service';
 import { AnilistService } from '../../anilist/service/anilist.service';
-import { TmdbService } from '../../tmdb/service/tmdb.service';
 import { AnimekaiEpisode, AnimepaheEpisode, EpisodeZoro } from '@prisma/client';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
@@ -19,6 +18,7 @@ import {
 } from '../types/types';
 import { undefinedToNull } from '../../../../shared/interceptor';
 import { getImage } from '../../tmdb/types/types';
+import { TmdbSeasonService } from '../../tmdb/service/tmdb.season.service';
 
 @Injectable()
 export class StreamService {
@@ -27,7 +27,7 @@ export class StreamService {
     private readonly animekai: AnimekaiService,
     private readonly animepahe: AnimepaheService,
     private readonly anilist: AnilistService,
-    private readonly tmdb: TmdbService,
+    private readonly tmdbSeason: TmdbSeasonService,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
@@ -44,7 +44,7 @@ export class StreamService {
 
       const [aniwatch, season, anilist] = await Promise.all([
         this.aniwatch.getZoroByAnilist(id).catch(() => null),
-        this.tmdb.getTmdbSeasonByAnilist(id).catch(() => null),
+        this.tmdbSeason.getTmdbSeasonByAnilist(id).catch(() => null),
         this.anilist.getAnilist(id).catch(() => null),
       ]);
 
@@ -118,7 +118,7 @@ export class StreamService {
       }
     }
 
-    const details = await this.tmdb
+    const details = await this.tmdbSeason
       .getEpisodeDetailsByAnilist(id, ep)
       .catch(() => null);
     const data = (await this.getEpisodes(id)).find(

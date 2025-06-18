@@ -12,7 +12,7 @@ import { ZoroModule } from './providers/anime/zoro/module/zoro.module';
 import { UpdateModule } from './providers/update/update.module';
 import { ConsoleModule } from './console/module/console.module';
 import { Redis } from './shared/redis.module';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import Config from './configs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
