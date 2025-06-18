@@ -5,6 +5,8 @@ import {
   IsEnum,
   IsString,
   IsArray,
+  Max,
+  Min,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import {
@@ -45,11 +47,14 @@ export class FilterDto {
   // Pagination
   @IsOptional()
   @IsNumber()
+  @Max(Config.DEFAULT_MAX_PER_PAGE)
+  @Min(Config.DEFAULT_MIN_PER_PAGE)
   @Type(() => Number)
   perPage: number = Config.DEFAULT_PER_PAGE;
 
   @IsOptional()
   @IsNumber()
+  @Min(Config.DEFAULT_MIN_PAGE)
   @Type(() => Number)
   page: number = Config.DEFAULT_PAGE;
 

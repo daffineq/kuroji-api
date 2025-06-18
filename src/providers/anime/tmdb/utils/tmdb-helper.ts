@@ -13,7 +13,6 @@ import {
 } from '../types/types';
 import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper';
 import { AnilistWithRelations } from '../../anilist/types/types';
-import anilist from '@consumet/extensions/dist/providers/meta/anilist';
 
 @Injectable()
 export class TmdbHelper {

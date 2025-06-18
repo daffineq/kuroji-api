@@ -58,8 +58,22 @@ export default class Config {
     ? parseInt(process.env.DEFAULT_PER_PAGE)
     : 25;
 
+  public static readonly DEFAULT_MAX_PER_PAGE: number = process.env
+    .DEFAULT_MAX_PER_PAGE
+    ? parseInt(process.env.DEFAULT_MAX_PER_PAGE)
+    : 50;
+
+  public static readonly DEFAULT_MIN_PER_PAGE: number = process.env
+    .DEFAULT_MIN_PER_PAGE
+    ? parseInt(process.env.DEFAULT_MIN_PER_PAGE)
+    : 1;
+
   public static readonly DEFAULT_PAGE: number = process.env.DEFAULT_PAGE
     ? parseInt(process.env.DEFAULT_PAGE)
+    : 1;
+
+  public static readonly DEFAULT_MIN_PAGE: number = process.env.DEFAULT_MIN_PAGE
+    ? parseInt(process.env.DEFAULT_MIN_PAGE)
     : 1;
 
   public static readonly INDEXER_RUNNING_KEY =
