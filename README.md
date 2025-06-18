@@ -15,8 +15,6 @@
 
 <p align="center">Kuroji API is a powerful and flexible API for accessing anime information, streaming sources, and related content from various providers.</p>
 
-> **Warning**: I'm lazy as hell. This documentation is probably crusty, outdated, and barely maintained. For anything real, go dig in the source code — that's where the truth lives.
-
 ---
 
 ## 📋 Table of Contents
@@ -66,6 +64,20 @@ $ npx prisma migrate dev
 # Start the server
 $ bun start:dev
 ```
+
+## 🌐 Public Hosted API
+
+We've got a public instance of Kuroji API running at **https://kuroji.1ani.me/** for light usage.
+
+### ⚠️ Rate Limits & Fair Usage
+
+- **Rate Limit**: 3 requests per second
+- **Please don't abuse this service** - it's provided for free to help developers test and experiment
+- For production apps or heavy usage, **please host your own instance** using the installation guide
+
+### 🙏 Respect the Service
+
+This public API is maintained by the community for the community. If you're building something serious or expect high traffic, do everyone a solid and spin up your own deployment. The hosting guides make it pretty straightforward!
 
 <details>
 <summary><h2>🏗️ Hosting on Vercel</h2></summary>
