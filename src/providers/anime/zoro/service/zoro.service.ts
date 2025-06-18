@@ -186,6 +186,7 @@ export class ZoroService extends Client {
 
     const results = searchResult.results.map((result) => ({
       title: result.title,
+      japaneseTitle: result.japaneseTitle as string,
       id: result.id,
       type: result.type,
       episodes: result.sub as number,

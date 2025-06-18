@@ -191,27 +191,7 @@ export function sanitizeTitle(title?: string): string | undefined {
   // We need to sanitize this shit because some anime titles are fucking ass
   if (!title) return undefined;
 
-  let sanitized = title
-    .toLowerCase()
-    .replaceAll('chapters', 'chapter')
-    // Remove specific words related to anime seasons or parts
-    .replace(/\b(season|cour|part|chapter|special)\b/g, '')
-    // Remove specific words related to anime seasons or parts with numbers
-    .replace(
-      /(\d+)(?:th|rd|nd|st)?\s*(?:season|cour|part|chapter|special)\b/gi,
-      ' $1 ',
-    )
-    // Remove non-alphanumeric characters
-    .replace(/[^a-z0-9\s]/g, '')
-    // Replace specific words to ensure consistency
-    .replace(/yuu/g, 'yu')
-    .replace(/ouh/g, 'oh')
-    .replace(/yaa/g, 'ya')
-    // Remove specific words related to anime formats or additional information
-    .replace(
-      /\b(?:uncut|uncensored|dub(?:bed)?|censored|sub(?:bed)?|the final chapters)\b|\([^)]*\)|\bBD\b|\(TV\)/gi,
-      '',
-    );
+  let sanitized = title.toLowerCase();
 
   // Normalize the string to remove accents and other diacritical marks, and then remove diacritical marks
   sanitized = sanitized.normalize('NFD').replace(/\p{M}/gu, '');
@@ -327,6 +307,7 @@ export interface ExpectAnime {
         native?: string;
         userPreferred?: string;
       };
+  japaneseTitle?: string; // ← just add this line
   year?: number;
   type?: string;
   episodes?: number;
@@ -346,8 +327,10 @@ function getAllTitles(
         native?: string | null;
         userPreferred?: string | null;
       },
+  japaneseTitle: string | null = null,
 ): string[] {
   if (!title) return [];
+  if (typeof title === 'string' && japaneseTitle) return [title, japaneseTitle];
   if (typeof title === 'string') return [title];
 
   return [
@@ -388,7 +371,10 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 1. Exact Match with year, episodes, and type
   if (searchYear && searchEpisodes && searchType) {
     for (const candidate of results) {
-      const candidateTitles = getAllTitles(candidate.title);
+      const candidateTitles = getAllTitles(
+        candidate.title,
+        candidate.japaneseTitle,
+      );
 
       if (
         candidate.year === searchYear &&
@@ -415,7 +401,10 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 2. Exact Match with normalized titles, year, episodes, and type
   if (searchYear && searchEpisodes && searchType) {
     for (const candidate of results) {
-      const candidateTitles = getAllTitles(candidate.title);
+      const candidateTitles = getAllTitles(
+        candidate.title,
+        candidate.japaneseTitle,
+      );
       const normalizedCandidateTitles = candidateTitles
         .map(sanitizeTitle)
         .filter((t): t is string => !!t);
@@ -445,7 +434,10 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 3. Exact Match with year and type
   if (searchYear && searchType) {
     for (const candidate of results) {
-      const candidateTitles = getAllTitles(candidate.title);
+      const candidateTitles = getAllTitles(
+        candidate.title,
+        candidate.japaneseTitle,
+      );
 
       if (
         candidate.year === searchYear &&
@@ -470,7 +462,10 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 4. Exact Match with normalized titles, year, and type
   if (searchYear && searchType) {
     for (const candidate of results) {
-      const candidateTitles = getAllTitles(candidate.title);
+      const candidateTitles = getAllTitles(
+        candidate.title,
+        candidate.japaneseTitle,
+      );
       const normalizedCandidateTitles = candidateTitles
         .map(sanitizeTitle)
         .filter((t): t is string => !!t);
@@ -498,7 +493,10 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 5. Exact Match with year and episodes (original logic)
   if (searchYear && searchEpisodes) {
     for (const candidate of results) {
-      const candidateTitles = getAllTitles(candidate.title);
+      const candidateTitles = getAllTitles(
+        candidate.title,
+        candidate.japaneseTitle,
+      );
 
       if (
         candidate.year === searchYear &&
@@ -523,7 +521,11 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 6. Exact Match with normalized titles, year and episodes (original logic)
   if (searchYear && searchEpisodes) {
     for (const candidate of results) {
-      const candidateTitles = getAllTitles(candidate.title);
+      const candidateTitles = getAllTitles(
+        candidate.title,
+        candidate.japaneseTitle,
+      );
+
       const normalizedCandidateTitles = candidateTitles
         .map(sanitizeTitle)
         .filter((t): t is string => !!t);
@@ -551,7 +553,10 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 7. Exact Match with year (original logic)
   if (searchYear) {
     for (const candidate of results) {
-      const candidateTitles = getAllTitles(candidate.title);
+      const candidateTitles = getAllTitles(
+        candidate.title,
+        candidate.japaneseTitle,
+      );
 
       if (candidate.year === searchYear) {
         for (const searchTitle of searchTitles) {
@@ -572,7 +577,11 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 8. Exact Match with normalized titles and year (original logic)
   if (searchYear) {
     for (const candidate of results) {
-      const candidateTitles = getAllTitles(candidate.title);
+      const candidateTitles = getAllTitles(
+        candidate.title,
+        candidate.japaneseTitle,
+      );
+
       const normalizedCandidateTitles = candidateTitles
         .map(sanitizeTitle)
         .filter((t): t is string => !!t);
@@ -596,7 +605,10 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 9. Exact Match with type only
   if (searchType) {
     for (const candidate of results) {
-      const candidateTitles = getAllTitles(candidate.title);
+      const candidateTitles = getAllTitles(
+        candidate.title,
+        candidate.japaneseTitle,
+      );
 
       if (areTypesCompatible(searchType, candidate.type)) {
         for (const searchTitle of searchTitles) {
@@ -617,7 +629,11 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 10. Exact Match with normalized titles and type
   if (searchType) {
     for (const candidate of results) {
-      const candidateTitles = getAllTitles(candidate.title);
+      const candidateTitles = getAllTitles(
+        candidate.title,
+        candidate.japaneseTitle,
+      );
+
       const normalizedCandidateTitles = candidateTitles
         .map(sanitizeTitle)
         .filter((t): t is string => !!t);
@@ -640,7 +656,10 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   // 11. Exact title match (original logic)
   for (const candidate of results) {
-    const candidateTitles = getAllTitles(candidate.title);
+    const candidateTitles = getAllTitles(
+      candidate.title,
+      candidate.japaneseTitle,
+    );
 
     for (const searchTitle of searchTitles) {
       if (candidateTitles.includes(searchTitle)) {
@@ -656,7 +675,11 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   // 12. Exact normalized title match (original logic)
   for (const candidate of results) {
-    const candidateTitles = getAllTitles(candidate.title);
+    const candidateTitles = getAllTitles(
+      candidate.title,
+      candidate.japaneseTitle,
+    );
+
     const normalizedCandidateTitles = candidateTitles
       .map(sanitizeTitle)
       .filter((t): t is string => !!t);
@@ -677,7 +700,11 @@ export const findBestMatch = <T extends ExpectAnime>(
   let bestLooseMatch: MatchResult<T> | null = null;
 
   for (const candidate of results) {
-    const candidateTitles = getAllTitles(candidate.title);
+    const candidateTitles = getAllTitles(
+      candidate.title,
+      candidate.japaneseTitle,
+    );
+
     const normalizedCandidateTitles = candidateTitles
       .map(sanitizeTitle)
       .filter((t): t is string => !!t);
@@ -721,7 +748,11 @@ export const findBestMatch = <T extends ExpectAnime>(
   let bestFuzzyMatch: MatchResult<T> | null = null;
 
   for (const candidate of results) {
-    const candidateTitles = getAllTitles(candidate.title);
+    const candidateTitles = getAllTitles(
+      candidate.title,
+      candidate.japaneseTitle,
+    );
+
     const normalizedCandidateTitles = candidateTitles
       .map(sanitizeTitle)
       .filter((t): t is string => !!t);
@@ -766,7 +797,11 @@ export const findBestMatch = <T extends ExpectAnime>(
   let highestSimilarity = 0;
 
   for (const candidate of results) {
-    const candidateTitles = getAllTitles(candidate.title);
+    const candidateTitles = getAllTitles(
+      candidate.title,
+      candidate.japaneseTitle,
+    );
+
     const normalizedCandidateTitles = candidateTitles
       .map(sanitizeTitle)
       .filter((t): t is string => !!t);
