@@ -13,10 +13,6 @@ export class AnilistFilterService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getAnilistByFilter(filter: FilterDto): Promise<ApiResponse<Anilist[]>> {
-    if (filter.perPage > 50) {
-      throw new Error('Max per page value is 50');
-    }
-
     const conditions: any[] = [];
 
     // ========== Basic Filters ==========

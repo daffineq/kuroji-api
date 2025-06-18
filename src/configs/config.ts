@@ -76,6 +76,11 @@ export default class Config {
     ? parseInt(process.env.DEFAULT_MIN_PAGE)
     : 1;
 
+  public static readonly MAX_FILTER_BATCHES: number = process.env
+    .MAX_FILTER_BATCHES
+    ? parseInt(process.env.MAX_FILTER_BATCHES)
+    : 20;
+
   public static readonly INDEXER_RUNNING_KEY =
     process.env.INDEXER_RUNNING_KEY ?? 'isIndexerRunning';
   public static readonly UPDATE_RUNNING_KEY =

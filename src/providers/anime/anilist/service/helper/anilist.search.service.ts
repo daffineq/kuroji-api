@@ -3,11 +3,7 @@ import { FilterDto } from '../../filter/FilterDto';
 import { AnilistFilterService } from './anilist.filter.service';
 import { AnilistAddService } from './anilist.add.service';
 import { ApiResponse } from '../../../../../shared/ApiResponse';
-import {
-  AnilistResponse,
-  BasicAnilist,
-  SearcnResponse,
-} from '../../types/types';
+import { BasicAnilist, SearcnResponse } from '../../types/types';
 import { convertAnilistToBasic } from '../../utils/anilist-helper';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -54,8 +50,16 @@ export class AnilistSearchService {
       }
     }
 
+    const entries = Object.entries(filters);
+
+    if (entries.length > Config.MAX_FILTER_BATCHES) {
+      throw new Error(
+        `Too many filter batches! Max allowed is ${Config.MAX_FILTER_BATCHES}, but got ${entries.length}`,
+      );
+    }
+
     const results = await Promise.all(
-      Object.entries(filters).map(async ([key, filterData]) => {
+      entries.map(async ([key, filterData]) => {
         const filter = plainToClass(FilterDto, filterData);
 
         const errors = await validate(filter);
