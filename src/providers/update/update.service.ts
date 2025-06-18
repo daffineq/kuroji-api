@@ -21,6 +21,12 @@ interface IProvider {
 
 const SLEEP_BETWEEN_UPDATES = 30;
 
+const streaming = [
+  UpdateType.ANIMEKAI,
+  UpdateType.ANIMEPAHE,
+  UpdateType.ANIWATCH,
+];
+
 @Injectable()
 export class UpdateService {
   private readonly providers: IProvider[];
@@ -157,10 +163,12 @@ export class UpdateService {
             );
           }
 
-          console.log(
-            `Sleeping ${SLEEP_BETWEEN_UPDATES}s before next provider...`,
-          );
-          await sleep(SLEEP_BETWEEN_UPDATES);
+          const sleep_time = streaming.includes(provider.type)
+            ? SLEEP_BETWEEN_UPDATES / 3
+            : SLEEP_BETWEEN_UPDATES;
+
+          console.log(`Sleeping ${sleep_time}s before next provider...`);
+          await sleep(sleep_time);
         }
       }
 

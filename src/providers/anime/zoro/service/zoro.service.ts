@@ -70,7 +70,19 @@ export class ZoroService extends Client {
     });
   }
 
-  async update(id: number): Promise<ZoroWithRelations> {
+  async update(id: number, force: boolean = false): Promise<ZoroWithRelations> {
+    if (force) {
+      const zoro = await this.findZoroByAnilist(id);
+
+      if (!zoro) {
+        throw new Error('Zoro not fetched');
+      }
+
+      zoro.alID = id;
+
+      return this.saveZoro(zoro);
+    }
+
     const existingZoro = await this.prisma.zoro.findFirst({
       where: { alID: id },
       include: {
@@ -88,7 +100,7 @@ export class ZoroService extends Client {
       throw new Error('Zoro not fetched');
     }
 
-    zoro.alID = existingZoro.alID || 0;
+    zoro.alID = id;
 
     return this.saveZoro(zoro);
   }

@@ -50,7 +50,22 @@ export class AnimepaheService extends Client {
     });
   }
 
-  async update(id: number): Promise<AnimepaheWithRelations> {
+  async update(
+    id: number,
+    force: boolean = false,
+  ): Promise<AnimepaheWithRelations> {
+    if (force) {
+      const animepahe = await this.findAnimepahe(id);
+
+      if (!animepahe) {
+        throw new Error('Animepahe not found');
+      }
+
+      animepahe.alId = id;
+
+      return await this.saveAnimepahe(animepahe);
+    }
+
     const existingAnimepahe = await this.prisma.animepahe.findFirst({
       where: { alId: id },
       include: { episodes: true },
@@ -66,7 +81,7 @@ export class AnimepaheService extends Client {
       throw new Error('Animepahe not found');
     }
 
-    animepahe.alId = existingAnimepahe?.alId || 0;
+    animepahe.alId = id;
 
     return await this.saveAnimepahe(animepahe);
   }
