@@ -205,8 +205,6 @@ export class ZoroService extends Client {
         anilist.shikimori?.episodesAired ?? anilist.episodes ?? undefined,
     };
 
-    console.log(JSON.stringify(results));
-
     const bestMatch = findBestMatch(searchCriteria, results);
 
     if (bestMatch) {
