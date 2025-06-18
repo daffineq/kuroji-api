@@ -142,6 +142,7 @@ export class AnimekaiService extends Client {
         },
         seasonYear: true,
         episodes: true,
+        format: true,
         shikimori: {
           select: {
             english: true,
@@ -163,6 +164,7 @@ export class AnimekaiService extends Client {
     const results = searchResult.results.map((result) => ({
       title: result.title,
       id: result.id,
+      type: result.type,
     }));
 
     const searchCriteria = {
@@ -174,6 +176,7 @@ export class AnimekaiService extends Client {
           anilist.shikimori?.japanese || anilist.title?.native || undefined,
       },
       year: anilist.seasonYear ?? undefined,
+      type: anilist.format ?? undefined,
       episodes:
         anilist.shikimori?.episodesAired ?? anilist.episodes ?? undefined,
     };

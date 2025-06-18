@@ -199,44 +199,6 @@ const isProbablyAnime = (tmdb: BasicTmdb): boolean => {
   return countryMatch || languageMatch;
 };
 
-function tmdbToBasic(tmdb: TmdbWithRelations): BasicTmdb {
-  return {
-    id: tmdb.id,
-    original_name: tmdb.original_name ?? '',
-    media_type: tmdb.media_type ?? '',
-    name: tmdb.name ?? '',
-    first_air_date: tmdb.first_air_date ?? '',
-    original_language: tmdb.original_language ?? '',
-    origin_country: tmdb.origin_country,
-  };
-}
-
-export function findBestMatchFromCandidates(
-  anilist: AnilistWithRelations,
-  candidates: TmdbWithRelations[],
-): TmdbWithRelations | null {
-  const searchAnime: ExpectAnime = {
-    title: {
-      romaji: (anilist.title as { romaji: string }).romaji,
-      english: (anilist.title as { english: string }).english,
-      native: (anilist.title as { native: string }).native,
-    },
-    year: anilist.startDate?.year ?? undefined,
-    episodes: anilist.episodes ?? undefined,
-  };
-
-  const mediaTypeFiltered = candidates.filter((tmdb) =>
-    isProbablyAnime(tmdbToBasic(tmdb)),
-  );
-
-  const bestMatch = findBestMatch(searchAnime, mediaTypeFiltered);
-  if (bestMatch) {
-    return bestMatch.result;
-  }
-
-  return null;
-}
-
 export function findBestMatchFromSearch(
   anilist: AnilistWithRelations,
   results: BasicTmdb[] | undefined,

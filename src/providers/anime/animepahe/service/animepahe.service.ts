@@ -146,6 +146,7 @@ export class AnimepaheService extends Client {
         },
         seasonYear: true,
         episodes: true,
+        format: true,
         shikimori: {
           select: {
             english: true,
@@ -167,6 +168,7 @@ export class AnimepaheService extends Client {
     const results = searchResult.results.map((result) => ({
       title: result.title,
       id: result.id,
+      type: result.type,
       year:
         typeof result.releaseDate === 'string'
           ? parseInt(result.releaseDate)
@@ -182,6 +184,7 @@ export class AnimepaheService extends Client {
           anilist.shikimori?.japanese || anilist.title?.native || undefined,
       },
       year: anilist.seasonYear ?? undefined,
+      type: anilist.format ?? undefined,
       episodes:
         anilist.shikimori?.episodesAired ?? anilist.episodes ?? undefined,
     };

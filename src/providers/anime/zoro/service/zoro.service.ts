@@ -165,6 +165,7 @@ export class ZoroService extends Client {
         },
         seasonYear: true,
         episodes: true,
+        format: true,
         shikimori: {
           select: {
             english: true,
@@ -186,6 +187,7 @@ export class ZoroService extends Client {
     const results = searchResult.results.map((result) => ({
       title: result.title,
       id: result.id,
+      type: result.type,
       episodes: result.sub as number,
     }));
 
@@ -198,9 +200,12 @@ export class ZoroService extends Client {
           anilist.shikimori?.japanese || anilist.title?.native || undefined,
       },
       year: anilist.seasonYear ?? undefined,
+      type: anilist.format ?? undefined,
       episodes:
         anilist.shikimori?.episodesAired ?? anilist.episodes ?? undefined,
     };
+
+    console.log(JSON.stringify(results));
 
     const bestMatch = findBestMatch(searchCriteria, results);
 

@@ -272,9 +272,21 @@ export class TmdbService extends Client {
       },
     };
 
-    const bestMatch = findBestMatch(searchAnime, candidates);
+    const bestMatch = findBestMatch(
+      searchAnime,
+      candidates.map((result) => ({
+        id: result.id,
+        title: {
+          ...(result.name && { english: result.name }),
+          ...(result.original_name && { native: result.original_name }),
+        },
+      })),
+    );
+
     if (bestMatch) {
-      return bestMatch.result as TmdbWithRelations;
+      return candidates.find(
+        (c) => c.id === bestMatch.result.id,
+      ) as TmdbWithRelations;
     }
 
     throw new Error('No matching TMDb entry found');

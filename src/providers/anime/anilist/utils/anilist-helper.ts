@@ -326,12 +326,6 @@ export function convertAnilistToBasic(
     season: anilist.season ?? undefined,
     seasonYear: anilist.seasonYear ?? undefined,
     episodes: anilist.episodes ?? undefined,
-    sub:
-      anilist?.zoro?.episodes?.filter((e: EpisodeZoro) => e.isSubbed)?.length ??
-      0,
-    dub:
-      anilist?.zoro?.episodes?.filter((e: EpisodeZoro) => e.isDubbed)?.length ??
-      0,
     duration: anilist.duration ?? undefined,
     countryOfOrigin: anilist.countryOfOrigin ?? undefined,
     source: anilist.source ?? undefined,
@@ -484,11 +478,6 @@ export function getAnilistInclude(): Prisma.AnilistInclude {
     kitsu: {
       include: getKitsuInclude(),
     },
-    zoro: {
-      include: {
-        episodes: true,
-      },
-    },
   };
 
   return include;
@@ -527,10 +516,6 @@ export function reorderAnilistItems(raw: AnilistWithRelations) {
     season: raw.season,
     seasonYear: raw.seasonYear,
     episodes: raw.episodes,
-    sub:
-      raw?.zoro?.episodes?.filter((e: EpisodeZoro) => e.isSubbed)?.length ?? 0,
-    dub:
-      raw?.zoro?.episodes?.filter((e: EpisodeZoro) => e.isDubbed)?.length ?? 0,
     duration: raw.duration,
     countryOfOrigin: raw.countryOfOrigin,
     isLicensed: raw.isLicensed,
