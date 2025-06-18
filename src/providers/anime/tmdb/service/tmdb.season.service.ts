@@ -9,6 +9,7 @@ import {
   TmdbSeasonWithRelations,
 } from '../types/types';
 import { AnilistWithRelations } from '../../anilist/types/types';
+import { MediaFormat } from '@consumet/extensions';
 
 interface EpisodeMatchCandidate {
   episode: TmdbSeasonEpisode;
@@ -34,6 +35,10 @@ export class TmdbSeasonService {
   async getTmdbSeasonByAnilist(id: number): Promise<TmdbSeasonWithRelations> {
     const anilist = await this.anilistService.getAnilist(id);
     const tmdb = await this.tmdb.findTmdb(id);
+
+    if (anilist.format === MediaFormat.MOVIE) {
+      throw new Error('Movies cant have episodes');
+    }
 
     if (!tmdb.seasons || tmdb.seasons.length === 0) {
       throw new Error(`No seasons found for TMDb ID: ${tmdb.id}`);
