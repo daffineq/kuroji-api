@@ -134,25 +134,33 @@ export class TmdbSeasonService {
   ): TmdbSeasonEpisode[] {
     const today = new Date();
 
-    const validEpisodes = episodes.filter((ep) => {
+    // const validEpisodes = episodes.filter((ep) => {
+    //   if (!ep.air_date) return false;
+    //   const airDate = new Date(ep.air_date);
+    //   if (airDate > today) return false;
+    //   return true;
+    // });
+
+    // const regularEpisodes = validEpisodes.filter(
+    //   (ep) => ep.season_number !== 0,
+    // );
+    // const specialEpisodes = validEpisodes.filter(
+    //   (ep) => ep.season_number === 0,
+    // );
+
+    // if (regularEpisodes.length > 0) {
+    //   return [...regularEpisodes, ...specialEpisodes];
+    // }
+
+    // return specialEpisodes;
+
+    return episodes.filter((ep) => {
+      if (ep.season_number === 0) return false;
       if (!ep.air_date) return false;
       const airDate = new Date(ep.air_date);
       if (airDate > today) return false;
       return true;
     });
-
-    const regularEpisodes = validEpisodes.filter(
-      (ep) => ep.season_number !== 0,
-    );
-    const specialEpisodes = validEpisodes.filter(
-      (ep) => ep.season_number === 0,
-    );
-
-    if (regularEpisodes.length > 0) {
-      return [...regularEpisodes, ...specialEpisodes];
-    }
-
-    return specialEpisodes;
   }
 
   private groupEpisodesBySeasons(
@@ -196,18 +204,18 @@ export class TmdbSeasonService {
       confidence: 0,
     };
 
-    console.log(
-      `Trying to match ${getExpectedCount(anilist)} episodes for AniList ID ${anilist.id}`,
-    );
+    // console.log(
+    //   `Trying to match ${getExpectedCount(anilist)} episodes for AniList ID ${anilist.id}`,
+    // );
 
     for (const [index, strategy] of strategies.entries()) {
       try {
         const result = await strategy();
-        console.log(`Strategy ${index + 1} result:`, {
-          episodeCount: result.episodes.length,
-          confidence: result.confidence,
-          primarySeason: result.primarySeason,
-        });
+        // console.log(`Strategy ${index + 1} result:`, {
+        //   episodeCount: result.episodes.length,
+        //   confidence: result.confidence,
+        //   primarySeason: result.primarySeason,
+        // });
 
         if (result.confidence > bestMatch.confidence) {
           bestMatch = result;
