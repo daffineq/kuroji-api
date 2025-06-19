@@ -4,13 +4,9 @@ import { AnilistService } from '../../anilist/service/anilist.service';
 import { TmdbService } from './tmdb.service';
 import { DateDetails, TmdbSeasonEpisode } from '@prisma/client';
 import { getDateStringFromAnilist } from '../../anilist/utils/anilist-helper';
-import {
-  TmdbSeasonEpisodeWithRelations,
-  TmdbSeasonWithRelations,
-} from '../types/types';
+import { TmdbSeasonWithRelations } from '../types/types';
 import { AnilistWithRelations } from '../../anilist/types/types';
 import { MediaFormat } from '@consumet/extensions';
-import { count } from 'rxjs';
 
 interface EpisodeMatchCandidate {
   episode: TmdbSeasonEpisode;
@@ -45,6 +41,21 @@ export class TmdbSeasonService {
 
   async getTmdbSeasonByAnilist(id: number): Promise<TmdbSeasonWithRelations> {
     const anilist = await this.anilistService.getAnilist(id);
+
+    if (
+      !anilist.format ||
+      anilist.format in
+        [
+          MediaFormat.MOVIE,
+          MediaFormat.SPECIAL,
+          MediaFormat.MUSIC,
+          MediaFormat.TV_SPECIAL,
+          MediaFormat.PV,
+        ]
+    ) {
+      throw new Error(`Nuh uh, ${anilist.format} cant have tmdb episodes`);
+    }
+
     const tmdb = await this.tmdb.findTmdb(id);
 
     if (!tmdb.seasons || tmdb.seasons.length === 0) {
