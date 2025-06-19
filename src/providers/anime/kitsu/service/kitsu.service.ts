@@ -16,6 +16,23 @@ export class KitsuService extends Client {
     super(UrlConfig.KITSU);
   }
 
+  async getKitsu(id: string): Promise<KitsuWithRelations> {
+    const existingKitsu = (await this.prisma.kitsu.findFirst({
+      where: {
+        id,
+      },
+      include: getKitsuInclude(),
+    })) as KitsuWithRelations;
+
+    if (existingKitsu) {
+      return existingKitsu;
+    }
+
+    const rawKitsu = await this.fetchKitsu(id);
+
+    return await this.saveKitsu(rawKitsu);
+  }
+
   async getKitsuByAnilist(id: number): Promise<KitsuWithRelations> {
     const existingKitsu = (await this.prisma.kitsu.findFirst({
       where: {
@@ -43,10 +60,7 @@ export class KitsuService extends Client {
   }
 
   async update(id: string): Promise<void> {
-    const existingKitsu = (await this.prisma.kitsu.findUnique({
-      where: { id: id },
-      include: getKitsuInclude(),
-    })) as KitsuWithRelations;
+    const existingKitsu = await this.getKitsu(id);
 
     if (!existingKitsu) {
       throw new Error('Not found');

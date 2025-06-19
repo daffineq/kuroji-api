@@ -203,12 +203,7 @@ export class TmdbService extends Client {
 
   // Update Methods
   async update(id: number): Promise<TmdbWithRelations> {
-    const existingTmdb = (await this.prisma.tmdb.findFirst({
-      where: { id },
-      include: {
-        seasons: true,
-      },
-    })) as TmdbWithRelations;
+    const existingTmdb = await this.getTmdb(id);
     const tmdb = await this.fetchTmdb(id, existingTmdb.media_type ?? 'tv');
     await this.saveTmdb(tmdb);
     await this.updateSeason(id);

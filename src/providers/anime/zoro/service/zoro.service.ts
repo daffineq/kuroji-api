@@ -83,12 +83,7 @@ export class ZoroService extends Client {
       return this.saveZoro(zoro);
     }
 
-    const existingZoro = await this.prisma.zoro.findFirst({
-      where: { alID: id },
-      include: {
-        episodes: true,
-      },
-    });
+    const existingZoro = await this.getZoroByAnilist(id);
 
     if (!existingZoro) {
       throw new Error('Zoro not found');

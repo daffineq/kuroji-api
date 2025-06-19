@@ -62,10 +62,7 @@ export class AnimekaiService extends Client {
       return await this.saveAnimekai(animekai);
     }
 
-    const existingAnimekai = await this.prisma.animeKai.findFirst({
-      where: { anilistId: id },
-      include: { episodes: true },
-    });
+    const existingAnimekai = await this.getAnimekaiByAnilist(id);
 
     if (!existingAnimekai) {
       throw new Error('Animekai not found');

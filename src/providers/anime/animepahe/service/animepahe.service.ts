@@ -66,10 +66,7 @@ export class AnimepaheService extends Client {
       return await this.saveAnimepahe(animepahe);
     }
 
-    const existingAnimepahe = await this.prisma.animepahe.findFirst({
-      where: { alId: id },
-      include: { episodes: true },
-    });
+    const existingAnimepahe = await this.getAnimepaheByAnilist(id);
 
     if (!existingAnimepahe) {
       throw new Error('No animepahe');

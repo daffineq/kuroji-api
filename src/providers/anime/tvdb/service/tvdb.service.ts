@@ -145,10 +145,7 @@ export class TvdbService extends Client {
   }
 
   async update(id: number): Promise<void> {
-    const existing = (await this.prisma.tvdb.findFirst({
-      where: { id },
-      include: getTvdbInclude(),
-    })) as TvdbWithRelations | null;
+    const existing = await this.getTvdb(id);
 
     if (!existing) return;
 
