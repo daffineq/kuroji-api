@@ -55,8 +55,6 @@ export class TmdbSeasonService {
 
     const mainEpisodes = this.filterMainEpisodes(allEpisodes);
 
-    console.log(JSON.stringify(mainEpisodes[mainEpisodes.length - 1]));
-
     const seasonGroups = this.groupEpisodesBySeasons(mainEpisodes);
 
     const matchResult = await this.findBestEpisodeSequence(
@@ -192,18 +190,18 @@ export class TmdbSeasonService {
       confidence: 0,
     };
 
-    console.log(
-      `Trying to match ${anilist.shikimori?.episodesAired ?? anilist.episodes} episodes for AniList ID ${anilist.id}`,
-    );
+    // console.log(
+    //   `Trying to match ${anilist.shikimori?.episodesAired ?? anilist.episodes} episodes for AniList ID ${anilist.id}`,
+    // );
 
     for (const [index, strategy] of strategies.entries()) {
       try {
         const result = await strategy();
-        console.log(`Strategy ${index + 1} result:`, {
-          episodeCount: result.episodes.length,
-          confidence: result.confidence,
-          primarySeason: result.primarySeason,
-        });
+        // console.log(`Strategy ${index + 1} result:`, {
+        //   episodeCount: result.episodes.length,
+        //   confidence: result.confidence,
+        //   primarySeason: result.primarySeason,
+        // });
 
         if (result.confidence > bestMatch.confidence) {
           bestMatch = result;
@@ -441,7 +439,13 @@ export class TmdbSeasonService {
     }));
 
     const primarySeason = this.getMostCommonSeason(episodes);
-    const confidence = Math.min(matchRatio, 0.95);
+
+    const episodesPenalty =
+      episodes.length === (anilist.shikimori?.episodesAired ?? anilist.episodes)
+        ? 1
+        : 0.8;
+
+    const confidence = Math.min(matchRatio, 0.95 * episodesPenalty);
 
     return { episodes, primarySeason, confidence };
   }
