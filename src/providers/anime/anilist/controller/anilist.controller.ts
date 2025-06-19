@@ -156,36 +156,41 @@ export class AnilistController {
     return this.service.update(id);
   }
 
-  // @Put('update')
-  // @UseGuards(SecretKeyGuard)
-  // updateDb() {
-  //   this.update.update().catch((err) => console.error('Update failed:', err)); // just in case it blows up
+  @Put('update/recent')
+  @UseGuards(SecretKeyGuard)
+  updateRecent() {
+    this.update
+      .queueRecentAnime()
+      .catch((err) => console.error('Recent update failed:', err)); // just in case it blows up
 
-  //   return {
-  //     status: 'Update started',
-  //   };
-  // }
+    return {
+      status: 'Recent update started',
+    };
+  }
 
-  // @Put('update/recalculate')
-  // @UseGuards(SecretKeyGuard)
-  // recalculateDb() {
-  //   this.update
-  //     .recalculateTemperatures()
-  //     .catch((err) => console.error('Recalculation failed:', err)); // just in case it blows up
+  @Put('update/today')
+  @UseGuards(SecretKeyGuard)
+  updateToday() {
+    this.update
+      .queueTodayAnime()
+      .catch((err) => console.error('Today update failed:', err)); // just in case it blows up
 
-  //   return {
-  //     status: 'Recalculation started',
-  //   };
-  // }
+    return {
+      status: 'Today update started',
+    };
+  }
 
-  // @Put('update/stop')
-  // @UseGuards(SecretKeyGuard)
-  // stopUpdate() {
-  //   this.update.stop();
-  //   return {
-  //     status: 'Update stopped',
-  //   };
-  // }
+  @Put('update/week')
+  @UseGuards(SecretKeyGuard)
+  updateWeek() {
+    this.update
+      .queueWeekAgoAnime()
+      .catch((err) => console.error('Week update failed:', err)); // just in case it blows up
+
+    return {
+      status: 'Week update started',
+    };
+  }
 
   @Post('index')
   @UseGuards(SecretKeyGuard)
