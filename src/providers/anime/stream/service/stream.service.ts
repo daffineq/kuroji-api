@@ -64,9 +64,9 @@ export class StreamService {
           (e) => e.episode_number === number,
         );
 
-        const airDate =
-          anilist?.airingSchedule?.find((s) => s.episode == number)?.airingAt ||
-          0;
+        const airDate = anilist?.airingSchedule?.find(
+          (s) => s.episode === number,
+        )?.airingAt;
 
         const formattedDate = tmdbEpisode?.air_date
           ? new Date(tmdbEpisode.air_date).toLocaleDateString('en-US', {
@@ -74,11 +74,13 @@ export class StreamService {
               day: '2-digit',
               year: 'numeric',
             })
-          : new Date(airDate * 1000).toLocaleDateString('en-US', {
-              month: 'short',
-              day: '2-digit',
-              year: 'numeric',
-            });
+          : airDate
+            ? new Date(airDate * 1000).toLocaleDateString('en-US', {
+                month: 'short',
+                day: '2-digit',
+                year: 'numeric',
+              })
+            : undefined;
 
         return {
           title: tmdbEpisode?.name || zoroTitle,

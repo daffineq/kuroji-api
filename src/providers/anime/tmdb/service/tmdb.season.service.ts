@@ -51,16 +51,15 @@ export class TmdbSeasonService {
       throw new Error(`No seasons found for TMDb ID: ${tmdb.id}`);
     }
 
-    const allEpisodes = await this.getAllTmdbEpisodes(
-      tmdb.id,
-      tmdb.number_of_seasons || 1,
-    );
+    const allEpisodes = await this.getAllTmdbEpisodes(tmdb.id);
 
-    const seasonGroups = this.groupEpisodesBySeasons(allEpisodes);
+    const mainEpisodes = this.filterMainEpisodes(allEpisodes);
+
+    const seasonGroups = this.groupEpisodesBySeasons(mainEpisodes);
 
     const matchResult = await this.findBestEpisodeSequence(
       anilist,
-      allEpisodes,
+      mainEpisodes,
       seasonGroups,
     );
 
@@ -68,7 +67,7 @@ export class TmdbSeasonService {
       throw new Error('Could not find matching episodes for AniList entry');
     }
 
-    if (matchResult.confidence < 0.6) {
+    if (matchResult.confidence < 0.4) {
       throw new Error(
         `Episode matching confidence too low (${matchResult.confidence.toFixed(2)})`,
       );
@@ -92,23 +91,29 @@ export class TmdbSeasonService {
 
   private async getAllTmdbEpisodes(
     showId: number,
-    totalSeasons: number,
   ): Promise<TmdbSeasonEpisode[]> {
+    const tmdb = await this.tmdb.getTmdb(showId);
+
     const allEpisodes: TmdbSeasonEpisode[] = [];
 
-    for (let seasonNum = 0; seasonNum <= totalSeasons; seasonNum++) {
+    for (const season of tmdb.seasons) {
       let tmdbSeason = await this.prisma.tmdbSeason.findFirst({
-        where: { show_id: showId, season_number: seasonNum },
+        where: { show_id: showId, season_number: season.season_number },
         include: { episodes: true },
       });
 
       if (!tmdbSeason) {
         try {
-          tmdbSeason = await this.tmdb.fetchTmdbSeason(showId, seasonNum);
+          tmdbSeason = await this.tmdb.fetchTmdbSeason(
+            showId,
+            season.season_number,
+          );
           tmdbSeason.show_id = showId;
           await this.tmdb.saveTmdbSeason(tmdbSeason);
         } catch (error) {
-          console.warn(`Season ${seasonNum} not found for show ${showId}`);
+          console.warn(
+            `Season ${season.season_number} not found for show ${showId}`,
+          );
           continue;
         }
       }
@@ -123,6 +128,16 @@ export class TmdbSeasonService {
         return a.season_number - b.season_number;
       }
       return a.episode_number - b.episode_number;
+    });
+  }
+
+  private filterMainEpisodes(
+    episodes: TmdbSeasonEpisode[],
+  ): TmdbSeasonEpisode[] {
+    return episodes.filter((ep) => {
+      const isSpecial = ep.season_number === 0;
+      if (isSpecial) return false;
+      return true;
     });
   }
 
@@ -155,9 +170,9 @@ export class TmdbSeasonService {
     seasonGroups: SeasonEpisodeGroup[],
   ): Promise<MatchResult> {
     const strategies = [
-      () => this.matchByAiringSchedule(anilist, allEpisodes),
       () => this.matchByDateRange(anilist, allEpisodes, seasonGroups),
       () => this.matchByEpisodeCount(anilist, allEpisodes, seasonGroups),
+      () => this.matchByAiringSchedule(anilist, allEpisodes),
       () => this.matchBySeasonYear(anilist, allEpisodes, seasonGroups),
     ];
 
@@ -167,83 +182,33 @@ export class TmdbSeasonService {
       confidence: 0,
     };
 
-    for (const strategy of strategies) {
+    // console.log(
+    //   `Trying to match ${anilist.shikimori?.episodesAired ?? anilist.episodes} episodes for AniList ID ${anilist.id}`,
+    // );
+
+    for (const [index, strategy] of strategies.entries()) {
       try {
         const result = await strategy();
+        // console.log(`Strategy ${index + 1} result:`, {
+        //   episodeCount: result.episodes.length,
+        //   confidence: result.confidence,
+        //   primarySeason: result.primarySeason,
+        // });
+
         if (result.confidence > bestMatch.confidence) {
           bestMatch = result;
         }
       } catch (error) {
-        console.warn('Strategy failed:', error);
+        console.warn(`Strategy ${index + 1} failed:`, error);
         continue;
       }
     }
 
-    if (bestMatch.confidence < 0.6) {
+    if (bestMatch.confidence < 0.4) {
       throw new Error('No reliable episode matching strategy succeeded');
     }
 
     return bestMatch;
-  }
-
-  private async matchByAiringSchedule(
-    anilist: AnilistWithRelations,
-    allEpisodes: TmdbSeasonEpisode[],
-  ): Promise<MatchResult> {
-    const airingSchedule = anilist.airingSchedule || [];
-    if (airingSchedule.length === 0) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
-    }
-
-    const matches: EpisodeMatchCandidate[] = [];
-    const today = new Date().toISOString().split('T')[0];
-
-    const airingMap = new Map<string, number>();
-    airingSchedule.forEach((schedule) => {
-      if (schedule.airingAt && schedule.episode) {
-        const airDate = new Date(schedule.airingAt * 1000)
-          .toISOString()
-          .split('T')[0];
-        airingMap.set(airDate, schedule.episode);
-      }
-    });
-
-    for (const episode of allEpisodes) {
-      if (!episode.air_date || episode.air_date > today) continue;
-
-      const anilistEpisodeNum = airingMap.get(episode.air_date);
-      if (anilistEpisodeNum) {
-        matches.push({
-          episode,
-          confidence: 0.95,
-          reasons: ['exact_airing_date_match'],
-          anilistEpisodeNumber: anilistEpisodeNum,
-        });
-      }
-    }
-
-    if (matches.length === 0) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
-    }
-
-    const expectedEpisodes = anilist.episodes || 12;
-    const matchRatio = matches.length / expectedEpisodes;
-
-    if (matchRatio < 0.7) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
-    }
-
-    matches.sort((a, b) => a.anilistEpisodeNumber - b.anilistEpisodeNumber);
-
-    const episodes = matches.map((match, index) => ({
-      ...match.episode,
-      episode_number: index + 1,
-    }));
-
-    const primarySeason = this.getMostCommonSeason(episodes);
-    const confidence = Math.min(matchRatio, 0.95);
-
-    return { episodes, primarySeason, confidence };
   }
 
   private async matchByDateRange(
@@ -262,19 +227,11 @@ export class TmdbSeasonService {
       return { episodes: [], primarySeason: 1, confidence: 0 };
     }
 
-    const anilistYear = anilist.seasonYear;
-    const today = new Date().toISOString().split('T')[0];
-
     const filteredEpisodes = allEpisodes.filter((ep) => {
-      if (!ep.air_date || ep.air_date > today) return false;
+      if (!ep.air_date) return false;
 
-      const epDate = ep.air_date;
-      const epYear = new Date(epDate).getFullYear();
-
-      if (Math.abs(epYear - anilistYear) > 1) return false;
-
-      if (epDate < startDate) return false;
-      if (endDate && epDate > endDate) return false;
+      if (ep.air_date < startDate) return false;
+      if (endDate && ep.air_date > endDate) return false;
 
       return true;
     });
@@ -283,17 +240,12 @@ export class TmdbSeasonService {
       return { episodes: [], primarySeason: 1, confidence: 0 };
     }
 
-    const expectedCount = anilist.episodes;
+    const expectedCount = anilist.shikimori?.episodesAired ?? anilist.episodes;
     if (!expectedCount) {
       return { episodes: [], primarySeason: 1, confidence: 0 };
     }
 
-    const countDiff = Math.abs(filteredEpisodes.length - expectedCount);
-    const tolerance = Math.max(1, Math.floor(expectedCount * 0.1));
-
-    if (countDiff > tolerance) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
-    }
+    filteredEpisodes.sort((a, b) => a.air_date!.localeCompare(b.air_date!));
 
     const episodes = filteredEpisodes
       .slice(0, expectedCount)
@@ -303,7 +255,9 @@ export class TmdbSeasonService {
       }));
 
     const primarySeason = this.getMostCommonSeason(episodes);
-    const confidence = Math.max(0.6, 1 - countDiff / expectedCount);
+
+    const countMatch = episodes.length / expectedCount;
+    const confidence = Math.min(0.9, countMatch * 0.85);
 
     return { episodes, primarySeason, confidence };
   }
@@ -313,59 +267,59 @@ export class TmdbSeasonService {
     allEpisodes: TmdbSeasonEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
   ): Promise<MatchResult> {
-    const expectedCount = anilist.episodes;
+    const expectedCount = anilist.shikimori?.episodesAired ?? anilist.episodes;
     if (!expectedCount || !anilist.seasonYear) {
       return { episodes: [], primarySeason: 1, confidence: 0 };
     }
 
     const anilistYear = anilist.seasonYear;
-    const today = new Date().toISOString().split('T')[0];
-
-    const yearFilteredEpisodes = allEpisodes.filter((ep) => {
-      if (!ep.air_date || ep.air_date > today) return false;
-      const epYear = new Date(ep.air_date).getFullYear();
-      return epYear === anilistYear;
-    });
-
-    if (yearFilteredEpisodes.length === 0) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
-    }
 
     for (const seasonGroup of seasonGroups) {
       const seasonYearEpisodes = seasonGroup.episodes.filter((ep) => {
-        if (!ep.air_date || ep.air_date > today) return false;
+        if (!ep.air_date) return false;
         const epYear = new Date(ep.air_date).getFullYear();
-        return epYear === anilistYear;
+        return epYear === anilistYear || epYear === anilistYear + 1;
       });
 
       if (seasonYearEpisodes.length === expectedCount) {
-        const episodes = seasonYearEpisodes.map((ep, index) => ({
-          ...ep,
-          episode_number: index + 1,
-        }));
+        const episodes = seasonYearEpisodes
+          .sort((a, b) => a.air_date!.localeCompare(b.air_date!))
+          .map((ep, index) => ({
+            ...ep,
+            episode_number: index + 1,
+          }));
 
         return {
           episodes,
           primarySeason: seasonGroup.seasonNumber,
-          confidence: 0.85,
+          confidence: 0.9,
+        };
+      }
+
+      if (Math.abs(seasonYearEpisodes.length - expectedCount) <= 2) {
+        const episodes = seasonYearEpisodes
+          .sort((a, b) => a.air_date!.localeCompare(b.air_date!))
+          .slice(0, expectedCount)
+          .map((ep, index) => ({
+            ...ep,
+            episode_number: index + 1,
+          }));
+
+        const confidence = Math.max(
+          0.7,
+          1 -
+            Math.abs(seasonYearEpisodes.length - expectedCount) / expectedCount,
+        );
+
+        return {
+          episodes,
+          primarySeason: seasonGroup.seasonNumber,
+          confidence,
         };
       }
     }
 
-    const bestFit = yearFilteredEpisodes.slice(0, expectedCount);
-    if (bestFit.length < expectedCount * 0.8) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
-    }
-
-    const episodes = bestFit.map((ep, index) => ({
-      ...ep,
-      episode_number: index + 1,
-    }));
-
-    const primarySeason = this.getMostCommonSeason(episodes);
-    const confidence = (bestFit.length / expectedCount) * 0.7;
-
-    return { episodes, primarySeason, confidence };
+    return { episodes: [], primarySeason: 1, confidence: 0 };
   }
 
   private async matchBySeasonYear(
@@ -378,34 +332,97 @@ export class TmdbSeasonService {
     }
 
     const anilistYear = anilist.seasonYear;
-    const today = new Date().toISOString().split('T')[0];
+    const expectedCount =
+      anilist.shikimori?.episodesAired || anilist.episodes || 12;
 
-    const exactYearEpisodes = allEpisodes.filter((ep) => {
-      if (!ep.air_date || ep.air_date > today) return false;
-      const epYear = new Date(ep.air_date).getFullYear();
-      return epYear === anilistYear;
+    const yearsToTry = [anilistYear, anilistYear + 1, anilistYear - 1];
+
+    for (const yearToCheck of yearsToTry) {
+      const exactYearEpisodes = allEpisodes.filter((ep) => {
+        if (!ep.air_date) return false;
+        const epYear = new Date(ep.air_date).getFullYear();
+        return epYear === yearToCheck;
+      });
+
+      if (exactYearEpisodes.length >= expectedCount * 0.8) {
+        const episodes = exactYearEpisodes
+          .sort((a, b) => a.air_date!.localeCompare(b.air_date!))
+          .slice(0, expectedCount)
+          .map((ep, index) => ({
+            ...ep,
+            episode_number: index + 1,
+          }));
+
+        const primarySeason = this.getMostCommonSeason(episodes);
+        const yearPenalty = yearToCheck === anilistYear ? 1 : 0.8;
+        const confidence = Math.min(
+          0.7,
+          (exactYearEpisodes.length / expectedCount) * yearPenalty,
+        );
+
+        return { episodes, primarySeason, confidence };
+      }
+    }
+
+    return { episodes: [], primarySeason: 1, confidence: 0 };
+  }
+
+  private async matchByAiringSchedule(
+    anilist: AnilistWithRelations,
+    allEpisodes: TmdbSeasonEpisode[],
+  ): Promise<MatchResult> {
+    const airingSchedule = anilist.airingSchedule || [];
+    if (airingSchedule.length === 0) {
+      return { episodes: [], primarySeason: 1, confidence: 0 };
+    }
+
+    const matches: EpisodeMatchCandidate[] = [];
+
+    const airingMap = new Map<string, number>();
+    airingSchedule.forEach((schedule) => {
+      if (schedule.airingAt && schedule.episode) {
+        const airDate = new Date(schedule.airingAt * 1000)
+          .toISOString()
+          .split('T')[0];
+        airingMap.set(airDate, schedule.episode);
+      }
     });
 
-    if (exactYearEpisodes.length === 0) {
+    for (const episode of allEpisodes) {
+      if (!episode.air_date) continue;
+
+      const anilistEpisodeNum = airingMap.get(episode.air_date);
+      if (anilistEpisodeNum) {
+        matches.push({
+          episode,
+          confidence: 0.95,
+          reasons: ['exact_airing_date_match'],
+          anilistEpisodeNumber: anilistEpisodeNum,
+        });
+      }
+    }
+
+    if (matches.length === 0) {
       return { episodes: [], primarySeason: 1, confidence: 0 };
     }
 
-    const expectedCount =
-      anilist.episodes || Math.min(exactYearEpisodes.length, 24);
+    const expectedEpisodes =
+      anilist.shikimori?.episodesAired || anilist.episodes || 12;
+    const matchRatio = matches.length / expectedEpisodes;
 
-    if (exactYearEpisodes.length < expectedCount * 0.7) {
+    if (matchRatio < 0.5) {
       return { episodes: [], primarySeason: 1, confidence: 0 };
     }
 
-    const episodes = exactYearEpisodes
-      .slice(0, expectedCount)
-      .map((ep, index) => ({
-        ...ep,
-        episode_number: index + 1,
-      }));
+    matches.sort((a, b) => a.anilistEpisodeNumber - b.anilistEpisodeNumber);
+
+    const episodes = matches.map((match, index) => ({
+      ...match.episode,
+      episode_number: index + 1,
+    }));
 
     const primarySeason = this.getMostCommonSeason(episodes);
-    const confidence = Math.min(0.75, exactYearEpisodes.length / expectedCount);
+    const confidence = Math.min(matchRatio, 0.95);
 
     return { episodes, primarySeason, confidence };
   }
