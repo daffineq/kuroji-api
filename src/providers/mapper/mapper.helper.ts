@@ -438,9 +438,6 @@ export const findBestMatch = <T extends ExpectAnime>(
   // Calculate the best match after 10 fucking layers of security for most accurate asf match.
   if (!search || !results || results.length === 0) return null;
 
-  console.log(JSON.stringify(search));
-  console.log(JSON.stringify(results));
-
   const sortedResults = sortCandidatesByPreference(results);
 
   const searchTitles = getAllTitles(search.title);
