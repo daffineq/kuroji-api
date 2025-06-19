@@ -298,7 +298,7 @@ export function areTypesCompatible(
   searchType?: string,
   candidateType?: string,
 ): boolean {
-  if (!searchType || !candidateType) return true; // If either is missing, don't filter by type
+  if (!searchType || !candidateType) return true;
 
   const normalizedSearch = normalizeType(searchType);
   const normalizedCandidate = normalizeType(candidateType);
@@ -353,8 +353,8 @@ export interface MatchResult<T> {
   year?: number;
   episodes?: number;
   type?: string;
-  isDerivative?: boolean; // NEW: Flag to indicate if this is a derivative version
-  derivativePenalty?: number; // NEW: Penalty applied for being derivative
+  isDerivative?: boolean;
+  derivativePenalty?: number;
 }
 
 export interface ExpectAnime {
@@ -601,115 +601,7 @@ export const findBestMatch = <T extends ExpectAnime>(
     }
   }
 
-  // 5. Exact Match with year and episodes (original logic)
-  if (searchYear && searchEpisodes) {
-    for (const candidate of sortedResults) {
-      const candidateTitles = getAllTitles(
-        candidate.title,
-        candidate.japaneseTitle,
-      );
-
-      if (
-        candidate.year === searchYear &&
-        candidate.episodes === searchEpisodes
-      ) {
-        for (const searchTitle of searchTitles) {
-          if (candidateTitles.includes(searchTitle)) {
-            return createMatchResult(
-              1,
-              'exact-year-episode-raw',
-              candidate,
-              searchTitle,
-            );
-          }
-        }
-      }
-    }
-  }
-
-  // 6. Exact Match with normalized titles, year and episodes (original logic)
-  if (searchYear && searchEpisodes) {
-    for (const candidate of sortedResults) {
-      const candidateTitles = getAllTitles(
-        candidate.title,
-        candidate.japaneseTitle,
-      );
-
-      const normalizedCandidateTitles = candidateTitles
-        .map(sanitizeTitle)
-        .filter((t): t is string => !!t);
-
-      if (
-        candidate.year === searchYear &&
-        candidate.episodes === searchEpisodes
-      ) {
-        for (const normalizedSearchTitle of normalizedSearchTitles) {
-          if (normalizedCandidateTitles.includes(normalizedSearchTitle)) {
-            return createMatchResult(
-              1,
-              'exact-year-episode-normalized',
-              candidate,
-              undefined,
-              normalizedSearchTitle,
-            );
-          }
-        }
-      }
-    }
-  }
-
-  // 7. Exact Match with year (original logic)
-  if (searchYear) {
-    for (const candidate of sortedResults) {
-      const candidateTitles = getAllTitles(
-        candidate.title,
-        candidate.japaneseTitle,
-      );
-
-      if (candidate.year === searchYear) {
-        for (const searchTitle of searchTitles) {
-          if (candidateTitles.includes(searchTitle)) {
-            return createMatchResult(
-              1,
-              'exact-year-raw',
-              candidate,
-              searchTitle,
-            );
-          }
-        }
-      }
-    }
-  }
-
-  // 8. Exact Match with normalized titles and year (original logic)
-  if (searchYear) {
-    for (const candidate of sortedResults) {
-      const candidateTitles = getAllTitles(
-        candidate.title,
-        candidate.japaneseTitle,
-      );
-
-      const normalizedCandidateTitles = candidateTitles
-        .map(sanitizeTitle)
-        .filter((t): t is string => !!t);
-
-      if (candidate.year === searchYear) {
-        for (const normalizedSearchTitle of normalizedSearchTitles) {
-          if (normalizedCandidateTitles.includes(normalizedSearchTitle)) {
-            return createMatchResult(
-              1,
-              'exact-year-normalized',
-              candidate,
-              undefined,
-              normalizedSearchTitle,
-            );
-          }
-        }
-      }
-    }
-  }
-
-  // 9. Exact Match with type only
+  // 5. Exact Match with type only
   if (searchType) {
     for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(
@@ -732,7 +624,7 @@ export const findBestMatch = <T extends ExpectAnime>(
     }
   }
 
-  // 10. Exact Match with normalized titles and type
+  // 6. Exact Match with normalized titles and type
   if (searchType) {
     for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(
@@ -760,45 +652,7 @@ export const findBestMatch = <T extends ExpectAnime>(
     }
   }
 
-  // 11. Exact title match (original logic)
-  for (const candidate of sortedResults) {
-    const candidateTitles = getAllTitles(
-      candidate.title,
-      candidate.japaneseTitle,
-    );
-
-    for (const searchTitle of searchTitles) {
-      if (candidateTitles.includes(searchTitle)) {
-        return createMatchResult(1, 'exact', candidate, searchTitle);
-      }
-    }
-  }
-
-  // 12. Exact normalized title match (original logic)
-  for (const candidate of sortedResults) {
-    const candidateTitles = getAllTitles(
-      candidate.title,
-      candidate.japaneseTitle,
-    );
-
-    const normalizedCandidateTitles = candidateTitles
-      .map(sanitizeTitle)
-      .filter((t): t is string => !!t);
-
-    for (const normalizedSearchTitle of normalizedSearchTitles) {
-      if (normalizedCandidateTitles.includes(normalizedSearchTitle)) {
-        return createMatchResult(
-          1,
-          'exact-normalized',
-          candidate,
-          undefined,
-          normalizedSearchTitle,
-        );
-      }
-    }
-  }
-
-  // 13. Loose match (similarity >= 0.8) with type preference
+  // 7. Loose match (similarity >= 0.8) with type preference
   let bestLooseMatch: MatchResult<T> | null = null;
 
   for (const candidate of sortedResults) {
@@ -863,7 +717,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   if (bestLooseMatch) return bestLooseMatch;
 
-  // 14. Last resort fuzzy match (similarity >= 0.7) with type preference
+  // 8. Last resort fuzzy match (similarity >= 0.7) with type preference
   let bestFuzzyMatch: MatchResult<T> | null = null;
 
   for (const candidate of sortedResults) {
@@ -926,7 +780,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   if (bestFuzzyMatch) return bestFuzzyMatch;
 
-  // 15. Check if there's any match with similarity >= 0.6 with type preference
+  // 9. Check if there's any match with similarity >= 0.6 with type preference
   let bestPossibleMatch: MatchResult<T> | null = null;
   let highestSimilarity = 0;
 

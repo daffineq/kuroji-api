@@ -163,6 +163,8 @@ export class ZoroService extends Client {
             native: true,
           },
         },
+        id: true,
+        idMal: true,
         seasonYear: true,
         episodes: true,
         format: true,
@@ -210,8 +212,14 @@ export class ZoroService extends Client {
 
     if (bestMatch) {
       const data = await this.fetchZoro(bestMatch.result.id);
-      data.alID = id;
-      return data;
+
+      if (
+        (data.alID && Number(data.alID) === anilist.id) ||
+        (data.malID && Number(data.malID) === anilist.idMal)
+      ) {
+        data.alID = id;
+        return data;
+      }
     }
 
     throw new Error('Zoro not found');

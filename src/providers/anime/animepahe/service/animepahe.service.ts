@@ -144,6 +144,8 @@ export class AnimepaheService extends Client {
             native: true,
           },
         },
+        id: true,
+        idMal: true,
         seasonYear: true,
         episodes: true,
         format: true,
@@ -193,8 +195,20 @@ export class AnimepaheService extends Client {
 
     if (bestMatch) {
       const data = await this.fetchAnimepahe(bestMatch.result.id);
-      data.alId = id;
-      return data;
+
+      const anilistLink = data.externalLinks?.find(
+        (e) => e.sourceName === 'AniList',
+      );
+
+      const malLink = data.externalLinks?.find((e) => e.sourceName === 'MAL');
+
+      if (
+        (anilistLink && Number(anilistLink.id) === anilist.id) ||
+        (malLink && Number(malLink.id) === anilist.idMal)
+      ) {
+        data.alId = id;
+        return data;
+      }
     }
 
     throw new Error('Animepahe not found');
