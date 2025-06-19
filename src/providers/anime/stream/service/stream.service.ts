@@ -19,6 +19,7 @@ import {
 import { undefinedToNull } from '../../../../shared/interceptor';
 import { getImage } from '../../tmdb/types/types';
 import { TmdbSeasonService } from '../../tmdb/service/tmdb.season.service';
+import { TmdbEpisodeService } from '../../tmdb/service/tmdb.episode.service';
 
 @Injectable()
 export class StreamService {
@@ -28,6 +29,7 @@ export class StreamService {
     private readonly animepahe: AnimepaheService,
     private readonly anilist: AnilistService,
     private readonly tmdbSeason: TmdbSeasonService,
+    private readonly tmdbEpisode: TmdbEpisodeService,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
@@ -120,7 +122,7 @@ export class StreamService {
       }
     }
 
-    const details = await this.tmdbSeason
+    const details = await this.tmdbEpisode
       .getEpisodeDetailsByAnilist(id, ep)
       .catch(() => null);
     const data = (await this.getEpisodes(id)).find(

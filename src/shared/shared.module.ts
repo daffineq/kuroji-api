@@ -28,6 +28,7 @@ import { KitsuHelper } from '../providers/anime/kitsu/util/kitsu-helper';
 import { AppLockService } from './app.lock.service';
 import { AnilistRandomService } from '../providers/anime/anilist/service/helper/anilist.random.service';
 import { TmdbSeasonService } from '../providers/anime/tmdb/service/tmdb.season.service';
+import { TmdbEpisodeService } from '../providers/anime/tmdb/service/tmdb.episode.service';
 
 @Module({
   imports: [ShikimoriHelperModule, Redis],
@@ -50,6 +51,7 @@ import { TmdbSeasonService } from '../providers/anime/tmdb/service/tmdb.season.s
     AnimepaheService,
     TmdbService,
     TmdbSeasonService,
+    TmdbEpisodeService,
     TmdbHelper,
     TvdbService,
     TvdbTokenService,
@@ -78,6 +80,7 @@ import { TmdbSeasonService } from '../providers/anime/tmdb/service/tmdb.season.s
     AnimepaheService,
     TmdbService,
     TmdbSeasonService,
+    TmdbEpisodeService,
     TmdbHelper,
     TvdbService,
     TvdbTokenService,

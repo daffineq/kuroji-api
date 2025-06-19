@@ -2,12 +2,14 @@ import { Controller, Get, Param, ParseIntPipe, Put } from '@nestjs/common';
 import { TmdbService } from '../service/tmdb.service';
 import e from 'express';
 import { TmdbSeasonService } from '../service/tmdb.season.service';
+import { TmdbEpisodeService } from '../service/tmdb.episode.service';
 
 @Controller('anime')
 export class TmdbController {
   constructor(
     private readonly service: TmdbService,
     private readonly season: TmdbSeasonService,
+    private readonly episode: TmdbEpisodeService,
   ) {}
 
   @Get('info/:id/tmdb')
@@ -25,7 +27,7 @@ export class TmdbController {
     @Param('id', ParseIntPipe) id: number,
     @Param('ep', ParseIntPipe) ep: number,
   ) {
-    return this.season.getEpisodeDetailsByAnilist(id, ep);
+    return this.episode.getEpisodeDetailsByAnilist(id, ep);
   }
 
   @Put('info/:id/tmdb/update')
