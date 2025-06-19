@@ -490,24 +490,22 @@ export class TmdbSeasonService {
       return { episodes: [], primarySeason: 1, confidence: 0 };
     }
 
-    const expectedEpisodes =
-      anilist.shikimori?.episodesAired || anilist.episodes || 12;
-    const matchRatio = matches.length / expectedEpisodes;
-
-    if (matchRatio < 0.5) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
-    }
-
     const expectedCount = getExpectedCount(anilist);
+
     const episodes = this.selectBestEpisodes(
       matches.map((m) => m.episode),
       expectedCount,
     );
 
-    const primarySeason = this.getMostCommonSeason(episodes);
+    const matchRatio = expectedCount ? episodes.length / expectedCount : 0;
 
-    const countMatch = expectedCount ? episodes.length / expectedCount : 0;
-    const confidence = Math.min(matchRatio, countMatch * 0.95);
+    if (matchRatio < 0.5) {
+      return { episodes: [], primarySeason: 1, confidence: 0 };
+    }
+
+    const episodesPenalty = episodes.length === expectedCount ? 1 : 0.75;
+    const primarySeason = this.getMostCommonSeason(episodes);
+    const confidence = Math.min(matchRatio, 0.95 * episodesPenalty);
 
     return { episodes, primarySeason, confidence };
   }
