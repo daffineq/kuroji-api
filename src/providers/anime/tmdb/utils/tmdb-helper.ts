@@ -211,8 +211,6 @@ export function findBestMatchFromSearch(
       english: (anilist.title as { english: string }).english,
       native: (anilist.title as { native: string }).native,
     },
-    year: anilist.startDate?.year ?? undefined,
-    episodes: anilist.episodes ?? undefined,
   };
 
   const resultsFiltered = results.filter((tmdb) => isProbablyAnime(tmdb));

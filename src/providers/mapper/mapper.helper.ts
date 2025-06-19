@@ -20,6 +20,20 @@ export const FORMAT_INDICATORS = [
   /\b(?:web|net)\s*series?\b/i, // Web series indicators
 ];
 
+// NEW: Add patterns to detect derivative/re-edit versions
+export const DERIVATIVE_PATTERNS = [
+  /\b(?:re-?edit|redit|re-?cut)\b/i, // Re-edit indicators
+  /\b(?:director'?s?\s*cut|extended\s*cut|final\s*cut)\b/i, // Director's cut
+  /\b(?:new\s*edit|新編集版|compilation)\b/i, // New edit/compilation
+  /\b(?:recap|recaps|summary)\b/i, // Recap versions
+  /\b(?:condensed|abridged|shortened)\b/i, // Condensed versions
+  /\b(?:theatrical\s*version|cinema\s*version)\b/i, // Theatrical versions
+  /\b(?:alternate\s*version|alternative\s*version)\b/i, // Alternative versions
+  /\b(?:extended\s*version|long\s*version)\b/i, // Extended versions
+  /\b(?:remaster|remastered|remake)\b/i, // Remastered versions
+  /\([^)]*(?:re-?edit|director|cut|recap|compilation|remaster)[^)]*\)/i, // Parenthetical indicators
+];
+
 export const EXTRA_PATTERNS = [
   /\b(?:complete|collection|series)\b/i, // Collection indicators
   /\b(?:dubbed|subbed|uncensored|uncut)\b/i, // Version indicators
@@ -112,6 +126,50 @@ export function jaroWinklerDistance(s1: string, s2: string, p = 0.1): number {
   return (
     jaroSimilarity + commonPrefixLength * scalingFactor * (1 - jaroSimilarity)
   );
+}
+
+/**
+ * NEW: Checks if a title is a derivative/re-edit version that should be deprioritized
+ * @param title - The title to check
+ * @returns Boolean indicating if this is a derivative version
+ */
+export function isDerivativeVersion(title: string): boolean {
+  if (!title) return false;
+
+  return DERIVATIVE_PATTERNS.some((pattern) => pattern.test(title));
+}
+
+/**
+ * NEW: Calculates a penalty score for derivative versions
+ * Higher penalty = more likely to be deprioritized
+ * @param title - The title to check
+ * @returns Penalty score (0 = no penalty, higher = more penalty)
+ */
+export function getDerivativePenalty(title: string): number {
+  if (!title) return 0;
+
+  let penalty = 0;
+  const lowerTitle = title.toLowerCase();
+
+  // Heavy penalties for obvious re-edits
+  if (/re-?edit|redit|新編集版/i.test(title)) penalty += 0.3;
+  if (/director'?s?\s*cut/i.test(title)) penalty += 0.25;
+  if (/recap|summary|compilation/i.test(title)) penalty += 0.35;
+  if (/condensed|abridged|shortened/i.test(title)) penalty += 0.3;
+  if (/remaster|remake/i.test(title)) penalty += 0.2;
+  if (/extended|long\s*version/i.test(title)) penalty += 0.15;
+  if (/alternate|alternative/i.test(title)) penalty += 0.2;
+
+  // Additional penalty for parenthetical indicators
+  if (
+    /\([^)]*(?:re-?edit|director|cut|recap|compilation|remaster)[^)]*\)/i.test(
+      title,
+    )
+  ) {
+    penalty += 0.1;
+  }
+
+  return Math.min(penalty, 0.5); // Cap at 0.5 to avoid completely eliminating matches
 }
 
 /**
@@ -295,6 +353,8 @@ export interface MatchResult<T> {
   year?: number;
   episodes?: number;
   type?: string;
+  isDerivative?: boolean; // NEW: Flag to indicate if this is a derivative version
+  derivativePenalty?: number; // NEW: Penalty applied for being derivative
 }
 
 export interface ExpectAnime {
@@ -307,7 +367,7 @@ export interface ExpectAnime {
         native?: string;
         userPreferred?: string;
       };
-  japaneseTitle?: string; // ← just add this line
+  japaneseTitle?: string;
   year?: number;
   type?: string;
   episodes?: number;
@@ -342,6 +402,29 @@ function getAllTitles(
 }
 
 /**
+ * @param candidates - Array of candidates to sort
+ * @returns Sorted array with non-derivative versions first
+ */
+function sortCandidatesByPreference<T extends ExpectAnime>(
+  candidates: T[],
+): T[] {
+  return candidates.sort((a, b) => {
+    const aTitles = getAllTitles(a.title, a.japaneseTitle);
+    const bTitles = getAllTitles(b.title, b.japaneseTitle);
+
+    const aIsDerivative = aTitles.some((title) => isDerivativeVersion(title));
+    const bIsDerivative = bTitles.some((title) => isDerivativeVersion(title));
+
+    // Non-derivative versions come first
+    if (aIsDerivative && !bIsDerivative) return 1;
+    if (!aIsDerivative && bIsDerivative) return -1;
+
+    // If both are derivative or both are non-derivative, maintain original order
+    return 0;
+  });
+}
+
+/**
  * Finds the best matching anime from a list of results based on the search criteria
  * @template T - Type extending ExpectAnime interface
  * @param search - The anime to search for, containing title, year, episodes, and type information
@@ -355,12 +438,51 @@ export const findBestMatch = <T extends ExpectAnime>(
   // Calculate the best match after 10 fucking layers of security for most accurate asf match.
   if (!search || !results || results.length === 0) return null;
 
+  console.log(JSON.stringify(search));
+  console.log(JSON.stringify(results));
+
+  const sortedResults = sortCandidatesByPreference(results);
+
   const searchTitles = getAllTitles(search.title);
   if (searchTitles.length === 0) return null;
 
   const searchYear = search.year;
   const searchEpisodes = search.episodes;
   const searchType = search.type;
+
+  const createMatchResult = (
+    similarity: number,
+    method: MatchResult<T>['method'],
+    candidate: T,
+    matchedTitle?: string,
+    normalizedTitle?: string,
+  ): MatchResult<T> => {
+    const candidateTitles = getAllTitles(
+      candidate.title,
+      candidate.japaneseTitle,
+    );
+    const isDerivative = candidateTitles.some((title) =>
+      isDerivativeVersion(title),
+    );
+    const derivativePenalty = isDerivative
+      ? Math.max(...candidateTitles.map(getDerivativePenalty))
+      : 0;
+
+    const adjustedSimilarity = Math.max(0, similarity - derivativePenalty);
+
+    return {
+      similarity: adjustedSimilarity,
+      method,
+      result: candidate,
+      title: matchedTitle,
+      normalized: normalizedTitle,
+      year: searchYear,
+      episodes: searchEpisodes,
+      type: candidate.type,
+      isDerivative,
+      derivativePenalty,
+    };
+  };
 
   // Normalize search titles
   const normalizedSearchTitles = searchTitles
@@ -370,7 +492,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   // 1. Exact Match with year, episodes, and type
   if (searchYear && searchEpisodes && searchType) {
-    for (const candidate of results) {
+    for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(
         candidate.title,
         candidate.japaneseTitle,
@@ -383,15 +505,12 @@ export const findBestMatch = <T extends ExpectAnime>(
       ) {
         for (const searchTitle of searchTitles) {
           if (candidateTitles.includes(searchTitle)) {
-            return {
-              similarity: 1,
-              method: 'exact-year-episode-type-raw',
-              result: candidate,
-              title: searchTitle,
-              year: searchYear,
-              episodes: searchEpisodes,
-              type: candidate.type,
-            };
+            return createMatchResult(
+              1,
+              'exact-year-episode-type-raw',
+              candidate,
+              searchTitle,
+            );
           }
         }
       }
@@ -400,7 +519,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   // 2. Exact Match with normalized titles, year, episodes, and type
   if (searchYear && searchEpisodes && searchType) {
-    for (const candidate of results) {
+    for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(
         candidate.title,
         candidate.japaneseTitle,
@@ -416,15 +535,13 @@ export const findBestMatch = <T extends ExpectAnime>(
       ) {
         for (const normalizedSearchTitle of normalizedSearchTitles) {
           if (normalizedCandidateTitles.includes(normalizedSearchTitle)) {
-            return {
-              similarity: 1,
-              method: 'exact-year-episode-type-normalized',
-              result: candidate,
-              normalized: normalizedSearchTitle,
-              year: searchYear,
-              episodes: searchEpisodes,
-              type: candidate.type,
-            };
+            return createMatchResult(
+              1,
+              'exact-year-episode-type-normalized',
+              candidate,
+              undefined,
+              normalizedSearchTitle,
+            );
           }
         }
       }
@@ -433,7 +550,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   // 3. Exact Match with year and type
   if (searchYear && searchType) {
-    for (const candidate of results) {
+    for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(
         candidate.title,
         candidate.japaneseTitle,
@@ -445,14 +562,12 @@ export const findBestMatch = <T extends ExpectAnime>(
       ) {
         for (const searchTitle of searchTitles) {
           if (candidateTitles.includes(searchTitle)) {
-            return {
-              similarity: 1,
-              method: 'exact-year-type-raw',
-              result: candidate,
-              title: searchTitle,
-              year: searchYear,
-              type: candidate.type,
-            };
+            return createMatchResult(
+              1,
+              'exact-year-type-raw',
+              candidate,
+              searchTitle,
+            );
           }
         }
       }
@@ -461,7 +576,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   // 4. Exact Match with normalized titles, year, and type
   if (searchYear && searchType) {
-    for (const candidate of results) {
+    for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(
         candidate.title,
         candidate.japaneseTitle,
@@ -476,14 +591,13 @@ export const findBestMatch = <T extends ExpectAnime>(
       ) {
         for (const normalizedSearchTitle of normalizedSearchTitles) {
           if (normalizedCandidateTitles.includes(normalizedSearchTitle)) {
-            return {
-              similarity: 1,
-              method: 'exact-year-type-normalized',
-              result: candidate,
-              normalized: normalizedSearchTitle,
-              year: searchYear,
-              type: candidate.type,
-            };
+            return createMatchResult(
+              1,
+              'exact-year-type-normalized',
+              candidate,
+              undefined,
+              normalizedSearchTitle,
+            );
           }
         }
       }
@@ -492,7 +606,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   // 5. Exact Match with year and episodes (original logic)
   if (searchYear && searchEpisodes) {
-    for (const candidate of results) {
+    for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(
         candidate.title,
         candidate.japaneseTitle,
@@ -504,14 +618,12 @@ export const findBestMatch = <T extends ExpectAnime>(
       ) {
         for (const searchTitle of searchTitles) {
           if (candidateTitles.includes(searchTitle)) {
-            return {
-              similarity: 1,
-              method: 'exact-year-episode-raw',
-              result: candidate,
-              title: searchTitle,
-              year: searchYear,
-              episodes: searchEpisodes,
-            };
+            return createMatchResult(
+              1,
+              'exact-year-episode-raw',
+              candidate,
+              searchTitle,
+            );
           }
         }
       }
@@ -520,7 +632,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   // 6. Exact Match with normalized titles, year and episodes (original logic)
   if (searchYear && searchEpisodes) {
-    for (const candidate of results) {
+    for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(
         candidate.title,
         candidate.japaneseTitle,
@@ -536,14 +648,13 @@ export const findBestMatch = <T extends ExpectAnime>(
       ) {
         for (const normalizedSearchTitle of normalizedSearchTitles) {
           if (normalizedCandidateTitles.includes(normalizedSearchTitle)) {
-            return {
-              similarity: 1,
-              method: 'exact-year-episode-normalized',
-              result: candidate,
-              normalized: normalizedSearchTitle,
-              year: searchYear,
-              episodes: searchEpisodes,
-            };
+            return createMatchResult(
+              1,
+              'exact-year-episode-normalized',
+              candidate,
+              undefined,
+              normalizedSearchTitle,
+            );
           }
         }
       }
@@ -552,7 +663,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   // 7. Exact Match with year (original logic)
   if (searchYear) {
-    for (const candidate of results) {
+    for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(
         candidate.title,
         candidate.japaneseTitle,
@@ -561,13 +672,12 @@ export const findBestMatch = <T extends ExpectAnime>(
       if (candidate.year === searchYear) {
         for (const searchTitle of searchTitles) {
           if (candidateTitles.includes(searchTitle)) {
-            return {
-              similarity: 1,
-              method: 'exact-year-raw',
-              result: candidate,
-              title: searchTitle,
-              year: searchYear,
-            };
+            return createMatchResult(
+              1,
+              'exact-year-raw',
+              candidate,
+              searchTitle,
+            );
           }
         }
       }
@@ -576,7 +686,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   // 8. Exact Match with normalized titles and year (original logic)
   if (searchYear) {
-    for (const candidate of results) {
+    for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(
         candidate.title,
         candidate.japaneseTitle,
@@ -589,13 +699,13 @@ export const findBestMatch = <T extends ExpectAnime>(
       if (candidate.year === searchYear) {
         for (const normalizedSearchTitle of normalizedSearchTitles) {
           if (normalizedCandidateTitles.includes(normalizedSearchTitle)) {
-            return {
-              similarity: 1,
-              method: 'exact-year-normalized',
-              result: candidate,
-              normalized: normalizedSearchTitle,
-              year: searchYear,
-            };
+            return createMatchResult(
+              1,
+              'exact-year-normalized',
+              candidate,
+              undefined,
+              normalizedSearchTitle,
+            );
           }
         }
       }
@@ -604,7 +714,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   // 9. Exact Match with type only
   if (searchType) {
-    for (const candidate of results) {
+    for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(
         candidate.title,
         candidate.japaneseTitle,
@@ -613,13 +723,12 @@ export const findBestMatch = <T extends ExpectAnime>(
       if (areTypesCompatible(searchType, candidate.type)) {
         for (const searchTitle of searchTitles) {
           if (candidateTitles.includes(searchTitle)) {
-            return {
-              similarity: 1,
-              method: 'exact-type-raw',
-              result: candidate,
-              title: searchTitle,
-              type: candidate.type,
-            };
+            return createMatchResult(
+              1,
+              'exact-type-raw',
+              candidate,
+              searchTitle,
+            );
           }
         }
       }
@@ -628,7 +737,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   // 10. Exact Match with normalized titles and type
   if (searchType) {
-    for (const candidate of results) {
+    for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(
         candidate.title,
         candidate.japaneseTitle,
@@ -641,13 +750,13 @@ export const findBestMatch = <T extends ExpectAnime>(
       if (areTypesCompatible(searchType, candidate.type)) {
         for (const normalizedSearchTitle of normalizedSearchTitles) {
           if (normalizedCandidateTitles.includes(normalizedSearchTitle)) {
-            return {
-              similarity: 1,
-              method: 'exact-type-normalized',
-              result: candidate,
-              normalized: normalizedSearchTitle,
-              type: candidate.type,
-            };
+            return createMatchResult(
+              1,
+              'exact-type-normalized',
+              candidate,
+              undefined,
+              normalizedSearchTitle,
+            );
           }
         }
       }
@@ -655,7 +764,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   }
 
   // 11. Exact title match (original logic)
-  for (const candidate of results) {
+  for (const candidate of sortedResults) {
     const candidateTitles = getAllTitles(
       candidate.title,
       candidate.japaneseTitle,
@@ -663,18 +772,13 @@ export const findBestMatch = <T extends ExpectAnime>(
 
     for (const searchTitle of searchTitles) {
       if (candidateTitles.includes(searchTitle)) {
-        return {
-          similarity: 1,
-          method: 'exact',
-          result: candidate,
-          title: searchTitle,
-        };
+        return createMatchResult(1, 'exact', candidate, searchTitle);
       }
     }
   }
 
   // 12. Exact normalized title match (original logic)
-  for (const candidate of results) {
+  for (const candidate of sortedResults) {
     const candidateTitles = getAllTitles(
       candidate.title,
       candidate.japaneseTitle,
@@ -686,12 +790,13 @@ export const findBestMatch = <T extends ExpectAnime>(
 
     for (const normalizedSearchTitle of normalizedSearchTitles) {
       if (normalizedCandidateTitles.includes(normalizedSearchTitle)) {
-        return {
-          similarity: 1,
-          method: 'exact-normalized',
-          result: candidate,
-          normalized: normalizedSearchTitle,
-        };
+        return createMatchResult(
+          1,
+          'exact-normalized',
+          candidate,
+          undefined,
+          normalizedSearchTitle,
+        );
       }
     }
   }
@@ -699,7 +804,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 13. Loose match (similarity >= 0.8) with type preference
   let bestLooseMatch: MatchResult<T> | null = null;
 
-  for (const candidate of results) {
+  for (const candidate of sortedResults) {
     const candidateTitles = getAllTitles(
       candidate.title,
       candidate.japaneseTitle,
@@ -717,11 +822,26 @@ export const findBestMatch = <T extends ExpectAnime>(
         );
 
         if (similarity >= 0.8) {
-          // Boost similarity if type matches
-          const adjustedSimilarity =
+          let adjustedSimilarity =
             searchType && areTypesCompatible(searchType, candidate.type)
               ? Math.min(1.0, similarity + 0.05)
               : similarity;
+
+          const candidateAllTitles = getAllTitles(
+            candidate.title,
+            candidate.japaneseTitle,
+          );
+          const isDerivative = candidateAllTitles.some((title) =>
+            isDerivativeVersion(title),
+          );
+          const derivativePenalty = isDerivative
+            ? Math.max(...candidateAllTitles.map(getDerivativePenalty))
+            : 0;
+
+          adjustedSimilarity = Math.max(
+            0,
+            adjustedSimilarity - derivativePenalty,
+          );
 
           if (
             !bestLooseMatch ||
@@ -735,6 +855,8 @@ export const findBestMatch = <T extends ExpectAnime>(
               method: 'loose',
               result: candidate,
               normalized: normalizedSearchTitle,
+              isDerivative,
+              derivativePenalty,
             };
           }
         }
@@ -747,7 +869,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 14. Last resort fuzzy match (similarity >= 0.7) with type preference
   let bestFuzzyMatch: MatchResult<T> | null = null;
 
-  for (const candidate of results) {
+  for (const candidate of sortedResults) {
     const candidateTitles = getAllTitles(
       candidate.title,
       candidate.japaneseTitle,
@@ -765,11 +887,26 @@ export const findBestMatch = <T extends ExpectAnime>(
         );
 
         if (similarity >= 0.7) {
-          // Boost similarity if type matches
-          const adjustedSimilarity =
+          let adjustedSimilarity =
             searchType && areTypesCompatible(searchType, candidate.type)
               ? Math.min(1.0, similarity + 0.03)
               : similarity;
+
+          const candidateAllTitles = getAllTitles(
+            candidate.title,
+            candidate.japaneseTitle,
+          );
+          const isDerivative = candidateAllTitles.some((title) =>
+            isDerivativeVersion(title),
+          );
+          const derivativePenalty = isDerivative
+            ? Math.max(...candidateAllTitles.map(getDerivativePenalty))
+            : 0;
+
+          adjustedSimilarity = Math.max(
+            0,
+            adjustedSimilarity - derivativePenalty,
+          );
 
           if (
             !bestFuzzyMatch ||
@@ -796,7 +933,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   let bestPossibleMatch: MatchResult<T> | null = null;
   let highestSimilarity = 0;
 
-  for (const candidate of results) {
+  for (const candidate of sortedResults) {
     const candidateTitles = getAllTitles(
       candidate.title,
       candidate.japaneseTitle,
@@ -813,11 +950,26 @@ export const findBestMatch = <T extends ExpectAnime>(
           normalizedCandidateTitle,
         );
 
-        // Boost similarity if type matches
-        const adjustedSimilarity =
+        let adjustedSimilarity =
           searchType && areTypesCompatible(searchType, candidate.type)
             ? Math.min(1.0, similarity + 0.02)
             : similarity;
+
+        const candidateAllTitles = getAllTitles(
+          candidate.title,
+          candidate.japaneseTitle,
+        );
+        const isDerivative = candidateAllTitles.some((title) =>
+          isDerivativeVersion(title),
+        );
+        const derivativePenalty = isDerivative
+          ? Math.max(...candidateAllTitles.map(getDerivativePenalty))
+          : 0;
+
+        adjustedSimilarity = Math.max(
+          0,
+          adjustedSimilarity - derivativePenalty,
+        );
 
         if (
           adjustedSimilarity > highestSimilarity ||
