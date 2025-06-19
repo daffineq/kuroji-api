@@ -55,6 +55,8 @@ export class TmdbSeasonService {
 
     const mainEpisodes = this.filterMainEpisodes(allEpisodes);
 
+    console.log(JSON.stringify(mainEpisodes[mainEpisodes.length - 1]));
+
     const seasonGroups = this.groupEpisodesBySeasons(mainEpisodes);
 
     const matchResult = await this.findBestEpisodeSequence(
@@ -134,9 +136,17 @@ export class TmdbSeasonService {
   private filterMainEpisodes(
     episodes: TmdbSeasonEpisode[],
   ): TmdbSeasonEpisode[] {
+    const today = new Date();
+
     return episodes.filter((ep) => {
       const isSpecial = ep.season_number === 0;
       if (isSpecial) return false;
+
+      if (!ep.air_date) return false;
+
+      const airDate = new Date(ep.air_date);
+      if (airDate > today) return false;
+
       return true;
     });
   }
@@ -182,18 +192,18 @@ export class TmdbSeasonService {
       confidence: 0,
     };
 
-    // console.log(
-    //   `Trying to match ${anilist.shikimori?.episodesAired ?? anilist.episodes} episodes for AniList ID ${anilist.id}`,
-    // );
+    console.log(
+      `Trying to match ${anilist.shikimori?.episodesAired ?? anilist.episodes} episodes for AniList ID ${anilist.id}`,
+    );
 
     for (const [index, strategy] of strategies.entries()) {
       try {
         const result = await strategy();
-        // console.log(`Strategy ${index + 1} result:`, {
-        //   episodeCount: result.episodes.length,
-        //   confidence: result.confidence,
-        //   primarySeason: result.primarySeason,
-        // });
+        console.log(`Strategy ${index + 1} result:`, {
+          episodeCount: result.episodes.length,
+          confidence: result.confidence,
+          primarySeason: result.primarySeason,
+        });
 
         if (result.confidence > bestMatch.confidence) {
           bestMatch = result;
@@ -230,8 +240,17 @@ export class TmdbSeasonService {
     const filteredEpisodes = allEpisodes.filter((ep) => {
       if (!ep.air_date) return false;
 
-      if (ep.air_date < startDate) return false;
-      if (endDate && ep.air_date > endDate) return false;
+      const airDate = new Date(ep.air_date);
+      const start = new Date(startDate);
+
+      if (isNaN(airDate.getTime()) || isNaN(start.getTime())) return false;
+
+      if (airDate < start) return false;
+
+      if (endDate) {
+        const end = new Date(endDate);
+        if (!isNaN(end.getTime()) && airDate > end) return false;
+      }
 
       return true;
     });
@@ -248,7 +267,7 @@ export class TmdbSeasonService {
     filteredEpisodes.sort((a, b) => a.air_date!.localeCompare(b.air_date!));
 
     const episodes = filteredEpisodes
-      .slice(0, expectedCount)
+      .slice(0, expectedCount + 1)
       .map((ep, index) => ({
         ...ep,
         episode_number: index + 1,
@@ -299,7 +318,7 @@ export class TmdbSeasonService {
       if (Math.abs(seasonYearEpisodes.length - expectedCount) <= 2) {
         const episodes = seasonYearEpisodes
           .sort((a, b) => a.air_date!.localeCompare(b.air_date!))
-          .slice(0, expectedCount)
+          .slice(0, expectedCount + 1)
           .map((ep, index) => ({
             ...ep,
             episode_number: index + 1,
@@ -347,7 +366,7 @@ export class TmdbSeasonService {
       if (exactYearEpisodes.length >= expectedCount * 0.8) {
         const episodes = exactYearEpisodes
           .sort((a, b) => a.air_date!.localeCompare(b.air_date!))
-          .slice(0, expectedCount)
+          .slice(0, expectedCount + 1)
           .map((ep, index) => ({
             ...ep,
             episode_number: index + 1,
