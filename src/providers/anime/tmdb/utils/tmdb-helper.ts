@@ -1,10 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  AnilistAiringSchedule,
-  Prisma,
-  TmdbReleaseSeason,
-  TmdbSeasonEpisode,
-} from '@prisma/client';
+import { Prisma, TmdbSeasonEpisode } from '@prisma/client';
 import {
   TmdbWithRelations,
   TmdbSeasonWithRelations,
@@ -219,10 +214,8 @@ export function findBestMatchFromSearch(
     searchAnime,
     resultsFiltered.map((result) => ({
       id: result.id,
-      title: {
-        english: result.name,
-        native: result.original_name,
-      },
+      title: result.name,
+      japaneseTitle: result.original_name,
     })),
   );
 

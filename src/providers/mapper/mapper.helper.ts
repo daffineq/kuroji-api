@@ -1,4 +1,4 @@
-export const SPECIAL_CHARS_REGEX = /[^\w\s]/g;
+export const SPECIAL_CHARS_REGEX = /[^\p{L}\p{N}\s]/gu;
 export const SEASON_PATTERNS = [
   /\b(\d+)(?:st|nd|rd|th)?\s*season\b/i, // "1st season", "2nd season", "3 season"
   /\bseason\s*(\d+)\b/i, // "season 1", "season 2"

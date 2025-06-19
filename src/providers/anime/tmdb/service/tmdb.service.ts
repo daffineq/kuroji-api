@@ -19,6 +19,7 @@ import {
   TmdbSeasonWithRelations,
   TmdbResponse,
   TmdbSeasonEpisodeImagesWithRelations,
+  BasicTmdb,
 } from '../types/types';
 import { Client } from '../../../model/client';
 import { UrlConfig } from '../../../../configs/url.config';
@@ -94,31 +95,35 @@ export class TmdbService extends Client {
 
   async fetchTmdbByAnilist(id: number): Promise<TmdbWithRelations> {
     const anilist = await this.anilistService.getAnilist(id);
-    const title =
-      anilist.title?.romaji ?? anilist.title?.english ?? anilist.title?.native;
+    const possibleTitles = [
+      anilist.title?.native,
+      anilist.title?.romaji,
+      anilist.title?.english,
+    ].filter(Boolean) as string[];
 
-    if (!title) {
+    if (possibleTitles.length === 0) {
       throw new Error('No title found in AniList');
     }
 
-    let searchResults = await this.searchTmdb(deepCleanTitle(title));
+    let bestMatch: BasicTmdb | null = null;
 
-    let bestMatch = findBestMatchFromSearch(anilist, searchResults.results);
-    if (!bestMatch && (anilist.title as { english: string }).english) {
-      searchResults = await this.searchTmdb(
-        (anilist.title as { english: string }).english,
-      );
+    for (const title of possibleTitles) {
+      const searchResults = await this.searchTmdb(deepCleanTitle(title));
       bestMatch = findBestMatchFromSearch(anilist, searchResults.results);
+      if (bestMatch) break;
     }
+
     if (!bestMatch) {
       throw new Error('No matching TMDb entry found');
     }
+
     const fetchedTmdb = await this.fetchTmdb(
       bestMatch.id,
       bestMatch.media_type,
     );
     fetchedTmdb.media_type = bestMatch.media_type;
-    return await this.saveTmdb(fetchedTmdb);
+
+    return this.saveTmdb(fetchedTmdb);
   }
 
   async searchTmdb(query: string): Promise<TmdbResponse> {
@@ -250,25 +255,33 @@ export class TmdbService extends Client {
 
   async findMatchInPrisma(id: number): Promise<TmdbWithRelations> {
     const anilist = await this.anilistService.getAnilist(id);
+
+    const titles = [
+      anilist.title?.native,
+      anilist.title?.romaji,
+      anilist.title?.english,
+    ].filter(Boolean) as string[];
+
     const candidates = await this.prisma.tmdb.findMany({
       where: {
-        OR: [
-          { name: { mode: 'insensitive' } },
-          { original_name: { mode: 'insensitive' } },
-        ],
+        OR: titles.flatMap((t) => [
+          { name: { contains: t, mode: 'insensitive' } },
+          { original_name: { contains: t, mode: 'insensitive' } },
+        ]),
       },
       include: {
         seasons: true,
         last_episode_to_air: true,
         next_episode_to_air: true,
       },
+      take: 25,
     });
 
     const searchAnime: ExpectAnime = {
       title: {
-        romaji: (anilist.title as { romaji: string }).romaji,
-        english: (anilist.title as { english: string }).english,
-        native: (anilist.title as { native: string }).native,
+        romaji: anilist.title?.romaji ?? undefined,
+        english: anilist.title?.english ?? undefined,
+        native: anilist.title?.native ?? undefined,
       },
     };
 
@@ -276,20 +289,18 @@ export class TmdbService extends Client {
       searchAnime,
       candidates.map((result) => ({
         id: result.id,
-        title: {
-          ...(result.name && { english: result.name }),
-          ...(result.original_name && { native: result.original_name }),
-        },
+        title: result.name ?? undefined,
+        japaneseTitle: result.original_name ?? undefined,
       })),
     );
 
-    if (bestMatch) {
-      return candidates.find(
-        (c) => c.id === bestMatch.result.id,
-      ) as TmdbWithRelations;
+    if (!bestMatch) {
+      throw new Error('No matching TMDb entry found');
     }
 
-    throw new Error('No matching TMDb entry found');
+    return candidates.find(
+      (c) => c.id === bestMatch.result.id,
+    )! as TmdbWithRelations;
   }
 
   async detectType(id: number): Promise<string> {
