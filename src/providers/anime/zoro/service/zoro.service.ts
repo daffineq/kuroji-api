@@ -14,6 +14,7 @@ import { UrlConfig } from '../../../../configs/url.config';
 import { ZoroWithRelations } from '../types/types';
 import { Client } from '../../../model/client';
 import { getZoroData } from '../utils/zoro-helper';
+import { findEpisodeCount } from '../../anilist/utils/anilist-helper';
 
 const zoro = new ANIME.Zoro();
 
@@ -163,11 +164,18 @@ export class ZoroService extends Client {
         seasonYear: true,
         episodes: true,
         format: true,
+        airingSchedule: true,
         shikimori: {
           select: {
             english: true,
             japanese: true,
+            episodes: true,
             episodesAired: true,
+          },
+        },
+        kitsu: {
+          select: {
+            episodeCount: true,
           },
         },
       },
@@ -199,8 +207,7 @@ export class ZoroService extends Client {
       },
       year: anilist.seasonYear ?? undefined,
       type: anilist.format ?? undefined,
-      episodes:
-        anilist.shikimori?.episodesAired ?? anilist.episodes ?? undefined,
+      episodes: findEpisodeCount(anilist),
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);

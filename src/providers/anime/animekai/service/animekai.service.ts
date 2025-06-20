@@ -14,6 +14,7 @@ import { UrlConfig } from '../../../../configs/url.config';
 import { AnimekaiWithRelations } from '../types/types';
 import { Client } from '../../../model/client';
 import { getAnimekaiData } from '../utils/animekai-helper';
+import { findEpisodeCount } from '../../anilist/utils/anilist-helper';
 
 const animekai = new ANIME.AnimeKai();
 
@@ -137,14 +138,23 @@ export class AnimekaiService extends Client {
             native: true,
           },
         },
+        id: true,
+        idMal: true,
         seasonYear: true,
         episodes: true,
         format: true,
+        airingSchedule: true,
         shikimori: {
           select: {
             english: true,
             japanese: true,
+            episodes: true,
             episodesAired: true,
+          },
+        },
+        kitsu: {
+          select: {
+            episodeCount: true,
           },
         },
       },
@@ -174,8 +184,7 @@ export class AnimekaiService extends Client {
       },
       year: anilist.seasonYear ?? undefined,
       type: anilist.format ?? undefined,
-      episodes:
-        anilist.shikimori?.episodesAired ?? anilist.episodes ?? undefined,
+      episodes: findEpisodeCount(anilist),
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);

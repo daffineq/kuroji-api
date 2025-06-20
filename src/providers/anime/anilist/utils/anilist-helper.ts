@@ -591,3 +591,43 @@ export function getDateStringFromAnilist(date: DateDetails): string | null {
 
   return anilistStartDateString;
 }
+
+export function findEpisodeCount<
+  T extends {
+    episodes?: number | null;
+    airingSchedule?: unknown[] | null;
+    shikimori?: {
+      episodes?: number | null;
+      episodesAired?: number | null;
+    } | null;
+    kitsu?: {
+      episodeCount?: number | null;
+    } | null;
+  },
+>(data: T): number | undefined {
+  const episodeVotes: (number | undefined | null)[] = [
+    data.episodes,
+    data.airingSchedule?.length,
+    data.shikimori?.episodes,
+    data.shikimori?.episodesAired,
+    data.kitsu?.episodeCount,
+  ];
+
+  const values = episodeVotes.filter(
+    (v): v is number => typeof v === 'number' && v > 0,
+  );
+
+  if (values.length === 0) return undefined;
+
+  const countMap = new Map<number, number>();
+  for (const v of values) {
+    countMap.set(v, (countMap.get(v) ?? 0) + 1);
+  }
+
+  const sorted = [...countMap.entries()].sort((a, b) => {
+    if (b[1] !== a[1]) return b[1] - a[1];
+    return b[0] - a[0];
+  });
+
+  return sorted[0][0];
+}

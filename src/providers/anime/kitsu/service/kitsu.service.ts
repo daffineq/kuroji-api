@@ -6,6 +6,7 @@ import { findBestMatch } from '../../../mapper/mapper.helper';
 import { KitsuWithRelations, KitsuAnime } from '../types/types';
 import { Client } from '../../../model/client';
 import { UrlConfig } from '../../../../configs/url.config';
+import { findEpisodeCount } from '../../anilist/utils/anilist-helper';
 
 @Injectable()
 export class KitsuService extends Client {
@@ -88,8 +89,25 @@ export class KitsuService extends Client {
             native: true,
           },
         },
+        id: true,
+        idMal: true,
         seasonYear: true,
         episodes: true,
+        format: true,
+        airingSchedule: true,
+        shikimori: {
+          select: {
+            english: true,
+            japanese: true,
+            episodes: true,
+            episodesAired: true,
+          },
+        },
+        kitsu: {
+          select: {
+            episodeCount: true,
+          },
+        },
       },
     });
 
@@ -120,7 +138,7 @@ export class KitsuService extends Client {
         native: anilist.title?.native || undefined,
       },
       year: anilist.seasonYear ?? undefined,
-      episodes: anilist.episodes ?? undefined,
+      episodes: findEpisodeCount(anilist),
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);

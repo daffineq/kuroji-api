@@ -128,8 +128,48 @@ export function jaroWinklerDistance(s1: string, s2: string, p = 0.1): number {
   );
 }
 
+export function titleSimilarity(a: string, b: string): number {
+  if (a === b) return 1;
+  if (!a.length || !b.length) return 0;
+
+  const matrix: number[][] = [];
+
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b[i - 1] === a[j - 1]) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          matrix[i][j - 1] + 1, // insertion
+          matrix[i - 1][j] + 1, // deletion
+        );
+      }
+    }
+  }
+
+  const distance = matrix[b.length][a.length];
+  const maxLength = Math.max(a.length, b.length);
+  const similarity = 1 - distance / maxLength;
+
+  return similarity;
+}
+
+export function hybridSimilarity(a: string, b: string): number {
+  const jw = jaroWinklerDistance(a, b);
+  const lev = titleSimilarity(a, b);
+
+  return jw * 0.4 + lev * 0.6;
+}
+
 /**
- * NEW: Checks if a title is a derivative/re-edit version that should be deprioritized
  * @param title - The title to check
  * @returns Boolean indicating if this is a derivative version
  */
@@ -140,7 +180,6 @@ export function isDerivativeVersion(title: string): boolean {
 }
 
 /**
- * NEW: Calculates a penalty score for derivative versions
  * Higher penalty = more likely to be deprioritized
  * @param title - The title to check
  * @returns Penalty score (0 = no penalty, higher = more penalty)
@@ -151,7 +190,6 @@ export function getDerivativePenalty(title: string): number {
   let penalty = 0;
   const lowerTitle = title.toLowerCase();
 
-  // Heavy penalties for obvious re-edits
   if (/re-?edit|redit|新編集版/i.test(title)) penalty += 0.3;
   if (/director'?s?\s*cut/i.test(title)) penalty += 0.25;
   if (/recap|summary|compilation/i.test(title)) penalty += 0.35;
@@ -160,7 +198,6 @@ export function getDerivativePenalty(title: string): number {
   if (/extended|long\s*version/i.test(title)) penalty += 0.15;
   if (/alternate|alternative/i.test(title)) penalty += 0.2;
 
-  // Additional penalty for parenthetical indicators
   if (
     /\([^)]*(?:re-?edit|director|cut|recap|compilation|remaster)[^)]*\)/i.test(
       title,
@@ -169,7 +206,7 @@ export function getDerivativePenalty(title: string): number {
     penalty += 0.1;
   }
 
-  return Math.min(penalty, 0.5); // Cap at 0.5 to avoid completely eliminating matches
+  return Math.min(penalty, 0.5);
 }
 
 /**
@@ -667,7 +704,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
     for (const normalizedSearchTitle of normalizedSearchTitles) {
       for (const normalizedCandidateTitle of normalizedCandidateTitles) {
-        const similarity = jaroWinklerDistance(
+        const similarity = hybridSimilarity(
           normalizedSearchTitle,
           normalizedCandidateTitle,
         );
@@ -732,7 +769,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
     for (const normalizedSearchTitle of normalizedSearchTitles) {
       for (const normalizedCandidateTitle of normalizedCandidateTitles) {
-        const similarity = jaroWinklerDistance(
+        const similarity = hybridSimilarity(
           normalizedSearchTitle,
           normalizedCandidateTitle,
         );
@@ -796,7 +833,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
     for (const normalizedSearchTitle of normalizedSearchTitles) {
       for (const normalizedCandidateTitle of normalizedCandidateTitles) {
-        const similarity = jaroWinklerDistance(
+        const similarity = hybridSimilarity(
           normalizedSearchTitle,
           normalizedCandidateTitle,
         );

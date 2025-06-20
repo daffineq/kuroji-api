@@ -3,7 +3,10 @@ import { PrismaService } from '../../../../prisma.service';
 import { AnilistService } from '../../anilist/service/anilist.service';
 import { TmdbService } from './tmdb.service';
 import { DateDetails, TmdbSeasonEpisode } from '@prisma/client';
-import { getDateStringFromAnilist } from '../../anilist/utils/anilist-helper';
+import {
+  findEpisodeCount,
+  getDateStringFromAnilist,
+} from '../../anilist/utils/anilist-helper';
 import { TmdbSeasonWithRelations } from '../types/types';
 import { AnilistWithRelations } from '../../anilist/types/types';
 import { MediaFormat } from '@consumet/extensions';
@@ -25,10 +28,6 @@ interface SeasonEpisodeGroup {
   seasonNumber: number;
   episodes: TmdbSeasonEpisode[];
   totalEpisodes: number;
-}
-
-function getExpectedCount(anilist: AnilistWithRelations): number | null {
-  return anilist.shikimori?.episodesAired || anilist.episodes;
 }
 
 @Injectable()
@@ -145,26 +144,6 @@ export class TmdbSeasonService {
   ): TmdbSeasonEpisode[] {
     const today = new Date();
 
-    // const validEpisodes = episodes.filter((ep) => {
-    //   if (!ep.air_date) return false;
-    //   const airDate = new Date(ep.air_date);
-    //   if (airDate > today) return false;
-    //   return true;
-    // });
-
-    // const regularEpisodes = validEpisodes.filter(
-    //   (ep) => ep.season_number !== 0,
-    // );
-    // const specialEpisodes = validEpisodes.filter(
-    //   (ep) => ep.season_number === 0,
-    // );
-
-    // if (regularEpisodes.length > 0) {
-    //   return [...regularEpisodes, ...specialEpisodes];
-    // }
-
-    // return specialEpisodes;
-
     return episodes.filter((ep) => {
       if (ep.season_number === 0) return false;
       if (!ep.air_date) return false;
@@ -216,7 +195,7 @@ export class TmdbSeasonService {
     };
 
     // console.log(
-    //   `Trying to match ${getExpectedCount(anilist)} episodes for AniList ID ${anilist.id}`,
+    //   `Trying to match ${findEpisodeCount(anilist)} episodes for AniList ID ${anilist.id}`,
     // );
 
     for (const [index, strategy] of strategies.entries()) {
@@ -322,7 +301,7 @@ export class TmdbSeasonService {
       return { episodes: [], primarySeason: 1, confidence: 0 };
     }
 
-    const expectedCount = getExpectedCount(anilist);
+    const expectedCount = findEpisodeCount(anilist);
     if (!expectedCount) {
       return { episodes: [], primarySeason: 1, confidence: 0 };
     }
@@ -341,7 +320,7 @@ export class TmdbSeasonService {
     allEpisodes: TmdbSeasonEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
   ): Promise<MatchResult> {
-    const expectedCount = getExpectedCount(anilist);
+    const expectedCount = findEpisodeCount(anilist);
     if (!expectedCount || !anilist.seasonYear) {
       return { episodes: [], primarySeason: 1, confidence: 0 };
     }
@@ -403,7 +382,7 @@ export class TmdbSeasonService {
     }
 
     const anilistYear = anilist.seasonYear;
-    const expectedCount = getExpectedCount(anilist);
+    const expectedCount = findEpisodeCount(anilist);
 
     if (!expectedCount) {
       return { episodes: [], primarySeason: 1, confidence: 0 };
@@ -509,7 +488,7 @@ export class TmdbSeasonService {
       return { episodes: [], primarySeason: 1, confidence: 0 };
     }
 
-    const expectedCount = getExpectedCount(anilist);
+    const expectedCount = findEpisodeCount(anilist);
 
     const episodes = this.selectBestEpisodes(
       matches.map((m) => m.episode),
