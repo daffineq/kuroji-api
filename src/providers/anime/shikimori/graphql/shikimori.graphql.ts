@@ -54,6 +54,7 @@ export class GraphQL {
       'statusesStats { status count }',
       'description',
       'descriptionHtml',
+      'descriptionSource',
     ];
 
     if (includeChronology) {

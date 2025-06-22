@@ -28,6 +28,9 @@ export class ShikimoriHelper {
       createdAt: anime.createdAt,
       updatedAt: anime.updatedAt,
       nextEpisodeAt: anime.nextEpisodeAt,
+      description: anime.description,
+      descriptionHtml: anime.descriptionHtml,
+      descriptionSource: anime.descriptionSource,
 
       poster: anime.poster
         ? {

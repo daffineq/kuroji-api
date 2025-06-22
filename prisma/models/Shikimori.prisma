@@ -1,78 +1,81 @@
 model Shikimori {
-  id            String        @id
-  malId         Int?          @unique
-  name          String?
-  russian       String?
-  licenseNameRu String?
-  english       String?
-  japanese      String?
-  poster        ShikimoriPoster? @relation("ShikimoriPoster")
-  synonyms      String[]
-  kind          String?
-  rating        String?
-  score         Float?
-  status        String?
-  episodes      Int?
-  episodesAired Int?
-  duration      Int?
-  airedOn       AiredOn? @relation("ShikimoriAiredOn")
-  releasedOn    ReleasedOn? @relation("ShikimoriReleasedOn")
-  franchise     String?
-  url           String?
-  season        String?
-  createdAt     DateTime?
-  updatedAt     DateTime?
-  nextEpisodeAt DateTime?
-  chronology    BasicIdShik[] @relation("ShikimoriChronology")
-  videos        ShikimoriVideo[] @relation("ShikimoriVideo")
-  screenshots   ShikimoriScreenshot[] @relation("ShikimoriScreenshot")
-  anilist       Anilist? @relation(fields: [malId], references: [idMal])
+  id                String                @id
+  malId             Int?                  @unique
+  name              String?
+  russian           String?
+  licenseNameRu     String?
+  english           String?
+  japanese          String?
+  poster            ShikimoriPoster?      @relation("ShikimoriPoster")
+  synonyms          String[]
+  kind              String?
+  rating            String?
+  score             Float?
+  status            String?
+  episodes          Int?
+  episodesAired     Int?
+  duration          Int?
+  airedOn           AiredOn?              @relation("ShikimoriAiredOn")
+  releasedOn        ReleasedOn?           @relation("ShikimoriReleasedOn")
+  franchise         String?
+  url               String?
+  season            String?
+  createdAt         DateTime?
+  updatedAt         DateTime?
+  nextEpisodeAt     DateTime?
+  description       String?
+  descriptionHtml   String?
+  descriptionSource String?
+  chronology        BasicIdShik[]         @relation("ShikimoriChronology")
+  videos            ShikimoriVideo[]      @relation("ShikimoriVideo")
+  screenshots       ShikimoriScreenshot[] @relation("ShikimoriScreenshot")
+  anilist           Anilist?              @relation(fields: [malId], references: [idMal])
 }
 
 model AiredOn {
-  id        Int         @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   shikimoriId String @unique
 
-  year      Int?
-  month     Int?
-  day       Int?
-  date      String?
+  year  Int?
+  month Int?
+  day   Int?
+  date  String?
 
   shikimori Shikimori @relation("ShikimoriAiredOn", fields: [shikimoriId], references: [id])
 }
 
 model ReleasedOn {
-  id        Int         @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   shikimoriId String @unique
 
-  year      Int?
-  month     Int?
-  day       Int?
-  date      String?
+  year  Int?
+  month Int?
+  day   Int?
+  date  String?
 
   shikimori Shikimori @relation("ShikimoriReleasedOn", fields: [shikimoriId], references: [id])
 }
 
 model BasicIdShik {
-  id          String        @id
-  malId       String?
+  id    String  @id
+  malId String?
 
   shikimori Shikimori[] @relation("ShikimoriChronology")
 }
 
 model ShikimoriVideo {
-  id            String        @id
-  url           String?
-  name          String?
-  kind          String?
-  playerUrl     String?
-  imageUrl      String?
+  id        String  @id
+  url       String?
+  name      String?
+  kind      String?
+  playerUrl String?
+  imageUrl  String?
 
   shikimori Shikimori[] @relation("ShikimoriVideo")
 }
 
 model ShikimoriScreenshot {
-  id          String        @id
+  id          String  @id
   originalUrl String?
   x166Url     String?
   x332Url     String?
@@ -81,25 +84,25 @@ model ShikimoriScreenshot {
 }
 
 model Title {
-  id           Int                     @id @default(autoincrement())
-  romaji       String?
-  english      String?
-  native       String?
+  id      Int     @id @default(autoincrement())
+  romaji  String?
+  english String?
+  native  String?
 }
 
 model DateDetails {
-  id           Int                     @id @default(autoincrement())
-  year         Int?
-  month        Int?
-  day          Int?
+  id    Int  @id @default(autoincrement())
+  year  Int?
+  month Int?
+  day   Int?
 }
 
 model ShikimoriPoster {
-  id             String              @id
-  shikimoriId    String @unique
+  id          String @id
+  shikimoriId String @unique
 
-  originalUrl    String?
-  mainUrl        String?
+  originalUrl String?
+  mainUrl     String?
 
   shikimori Shikimori @relation("ShikimoriPoster", fields: [shikimoriId], references: [id])
 }
