@@ -14,6 +14,9 @@ export class UrlConfig {
   public static readonly CONSUMET_BASE = withTrailingSlash(
     Config.CONSUMET || '',
   );
+  public static readonly ANIWATCH_BASE = withTrailingSlash(
+    Config.ANIWATCH || '',
+  );
   public static readonly SHIKIMORI = withTrailingSlash(
     Config.SHIKIMORI || 'https://shikimori.one',
   );
@@ -37,13 +40,12 @@ export class UrlConfig {
   public static readonly ANILIST = 'https://anilist.co/anime/';
 
   // 🔁 SHIKIMORI Sub Routes
-  public static readonly SHIKIMORI_API = UrlConfig.SHIKIMORI + 'api/';
-  public static readonly SHIKIMORI_GRAPHQL =
-    UrlConfig.SHIKIMORI_API + 'graphql';
+  public static readonly SHIKIMORI_API = `${UrlConfig.SHIKIMORI}api/`;
+  public static readonly SHIKIMORI_GRAPHQL = `${UrlConfig.SHIKIMORI_API}graphql`;
 
   // 📺 Stream/Source APIs via Consumet
-  public static readonly ZORO = UrlConfig.CONSUMET_BASE + 'anime/zoro/';
-  public static readonly ANIMEKAI = UrlConfig.CONSUMET_BASE + 'anime/animekai/';
-  public static readonly ANIMEPAHE =
-    UrlConfig.CONSUMET_BASE + 'anime/animepahe/';
+  public static readonly ZORO = `${UrlConfig.CONSUMET_BASE}anime/zoro/`;
+  public static readonly ANIMEKAI = `${UrlConfig.CONSUMET_BASE}anime/animekai/`;
+  public static readonly ANIMEPAHE = `${UrlConfig.CONSUMET_BASE}anime/animepahe/`;
+  public static readonly HIANIME = `${UrlConfig.ANIWATCH_BASE}api/v2/hianime/`;
 }

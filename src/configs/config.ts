@@ -20,6 +20,7 @@ export default class Config {
   public static readonly ANILIST = process.env.ANILIST;
   public static readonly SHIKIMORI = process.env.SHIKIMORI;
   public static readonly CONSUMET = process.env.CONSUMET;
+  public static readonly ANIWATCH = process.env.ANIWATCH;
   public static readonly TMDB = process.env.TMDB;
   public static readonly TVDB = process.env.TVDB;
   public static readonly JIKAN = process.env.JIKAN;

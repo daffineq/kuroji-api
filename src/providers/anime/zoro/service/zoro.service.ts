@@ -11,17 +11,21 @@ import {
   SubOrSub,
 } from '@consumet/extensions';
 import { UrlConfig } from '../../../../configs/url.config';
-import { ZoroWithRelations } from '../types/types';
+import { ZoroSource, ZoroWithRelations } from '../types/types';
 import { Client } from '../../../model/client';
 import { getZoroData } from '../utils/zoro-helper';
 import { findEpisodeCount } from '../../anilist/utils/anilist-helper';
 
 const zoro = new ANIME.Zoro();
 
+function convertId(slug: string): string {
+  return slug.replace(/\$episode\$/, '?ep=');
+}
+
 @Injectable()
 export class ZoroService extends Client {
   constructor(private readonly prisma: PrismaService) {
-    super(UrlConfig.ZORO);
+    super();
   }
 
   async getZoro(id: string): Promise<ZoroWithRelations> {
@@ -101,10 +105,19 @@ export class ZoroService extends Client {
     return this.saveZoro(zoro);
   }
 
-  async getSources(episodeId: string, dub: boolean): Promise<ISource> {
+  async getSources(episodeId: string, dub: boolean): Promise<ZoroSource> {
     // return await zoro.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
-    const { data, error } = await this.client.get<ISource>(
-      `watch/${episodeId}?dub=${dub}`,
+    // const { data, error } = await this.client.get<ISource>(
+    //   `watch/${episodeId}?dub=${dub}`,
+    // );
+
+    const category = dub ? 'dub' : 'sub';
+
+    const { data, error } = await this.client.get<ZoroSource>(
+      `${UrlConfig.HIANIME}episode/sources?animeEpisodeId=${convertId(episodeId)}?category=${category}`,
+      {
+        jsonPath: 'data',
+      },
     );
 
     if (error) {
@@ -120,7 +133,9 @@ export class ZoroService extends Client {
 
   async fetchZoro(id: string): Promise<IAnimeInfo> {
     // return await zoro.fetchAnimeInfo(id);
-    const { data, error } = await this.client.get<IAnimeInfo>(`info?id=${id}`);
+    const { data, error } = await this.client.get<IAnimeInfo>(
+      `${UrlConfig.ZORO}info?id=${id}`,
+    );
 
     if (error) {
       throw error;
@@ -135,7 +150,9 @@ export class ZoroService extends Client {
 
   async searchZoro(q: string): Promise<ISearch<IAnimeResult>> {
     // return (await zoro.search(q)).results;
-    const { data, error } = await this.client.get<ISearch<IAnimeResult>>(q);
+    const { data, error } = await this.client.get<ISearch<IAnimeResult>>(
+      `${UrlConfig.ZORO}${q}`,
+    );
 
     if (error) {
       throw error;
