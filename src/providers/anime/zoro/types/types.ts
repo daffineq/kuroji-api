@@ -1,69 +1,45 @@
+import { ISource } from '@consumet/extensions';
 import { Zoro, EpisodeZoro } from '@prisma/client';
 
 export interface ZoroWithRelations extends Zoro {
   episodes: EpisodeZoro[];
 }
 
-export interface ISubtitle {
-  id?: string;
-  url: string;
-  lang: string;
-}
-
-export interface Intro {
-  start: number;
-  end: number;
-}
-
-export interface IVideo {
-  url: string;
-  quality?: string;
-  isM3U8?: boolean;
-  isDASH?: boolean;
-  size?: number;
-  [x: string]: unknown;
-}
-
 export interface ZoroSource {
   headers?: { [key: string]: string };
 
-  /**
-   * Intro details in seconds, if available
-   */
-  intro?: Intro;
+  tracks?: {
+    url: string;
+    lang: string;
+  }[];
 
-  /**
-   * Outro details in seconds, if available
-   */
-  outro?: Intro;
+  intro?: {
+    start: number;
+    end: number;
+  };
 
-  /**
-   * Subtitle or tracks - unified as same type
-   */
-  subtitles?: ISubtitle[];
+  outro?: {
+    start: number;
+    end: number;
+  };
 
-  /**
-   * Main video sources
-   */
-  sources: IVideo[];
+  sources: {
+    url: string;
+    isM3U8?: boolean;
+    type?: string;
+    [key: string]: unknown;
+  }[];
 
-  /**
-   * Optional download links
-   */
-  download?: string | { url?: string; quality?: string }[];
-
-  /**
-   * Optional embed URL
-   */
-  embedURL?: string;
-
-  /**
-   * AniList ID
-   */
   anilistID?: number;
-
-  /**
-   * MyAnimeList ID
-   */
   malID?: number;
+}
+
+export function convertZoroSource(data: ZoroSource): ISource {
+  return {
+    headers: data.headers,
+    intro: data.intro,
+    outro: data.outro,
+    subtitles: data.tracks,
+    sources: data.sources,
+  };
 }

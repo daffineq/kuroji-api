@@ -276,12 +276,12 @@ export class StreamService {
     ep: number,
     alId: number,
     dub: boolean = false,
-  ): Promise<any> {
+  ): Promise<ISource> {
     const providers = await this.getProvidersSingle(alId, ep);
     const epId = providers.find((p) => p.provider === provider)?.id;
     if (!epId) throw new Error('Episode not found for provider');
 
-    const fetchMap: { [key: string]: () => Promise<any> } = {};
+    const fetchMap: { [key: string]: () => Promise<ISource> } = {};
 
     if (Config.ZORO_ENABLED) {
       fetchMap[Provider.zoro] = async () => this.aniwatch.getSources(epId, dub);

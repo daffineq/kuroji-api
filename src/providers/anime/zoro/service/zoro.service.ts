@@ -11,7 +11,11 @@ import {
   SubOrSub,
 } from '@consumet/extensions';
 import { UrlConfig } from '../../../../configs/url.config';
-import { ZoroSource, ZoroWithRelations } from '../types/types';
+import {
+  convertZoroSource,
+  ZoroSource,
+  ZoroWithRelations,
+} from '../types/types';
 import { Client } from '../../../model/client';
 import { getZoroData } from '../utils/zoro-helper';
 import { findEpisodeCount } from '../../anilist/utils/anilist-helper';
@@ -105,7 +109,7 @@ export class ZoroService extends Client {
     return this.saveZoro(zoro);
   }
 
-  async getSources(episodeId: string, dub: boolean): Promise<ZoroSource> {
+  async getSources(episodeId: string, dub: boolean): Promise<ISource> {
     // return await zoro.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
     // const { data, error } = await this.client.get<ISource>(
     //   `watch/${episodeId}?dub=${dub}`,
@@ -128,7 +132,7 @@ export class ZoroService extends Client {
       throw new Error('Data is null');
     }
 
-    return data;
+    return convertZoroSource(data);
   }
 
   async fetchZoro(id: string): Promise<IAnimeInfo> {
