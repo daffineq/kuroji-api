@@ -67,7 +67,9 @@ $ bun start:dev
 
 ## 🌐 Public Hosted API
 
-We've got a public instance of Kuroji API running at **https://kuroji.1ani.me/** for light usage.
+We've got a public instance of Kuroji API running at **###** for light usage.
+
+> **Warn**: Public instance is not available right now.
 
 ### ⚠️ Rate Limits & Fair Usage
 
