@@ -87,6 +87,15 @@ export enum MediaSort {
   LATEST_DESC = 'latest_desc',
 }
 
+export enum TagSort {
+  ID = 'id',
+  ID_DESC = 'id_desc',
+  NAME = 'name',
+  NAME_DESC = 'name_desc',
+  RANK = 'rank',
+  RANK_DESC = 'rank_desc',
+}
+
 export enum Language {
   SUB = 'sub',
   DUB = 'dub',

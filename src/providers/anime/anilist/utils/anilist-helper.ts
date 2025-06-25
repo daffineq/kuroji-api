@@ -439,11 +439,7 @@ export function getAnilistInclude(): Prisma.AnilistInclude {
         anilistId: true,
       },
     },
-    tags: {
-      omit: {
-        anilistId: true,
-      },
-    },
+    tags: true,
     rankings: {
       omit: {
         anilistId: true,

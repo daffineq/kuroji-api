@@ -22,6 +22,7 @@ import Config from '../../../../configs/config';
 import { AnilistRandomService } from '../service/helper/anilist.random.service';
 import { RandomDto } from '../types/types';
 import { SecretKeyGuard } from '../../../../shared/secret-key.guard';
+import { TagFilterDto } from '../filter/TagFilterDto';
 
 @Controller('anime')
 export class AnilistController {
@@ -144,11 +145,8 @@ export class AnilistController {
   }
 
   @Get('tags')
-  async getTags(
-    @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
-    @Query('page') page: number = Config.DEFAULT_PAGE,
-  ) {
-    return this.add.getAllTags(page, perPage);
+  async getTags(@Query() filter: TagFilterDto) {
+    return this.search.getTags(filter);
   }
 
   @Put('info/:id/update')

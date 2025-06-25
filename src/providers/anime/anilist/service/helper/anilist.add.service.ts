@@ -206,25 +206,4 @@ export class AnilistAddService {
 
     return uniqueGenres;
   }
-
-  async getAllTags(
-    page: number,
-    perPage: number,
-  ): Promise<ApiResponse<AnilistTag[]>> {
-    const [data, total] = await Promise.all([
-      this.prisma.anilistTag.findMany({
-        skip: (page - 1) * perPage,
-        take: perPage,
-        orderBy: { name: 'asc' },
-      }),
-      this.prisma.anilistTag.count(),
-    ]);
-
-    const pageInfo = getPageInfo(total, perPage, page);
-
-    return {
-      pageInfo,
-      data,
-    };
-  }
 }

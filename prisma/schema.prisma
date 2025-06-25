@@ -474,7 +474,6 @@ model AnilistVoiceImage {
 
 model AnilistTag {
   id          Int      @id
-  anilistId   Int
   name        String?  @unique
   description String?
   category    String?
@@ -482,7 +481,7 @@ model AnilistTag {
   isSpoiler   Boolean?
   isAdult     Boolean?
 
-  anilist Anilist @relation("AnilistTags", fields: [anilistId], references: [id])
+  anilist Anilist[] @relation("AnilistTags")
 }
 
 model AnilistExternalLink {

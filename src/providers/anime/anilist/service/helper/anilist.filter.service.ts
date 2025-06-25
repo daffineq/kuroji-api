@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Anilist } from '@prisma/client';
+import { Anilist, AnilistTag } from '@prisma/client';
 import { ApiResponse } from '../../../../../shared/ApiResponse';
 import { FilterDto } from '../../filter/FilterDto';
 import { PrismaService } from '../../../../../prisma.service';
@@ -7,6 +7,7 @@ import { getAnilistInclude } from '../../utils/anilist-helper';
 import { firstUpperList, getPageInfo } from '../../../../../utils/utils';
 import { Language } from '../../filter/Filter';
 import { NestedSort, SortDirection } from '../../types/types';
+import { TagFilterDto } from '../../filter/TagFilterDto';
 
 @Injectable()
 export class AnilistFilterService {
@@ -378,6 +379,108 @@ export class AnilistFilterService {
     ]);
 
     // ========== Pagination Info ==========
+    const pageInfo = getPageInfo(total, perPage, currentPage);
+
+    return { pageInfo, data };
+  }
+
+  async getAnilistTagByFilter(
+    filter: TagFilterDto,
+  ): Promise<ApiResponse<AnilistTag[]>> {
+    const conditions: any[] = [];
+
+    // ======= Basic Filters =======
+    const basicFields = [
+      ['id', filter.id],
+      ['name', filter.name],
+      ['description', filter.description],
+      ['category', filter.category],
+      ['rank', filter.rank],
+      ['isSpoiler', filter.isSpoiler],
+      ['isAdult', filter.isAdult],
+    ];
+
+    for (const [key, value] of basicFields) {
+      if (value !== undefined) conditions.push({ [key as any]: value });
+    }
+
+    // ======= Array Filters =======
+    if (filter.idIn) conditions.push({ id: { in: filter.idIn } });
+    if (filter.idNotIn) conditions.push({ id: { notIn: filter.idNotIn } });
+    if (filter.idNot !== undefined)
+      conditions.push({ id: { not: filter.idNot } });
+
+    if (filter.nameIn) conditions.push({ name: { in: filter.nameIn } });
+    if (filter.nameNotIn)
+      conditions.push({ name: { notIn: filter.nameNotIn } });
+    if (filter.nameLike)
+      conditions.push({
+        name: { contains: filter.nameLike, mode: 'insensitive' },
+      });
+
+    if (filter.categoryIn)
+      conditions.push({ category: { in: filter.categoryIn } });
+    if (filter.categoryNotIn)
+      conditions.push({ category: { notIn: filter.categoryNotIn } });
+
+    // ======= Rank Filters =======
+    if (filter.rankGreater !== undefined)
+      conditions.push({ rank: { gt: filter.rankGreater } });
+    if (filter.rankLesser !== undefined)
+      conditions.push({ rank: { lt: filter.rankLesser } });
+
+    // ======= Query Search =======
+    if (filter.query) {
+      const q = filter.query;
+      conditions.push({
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { description: { contains: q, mode: 'insensitive' } },
+          { category: { contains: q, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    const whereCondition = { AND: conditions };
+
+    // ======= Sorting =======
+    const orderBy: any[] = [];
+
+    if (filter.sort?.length) {
+      filter.sort.forEach((sortField) => {
+        let direction: 'asc' | 'desc' = 'asc';
+        const parts = sortField.split('_');
+        const lastPart = parts[parts.length - 1].toLowerCase();
+
+        if (lastPart === 'asc' || lastPart === 'desc') {
+          direction = lastPart;
+          parts.pop();
+        }
+
+        const field = parts.join('_');
+
+        if (['id', 'name', 'rank', 'category'].includes(field)) {
+          orderBy.push({ [field]: direction });
+        }
+      });
+    }
+
+    // ======= Pagination =======
+    const perPage = filter.perPage ?? 15;
+    const currentPage = filter.page ?? 1;
+    const skip = (currentPage - 1) * perPage;
+
+    // ======= Query Prisma =======
+    const [data, total] = await Promise.all([
+      this.prisma.anilistTag.findMany({
+        where: whereCondition,
+        take: perPage,
+        skip,
+        orderBy,
+      }),
+      this.prisma.anilistTag.count({ where: whereCondition }),
+    ]);
+
     const pageInfo = getPageInfo(total, perPage, currentPage);
 
     return { pageInfo, data };

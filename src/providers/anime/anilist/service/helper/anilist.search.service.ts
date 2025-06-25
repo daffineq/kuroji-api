@@ -13,6 +13,7 @@ import Redis from 'ioredis';
 import { hashFilters } from '../../../../../utils/utils';
 import Config from '../../../../../configs/config';
 import { undefinedToNull } from '../../../../../shared/interceptor';
+import { TagFilterDto } from '../../filter/TagFilterDto';
 
 @Injectable()
 export class AnilistSearchService {
@@ -86,6 +87,10 @@ export class AnilistSearchService {
     }
 
     return obj;
+  }
+
+  async getTags(filter: TagFilterDto) {
+    return this.filter.getAnilistTagByFilter(filter);
   }
 
   async searchAnilist(

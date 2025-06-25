@@ -8,7 +8,7 @@ import {
   Max,
   Min,
 } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
   MediaFormat,
   MediaSeason,
@@ -21,23 +21,11 @@ import {
   MediaCountry,
 } from './Filter';
 import Config from '../../../../configs/config';
-
-const TransformToArray = () =>
-  Transform(({ value }: { value: unknown }) => {
-    if (Array.isArray(value)) return value as string[];
-    if (typeof value === 'string') return value.split(',');
-    return [value];
-  });
-
-const TransformToNumberArray = () =>
-  Transform(({ value }) => {
-    if (Array.isArray(value)) return value.map((v) => Number(v));
-    if (typeof value === 'string')
-      return value.split(',').map((v) => Number(v));
-    return [Number(value)];
-  });
-
-const TransformToBoolean = () => Transform(({ value }) => value === 'true');
+import {
+  TransformToArray,
+  TransformToNumberArray,
+  TransformToBoolean,
+} from '../../../../utils/utils';
 
 export class FilterDto {
   constructor(partial?: Partial<FilterDto>) {
