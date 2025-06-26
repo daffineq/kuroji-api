@@ -75,6 +75,10 @@ export class AnimekaiService extends Client {
       throw new Error('Animekai not found');
     }
 
+    if (existingAnimekai.episodes.length === animekai.episodes?.length) {
+      throw new Error('Nothing to update');
+    }
+
     animekai.anilistId = id;
 
     return await this.saveAnimekai(animekai);

@@ -104,6 +104,10 @@ export class ZoroService extends Client {
       throw new Error('Zoro not fetched');
     }
 
+    if (existingZoro.episodes.length === zoro.episodes?.length) {
+      throw new Error('Nothing to update');
+    }
+
     zoro.alID = id;
 
     return this.saveZoro(zoro);

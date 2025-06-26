@@ -16,6 +16,18 @@ export class AnilistFilterService {
   async getAnilistByFilter(filter: FilterDto): Promise<ApiResponse<Anilist[]>> {
     const conditions: any[] = [];
 
+    const sortingByUpdatedAt = filter.sort?.some((s) =>
+      s.includes('updated_at'),
+    );
+
+    if (sortingByUpdatedAt) {
+      conditions.push({
+        zoro: {
+          isNot: null,
+        },
+      });
+    }
+
     // ========== Basic Filters ==========
     const basicFields = [
       ['id', filter.id],

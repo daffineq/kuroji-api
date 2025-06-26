@@ -79,6 +79,10 @@ export class AnimepaheService extends Client {
       throw new Error('Animepahe not found');
     }
 
+    if (existingAnimepahe.episodes.length === animepahe.episodes?.length) {
+      throw new Error('Nothing to update');
+    }
+
     animepahe.alId = id;
 
     return await this.saveAnimepahe(animepahe);
