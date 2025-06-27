@@ -109,6 +109,7 @@ export interface BasicShikimori {
   url?: string;
   franchise?: string;
   poster?: ShikimoriPoster;
+  description?: string;
 }
 
 export interface BasicKitsu {

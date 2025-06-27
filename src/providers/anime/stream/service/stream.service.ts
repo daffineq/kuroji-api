@@ -71,17 +71,9 @@ export class StreamService {
         )?.airingAt;
 
         const formattedDate = tmdbEpisode?.air_date
-          ? new Date(tmdbEpisode.air_date).toLocaleDateString('en-US', {
-              month: 'short',
-              day: '2-digit',
-              year: 'numeric',
-            })
+          ? new Date(tmdbEpisode.air_date)
           : airDate
-            ? new Date(airDate * 1000).toLocaleDateString('en-US', {
-                month: 'short',
-                day: '2-digit',
-                year: 'numeric',
-              })
+            ? new Date(airDate * 1000)
             : undefined;
 
         return {
@@ -89,7 +81,7 @@ export class StreamService {
           image: getImage(tmdbEpisode?.still_path),
           number,
           overview: tmdbEpisode?.overview ?? '',
-          date: formattedDate || '',
+          date: formattedDate ? formattedDate.toISOString() : '',
           duration: tmdbEpisode?.runtime || anilist?.duration || 0,
           filler,
           sub,

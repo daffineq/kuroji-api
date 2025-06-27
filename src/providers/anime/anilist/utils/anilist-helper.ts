@@ -360,6 +360,7 @@ export function convertShikimoriToBasic(
     url: shikimori.url ?? undefined,
     franchise: shikimori.franchise ?? undefined,
     poster: shikimori.poster ?? undefined,
+    description: shikimori.description ?? undefined,
   };
 }
 
