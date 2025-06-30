@@ -2,7 +2,7 @@ import { IAnimeInfo } from '@consumet/extensions';
 import {
   ExternalLink,
   IAnimeEpisode,
-} from '@consumet/extensions/dist/models/types';
+} from '@consumet/extensions/dist/models/types.js';
 import { Prisma } from '@prisma/client';
 
 export function getAnimePaheData(

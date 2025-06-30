@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import Config from '../../configs/config';
-import { PrismaService } from '../../prisma.service';
-import { UpdateType } from './UpdateType';
-import { sleep } from '../../utils/utils';
-import { AnilistService } from '../anime/anilist/service/anilist.service';
-import { AnimekaiService } from '../anime/animekai/service/animekai.service';
-import { AnimepaheService } from '../anime/animepahe/service/animepahe.service';
-import { KitsuService } from '../anime/kitsu/service/kitsu.service';
-import { ShikimoriService } from '../anime/shikimori/service/shikimori.service';
-import { TmdbService } from '../anime/tmdb/service/tmdb.service';
-import { TvdbService } from '../anime/tvdb/service/tvdb.service';
-import { ZoroService } from '../anime/zoro/service/zoro.service';
-import { AppLockService } from '../../shared/app.lock.service';
+import Config from '../../configs/config.js';
+import { PrismaService } from '../../prisma.service.js';
+import { UpdateType } from './UpdateType.js';
+import { sleep } from '../../utils/utils.js';
+import { AnilistService } from '../anime/anilist/service/anilist.service.js';
+import { AnimekaiService } from '../anime/animekai/service/animekai.service.js';
+import { AnimepaheService } from '../anime/animepahe/service/animepahe.service.js';
+import { KitsuService } from '../anime/kitsu/service/kitsu.service.js';
+import { ShikimoriService } from '../anime/shikimori/service/shikimori.service.js';
+import { TmdbService } from '../anime/tmdb/service/tmdb.service.js';
+import { TvdbService } from '../anime/tvdb/service/tvdb.service.js';
+import { ZoroService } from '../anime/zoro/service/zoro.service.js';
+import { AppLockService } from '../../shared/app.lock.service.js';
 
 interface IProvider {
   update: (id: string | number) => Promise<any>;

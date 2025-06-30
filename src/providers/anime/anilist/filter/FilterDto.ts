@@ -19,13 +19,13 @@ import {
   Language,
   AgeRating,
   MediaCountry,
-} from './Filter';
-import Config from '../../../../configs/config';
+} from './Filter.js';
+import Config from '../../../../configs/config.js';
 import {
   TransformToArray,
   TransformToNumberArray,
   TransformToBoolean,
-} from '../../../../utils/utils';
+} from '../../../../utils/utils.js';
 
 export class FilterDto {
   constructor(partial?: Partial<FilterDto>) {

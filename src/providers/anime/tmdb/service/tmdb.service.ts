@@ -1,28 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { TmdbSeason } from '@prisma/client';
-import { TMDB } from '../../../../configs/tmdb.config';
-import { PrismaService } from '../../../../prisma.service';
+import { TMDB } from '../../../../configs/tmdb.config.js';
+import { PrismaService } from '../../../../prisma.service.js';
 import {
   findBestMatch,
   ExpectAnime,
   deepCleanTitle,
-} from '../../../mapper/mapper.helper';
-import { AnilistService } from '../../anilist/service/anilist.service';
+} from '../../../mapper/mapper.helper.js';
+import { AnilistService } from '../../anilist/service/anilist.service.js';
 import {
   filterSeasonEpisodes,
   findBestMatchFromSearch,
   TmdbHelper,
-} from '../utils/tmdb-helper';
-import { sleep } from '../../../../utils/utils';
+} from '../utils/tmdb-helper.js';
+import { sleep } from '../../../../utils/utils.js';
 import {
   TmdbWithRelations,
   TmdbSeasonWithRelations,
   TmdbResponse,
   TmdbSeasonEpisodeImagesWithRelations,
   BasicTmdb,
-} from '../types/types';
-import { Client } from '../../../model/client';
-import { UrlConfig } from '../../../../configs/url.config';
+} from '../types/types.js';
+import { Client } from '../../../model/client.js';
+import { UrlConfig } from '../../../../configs/url.config.js';
 
 @Injectable()
 export class TmdbService extends Client {

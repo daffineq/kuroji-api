@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Put } from '@nestjs/common';
-import { ShikimoriService } from '../service/shikimori.service';
+import { ShikimoriService } from '../service/shikimori.service.js';
 
 @Controller('shikimori')
 export class ShikimoriController {

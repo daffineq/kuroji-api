@@ -1,4 +1,4 @@
-import AnilistQueryBuilder from './query/AnilistQueryBuilder';
+import AnilistQueryBuilder from './query/AnilistQueryBuilder.js';
 
 type FieldTypeMap = { [key: string]: string };
 

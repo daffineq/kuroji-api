@@ -83,8 +83,12 @@ export enum MediaSort {
   STATUS_DESC = 'status_desc',
   UPDATED_AT = 'updated_at',
   UPDATED_AT_DESC = 'updated_at_desc',
-  LATEST = 'latest',
-  LATEST_DESC = 'latest_desc',
+  LATEST_EPISODE = 'latest_episode',
+  LATEST_EPISODE_DESC = 'latest_episode_desc',
+  NEXXT_EPISODE = 'latest_episode',
+  NEXT_EPISODE_DESC = 'latest_episode_desc',
+  LAST_EPISODE = 'latest_episode',
+  LAST_EPISODE_DESC = 'latest_episode_desc',
 }
 
 export enum TagSort {

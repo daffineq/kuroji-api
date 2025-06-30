@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma.service';
-import { getKitsuInclude, KitsuHelper } from '../util/kitsu-helper';
-import { KITSU } from '../../../../configs/kitsu.config';
-import { findBestMatch } from '../../../mapper/mapper.helper';
-import { KitsuWithRelations, KitsuAnime } from '../types/types';
-import { Client } from '../../../model/client';
-import { UrlConfig } from '../../../../configs/url.config';
-import { findEpisodeCount } from '../../anilist/utils/anilist-helper';
+import { PrismaService } from '../../../../prisma.service.js';
+import { getKitsuInclude, KitsuHelper } from '../util/kitsu-helper.js';
+import { KITSU } from '../../../../configs/kitsu.config.js';
+import { findBestMatch } from '../../../mapper/mapper.helper.js';
+import { KitsuWithRelations, KitsuAnime } from '../types/types.js';
+import { Client } from '../../../model/client.js';
+import { UrlConfig } from '../../../../configs/url.config.js';
+import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js';
 
 @Injectable()
 export class KitsuService extends Client {

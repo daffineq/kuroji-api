@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma.service';
-import { AnilistHelper, getAnilistFindUnique } from '../utils/anilist-helper';
-import { AnilistFetchService } from './helper/anilist.fetch.service';
-import { MediaType } from '../filter/Filter';
-import { AnilistUtilService } from './helper/anilist.util.service';
-import { ShikimoriService } from '../../shikimori/service/shikimori.service';
-import { KitsuService } from '../../kitsu/service/kitsu.service';
-import { AnilistWithRelations, AnilistResponse } from '../types/types';
+import { PrismaService } from '../../../../prisma.service.js';
+import { AnilistHelper, getAnilistFindUnique } from '../utils/anilist-helper.js';
+import { AnilistFetchService } from './helper/anilist.fetch.service.js';
+import { MediaType } from '../filter/Filter.js';
+import { AnilistUtilService } from './helper/anilist.util.service.js';
+import { ShikimoriService } from '../../shikimori/service/shikimori.service.js';
+import { KitsuService } from '../../kitsu/service/kitsu.service.js';
+import { AnilistWithRelations, AnilistResponse } from '../types/types.js';
 
 @Injectable()
 export class AnilistService {

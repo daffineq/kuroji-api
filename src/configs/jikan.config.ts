@@ -1,4 +1,4 @@
-import { UrlConfig } from './url.config';
+import { UrlConfig } from './url.config.js';
 
 export class Jikan {
   public static getFullInfo(id: number) {

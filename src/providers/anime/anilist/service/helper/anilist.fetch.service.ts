@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { UrlConfig } from '../../../../../configs/url.config';
-import AnilistQL from '../../graphql/AnilistQL';
-import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder';
-import { MediaType } from '../../filter/Filter';
+import { UrlConfig } from '../../../../../configs/url.config.js';
+import AnilistQL from '../../graphql/AnilistQL.js';
+import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder.js';
+import { MediaType } from '../../filter/Filter.js';
 import {
   Jikan,
   MoreInfoResponse,
   VideosResponse,
-} from '../../../../../configs/jikan.config';
-import { AnilistResponse } from '../../types/types';
-import { Client } from '../../../../model/client';
+} from '../../../../../configs/jikan.config.js';
+import { AnilistResponse } from '../../types/types.js';
+import { Client } from '../../../../model/client.js';
 
 @Injectable()
 export class AnilistFetchService extends Client {

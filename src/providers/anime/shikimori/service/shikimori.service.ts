@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { BasicIdShik, Shikimori } from '@prisma/client';
-import { PrismaService } from '../../../../prisma.service';
-import { UrlConfig } from '../../../../configs/url.config';
-import { GraphQL } from '../graphql/shikimori.graphql';
+import { PrismaService } from '../../../../prisma.service.js';
+import { UrlConfig } from '../../../../configs/url.config.js';
+import { GraphQL } from '../graphql/shikimori.graphql.js';
 import {
   getShikimoriInclude,
   ShikimoriHelper,
   shikimoriToBasicId,
-} from '../utils/shikimori-helper';
-import { ShikimoriResponse, ShikimoriWithRelations } from '../types/types';
-import { Client } from '../../../model/client';
+} from '../utils/shikimori-helper.js';
+import { ShikimoriResponse, ShikimoriWithRelations } from '../types/types.js';
+import { Client } from '../../../model/client.js';
 
 @Injectable()
 export class ShikimoriService extends Client {

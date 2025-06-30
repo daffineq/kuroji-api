@@ -1,8 +1,8 @@
 import { Controller, Get, Param, ParseIntPipe, Put } from '@nestjs/common';
-import { TmdbService } from '../service/tmdb.service';
+import { TmdbService } from '../service/tmdb.service.js';
 import e from 'express';
-import { TmdbSeasonService } from '../service/tmdb.season.service';
-import { TmdbEpisodeService } from '../service/tmdb.episode.service';
+import { TmdbSeasonService } from '../service/tmdb.season.service.js';
+import { TmdbEpisodeService } from '../service/tmdb.episode.service.js';
 
 @Controller('anime')
 export class TmdbController {

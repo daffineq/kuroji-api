@@ -1,6 +1,6 @@
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { Module } from '@nestjs/common';
-import Config from '../configs/config';
+import Config from '../configs/config.js';
 
 @Module({
   imports: [

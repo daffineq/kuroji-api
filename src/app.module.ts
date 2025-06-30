@@ -1,24 +1,24 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AnilistModule } from './providers/anime/anilist/module/anilist.module';
-import { AnimekaiModule } from './providers/anime/animekai/module/animekai.module';
-import { AnimepaheModule } from './providers/anime/animepahe/module/animepahe.module';
-import { ShikimoriModule } from './providers/anime/shikimori/module/shikimori.module';
-import { TmdbModule } from './providers/anime/tmdb/module/tmdb.module';
-import { TvdbModule } from './providers/anime/tvdb/module/tvdb.module';
-import { ZoroModule } from './providers/anime/zoro/module/zoro.module';
-import { UpdateModule } from './providers/update/update.module';
-import { ConsoleModule } from './console/module/console.module';
-import { Redis } from './shared/redis.module';
+import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
+import { AnilistModule } from './providers/anime/anilist/module/anilist.module.js';
+import { AnimekaiModule } from './providers/anime/animekai/module/animekai.module.js';
+import { AnimepaheModule } from './providers/anime/animepahe/module/animepahe.module.js';
+import { ShikimoriModule } from './providers/anime/shikimori/module/shikimori.module.js';
+import { TmdbModule } from './providers/anime/tmdb/module/tmdb.module.js';
+import { TvdbModule } from './providers/anime/tvdb/module/tvdb.module.js';
+import { ZoroModule } from './providers/anime/zoro/module/zoro.module.js';
+import { UpdateModule } from './providers/update/update.module.js';
+import { ConsoleModule } from './console/module/console.module.js';
+import { Redis } from './shared/redis.module.js';
 import { ThrottlerModule } from '@nestjs/throttler';
-import Config from './configs/config';
+import Config from './configs/config.js';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
-import { KitsuModule } from './providers/anime/kitsu/module/kitsu.module';
-import { ToolsModule } from './providers/tools/module/tools.module';
-import { CustomThrottlerGuard } from './shared/throttler.guard';
+import { KitsuModule } from './providers/anime/kitsu/module/kitsu.module.js';
+import { ToolsModule } from './providers/tools/module/tools.module.js';
+import { CustomThrottlerGuard } from './shared/throttler.guard.js';
 
 @Module({
   imports: [

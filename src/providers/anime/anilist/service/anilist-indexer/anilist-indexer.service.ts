@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { PrismaService } from '../../../../../prisma.service';
-import { AnilistService } from '../anilist.service';
-import { ZoroService } from '../../../zoro/service/zoro.service';
-import { AnimekaiService } from '../../../animekai/service/animekai.service';
-import { AnimepaheService } from '../../../animepahe/service/animepahe.service';
-import Config from '../../../../../configs/config';
-import { sleep } from '../../../../../utils/utils';
-import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder';
-import { UrlConfig } from '../../../../../configs/url.config';
-import { MediaType } from '../../filter/Filter';
-import AnilistQL from '../../graphql/AnilistQL';
-import { AnilistPageResponse } from './types/types';
-import { Client } from '../../../../model/client';
-import { AppLockService } from '../../../../../shared/app.lock.service';
+import { PrismaService } from '../../../../../prisma.service.js';
+import { AnilistService } from '../anilist.service.js';
+import { ZoroService } from '../../../zoro/service/zoro.service.js';
+import { AnimekaiService } from '../../../animekai/service/animekai.service.js';
+import { AnimepaheService } from '../../../animepahe/service/animepahe.service.js';
+import Config from '../../../../../configs/config.js';
+import { sleep } from '../../../../../utils/utils.js';
+import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder.js';
+import { UrlConfig } from '../../../../../configs/url.config.js';
+import { MediaType } from '../../filter/Filter.js';
+import AnilistQL from '../../graphql/AnilistQL.js';
+import { AnilistPageResponse } from './types/types.js';
+import { Client } from '../../../../model/client.js';
+import { AppLockService } from '../../../../../shared/app.lock.service.js';
 
 @Injectable()
 export class AnilistIndexerService extends Client {

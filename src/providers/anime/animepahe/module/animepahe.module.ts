@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AnimepaheController } from '../controller/animepahe.controller';
-import { SharedModule } from '../../../../shared/shared.module';
+import { AnimepaheController } from '../controller/animepahe.controller.js';
+import { SharedModule } from '../../../../shared/shared.module.js';
 
 @Module({
   imports: [SharedModule],

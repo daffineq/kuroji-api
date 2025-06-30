@@ -6,7 +6,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { AnimepaheService } from '../service/animepahe.service';
+import { AnimepaheService } from '../service/animepahe.service.js';
 
 @Controller('anime')
 export class AnimepaheController {

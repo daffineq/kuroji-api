@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma.service';
-import { sleep } from '../../../utils/utils';
+import { PrismaService } from '../../../prisma.service.js';
+import { sleep } from '../../../utils/utils.js';
 import { IAnimeInfo } from '@consumet/extensions';
-import { AnimekaiService } from '../../anime/animekai/service/animekai.service';
-import { AnimepaheService } from '../../anime/animepahe/service/animepahe.service';
-import { ZoroService } from '../../anime/zoro/service/zoro.service';
+import { AnimekaiService } from '../../anime/animekai/service/animekai.service.js';
+import { AnimepaheService } from '../../anime/animepahe/service/animepahe.service.js';
+import { ZoroService } from '../../anime/zoro/service/zoro.service.js';
 
 @Injectable()
 export class ToolsService {

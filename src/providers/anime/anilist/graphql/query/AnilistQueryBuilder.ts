@@ -1,5 +1,5 @@
-import Config from '../../../../../configs/config';
-import { MediaSort } from '../../filter/Filter';
+import Config from '../../../../../configs/config.js';
+import { MediaSort } from '../../filter/Filter.js';
 
 type FlexibleField = string | number | boolean | object | null | undefined;
 

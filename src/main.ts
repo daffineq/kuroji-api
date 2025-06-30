@@ -1,12 +1,12 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './app.module.js';
 import { config } from 'dotenv';
 import * as express from 'express';
 import { join } from 'path';
-import Config from './configs/config';
-import { Interceptor } from './shared/interceptor';
-import { AllExceptionsFilter } from './shared/exceptions.filter';
+import Config from './configs/config.js';
+import { Interceptor } from './shared/interceptor.js';
+import { AllExceptionsFilter } from './shared/exceptions.filter.js';
 
 config();
 
@@ -32,7 +32,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true, // Throws an error if unknown properties are provided
     }),
   );
-  app.use(express.static(join(__dirname, '..', 'public')));
+  app.use(express.static(join(process.cwd(), 'public')));
   app.setGlobalPrefix('api');
   await app.listen(Config.PORT);
 }

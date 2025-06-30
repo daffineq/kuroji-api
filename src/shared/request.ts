@@ -1,5 +1,5 @@
 import ky, { HTTPError, type Options as KyOptions } from 'ky';
-import { sleep } from '../utils/utils';
+import { sleep } from '../utils/utils.js';
 
 /**
  * Represents rate limit information.

@@ -13,9 +13,9 @@ import {
   TransformToNumberArray,
   TransformToArray,
   TransformToBoolean,
-} from '../../../../utils/utils';
-import { TagSort } from './Filter';
-import Config from '../../../../configs/config';
+} from '../../../../utils/utils.js';
+import { TagSort } from './Filter.js';
+import Config from '../../../../configs/config.js';
 
 export class TagFilterDto {
   constructor(partial?: Partial<TagFilterDto>) {

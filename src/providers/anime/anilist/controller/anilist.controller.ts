@@ -9,20 +9,20 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { AnilistService } from '../service/anilist.service';
-import { AnilistIndexerService } from '../service/anilist-indexer/anilist-indexer.service';
-import { StreamService } from '../../stream/service/stream.service';
-import { FilterDto } from '../filter/FilterDto';
-import { AnilistAddService } from '../service/helper/anilist.add.service';
-import { AnilistScheduleService } from '../service/helper/anilist.schedule.service';
-import { AnilistSearchService } from '../service/helper/anilist.search.service';
-import { UpdateService } from '../../../update/update.service';
-import { Provider } from '../../stream/types/types';
-import Config from '../../../../configs/config';
-import { AnilistRandomService } from '../service/helper/anilist.random.service';
-import { RandomDto } from '../types/types';
-import { SecretKeyGuard } from '../../../../shared/secret-key.guard';
-import { TagFilterDto } from '../filter/TagFilterDto';
+import { AnilistService } from '../service/anilist.service.js';
+import { AnilistIndexerService } from '../service/anilist-indexer/anilist-indexer.service.js';
+import { StreamService } from '../../stream/service/stream.service.js';
+import { FilterDto } from '../filter/FilterDto.js';
+import { AnilistAddService } from '../service/helper/anilist.add.service.js';
+import { AnilistScheduleService } from '../service/helper/anilist.schedule.service.js';
+import { AnilistSearchService } from '../service/helper/anilist.search.service.js';
+import { UpdateService } from '../../../update/update.service.js';
+import { Provider } from '../../stream/types/types.js';
+import Config from '../../../../configs/config.js';
+import { AnilistRandomService } from '../service/helper/anilist.random.service.js';
+import { RandomDto } from '../types/types.js';
+import { SecretKeyGuard } from '../../../../shared/secret-key.guard.js';
+import { TagFilterDto } from '../filter/TagFilterDto.js';
 
 @Controller('anime')
 export class AnilistController {
@@ -136,7 +136,7 @@ export class AnilistController {
     @Param('franchise') franchise: string,
     @Query() filter: FilterDto,
   ) {
-    return this.add.getFranchise(franchise, filter);
+    return this.search.getFranchise(franchise, filter);
   }
 
   @Get('genres')

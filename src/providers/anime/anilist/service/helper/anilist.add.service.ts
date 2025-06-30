@@ -1,26 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { BasicIdAni, AnilistCharacter, AnilistTag } from '@prisma/client';
-import { ApiResponse, PageInfo } from '../../../../../shared/ApiResponse';
-import { FilterDto } from '../../filter/FilterDto';
-import { PrismaService } from '../../../../../prisma.service';
-import { ShikimoriService } from '../../../shikimori/service/shikimori.service';
-import { TmdbService } from '../../../tmdb/service/tmdb.service';
-import { AnilistSearchService } from './anilist.search.service';
-import { getPageInfo } from '../../../../../utils/utils';
+import { BasicIdAni, AnilistCharacter } from '@prisma/client';
+import { ApiResponse, PageInfo } from '../../../../../shared/ApiResponse.js';
+import { FilterDto } from '../../filter/FilterDto.js';
+import { PrismaService } from '../../../../../prisma.service.js';
+import { ShikimoriService } from '../../../shikimori/service/shikimori.service.js';
+import { AnilistSearchService } from './anilist.search.service.js';
+import { getPageInfo } from '../../../../../utils/utils.js';
 import {
   BasicAnilist,
   AnilistWithRelations,
-  FranchiseResponse,
-  Franchise,
-} from '../../types/types';
-import { MediaSort } from '../../filter/Filter';
-import { getImage } from '../../../tmdb/types/types';
+} from '../../types/types.js';
 
 @Injectable()
 export class AnilistAddService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly tmdbService: TmdbService,
     private readonly search: AnilistSearchService,
     private readonly shikimori: ShikimoriService,
   ) {}
@@ -125,74 +119,6 @@ export class AnilistAddService {
 
     const pageInfo: PageInfo = getPageInfo(total, perPage, page);
     const response: ApiResponse<AnilistCharacter[]> = { pageInfo, data };
-    return response;
-  }
-
-  async getFranchise(
-    franchiseName: string,
-    filter: FilterDto,
-  ): Promise<FranchiseResponse<BasicAnilist[]>> {
-    const baseFilter = { ...filter, franchise: franchiseName };
-    const franchises = await this.search.getAnilists(baseFilter);
-
-    const firstPageFilter = {
-      ...baseFilter,
-      page: 1,
-      sort: [
-        MediaSort.POPULARITY_DESC,
-        MediaSort.FAVOURITES_DESC,
-        MediaSort.SCORE_DESC,
-      ],
-    };
-    const franchises1Page = await this.search.getAnilists(firstPageFilter);
-
-    const firstFranchise = franchises1Page.data.reduce(
-      (best, item) => {
-        const popularity = item.popularity ?? 0;
-        const favourites = item.favourites ?? 0;
-        const score = item.score ?? 0;
-
-        const combinedScore = popularity + favourites + score * 10;
-
-        const bestPopularity = best ? (best.popularity ?? 0) : 0;
-        const bestFavourites = best ? (best.favourites ?? 0) : 0;
-        const bestScore = best ? (best.score ?? 0) : 0;
-        const bestCombined = bestPopularity + bestFavourites + bestScore * 10;
-
-        return combinedScore > bestCombined ? item : best;
-      },
-      null as BasicAnilist | null,
-    );
-
-    if (!firstFranchise) {
-      return {
-        pageInfo: franchises.pageInfo,
-        franchise: {},
-        data: [],
-      } as FranchiseResponse<BasicAnilist[]>;
-    }
-
-    const tmdbFirst = await this.tmdbService
-      .getTmdbByAnilist(firstFranchise.id)
-      .catch(() => null);
-
-    let franchise: Franchise | null = null;
-
-    if (tmdbFirst) {
-      franchise = {
-        cover: getImage(tmdbFirst.poster_path),
-        banner: getImage(tmdbFirst.backdrop_path),
-        title: tmdbFirst.name,
-        franchise: franchiseName,
-        description: tmdbFirst.overview,
-      };
-    }
-
-    const response: FranchiseResponse<BasicAnilist[]> = {
-      pageInfo: franchises.pageInfo,
-      franchise,
-      data: franchises.data,
-    };
     return response;
   }
 

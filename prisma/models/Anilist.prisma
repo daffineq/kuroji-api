@@ -29,9 +29,12 @@ model Anilist {
   favourites      Int?
   genres          String[]
   synonyms        String[]
-  latest          Int?          @default(0)
 
   trailer AnilistTrailer? @relation("AnilistTrailer")
+
+  latestAiringEpisode   AnilistLatestEpisode? @relation("AnilistLatestEpisode")
+  nextAiringEpisode     AnilistNextEpisode?   @relation("AnilistNextEpisode")
+  lastAiringEpisode     AnilistLastEpisode?   @relation("AnilistLastEpisode")
 
   // Normalized collections
   recommendations    BasicIdAni[]                @relation("AnilistRecs")
@@ -226,6 +229,33 @@ model AnilistAiringSchedule {
   airingAt  Int?
 
   anilist Anilist @relation("AnilistAiringSchedules", fields: [anilistId], references: [id])
+}
+
+model AnilistLatestEpisode {
+  id        Int  @id
+  anilistId Int  @unique
+  episode   Int?
+  airingAt  Int?
+
+  anilist Anilist @relation("AnilistLatestEpisode", fields: [anilistId], references: [id])
+}
+
+model AnilistNextEpisode {
+  id        Int  @id
+  anilistId Int  @unique
+  episode   Int?
+  airingAt  Int?
+
+  anilist Anilist @relation("AnilistNextEpisode", fields: [anilistId], references: [id])
+}
+
+model AnilistLastEpisode {
+  id        Int  @id
+  anilistId Int  @unique
+  episode   Int?
+  airingAt  Int?
+
+  anilist Anilist @relation("AnilistLastEpisode", fields: [anilistId], references: [id])
 }
 
 model AnilistRanking {

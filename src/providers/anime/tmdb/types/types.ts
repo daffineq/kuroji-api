@@ -8,7 +8,7 @@ import {
   TmdbSeasonEpisodeImages,
   TmdbSeasonStillImage,
 } from '@prisma/client';
-import { TMDB } from '../../../../configs/tmdb.config';
+import { TMDB } from '../../../../configs/tmdb.config.js';
 
 export interface BasicTmdb {
   id: number;

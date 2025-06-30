@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../../prisma.service';
+import { PrismaService } from '../../../../../prisma.service.js';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { TvdbHelper } from '../../utils/tvdb-helper';
+import { TvdbHelper } from '../../utils/tvdb-helper.js';
 import { TvdbLogin } from '@prisma/client';
-import { TVDB } from '../../../../../configs/tvdb.config';
-import { Client } from '../../../../model/client';
-import { UrlConfig } from '../../../../../configs/url.config';
+import { TVDB } from '../../../../../configs/tvdb.config.js';
+import { Client } from '../../../../model/client.js';
+import { UrlConfig } from '../../../../../configs/url.config.js';
 
 export interface LoginResponse {
   status: string;

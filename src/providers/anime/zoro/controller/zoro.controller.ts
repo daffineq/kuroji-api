@@ -6,7 +6,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ZoroService } from '../service/zoro.service';
+import { ZoroService } from '../service/zoro.service.js';
 
 @Controller('anime')
 export class ZoroController {

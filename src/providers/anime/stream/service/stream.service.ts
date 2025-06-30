@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { ZoroService } from '../../zoro/service/zoro.service';
-import { AnimekaiService } from '../../animekai/service/animekai.service';
-import { AnimepaheService } from '../../animepahe/service/animepahe.service';
-import { AnilistService } from '../../anilist/service/anilist.service';
+import { ZoroService } from '../../zoro/service/zoro.service.js';
+import { AnimekaiService } from '../../animekai/service/animekai.service.js';
+import { AnimepaheService } from '../../animepahe/service/animepahe.service.js';
+import { AnilistService } from '../../anilist/service/anilist.service.js';
 import { AnimekaiEpisode, AnimepaheEpisode, EpisodeZoro } from '@prisma/client';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import Redis from 'ioredis';
-import Config from '../../../../configs/config';
+import { Redis } from 'ioredis'
+import Config from '../../../../configs/config.js';
 import { ISource } from '@consumet/extensions';
 import {
   Episode,
@@ -15,11 +15,11 @@ import {
   Provider,
   ProviderInfo,
   SourceType,
-} from '../types/types';
-import { undefinedToNull } from '../../../../shared/interceptor';
-import { getImage } from '../../tmdb/types/types';
-import { TmdbSeasonService } from '../../tmdb/service/tmdb.season.service';
-import { TmdbEpisodeService } from '../../tmdb/service/tmdb.episode.service';
+} from '../types/types.js';
+import { undefinedToNull } from '../../../../shared/interceptor.js';
+import { getImage } from '../../tmdb/types/types.js';
+import { TmdbSeasonService } from '../../tmdb/service/tmdb.season.service.js';
+import { TmdbEpisodeService } from '../../tmdb/service/tmdb.episode.service.js';
 
 @Injectable()
 export class StreamService {

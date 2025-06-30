@@ -1,32 +1,20 @@
-import { Injectable } from '@nestjs/common';
-import { Anilist, AnilistTag } from '@prisma/client';
-import { ApiResponse } from '../../../../../shared/ApiResponse';
-import { FilterDto } from '../../filter/FilterDto';
-import { PrismaService } from '../../../../../prisma.service';
-import { getAnilistInclude } from '../../utils/anilist-helper';
-import { firstUpperList, getPageInfo } from '../../../../../utils/utils';
-import { Language } from '../../filter/Filter';
-import { NestedSort, SortDirection } from '../../types/types';
-import { TagFilterDto } from '../../filter/TagFilterDto';
+import { Injectable } from '@nestjs/common'
+import { Anilist, AnilistTag } from '@prisma/client'
+import { ApiResponse } from '../../../../../shared/ApiResponse.js'
+import { FilterDto } from '../../filter/FilterDto.js'
+import { PrismaService } from '../../../../../prisma.service.js'
+import { getAnilistInclude } from '../../utils/anilist-helper.js'
+import { firstUpperList, getPageInfo } from '../../../../../utils/utils.js'
+import { Language } from '../../filter/Filter.js'
+import { NestedSort, SortDirection } from '../../types/types.js'
+import { TagFilterDto } from '../../filter/TagFilterDto.js'
 
 @Injectable()
 export class AnilistFilterService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getAnilistByFilter(filter: FilterDto): Promise<ApiResponse<Anilist[]>> {
-    const conditions: any[] = [];
-
-    const sortingByUpdatedAt = filter.sort?.some((s) =>
-      s.includes('updated_at'),
-    );
-
-    if (sortingByUpdatedAt) {
-      conditions.push({
-        zoro: {
-          isNot: null,
-        },
-      });
-    }
+    const conditions: any[] = []
 
     // ========== Basic Filters ==========
     const basicFields = [
@@ -40,9 +28,9 @@ export class AnilistFilterService {
       ['isAdult', filter.isAdult],
       ['isLicensed', filter.isLicensed],
       ['seasonYear', filter.seasonYear],
-    ];
+    ]
     for (const [key, value] of basicFields) {
-      if (value !== undefined) conditions.push({ [key as any]: value });
+      if (value !== undefined) conditions.push({ [key as any]: value })
     }
 
     if (filter.nsfw === false) {
@@ -50,7 +38,7 @@ export class AnilistFilterService {
         shikimori: {
           rating: { not: 'rx' },
         },
-      });
+      })
     }
 
     if (filter.franchise) {
@@ -58,7 +46,7 @@ export class AnilistFilterService {
         shikimori: {
           franchise: filter.franchise,
         },
-      });
+      })
     }
 
     // ========== Language Filter ==========
@@ -74,8 +62,8 @@ export class AnilistFilterService {
                 },
               },
             },
-          });
-          break;
+          })
+          break
         case Language.DUB:
           conditions.push({
             zoro: {
@@ -85,8 +73,8 @@ export class AnilistFilterService {
                 },
               },
             },
-          });
-          break;
+          })
+          break
         case Language.BOTH:
           conditions.push({
             zoro: {
@@ -97,8 +85,8 @@ export class AnilistFilterService {
                 },
               },
             },
-          });
-          break;
+          })
+          break
         case Language.ALL:
           conditions.push({
             zoro: {
@@ -108,8 +96,8 @@ export class AnilistFilterService {
                 },
               },
             },
-          });
-          break;
+          })
+          break
         case Language.RAW:
           conditions.push({
             zoro: {
@@ -120,26 +108,26 @@ export class AnilistFilterService {
                 },
               },
             },
-          });
-          break;
+          })
+          break
       }
     }
 
     // ========== Array Filters ==========
     if (filter.genreIn)
-      conditions.push({ genres: { hasEvery: firstUpperList(filter.genreIn) } });
+      conditions.push({ genres: { hasEvery: firstUpperList(filter.genreIn) } })
     if (filter.genreNotIn)
       conditions.push({
         genres: { hasNone: firstUpperList(filter.genreNotIn) },
-      });
-    if (filter.idIn) conditions.push({ id: { in: filter.idIn } });
-    if (filter.idNotIn) conditions.push({ id: { notIn: filter.idNotIn } });
-    if (filter.idNot != null) conditions.push({ id: { not: filter.idNot } });
-    if (filter.idMalIn) conditions.push({ idMal: { in: filter.idMalIn } });
+      })
+    if (filter.idIn) conditions.push({ id: { in: filter.idIn } })
+    if (filter.idNotIn) conditions.push({ id: { notIn: filter.idNotIn } })
+    if (filter.idNot != null) conditions.push({ id: { not: filter.idNot } })
+    if (filter.idMalIn) conditions.push({ idMal: { in: filter.idMalIn } })
     if (filter.idMalNotIn)
-      conditions.push({ idMal: { notIn: filter.idMalNotIn } });
+      conditions.push({ idMal: { notIn: filter.idMalNotIn } })
     if (filter.idMalNot != null)
-      conditions.push({ idMal: { not: filter.idMalNot } });
+      conditions.push({ idMal: { not: filter.idMalNot } })
 
     if (filter.studioIn) {
       conditions.push({
@@ -150,7 +138,7 @@ export class AnilistFilterService {
             },
           },
         },
-      });
+      })
     }
 
     if (filter.characterIn) {
@@ -164,7 +152,7 @@ export class AnilistFilterService {
             },
           },
         },
-      });
+      })
     }
 
     if (filter.voiceActorIn) {
@@ -180,7 +168,7 @@ export class AnilistFilterService {
             },
           },
         },
-      });
+      })
     }
 
     // ========== Numeric Filters ==========
@@ -197,10 +185,10 @@ export class AnilistFilterService {
       ['score', 'gt', filter.scoreGreater],
       ['score', 'lt', filter.scoreLesser],
       ['score', 'not', filter.scoreNot],
-    ];
+    ]
     for (const [field, op, val] of numericFields) {
       if (val != null)
-        conditions.push({ [field as any]: { [op as any]: val } });
+        conditions.push({ [field as any]: { [op as any]: val } })
     }
 
     // ========== Enum Filters ==========
@@ -215,9 +203,9 @@ export class AnilistFilterService {
       ['status', 'notIn', filter.statusNotIn],
       ['status', 'not', filter.statusNot],
       ['source', 'in', filter.sourceIn],
-    ];
+    ]
     for (const [field, op, val] of enumFilters) {
-      if (val) conditions.push({ [field as any]: { [op as any]: val } });
+      if (val) conditions.push({ [field as any]: { [op as any]: val } })
     }
 
     if (filter.ageRating) {
@@ -225,33 +213,33 @@ export class AnilistFilterService {
         shikimori: {
           rating: { in: filter.ageRating },
         },
-      });
+      })
     }
 
     // ========== Tags Filters ==========
     if (filter.tagIn) {
       conditions.push({
         tags: { some: { name: { in: filter.tagIn } } },
-      });
+      })
     }
     if (filter.tagNotIn) {
       conditions.push({
         NOT: {
           tags: { some: { name: { in: filter.tagNotIn } } },
         },
-      } as any);
+      } as any)
     }
     if (filter.tagCategoryIn) {
       conditions.push({
         tags: { some: { category: { in: filter.tagCategoryIn } } },
-      });
+      })
     }
     if (filter.tagCategoryNotIn) {
       conditions.push({
         NOT: {
           tags: { some: { category: { in: filter.tagCategoryNotIn } } },
         },
-      } as any);
+      } as any)
     }
 
     // ========== Date Filters ==========
@@ -261,18 +249,18 @@ export class AnilistFilterService {
       onlyYear: boolean = false,
       operator: 'gt' | 'lt' = 'gt',
     ) => {
-      if (!value) return null;
+      if (!value) return null
 
-      const comp = operator === 'gt' ? 'gt' : 'lt';
-      const eq = 'equals';
+      const comp = operator === 'gt' ? 'gt' : 'lt'
+      const eq = 'equals'
 
       if (onlyYear) {
         return {
           OR: [{ [field]: { year: { [comp]: +value } } }],
-        };
+        }
       }
 
-      const [year, month, day] = value.split('.').map(Number);
+      const [year, month, day] = value.split('.').map(Number)
       return {
         OR: [
           { [field]: { year: { [comp]: year } } },
@@ -290,40 +278,40 @@ export class AnilistFilterService {
             ],
           },
         ],
-      };
-    };
+      }
+    }
 
-    const startDateCond = handleDate('startDate', filter.startDateGreater);
-    if (startDateCond) conditions.push(startDateCond);
+    const startDateCond = handleDate('startDate', filter.startDateGreater)
+    if (startDateCond) conditions.push(startDateCond)
 
-    const endDateCond = handleDate('endDate', filter.endDateGreater);
-    if (endDateCond) conditions.push(endDateCond);
+    const endDateCond = handleDate('endDate', filter.endDateGreater)
+    if (endDateCond) conditions.push(endDateCond)
 
     const startDateLesserCond = handleDate(
       'startDate',
       filter.startDateLesser,
       false,
       'lt',
-    );
-    if (startDateLesserCond) conditions.push(startDateLesserCond);
+    )
+    if (startDateLesserCond) conditions.push(startDateLesserCond)
 
     const endDateLesserCond = handleDate(
       'endDate',
       filter.endDateLesser,
       false,
       'lt',
-    );
-    if (endDateLesserCond) conditions.push(endDateLesserCond);
+    )
+    if (endDateLesserCond) conditions.push(endDateLesserCond)
 
     const startDateLikeCond = handleDate(
       'startDate',
       filter.startDateLike,
       true,
-    );
-    if (startDateLikeCond) conditions.push(startDateLikeCond);
+    )
+    if (startDateLikeCond) conditions.push(startDateLikeCond)
 
-    const endDateLikeCond = handleDate('endDate', filter.endDateLike, true);
-    if (endDateLikeCond) conditions.push(endDateLikeCond);
+    const endDateLikeCond = handleDate('endDate', filter.endDateLike, true)
+    if (endDateLikeCond) conditions.push(endDateLikeCond)
 
     if (filter.airingAtGreater) {
       conditions.push({
@@ -334,7 +322,7 @@ export class AnilistFilterService {
             },
           },
         },
-      });
+      })
     }
 
     if (filter.airingAtLesser) {
@@ -346,14 +334,14 @@ export class AnilistFilterService {
             },
           },
         },
-      });
+      })
     }
 
     // ========== Query Search ==========
-    const searchOr: any[] = [];
+    const searchOr: any[] = []
 
     if (filter.query) {
-      const q = filter.query;
+      const q = filter.query
       searchOr.push(
         { title: { romaji: { contains: q, mode: 'insensitive' } } },
         { title: { english: { contains: q, mode: 'insensitive' } } },
@@ -361,22 +349,25 @@ export class AnilistFilterService {
         { synonyms: { hasSome: [q] } },
         { shikimori: { russian: { contains: q, mode: 'insensitive' } } },
         { shikimori: { licenseNameRu: { contains: q, mode: 'insensitive' } } },
-      );
+      )
     }
 
     if (searchOr.length) {
-      conditions.push({ OR: searchOr });
+      conditions.push({ OR: searchOr })
     }
 
-    const whereCondition = { AND: conditions };
+    // ========== Sorting & Null Filtering ==========
+    const { orderBy, sortConditions } = this.getSortOrderAndConditions(filter.sort)
+
+    // Add sort-related conditions to filter out nulls when needed
+    conditions.push(...sortConditions)
+
+    const whereCondition = { AND: conditions }
 
     // ========== Pagination ==========
-    const perPage = filter.perPage;
-    const currentPage = filter.page;
-    const skip = (currentPage - 1) * perPage;
-
-    // ========== Sorting ==========
-    const orderBy = this.getSortOrder(filter.sort);
+    const perPage = filter.perPage
+    const currentPage = filter.page
+    const skip = (currentPage - 1) * perPage
 
     // ========== Query DB ==========
     const [data, total] = await Promise.all([
@@ -388,18 +379,18 @@ export class AnilistFilterService {
         orderBy,
       }),
       this.prisma.anilist.count({ where: whereCondition }),
-    ]);
+    ])
 
     // ========== Pagination Info ==========
-    const pageInfo = getPageInfo(total, perPage, currentPage);
+    const pageInfo = getPageInfo(total, perPage, currentPage)
 
-    return { pageInfo, data };
+    return { pageInfo, data }
   }
 
   async getAnilistTagByFilter(
     filter: TagFilterDto,
   ): Promise<ApiResponse<AnilistTag[]>> {
-    const conditions: any[] = [];
+    const conditions: any[] = []
 
     // ======= Basic Filters =======
     const basicFields = [
@@ -410,77 +401,77 @@ export class AnilistFilterService {
       ['rank', filter.rank],
       ['isSpoiler', filter.isSpoiler],
       ['isAdult', filter.isAdult],
-    ];
+    ]
 
     for (const [key, value] of basicFields) {
-      if (value !== undefined) conditions.push({ [key as any]: value });
+      if (value !== undefined) conditions.push({ [key as any]: value })
     }
 
     // ======= Array Filters =======
-    if (filter.idIn) conditions.push({ id: { in: filter.idIn } });
-    if (filter.idNotIn) conditions.push({ id: { notIn: filter.idNotIn } });
+    if (filter.idIn) conditions.push({ id: { in: filter.idIn } })
+    if (filter.idNotIn) conditions.push({ id: { notIn: filter.idNotIn } })
     if (filter.idNot !== undefined)
-      conditions.push({ id: { not: filter.idNot } });
+      conditions.push({ id: { not: filter.idNot } })
 
-    if (filter.nameIn) conditions.push({ name: { in: filter.nameIn } });
+    if (filter.nameIn) conditions.push({ name: { in: filter.nameIn } })
     if (filter.nameNotIn)
-      conditions.push({ name: { notIn: filter.nameNotIn } });
+      conditions.push({ name: { notIn: filter.nameNotIn } })
     if (filter.nameLike)
       conditions.push({
         name: { contains: filter.nameLike, mode: 'insensitive' },
-      });
+      })
 
     if (filter.categoryIn)
-      conditions.push({ category: { in: filter.categoryIn } });
+      conditions.push({ category: { in: filter.categoryIn } })
     if (filter.categoryNotIn)
-      conditions.push({ category: { notIn: filter.categoryNotIn } });
+      conditions.push({ category: { notIn: filter.categoryNotIn } })
 
     // ======= Rank Filters =======
     if (filter.rankGreater !== undefined)
-      conditions.push({ rank: { gt: filter.rankGreater } });
+      conditions.push({ rank: { gt: filter.rankGreater } })
     if (filter.rankLesser !== undefined)
-      conditions.push({ rank: { lt: filter.rankLesser } });
+      conditions.push({ rank: { lt: filter.rankLesser } })
 
     // ======= Query Search =======
     if (filter.query) {
-      const q = filter.query;
+      const q = filter.query
       conditions.push({
         OR: [
           { name: { contains: q, mode: 'insensitive' } },
           { description: { contains: q, mode: 'insensitive' } },
           { category: { contains: q, mode: 'insensitive' } },
         ],
-      });
+      })
     }
 
-    const whereCondition = { AND: conditions };
+    const whereCondition = { AND: conditions }
 
     // ======= Sorting =======
-    const orderBy: any[] = [];
+    const orderBy: any[] = []
 
     if (filter.sort?.length) {
       filter.sort.forEach((sortField) => {
-        let direction: 'asc' | 'desc' = 'asc';
-        const parts = sortField.split('_');
-        const lastPart = parts[parts.length - 1].toLowerCase();
+        let direction: 'asc' | 'desc' = 'asc'
+        const parts = sortField.split('_')
+        const lastPart = parts[parts.length - 1].toLowerCase()
 
         if (lastPart === 'asc' || lastPart === 'desc') {
-          direction = lastPart;
-          parts.pop();
+          direction = lastPart
+          parts.pop()
         }
 
-        const field = parts.join('_');
+        const field = parts.join('_')
 
         if (['id', 'name', 'rank', 'category'].includes(field)) {
-          orderBy.push({ [field]: direction });
+          orderBy.push({ [field]: direction })
         }
-      });
+      })
     }
 
     // ======= Pagination =======
-    const perPage = filter.perPage ?? 15;
-    const currentPage = filter.page ?? 1;
-    const skip = (currentPage - 1) * perPage;
+    const perPage = filter.perPage ?? 15
+    const currentPage = filter.page ?? 1
+    const skip = (currentPage - 1) * perPage
 
     // ======= Query Prisma =======
     const [data, total] = await Promise.all([
@@ -491,59 +482,106 @@ export class AnilistFilterService {
         orderBy,
       }),
       this.prisma.anilistTag.count({ where: whereCondition }),
-    ]);
+    ])
 
-    const pageInfo = getPageInfo(total, perPage, currentPage);
+    const pageInfo = getPageInfo(total, perPage, currentPage)
 
-    return { pageInfo, data };
+    return { pageInfo, data }
   }
 
-  private getSortOrder(sort?: string[]): NestedSort[] {
-    if (!sort?.length) return [];
+  private getSortOrderAndConditions(sort?: string[]): {
+    orderBy: NestedSort[],
+    sortConditions: any[]
+  } {
+    if (!sort?.length) return { orderBy: [], sortConditions: [] }
 
-    const orderByArray: NestedSort[] = [];
+    const orderByArray: NestedSort[] = []
+    const sortConditions: any[] = []
 
     sort.forEach((sortField) => {
-      const parts = sortField.split('_');
-      let direction: SortDirection = 'asc';
+      const parts = sortField.split('_')
+      let direction: SortDirection = 'asc'
 
-      const lastPart = parts[parts.length - 1].toLowerCase();
+      const lastPart = parts[parts.length - 1].toLowerCase()
       if (lastPart === 'asc' || lastPart === 'desc') {
-        direction = lastPart;
-        parts.pop();
+        direction = lastPart
+        parts.pop()
       }
 
-      const field = parts.join('_');
+      const field = parts.join('_')
 
-      if (field === 'start_date') {
-        orderByArray.push({ startDate: { year: direction } });
-        orderByArray.push({ startDate: { month: direction } });
-        orderByArray.push({ startDate: { day: direction } });
-        return;
+      switch (field) {
+        case 'start_date':
+          orderByArray.push({ startDate: { year: direction } })
+          orderByArray.push({ startDate: { month: direction } })
+          orderByArray.push({ startDate: { day: direction } })
+          sortConditions.push({
+            startDate: { isNot: null }
+          })
+          break
+
+        case 'end_date':
+          orderByArray.push({ endDate: { year: direction } })
+          sortConditions.push({
+            endDate: { isNot: null }
+          })
+          break
+
+        case 'updated_at':
+          orderByArray.push({ zoro: { updatedAt: direction } })
+          sortConditions.push({
+            zoro: { isNot: null }
+          })
+          break
+
+        case 'latest_episode':
+          orderByArray.push({
+            latestAiringEpisode: {
+              airingAt: direction
+            }
+          })
+          sortConditions.push({
+            latestAiringEpisode: { isNot: null }
+          })
+          break
+
+        case 'next_episode':
+          orderByArray.push({
+            nextAiringEpisode: {
+              airingAt: direction
+            }
+          })
+          sortConditions.push({
+            nextAiringEpisode: { isNot: null }
+          })
+          break
+
+        case 'last_episode':
+          orderByArray.push({
+            lastAiringEpisode: {
+              airingAt: direction
+            }
+          })
+          sortConditions.push({
+            lastAiringEpisode: { isNot: null }
+          })
+          break
+
+        default:
+          // Handle nested fields
+          if (parts.length > 1) {
+            let nested: NestedSort = { [parts.pop()!]: direction }
+            while (parts.length) {
+              nested = { [parts.pop()!]: nested }
+            }
+            orderByArray.push(nested)
+          } else {
+            orderByArray.push({ [field]: direction })
+          }
+          break
       }
+    })
 
-      if (field === 'end_date') {
-        orderByArray.push({ endDate: { year: direction } });
-        return;
-      }
-
-      if (field === 'updated_at') {
-        orderByArray.push({ zoro: { updatedAt: direction } });
-        return;
-      }
-
-      if (parts.length > 1) {
-        let nested: NestedSort = { [parts.pop()!]: direction };
-        while (parts.length) {
-          nested = { [parts.pop()!]: nested };
-        }
-        orderByArray.push(nested);
-        return;
-      }
-
-      orderByArray.push({ [field]: direction });
-    });
-
-    return orderByArray;
+    return { orderBy: orderByArray, sortConditions }
   }
 }

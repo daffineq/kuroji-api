@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma.service';
-import { AnilistService } from '../../anilist/service/anilist.service';
-import { TmdbService } from './tmdb.service';
+import { PrismaService } from '../../../../prisma.service.js';
+import { AnilistService } from '../../anilist/service/anilist.service.js';
+import { TmdbService } from './tmdb.service.js';
 import { DateDetails, TmdbSeasonEpisode } from '@prisma/client';
 import {
   findEpisodeCount,
   getDateStringFromAnilist,
-} from '../../anilist/utils/anilist-helper';
-import { TmdbSeasonWithRelations } from '../types/types';
-import { AnilistWithRelations } from '../../anilist/types/types';
+} from '../../anilist/utils/anilist-helper.js';
+import { TmdbSeasonWithRelations } from '../types/types.js';
+import { AnilistWithRelations } from '../../anilist/types/types.js';
 import { MediaFormat } from '@consumet/extensions';
 
 interface EpisodeMatchCandidate {
@@ -116,6 +116,14 @@ export class TmdbSeasonService {
             showId,
             season.season_number,
           );
+
+          if (!tmdbSeason) {
+            console.warn(
+              `No TMDB season found for show ${showId} and season ${season.season_number}`,
+            );
+            continue;
+          }
+
           tmdbSeason.show_id = showId;
           await this.tmdb.saveTmdbSeason(tmdbSeason);
         } catch (error) {

@@ -5,7 +5,7 @@ import {
   TvdbLanguageTranslation,
   TvdbLanguage,
 } from '@prisma/client';
-import { TvdbInput } from '../types/types';
+import { TvdbInput } from '../types/types.js';
 
 @Injectable()
 export class TvdbHelper {

@@ -5,19 +5,19 @@ import {
   EpisodeZoro,
   Prisma,
 } from '@prisma/client';
-import { getShikimoriInclude } from '../../shikimori/utils/shikimori-helper';
-import { getKitsuInclude } from '../../kitsu/util/kitsu-helper';
-import { PrismaService } from '../../../../prisma.service';
+import { getShikimoriInclude } from '../../shikimori/utils/shikimori-helper.js';
+import { getKitsuInclude } from '../../kitsu/util/kitsu-helper.js';
+import { PrismaService } from '../../../../prisma.service.js';
 import {
   AnilistWithRelations,
   BasicAnilist,
   BasicShikimori,
   BasicKitsu,
   ScheduleData,
-} from '../types/types';
-import { FullMediaResponse } from '../types/response';
-import { KitsuWithRelations } from '../../kitsu/types/types';
-import { ShikimoriWithRelations } from '../../shikimori/types/types';
+} from '../types/types.js';
+import { FullMediaResponse } from '../types/response.js';
+import { KitsuWithRelations } from '../../kitsu/types/types.js';
+import { ShikimoriWithRelations } from '../../shikimori/types/types.js';
 
 @Injectable()
 export class AnilistHelper {
@@ -35,11 +35,25 @@ export class AnilistHelper {
 
     const now = Math.floor(Date.now() / 1000);
 
-    const pastAirings = anime.airingSchedule.edges
-      .map((edge) => edge.node.airingAt)
-      .filter((airingAt) => airingAt <= now);
+    // Get all aired episodes
+    const airedEpisodes = anime.airingSchedule.edges
+      .filter((schedule) => schedule.node.airingAt <= now)
+      .sort((a, b) => b.node.airingAt - a.node.airingAt);
 
-    const latest = pastAirings.length > 0 ? Math.max(...pastAirings) : 0;
+    // Get all future episodes
+    const futureEpisodes = anime.airingSchedule.edges
+      .filter((schedule) => schedule.node.airingAt > now)
+      .sort((a, b) => a.node.airingAt - b.node.airingAt);
+
+    // Get latest episode (most recent aired)
+    const latestEpisode = airedEpisodes[0]?.node;
+
+    // Get next episode (next to air)
+    const nextEpisode = futureEpisodes[0]?.node;
+
+    // Get last episode (last in the series)
+    const lastEpisode = [...anime.airingSchedule.edges]
+      .sort((a, b) => (b.node.episode ?? 0) - (a.node.episode ?? 0))[0]?.node;
 
     return {
       id: anime.id,
@@ -121,7 +135,42 @@ export class AnilistHelper {
       favourites: anime.favourites,
       genres: anime.genres,
       synonyms: anime.synonyms,
-      latest,
+      latestAiringEpisode: latestEpisode
+        ? {
+            connectOrCreate: {
+              where: { id: latestEpisode.id },
+              create: {
+                id: latestEpisode.id,
+                episode: latestEpisode.episode ?? null,
+                airingAt: latestEpisode.airingAt ?? null,
+              },
+            },
+          }
+        : undefined,
+      nextAiringEpisode: nextEpisode
+        ? {
+            connectOrCreate: {
+              where: { id: nextEpisode.id },
+              create: {
+                id: nextEpisode.id,
+                episode: nextEpisode.episode ?? null,
+                airingAt: nextEpisode.airingAt ?? null,
+              },
+            },
+          }
+        : undefined,
+      lastAiringEpisode: lastEpisode
+        ? {
+            connectOrCreate: {
+              where: { id: lastEpisode.id },
+              create: {
+                id: lastEpisode.id,
+                episode: lastEpisode.episode ?? null,
+                airingAt: lastEpisode.airingAt ?? null,
+              },
+            },
+          }
+        : undefined,
       recommendations: {
         connectOrCreate:
           anime.recommendations?.edges
@@ -440,6 +489,21 @@ export function getAnilistInclude(): Prisma.AnilistInclude {
         anilistId: true,
       },
     },
+    nextAiringEpisode: {
+      omit: {
+        anilistId: true,
+      },
+    },
+    lastAiringEpisode: {
+      omit: {
+        anilistId: true,
+      },
+    },
+    latestAiringEpisode: {
+      omit: {
+        anilistId: true,
+      },
+    },
     tags: true,
     rankings: {
       omit: {
@@ -528,13 +592,16 @@ export function reorderAnilistItems(raw: AnilistWithRelations) {
     favourites: raw.favourites,
     genres: raw.genres,
     synonyms: raw.synonyms,
-    latest: raw.latest,
 
     trailer: raw.trailer,
-    nextAiringEpisode: findNextAiringInSchedule(raw?.airingSchedule ?? null),
 
-    studios: raw.studios,
+    nextAiringEpisode: raw.nextAiringEpisode,
+    latestAiringEpisode: raw.latestAiringEpisode,
+    lastAiringEpisode: raw.lastAiringEpisode,
+
     airingSchedule: raw.airingSchedule,
+    
+    studios: raw.studios,
     tags: raw.tags,
     rankings: raw.rankings,
     externalLinks: raw.externalLinks,

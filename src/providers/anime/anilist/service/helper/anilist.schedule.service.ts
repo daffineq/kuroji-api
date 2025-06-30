@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { startOfWeek, addDays } from 'date-fns';
-import { createScheduleData } from '../../utils/anilist-helper';
-import { BasicAnilist, Schedule, Weekday } from '../../types/types';
-import { AnilistSearchService } from './anilist.search.service';
-import { FilterDto } from '../../filter/FilterDto';
+import { createScheduleData } from '../../utils/anilist-helper.js';
+import { BasicAnilist, Schedule, Weekday } from '../../types/types.js';
+import { AnilistSearchService } from './anilist.search.service.js';
+import { FilterDto } from '../../filter/FilterDto.js';
 @Injectable()
 export class AnilistScheduleService {
   constructor(private readonly search: AnilistSearchService) {}

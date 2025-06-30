@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma.service';
-import { findBestMatch } from '../../../mapper/mapper.helper';
+import { PrismaService } from '../../../../prisma.service.js';
+import { findBestMatch } from '../../../mapper/mapper.helper.js';
 import {
   ANIME,
   IAnimeInfo,
@@ -10,11 +10,11 @@ import {
   StreamingServers,
   SubOrSub,
 } from '@consumet/extensions';
-import { UrlConfig } from '../../../../configs/url.config';
-import { AnimekaiWithRelations } from '../types/types';
-import { Client } from '../../../model/client';
-import { getAnimekaiData } from '../utils/animekai-helper';
-import { findEpisodeCount } from '../../anilist/utils/anilist-helper';
+import { UrlConfig } from '../../../../configs/url.config.js';
+import { AnimekaiWithRelations } from '../types/types.js';
+import { Client } from '../../../model/client.js';
+import { getAnimekaiData } from '../utils/animekai-helper.js';
+import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js';
 
 const animekai = new ANIME.AnimeKai();
 

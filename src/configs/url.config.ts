@@ -1,4 +1,4 @@
-import Config from './config';
+import Config from './config.js';
 
 function withTrailingSlash(url: string): string {
   return url.endsWith('/') ? url : url + '/';

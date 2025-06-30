@@ -4,7 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import Config from '../configs/config';
+import Config from '../configs/config.js';
 @Injectable()
 export class SecretKeyGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {

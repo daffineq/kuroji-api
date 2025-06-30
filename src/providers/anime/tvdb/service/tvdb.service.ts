@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { getTvdbInclude, TvdbHelper } from '../utils/tvdb-helper';
-import { PrismaService } from '../../../../prisma.service';
-import { TmdbService } from '../../tmdb/service/tmdb.service';
-import { TvdbTokenService } from './token/tvdb.token.service';
-import { TVDB } from '../../../../configs/tvdb.config';
+import { getTvdbInclude, TvdbHelper } from '../utils/tvdb-helper.js';
+import { PrismaService } from '../../../../prisma.service.js';
+import { TmdbService } from '../../tmdb/service/tmdb.service.js';
+import { TvdbTokenService } from './token/tvdb.token.service.js';
+import { TVDB } from '../../../../configs/tvdb.config.js';
 import {
   TvdbArtwork,
   TvdbLanguage,
@@ -14,13 +14,13 @@ import {
   BasicTvdb,
   SearchResponse,
   TvdbInput,
-} from '../types/types';
-import { Client } from '../../../model/client';
-import { UrlConfig } from '../../../../configs/url.config';
+} from '../types/types.js';
+import { Client } from '../../../model/client.js';
+import { UrlConfig } from '../../../../configs/url.config.js';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import Redis from 'ioredis';
-import Config from '../../../../configs/config';
-import { undefinedToNull } from '../../../../shared/interceptor';
+import { Redis } from 'ioredis'
+import Config from '../../../../configs/config.js';
+import { undefinedToNull } from '../../../../shared/interceptor.js';
 
 @Injectable()
 export class TvdbService extends Client {
@@ -35,10 +35,10 @@ export class TvdbService extends Client {
   }
 
   async getTvdb(id: number): Promise<TvdbWithRelations> {
-    const existingTvdb = (await this.prisma.tvdb.findUnique({
+    const existingTvdb = await this.prisma.tvdb.findUnique({
       where: { id },
       include: getTvdbInclude(),
-    })) as TvdbWithRelations | null;
+    }) as TvdbWithRelations;
 
     if (existingTvdb) return existingTvdb;
 
@@ -49,10 +49,10 @@ export class TvdbService extends Client {
 
   async getTvdbByAnilist(id: number): Promise<TvdbWithRelations> {
     const tmdb = await this.tmdbService.getTmdbByAnilist(id);
-    const existingTvdb = (await this.prisma.tvdb.findFirst({
+    const existingTvdb = await this.prisma.tvdb.findFirst({
       where: { tmdbId: tmdb.id },
       include: getTvdbInclude(),
-    })) as TvdbWithRelations | null;
+    }) as TvdbWithRelations;
 
     if (existingTvdb) return existingTvdb;
 

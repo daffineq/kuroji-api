@@ -1,5 +1,5 @@
 import { Controller, Get, Param, ParseIntPipe, Put } from '@nestjs/common';
-import { TvdbService } from '../service/tvdb.service';
+import { TvdbService } from '../service/tvdb.service.js';
 
 @Controller('anime')
 export class TvdbController {

@@ -1,5 +1,5 @@
 import { Controller, Param, Post, NotFoundException } from '@nestjs/common';
-import { ToolsService } from '../service/tools.service';
+import { ToolsService } from '../service/tools.service.js';
 
 @Controller('tools')
 export class ToolsController {

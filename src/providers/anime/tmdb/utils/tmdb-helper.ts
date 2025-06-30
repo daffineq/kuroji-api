@@ -5,9 +5,9 @@ import {
   TmdbSeasonWithRelations,
   TmdbSeasonEpisodeImagesWithRelations,
   BasicTmdb,
-} from '../types/types';
-import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper';
-import { AnilistWithRelations } from '../../anilist/types/types';
+} from '../types/types.js';
+import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
+import { AnilistWithRelations } from '../../anilist/types/types.js';
 
 @Injectable()
 export class TmdbHelper {

@@ -1,4 +1,4 @@
-import { KurojiClient, ProxyConfig } from '../../shared/request';
+import { KurojiClient, ProxyConfig } from '../../shared/request.js';
 
 export class Client {
   protected client: KurojiClient;

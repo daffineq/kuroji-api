@@ -18,14 +18,14 @@ import {
   ShikimoriPoster,
   StartDate,
 } from '@prisma/client';
-import { FullMediaResponse } from './response';
-import { PageInfo } from '../graphql/types/PageInfo';
-import { KitsuWithRelations } from '../../kitsu/types/types';
-import { ShikimoriWithRelations } from '../../shikimori/types/types';
-import { ZoroWithRelations } from '../../zoro/types/types';
+import { FullMediaResponse } from './response.js';
+import { PageInfo } from '../graphql/types/PageInfo.js';
+import { KitsuWithRelations } from '../../kitsu/types/types.js';
+import { ShikimoriWithRelations } from '../../shikimori/types/types.js';
+import { ZoroWithRelations } from '../../zoro/types/types.js';
 import { Type } from 'class-transformer';
 import { IsOptional, IsEnum, IsString, IsInt, Min } from 'class-validator';
-import { TmdbImage } from '../../tmdb/types/types';
+import { TmdbImage } from '../../tmdb/types/types.js';
 
 export interface AnilistResponse {
   Page: {
@@ -61,6 +61,8 @@ export interface AnilistWithRelations extends Anilist {
   studios?: AnilistStudio[];
   airingSchedule?: AnilistAiringSchedule[];
   nextAiringEpisode?: AnilistAiringSchedule;
+  latestAiringEpisode?: AnilistAiringSchedule;
+  lastAiringEpisode?: AnilistAiringSchedule;
   tags?: AnilistTag[];
   rankings?: AnilistRanking[];
   externalLinks?: AnilistExternalLink[];
@@ -174,7 +176,13 @@ export interface BasicAnilist {
 }
 
 export type SortDirection = 'asc' | 'desc';
-export type NestedSort = { [key: string]: SortDirection | NestedSort };
+export type NullsOrder = 'nulls-first' | 'nulls-last';
+export type NestedSort = {
+    [key: string]: SortDirection | NestedSort | { 
+        sort?: NullsOrder;
+        [key: string]: SortDirection | NullsOrder | undefined;
+    };
+};
 
 export enum RandomType {
   POPULAR = 'popular',

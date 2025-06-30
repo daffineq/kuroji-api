@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ShikimoriHelper } from '../utils/shikimori-helper';
+import { ShikimoriHelper } from '../utils/shikimori-helper.js';
 
 @Module({
   providers: [ShikimoriHelper],

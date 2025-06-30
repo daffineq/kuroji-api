@@ -1,4 +1,4 @@
-import { PageInfo } from '../shared/ApiResponse';
+import { PageInfo } from '../shared/ApiResponse.js';
 import { Transform } from 'class-transformer';
 import * as crypto from 'crypto';
 

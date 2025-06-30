@@ -1,4 +1,4 @@
-import { TmdbImage } from '../../tmdb/types/types';
+import { TmdbImage } from '../../tmdb/types/types.js';
 
 export enum SourceType {
   soft_sub = 'soft_sub',

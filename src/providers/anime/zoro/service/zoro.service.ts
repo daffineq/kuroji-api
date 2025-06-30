@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma.service';
-import { findBestMatch } from '../../../mapper/mapper.helper';
+import { PrismaService } from '../../../../prisma.service.js';
+import { findBestMatch } from '../../../mapper/mapper.helper.js';
 import {
   ANIME,
   IAnimeInfo,
@@ -10,15 +10,15 @@ import {
   StreamingServers,
   SubOrSub,
 } from '@consumet/extensions';
-import { UrlConfig } from '../../../../configs/url.config';
+import { UrlConfig } from '../../../../configs/url.config.js';
 import {
   convertZoroSource,
   ZoroSource,
   ZoroWithRelations,
-} from '../types/types';
-import { Client } from '../../../model/client';
-import { getZoroData } from '../utils/zoro-helper';
-import { findEpisodeCount } from '../../anilist/utils/anilist-helper';
+} from '../types/types.js';
+import { Client } from '../../../model/client.js';
+import { getZoroData } from '../utils/zoro-helper.js';
+import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js';
 
 const zoro = new ANIME.Zoro();
 

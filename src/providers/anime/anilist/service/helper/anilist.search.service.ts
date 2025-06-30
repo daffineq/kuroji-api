@@ -1,26 +1,27 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { FilterDto } from '../../filter/FilterDto';
-import { AnilistFilterService } from './anilist.filter.service';
-import { AnilistAddService } from './anilist.add.service';
-import { ApiResponse } from '../../../../../shared/ApiResponse';
-import { BasicAnilist, SearcnResponse } from '../../types/types';
-import { convertAnilistToBasic } from '../../utils/anilist-helper';
+import { FilterDto } from '../../filter/FilterDto.js';
+import { AnilistFilterService } from './anilist.filter.service.js';
+import { AnilistAddService } from './anilist.add.service.js';
+import { ApiResponse } from '../../../../../shared/ApiResponse.js';
+import { BasicAnilist, Franchise, FranchiseResponse, SearcnResponse } from '../../types/types.js';
+import { convertAnilistToBasic } from '../../utils/anilist-helper.js';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
-import { MediaSort } from '../../filter/Filter';
+import { MediaSort } from '../../filter/Filter.js';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import Redis from 'ioredis';
-import { hashFilters } from '../../../../../utils/utils';
-import Config from '../../../../../configs/config';
-import { undefinedToNull } from '../../../../../shared/interceptor';
-import { TagFilterDto } from '../../filter/TagFilterDto';
+import { Redis } from 'ioredis';
+import { hashFilters } from '../../../../../utils/utils.js';
+import Config from '../../../../../configs/config.js';
+import { undefinedToNull } from '../../../../../shared/interceptor.js';
+import { TagFilterDto } from '../../filter/TagFilterDto.js';
+import { getImage } from '../../../tmdb/types/types.js'
+import { TmdbService } from '../../../tmdb/service/tmdb.service.js'
 
 @Injectable()
 export class AnilistSearchService {
   constructor(
     private readonly filter: AnilistFilterService,
-    @Inject(forwardRef(() => AnilistAddService))
-    private readonly add: AnilistAddService,
+    private readonly tmdbService: TmdbService,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
@@ -118,7 +119,7 @@ export class AnilistSearchService {
       (b) => b.shikimori?.franchise && b.shikimori.franchise.trim().length > 0,
     );
 
-    const franchise = await this.add.getFranchise(
+    const franchise = await this.getFranchise(
       firstBasicFranchise?.shikimori?.franchise || '',
       new FilterDto({ perPage: 3, page: 1, sort: [MediaSort.START_DATE] }),
     );
@@ -128,5 +129,73 @@ export class AnilistSearchService {
       franchise,
       data: basicAnilist,
     } as SearcnResponse<BasicAnilist[]>;
+  }
+
+  async getFranchise(
+    franchiseName: string,
+    filter: FilterDto,
+  ): Promise<FranchiseResponse<BasicAnilist[]>> {
+    const baseFilter = { ...filter, franchise: franchiseName }
+    const franchises = await this.getAnilists(baseFilter)
+
+    const firstPageFilter = {
+      ...baseFilter,
+      page: 1,
+      sort: [
+        MediaSort.POPULARITY_DESC,
+        MediaSort.FAVOURITES_DESC,
+        MediaSort.SCORE_DESC,
+      ],
+    }
+    const franchises1Page = await this.getAnilists(firstPageFilter)
+
+    const firstFranchise = franchises1Page.data.reduce(
+      (best, item) => {
+        const popularity = item.popularity ?? 0
+        const favourites = item.favourites ?? 0
+        const score = item.score ?? 0
+
+        const combinedScore = popularity + favourites + score * 10
+
+        const bestPopularity = best ? (best.popularity ?? 0) : 0
+        const bestFavourites = best ? (best.favourites ?? 0) : 0
+        const bestScore = best ? (best.score ?? 0) : 0
+        const bestCombined = bestPopularity + bestFavourites + bestScore * 10
+
+        return combinedScore > bestCombined ? item : best
+      },
+      null as BasicAnilist | null,
+    )
+
+    if (!firstFranchise) {
+      return {
+        pageInfo: franchises.pageInfo,
+        franchise: {},
+        data: [],
+      } as FranchiseResponse<BasicAnilist[]>
+    }
+
+    const tmdbFirst = await this.tmdbService
+      .getTmdbByAnilist(firstFranchise.id)
+      .catch(() => null)
+
+    let franchise: Franchise | null = null
+
+    if (tmdbFirst) {
+      franchise = {
+        cover: getImage(tmdbFirst.poster_path),
+        banner: getImage(tmdbFirst.backdrop_path),
+        title: tmdbFirst.name,
+        franchise: franchiseName,
+        description: tmdbFirst.overview,
+      }
+    }
+
+    const response: FranchiseResponse<BasicAnilist[]> = {
+      pageInfo: franchises.pageInfo,
+      franchise,
+      data: franchises.data,
+    }
+    return response
   }
 }

@@ -1,5 +1,5 @@
 import { Controller, Get, Param, ParseIntPipe, Put } from '@nestjs/common';
-import { KitsuService } from '../service/kitsu.service';
+import { KitsuService } from '../service/kitsu.service.js';
 
 @Controller('anime')
 export class KitsuController {
