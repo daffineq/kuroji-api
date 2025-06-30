@@ -4,6 +4,7 @@
   "description": "",
   "author": "",
   "private": true,
+  "type": "module",
   "license": "MIT",
   "scripts": {
     "build": "nest build",
