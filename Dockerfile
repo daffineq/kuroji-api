@@ -1,25 +1,29 @@
-FROM oven/bun:1
+FROM node:20-alpine
 
 WORKDIR /app
 
+# Install Bun
+RUN npm install -g bun
+
 # Install system dependencies
-RUN apt-get update && \
-    apt-get install -y git netcat-openbsd && \
-    rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache git netcat-openbsd
 
+# Copy package files
 COPY package.json bun.lock ./
-
 COPY prisma ./prisma
 
-RUN bun install --frozen-lockfile
+RUN bun install
 
+# Generate Prisma client
+RUN npx prisma generate --schema=./prisma/schema.prisma
+
+# Copy the rest
 COPY . .
 
-RUN bun run prisma generate --schema=./prisma/schema.prisma
-
+# Make entrypoint executable
 RUN chmod +x ./entrypoint.sh
 
-# Build app
+# Build with Bun
 RUN bun run build
 
 # Start app
