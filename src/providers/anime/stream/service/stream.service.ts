@@ -53,7 +53,7 @@ export class StreamService {
       const episodesZoro = aniwatch?.episodes || [];
       const tmdbEpisodes = season?.episodes || [];
 
-      const episodes: Episode[] = episodesZoro.map((episode) => {
+      let episodes: Episode[] = episodesZoro.map((episode) => {
         const {
           isFiller: filler = false,
           isSubbed: sub = false,
@@ -88,6 +88,8 @@ export class StreamService {
           dub,
         };
       });
+
+      episodes = episodes.filter((e) => e.number).sort((a, b) => a.number! - b.number!);
 
       if (Config.REDIS) {
         await this.redis.set(
