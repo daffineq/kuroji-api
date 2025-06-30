@@ -2,29 +2,25 @@ FROM oven/bun:1
 
 WORKDIR /app
 
-# Install required system dependencies
+# Install system dependencies
 RUN apt-get update && \
     apt-get install -y git netcat-openbsd && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy package.json first
-COPY package.json ./
+COPY package.json bun.lock ./
 
-# Initialize bun and install dependencies
-RUN bun install && \
-    bun install --frozen-lockfile
+COPY prisma ./prisma
 
-# Copy the rest of the application
+RUN bun install --frozen-lockfile
+
 COPY . .
 
-# Generate Prisma client
 RUN bun run prisma generate --schema=./prisma/schema.prisma
 
-# Make entrypoint executable
 RUN chmod +x ./entrypoint.sh
 
-# Build the application
+# Build app
 RUN bun run build
 
-# Run the application
+# Start app
 CMD ["./entrypoint.sh"]
