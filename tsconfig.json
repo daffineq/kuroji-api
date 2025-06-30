@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
-    "target": "ES2023",
+    "module": "commonjs",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node",
+    "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
     "incremental": true,
@@ -18,7 +17,5 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }
