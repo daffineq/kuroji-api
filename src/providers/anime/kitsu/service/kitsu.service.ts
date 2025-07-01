@@ -95,6 +95,7 @@ export class KitsuService extends Client {
         episodes: true,
         format: true,
         airingSchedule: true,
+        status: true,
         shikimori: {
           select: {
             english: true,

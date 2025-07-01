@@ -152,6 +152,7 @@ export class AnimepaheService extends Client {
         episodes: true,
         format: true,
         airingSchedule: true,
+        status: true,
         shikimori: {
           select: {
             english: true,

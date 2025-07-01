@@ -18,6 +18,7 @@ import {
 import { FullMediaResponse } from '../types/response.js';
 import { KitsuWithRelations } from '../../kitsu/types/types.js';
 import { ShikimoriWithRelations } from '../../shikimori/types/types.js';
+import { MediaStatus } from '../filter/Filter.js'
 
 @Injectable()
 export class AnilistHelper {
@@ -656,42 +657,45 @@ export function getDateStringFromAnilist(date: DateDetails): string | null {
   return anilistStartDateString;
 }
 
-export function findEpisodeCount<
-  T extends {
+export function findEpisodeCount<T extends {
+  episodes?: number | null;
+  airingSchedule?: AnilistAiringSchedule[] | null;
+  shikimori?: {
     episodes?: number | null;
-    airingSchedule?: unknown[] | null;
-    shikimori?: {
-      episodes?: number | null;
-      episodesAired?: number | null;
-    } | null;
-    kitsu?: {
-      episodeCount?: number | null;
-    } | null;
-  },
->(data: T): number | undefined {
-  const episodeVotes: (number | undefined | null)[] = [
+    episodesAired?: number | null;
+  } | null;
+  kitsu?: {
+    episodeCount?: number | null;
+  } | null;
+  status?: string | null;
+}>(data: T, options?: { preferAired?: boolean }): number | undefined {
+  const now = Math.floor(Date.now() / 1000);
+
+  const airedSchedule = data.airingSchedule?.filter((schedule) => schedule.airingAt != null && schedule.airingAt <= now)
+    .sort((a, b) => (b.airingAt ?? 0) - (a.airingAt ?? 0)) ?? [];
+
+  const totalEpisodes: (number | null | undefined)[] = [
     data.episodes,
-    data.airingSchedule?.length,
     data.shikimori?.episodes,
-    data.shikimori?.episodesAired,
     data.kitsu?.episodeCount,
   ];
 
-  const values = episodeVotes.filter(
-    (v): v is number => typeof v === 'number' && v > 0,
-  );
+  const airedEpisodes: (number | null | undefined)[] = [
+    data.shikimori?.episodesAired,
+    airedSchedule?.length,
+  ];
 
-  if (values.length === 0) return undefined;
+  const total = totalEpisodes.find((v) => typeof v === 'number' && v > 0);
+  const aired = airedEpisodes.find((v) => typeof v === 'number' && v > 0);
 
-  const countMap = new Map<number, number>();
-  for (const v of values) {
-    countMap.set(v, (countMap.get(v) ?? 0) + 1);
+  const isAiring = data.status === MediaStatus.RELEASING;
+
+  if (options?.preferAired ?? isAiring) {
+    if (aired) return aired;
   }
 
-  const sorted = [...countMap.entries()].sort((a, b) => {
-    if (b[1] !== a[1]) return b[1] - a[1];
-    return b[0] - a[0];
-  });
+  if (total) return total;
+  if (aired) return aired;
 
-  return sorted[0][0];
+  return undefined;
 }
