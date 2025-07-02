@@ -122,7 +122,7 @@ export class AnilistSearchService {
 
     const franchise = await this.getFranchise(
       firstBasicFranchise?.shikimori?.franchise || '',
-      new FilterDto({ perPage: franchises, page: 1, sort: [MediaSort.START_DATE] }),
+      new FilterDto({ perPage: franchises, page: 1, sort: [MediaSort.POPULARITY_DESC, MediaSort.TRENDING_DESC] }),
     );
 
     return {
