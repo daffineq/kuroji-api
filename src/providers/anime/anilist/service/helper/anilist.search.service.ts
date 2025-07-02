@@ -96,6 +96,7 @@ export class AnilistSearchService {
 
   async searchAnilist(
     q: string,
+    franchises: number = 3,
     page: number,
     perPage: number,
   ): Promise<SearcnResponse<BasicAnilist[]>> {
@@ -121,7 +122,7 @@ export class AnilistSearchService {
 
     const franchise = await this.getFranchise(
       firstBasicFranchise?.shikimori?.franchise || '',
-      new FilterDto({ perPage: 3, page: 1, sort: [MediaSort.START_DATE] }),
+      new FilterDto({ perPage: franchises, page: 1, sort: [MediaSort.START_DATE] }),
     );
 
     return {
