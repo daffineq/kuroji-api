@@ -338,23 +338,25 @@ export class AnilistFilterService {
     }
 
     // ========== Query Search ==========
-    const searchOr: any[] = []
-
-    if (filter.query) {
-      const q = filter.query
-      searchOr.push(
-        { title: { romaji: { contains: q, mode: 'insensitive' } } },
-        { title: { english: { contains: q, mode: 'insensitive' } } },
-        { title: { native: { contains: q, mode: 'insensitive' } } },
-        { synonyms: { hasSome: [q] } },
-        { shikimori: { russian: { contains: q, mode: 'insensitive' } } },
-        { shikimori: { licenseNameRu: { contains: q, mode: 'insensitive' } } },
-      )
-    }
-
-    if (searchOr.length) {
-      conditions.push({ OR: searchOr })
-    }
+    if (filter.query?.trim()) {
+      const q = filter.query.trim().toLowerCase()
+      const tokens = q.split(/\s+/).filter(Boolean)
+    
+      const tokenConditions = tokens.map(t => ({
+        OR: [
+          { title: { romaji: { contains: t, mode: 'insensitive' } } },
+          { title: { english: { contains: t, mode: 'insensitive' } } },
+          { title: { native: { contains: t, mode: 'insensitive' } } },
+          { synonyms: { hasSome: [t] } },
+          { shikimori: { russian: { contains: t, mode: 'insensitive' } } },
+          { shikimori: { licenseNameRu: { contains: t, mode: 'insensitive' } } },
+        ]
+      }))
+    
+      if (tokenConditions.length) {
+        conditions.push({ AND: tokenConditions })
+      }
+    }    
 
     // ========== Sorting & Null Filtering ==========
     const { orderBy, sortConditions } = this.getSortOrderAndConditions(filter.sort)

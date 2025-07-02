@@ -100,11 +100,11 @@ export class AnilistSearchService {
     perPage: number,
   ): Promise<SearcnResponse<BasicAnilist[]>> {
     const response = await this.filter.getAnilistByFilter(
-      new FilterDto({ query: q, page: page, perPage: perPage }),
+      new FilterDto({ query: q, page: page, perPage: perPage, sort: [MediaSort.TRENDING_DESC, MediaSort.POPULARITY_DESC] }),
     );
 
     const response1 = await this.filter.getAnilistByFilter(
-      new FilterDto({ query: q, page: 1 }),
+      new FilterDto({ query: q, page: 1, sort: [MediaSort.TRENDING_DESC, MediaSort.POPULARITY_DESC]}),
     );
 
     const basicAnilist = response.data.map((anilist) =>
