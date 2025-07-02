@@ -3,7 +3,7 @@ import { ZoroService } from '../../zoro/service/zoro.service.js';
 import { AnimekaiService } from '../../animekai/service/animekai.service.js';
 import { AnimepaheService } from '../../animepahe/service/animepahe.service.js';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
-import { AnimekaiEpisode, AnimepaheEpisode, EpisodeZoro } from '@prisma/client';
+import { AnimekaiEpisode, AnimepaheEpisode, EpisodeZoro, TmdbSeason } from '@prisma/client';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Redis } from 'ioredis'
 import Config from '../../../../configs/config.js';
@@ -17,9 +17,10 @@ import {
   SourceType,
 } from '../types/types.js';
 import { undefinedToNull } from '../../../../shared/interceptor.js';
-import { getImage } from '../../tmdb/types/types.js';
+import { getImage, TmdbSeasonWithRelations } from '../../tmdb/types/types.js';
 import { TmdbSeasonService } from '../../tmdb/service/tmdb.season.service.js';
 import { TmdbEpisodeService } from '../../tmdb/service/tmdb.episode.service.js';
+import { ZoroWithRelations } from '../../zoro/types/types.js'
 
 @Injectable()
 export class StreamService {
@@ -44,11 +45,17 @@ export class StreamService {
         }
       }
 
-      const [aniwatch, season, anilist] = await Promise.all([
-        this.aniwatch.getZoroByAnilist(id).catch(() => null),
-        this.tmdbSeason.getTmdbSeasonByAnilist(id).catch(() => null),
-        this.anilist.getAnilist(id).catch(() => null),
-      ]);
+      const anilist = await this.anilist.getAnilist(id).catch(() => null);
+
+      let season: TmdbSeasonWithRelations | null = null;
+      let aniwatch: ZoroWithRelations | null = null;
+
+      if (anilist) {
+        [season, aniwatch] = await Promise.all([
+          this.tmdbSeason.getTmdbSeasonByAnilist(id).catch(() => null),
+          this.aniwatch.getZoroByAnilist(id).catch(() => null),
+        ]);
+      }
 
       const episodesZoro = aniwatch?.episodes || [];
       const tmdbEpisodes = season?.episodes || [];
