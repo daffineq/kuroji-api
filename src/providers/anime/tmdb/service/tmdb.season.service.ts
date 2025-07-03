@@ -10,6 +10,10 @@ import {
 import { TmdbSeasonWithRelations } from '../types/types.js';
 import { AnilistWithRelations } from '../../anilist/types/types.js';
 import { MediaFormat } from '@consumet/extensions';
+import { ZoroWithRelations } from '../../zoro/types/types.js';
+import { AnimepaheWithRelations } from '../../animepahe/types/types.js';
+import { ZoroService } from '../../zoro/service/zoro.service.js';
+import { AnimepaheService } from '../../animepahe/service/animepahe.service.js';
 
 interface EpisodeMatchCandidate {
   episode: TmdbSeasonEpisode;
@@ -34,12 +38,23 @@ interface SeasonEpisodeGroup {
 export class TmdbSeasonService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly anilistService: AnilistService,
+    private readonly anilist: AnilistService,
+    private readonly zoro: ZoroService,
+    private readonly animepahe: AnimepaheService,
     private readonly tmdb: TmdbService,
   ) {}
 
   async getTmdbSeasonByAnilist(id: number): Promise<TmdbSeasonWithRelations> {
-    const anilist = await this.anilistService.getAnilist(id);
+    const anilist = await this.anilist.getAnilist(id);
+
+    if (!anilist) {
+      throw new Error(`Anilist not found`);
+    }
+
+    const [zoro, animepahe] = await Promise.all([
+      this.zoro.getZoroByAnilist(id),
+      this.animepahe.getAnimepaheByAnilist(id),
+    ]);
 
     if (
       !anilist.format ||
@@ -67,6 +82,8 @@ export class TmdbSeasonService {
 
     const matchResult = await this.findBestEpisodeSequence(
       anilist,
+      zoro,
+      animepahe,
       mainEpisodes,
       seasonGroups,
     );
@@ -155,7 +172,7 @@ export class TmdbSeasonService {
     return episodes.filter((ep) => {
       if (ep.season_number === 0) return false;
       if (!ep.air_date) return false;
-      const airDate = new Date(ep.air_date);
+      const airDate = new Date(Date.parse(ep.air_date));
       if (airDate > today) return false;
       return true;
     });
@@ -186,6 +203,8 @@ export class TmdbSeasonService {
 
   private async findBestEpisodeSequence(
     anilist: AnilistWithRelations,
+    zoro: ZoroWithRelations,
+    animepahe: AnimepaheWithRelations,
     allEpisodes: TmdbSeasonEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
   ): Promise<MatchResult> {
@@ -194,6 +213,8 @@ export class TmdbSeasonService {
       () => this.matchByEpisodeCount(anilist, allEpisodes, seasonGroups),
       () => this.matchByAiringSchedule(anilist, allEpisodes),
       () => this.matchBySeasonYear(anilist, allEpisodes, seasonGroups),
+      () => this.matchByZoro(anilist, zoro, allEpisodes),
+      () => this.matchByAnimepahe(anilist, animepahe, allEpisodes),
     ];
 
     let bestMatch: MatchResult = {
@@ -293,16 +314,13 @@ export class TmdbSeasonService {
 
       if (isNaN(airDate.getTime()) || isNaN(start.getTime())) return false;
 
-      if (airDate.getTime() === start.getTime()) return true;
-
-      if (airDate < start) return false;
-
       if (endDate) {
         const end = new Date(endDate);
-        if (!isNaN(end.getTime()) && airDate > end) return false;
+        if (!isNaN(end.getTime())) {
+          return airDate >= start && airDate <= end;
+        }
       }
-
-      return false;
+      return airDate >= start;
     });
 
     if (filteredEpisodes.length === 0) {
@@ -505,6 +523,116 @@ export class TmdbSeasonService {
 
     const matchRatio = expectedCount ? episodes.length / expectedCount : 0;
 
+    if (matchRatio < 0.5) {
+      return { episodes: [], primarySeason: 1, confidence: 0 };
+    }
+
+    const episodesPenalty = episodes.length === expectedCount ? 1 : 0.75;
+    const primarySeason = this.getMostCommonSeason(episodes);
+    const confidence = Math.min(matchRatio, 0.95 * episodesPenalty);
+
+    return { episodes, primarySeason, confidence };
+  }
+
+  private async matchByZoro(
+    anilist: AnilistWithRelations,
+    zoro: ZoroWithRelations,
+    allEpisodes: TmdbSeasonEpisode[],
+  ): Promise<MatchResult> {
+    if (!zoro || !zoro.episodes || zoro.episodes.length === 0) {
+      return { episodes: [], primarySeason: 1, confidence: 0 };
+    }
+
+    const matches: EpisodeMatchCandidate[] = [];
+
+    zoro.episodes.forEach((zoroEp, index) => {
+      const formatTitle = (title?: string | null) =>
+        (title ?? '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '')
+          .trim();
+
+      const tmdbEp = allEpisodes.find(
+        (ep) => formatTitle(ep.name) === formatTitle(zoroEp.title),
+      );
+
+      if (tmdbEp) {
+        matches.push({
+          episode: tmdbEp,
+          confidence: 0.9,
+          reasons: ['zoro_title_match'],
+          anilistEpisodeNumber: zoroEp.number ?? index + 1,
+        });
+      }
+    });
+
+    if (matches.length === 0) {
+      return { episodes: [], primarySeason: 1, confidence: 0 };
+    }
+
+    const expectedCount = findEpisodeCount(anilist);
+    if (!expectedCount) {
+      return { episodes: [], primarySeason: 1, confidence: 0 };
+    }
+
+    const episodes = this.selectBestEpisodes(
+      matches.map((m) => m.episode),
+      expectedCount,
+    );
+
+    const matchRatio = expectedCount ? episodes.length / expectedCount : 0;
+    if (matchRatio < 0.5) {
+      return { episodes: [], primarySeason: 1, confidence: 0 };
+    }
+
+    const episodesPenalty = episodes.length === expectedCount ? 1 : 0.75;
+    const primarySeason = this.getMostCommonSeason(episodes);
+    const confidence = Math.min(matchRatio, 0.95 * episodesPenalty);
+
+    return { episodes, primarySeason, confidence };
+  }
+
+  private async matchByAnimepahe(
+    anilist: AnilistWithRelations,
+    animepahe: AnimepaheWithRelations,
+    allEpisodes: TmdbSeasonEpisode[],
+  ): Promise<MatchResult> {
+    if (!animepahe || !animepahe.episodes || animepahe.episodes.length === 0) {
+      return { episodes: [], primarySeason: 1, confidence: 0 };
+    }
+
+    const matches: EpisodeMatchCandidate[] = [];
+
+    animepahe.episodes.forEach((animepaheEp, index) => {
+      const tmdbEp = allEpisodes.find(
+        (ep) => ep.episode_number === animepaheEp.number,
+      );
+
+      if (tmdbEp) {
+        matches.push({
+          episode: tmdbEp,
+          confidence: 0.9,
+          reasons: ['animepahe_episode_number_match'],
+          anilistEpisodeNumber: animepaheEp.number ?? index + 1,
+        });
+      }
+    });
+
+    if (matches.length === 0) {
+      return { episodes: [], primarySeason: 1, confidence: 0 };
+    }
+
+    const expectedCount = findEpisodeCount(anilist);
+    if (!expectedCount) {
+      return { episodes: [], primarySeason: 1, confidence: 0 };
+    }
+
+    const episodes = this.selectBestEpisodes(
+      matches.map((m) => m.episode),
+      expectedCount,
+    );
+
+    const matchRatio = expectedCount ? episodes.length / expectedCount : 0;
     if (matchRatio < 0.5) {
       return { episodes: [], primarySeason: 1, confidence: 0 };
     }
