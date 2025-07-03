@@ -1,25 +1,25 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma.service.js';
-import { findBestMatch } from '../../../mapper/mapper.helper.js';
+import { Injectable } from '@nestjs/common'
+import { PrismaService } from '../../../../prisma.service.js'
+import { findBestMatch } from '../../../mapper/mapper.helper.js'
 import {
   ANIME,
   IAnimeInfo,
   IAnimeResult,
   ISearch,
   ISource,
-} from '@consumet/extensions';
-import { UrlConfig } from '../../../../configs/url.config.js';
-import { AnimepaheWithRelations } from '../types/types.js';
-import { Client } from '../../../model/client.js';
-import { getAnimePaheData } from '../utils/animepahe-helper.js';
-import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js';
+} from '@consumet/extensions'
+import { UrlConfig } from '../../../../configs/url.config.js'
+import { AnimepaheWithRelations } from '../types/types.js'
+import { Client } from '../../../model/client.js'
+import { getAnimePaheData } from '../utils/animepahe-helper.js'
+import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js'
 
-const animepahe = new ANIME.AnimePahe();
+const animepahe = new ANIME.AnimePahe()
 
 @Injectable()
 export class AnimepaheService extends Client {
   constructor(private readonly prisma: PrismaService) {
-    super(UrlConfig.ANIMEPAHE);
+    super(UrlConfig.ANIMEPAHE)
   }
 
   async getAnimepaheByAnilist(id: number): Promise<AnimepaheWithRelations> {
@@ -29,14 +29,14 @@ export class AnimepaheService extends Client {
         externalLinks: true,
         episodes: true,
       },
-    });
+    })
 
     if (existingAnimepahe) {
-      return existingAnimepahe;
+      return existingAnimepahe
     }
 
-    const animepahe = await this.findAnimepahe(id);
-    return this.saveAnimepahe(animepahe);
+    const animepahe = await this.findAnimepahe(id)
+    return this.saveAnimepahe(animepahe)
   }
 
   async saveAnimepahe(animepahe: IAnimeInfo): Promise<AnimepaheWithRelations> {
@@ -48,7 +48,7 @@ export class AnimepaheService extends Client {
         externalLinks: true,
         episodes: true,
       },
-    });
+    })
   }
 
   async update(
@@ -56,83 +56,83 @@ export class AnimepaheService extends Client {
     force: boolean = false,
   ): Promise<AnimepaheWithRelations> {
     if (force) {
-      const animepahe = await this.findAnimepahe(id);
+      const animepahe = await this.findAnimepahe(id)
 
       if (!animepahe) {
-        throw new Error('Animepahe not found');
+        throw new Error('Animepahe not found')
       }
 
-      animepahe.alId = id;
+      animepahe.alId = id
 
-      return await this.saveAnimepahe(animepahe);
+      return await this.saveAnimepahe(animepahe)
     }
 
-    const existingAnimepahe = await this.getAnimepaheByAnilist(id);
+    const existingAnimepahe = await this.getAnimepaheByAnilist(id)
 
     if (!existingAnimepahe) {
-      throw new Error('No animepahe');
+      throw new Error('No animepahe')
     }
 
-    const animepahe = await this.fetchAnimepahe(existingAnimepahe.id);
+    const animepahe = await this.fetchAnimepahe(existingAnimepahe.id)
 
     if (!animepahe) {
-      throw new Error('Animepahe not found');
+      throw new Error('Animepahe not found')
     }
 
     if (existingAnimepahe.episodes.length === animepahe.episodes?.length) {
-      throw new Error('Nothing to update');
+      throw new Error('Nothing to update')
     }
 
-    animepahe.alId = id;
+    animepahe.alId = id
 
-    return await this.saveAnimepahe(animepahe);
+    return await this.saveAnimepahe(animepahe)
   }
 
   async getSources(episodeId: string): Promise<ISource> {
     // return await animepahe.fetchEpisodeSources(episodeId);
     const { data, error } = await this.client.get<ISource>(
       `watch?episodeId=${episodeId}`,
-    );
+    )
 
     if (error) {
-      throw error;
+      throw error
     }
 
     if (!data) {
-      throw new Error('Data is null');
+      throw new Error('Data is null')
     }
 
-    return data;
+    return data
   }
 
   async fetchAnimepahe(id: string): Promise<IAnimeInfo> {
     // return await animepahe.fetchAnimeInfo(id);
-    const { data, error } = await this.client.get<IAnimeInfo>(`info/${id}`);
+    const { data, error } = await this.client.get<IAnimeInfo>(`info/${id}`)
 
     if (error) {
-      throw error;
+      throw error
     }
 
     if (!data) {
-      throw new Error('Data is null');
+      throw new Error('Data is null')
     }
 
-    return data;
+    return data
   }
 
   async searchAnimepahe(q: string): Promise<ISearch<IAnimeResult>> {
     // return (await animepahe.search(q)).results;
-    const { data, error } = await this.client.get<ISearch<IAnimeResult>>(q);
+    const { data, error } = await this.client.get<ISearch<IAnimeResult>>(q)
 
     if (error) {
-      throw error;
+      throw error
     }
 
     if (!data) {
-      throw new Error('Data is null');
+      throw new Error('Data is null')
     }
 
-    return data;
+    return data
   }
 
   async findAnimepahe(id: number): Promise<IAnimeInfo> {
@@ -167,15 +167,15 @@ export class AnimepaheService extends Client {
           },
         },
       },
-    });
+    })
 
     if (!anilist) {
-      throw new Error('Anilist not found');
+      throw new Error('Anilist not found')
     }
 
     const searchResult = await this.searchAnimepahe(
       (anilist.title as { romaji: string }).romaji,
-    );
+    )
 
     const results = searchResult.results.map((result) => ({
       title: result.title,
@@ -185,7 +185,7 @@ export class AnimepaheService extends Client {
         typeof result.releaseDate === 'string'
           ? parseInt(result.releaseDate)
           : result.releaseDate,
-    }));
+    }))
 
     const searchCriteria = {
       title: {
@@ -198,28 +198,32 @@ export class AnimepaheService extends Client {
       year: anilist.seasonYear ?? undefined,
       type: anilist.format ?? undefined,
       episodes: findEpisodeCount(anilist),
-    };
+    }
 
-    const bestMatch = findBestMatch(searchCriteria, results);
+    const exclude: string[] = []
 
-    if (bestMatch) {
-      const data = await this.fetchAnimepahe(bestMatch.result.id);
+    for (let i = 0; i < 3; i++) {
+      const bestMatch = findBestMatch(searchCriteria, results)
 
-      const anilistLink = data.externalLinks?.find(
-        (e) => e.sourceName === 'AniList',
-      );
+      if (bestMatch) {
+        const data = await this.fetchAnimepahe(bestMatch.result.id)
 
-      const malLink = data.externalLinks?.find((e) => e.sourceName === 'MAL');
+        const anilistLink = data.externalLinks?.find(
+          (e) => e.sourceName === 'AniList',
+        )
 
-      if (
-        (anilistLink && Number(anilistLink.id) === anilist.id) ||
-        (malLink && Number(malLink.id) === anilist.idMal)
-      ) {
-        data.alId = id;
-        return data;
+        const malLink = data.externalLinks?.find((e) => e.sourceName === 'MAL')
+
+        if (
+          (anilistLink && Number(anilistLink.id) === anilist.id) ||
+          (malLink && Number(malLink.id) === anilist.idMal)
+        ) {
+          data.alId = id
+          return data
+        }
       }
     }
 
-    throw new Error('Animepahe not found');
+    throw new Error('Animepahe not found')
   }
 }

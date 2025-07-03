@@ -3,9 +3,14 @@ import { ZoroService } from '../../zoro/service/zoro.service.js';
 import { AnimekaiService } from '../../animekai/service/animekai.service.js';
 import { AnimepaheService } from '../../animepahe/service/animepahe.service.js';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
-import { AnimekaiEpisode, AnimepaheEpisode, EpisodeZoro, TmdbSeason } from '@prisma/client';
+import {
+  AnimekaiEpisode,
+  AnimepaheEpisode,
+  EpisodeZoro,
+  TmdbSeason,
+} from '@prisma/client';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import { Redis } from 'ioredis'
+import { Redis } from 'ioredis';
 import Config from '../../../../configs/config.js';
 import { ISource } from '@consumet/extensions';
 import {
@@ -20,7 +25,8 @@ import { undefinedToNull } from '../../../../shared/interceptor.js';
 import { getImage, TmdbSeasonWithRelations } from '../../tmdb/types/types.js';
 import { TmdbSeasonService } from '../../tmdb/service/tmdb.season.service.js';
 import { TmdbEpisodeService } from '../../tmdb/service/tmdb.episode.service.js';
-import { ZoroWithRelations } from '../../zoro/types/types.js'
+import { ZoroWithRelations } from '../../zoro/types/types.js';
+import { AnimepaheWithRelations } from '../../animepahe/types/types.js';
 
 @Injectable()
 export class StreamService {
@@ -47,56 +53,87 @@ export class StreamService {
 
       const anilist = await this.anilist.getAnilist(id).catch(() => null);
 
-      let season: TmdbSeasonWithRelations | null = null;
-      let aniwatch: ZoroWithRelations | null = null;
-
-      if (anilist) {
-        [season, aniwatch] = await Promise.all([
-          this.tmdbSeason.getTmdbSeasonByAnilist(id).catch(() => null),
-          this.aniwatch.getZoroByAnilist(id).catch(() => null),
-        ]);
+      if (!anilist) {
+        throw new Error('Anilist not found');
       }
 
+      const [season, aniwatch, animepahe] = await Promise.all([
+        this.tmdbSeason.getTmdbSeasonByAnilist(id).catch(() => null),
+        this.aniwatch.getZoroByAnilist(id).catch(() => null),
+        this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
+      ]);
+
       const episodesZoro = aniwatch?.episodes || [];
+      const episodesPahe = animepahe?.episodes || [];
       const tmdbEpisodes = season?.episodes || [];
 
-      let episodes: Episode[] = episodesZoro.map((episode) => {
-        const {
-          isFiller: filler = false,
-          isSubbed: sub = false,
-          isDubbed: dub = false,
-          number,
-          title: zoroTitle,
-        } = episode;
-
-        const tmdbEpisode = tmdbEpisodes.find(
-          (e) => e.episode_number === number,
-        );
-
-        const airDate = anilist?.airingSchedule?.find(
-          (s) => s.episode === number,
-        )?.airingAt;
-
-        const formattedDate = tmdbEpisode?.air_date
-          ? new Date(tmdbEpisode.air_date)
-          : airDate
-            ? new Date(airDate * 1000)
-            : undefined;
-
-        return {
-          title: tmdbEpisode?.name || zoroTitle,
-          image: getImage(tmdbEpisode?.still_path),
-          number,
-          overview: tmdbEpisode?.overview ?? '',
-          date: formattedDate ? formattedDate.toISOString() : '',
-          duration: tmdbEpisode?.runtime || anilist?.duration || 0,
-          filler,
-          sub,
-          dub,
-        };
+      const paheMap = new Map<number, AnimepaheEpisode>();
+      episodesPahe.forEach((ep, idx) => {
+        paheMap.set(idx + 1, ep);
       });
 
-      episodes = episodes.filter((e) => e.number).sort((a, b) => a.number! - b.number!);
+      const allNumbers = new Set<number>();
+      episodesZoro.forEach((e) => {
+        if (e.number != null) allNumbers.add(e.number);
+      });
+      tmdbEpisodes.forEach((e) => {
+        if (e.episode_number != null) allNumbers.add(e.episode_number);
+      });
+      for (let i = 1; i <= episodesPahe.length; i++) {
+        allNumbers.add(i);
+      }
+
+      let episodes: Episode[] = Array.from(allNumbers)
+        .sort((a, b) => a - b)
+        .map((number) => {
+          const zoroEp = episodesZoro.find((e) => e.number === number);
+          const paheEp = paheMap.get(number);
+          const tmdbEpisode = tmdbEpisodes.find(
+            (e) => e.episode_number === number,
+          );
+
+          const airDate = anilist?.airingSchedule?.find(
+            (s) => s.episode === number,
+          )?.airingAt;
+
+          const formattedDate = tmdbEpisode?.air_date
+            ? new Date(tmdbEpisode.air_date)
+            : airDate
+              ? new Date(airDate * 1000)
+              : anilist?.startDate?.year &&
+                  anilist?.startDate?.month &&
+                  anilist?.startDate?.day
+                ? new Date(
+                    anilist.startDate.year,
+                    anilist.startDate.month - 1,
+                    anilist.startDate.day,
+                  )
+                : undefined;
+
+          const filler = zoroEp?.isFiller ?? false;
+          const sub = zoroEp?.isSubbed ?? (paheEp ? true : false);
+          const dub = zoroEp?.isDubbed ?? (paheEp ? true : false);
+
+          return {
+            title:
+              tmdbEpisode?.name ||
+              zoroEp?.title ||
+              paheEp?.title ||
+              `EP ${number}`,
+            image: getImage(tmdbEpisode?.still_path) || null,
+            number,
+            overview: tmdbEpisode?.overview ?? '',
+            date: formattedDate ? formattedDate.toISOString() : '',
+            duration: tmdbEpisode?.runtime || anilist?.duration || 0,
+            filler,
+            sub,
+            dub,
+          };
+        });
+
+      episodes = episodes
+        .filter((e) => e.number)
+        .sort((a, b) => a.number! - b.number!);
 
       if (Config.REDIS) {
         await this.redis.set(

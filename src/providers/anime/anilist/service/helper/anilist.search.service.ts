@@ -120,10 +120,13 @@ export class AnilistSearchService {
       (b) => b.shikimori?.franchise && b.shikimori.franchise.trim().length > 0,
     );
 
-    const franchise = await this.getFranchise(
-      firstBasicFranchise?.shikimori?.franchise || '',
-      new FilterDto({ perPage: franchises, page: 1, sort: [MediaSort.POPULARITY_DESC, MediaSort.TRENDING_DESC] }),
-    );
+    let franchise: FranchiseResponse<BasicAnilist[]> | null = null;
+    if (firstBasicFranchise?.shikimori?.franchise) {
+      franchise = await this.getFranchise(
+        firstBasicFranchise.shikimori.franchise,
+        new FilterDto({ perPage: franchises, page: 1, sort: [MediaSort.POPULARITY_DESC, MediaSort.TRENDING_DESC] }),
+      );
+    }
 
     return {
       pageInfo: response.pageInfo,
@@ -136,6 +139,10 @@ export class AnilistSearchService {
     franchiseName: string,
     filter: FilterDto,
   ): Promise<FranchiseResponse<BasicAnilist[]>> {
+    if (franchiseName.trim().length === 0) {
+      throw new Error('Franchise name cannot be empty');
+    }
+
     const baseFilter = { ...filter, franchise: franchiseName }
     const franchises = await this.getAnilists(baseFilter)
 

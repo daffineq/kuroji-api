@@ -236,17 +236,24 @@ export class ZoroService extends Client {
       episodes: findEpisodeCount(anilist),
     };
 
-    const bestMatch = findBestMatch(searchCriteria, results);
+    const exclude: string[] = [];
 
-    if (bestMatch) {
-      const data = await this.fetchZoro(bestMatch.result.id);
+    for (let i = 0; i < 3; i++) {
+      const bestMatch = findBestMatch(searchCriteria, results, exclude);
 
-      if (
-        (data.alID && Number(data.alID) === anilist.id) ||
-        (data.malID && Number(data.malID) === anilist.idMal)
-      ) {
-        data.alID = id;
-        return data;
+      if (bestMatch) {
+        const data = await this.fetchZoro(bestMatch.result.id);
+
+        if (
+          (data.alID && Number(data.alID) === anilist.id) ||
+          (data.malID && Number(data.malID) === anilist.idMal)
+        ) {
+          data.alID = id;
+          return data;
+        } else {
+          exclude.push(bestMatch.result.id);
+          continue;
+        }
       }
     }
 

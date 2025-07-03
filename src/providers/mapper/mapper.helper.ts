@@ -471,11 +471,12 @@ function sortCandidatesByPreference<T extends ExpectAnime>(
 export const findBestMatch = <T extends ExpectAnime>(
   search: ExpectAnime,
   results: T[],
+  exclude: string[] = [],
 ): MatchResult<T> | null => {
   // Calculate the best match after 10 fucking layers of security for most accurate asf match.
   if (!search || !results || results.length === 0) return null;
 
-  const sortedResults = sortCandidatesByPreference(results);
+  const sortedResults = sortCandidatesByPreference(results).filter((r) => exclude.indexOf(r.id as string) === -1);
 
   const searchTitles = getAllTitles(search.title);
   if (searchTitles.length === 0) return null;

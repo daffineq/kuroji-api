@@ -13,18 +13,19 @@ import { TmdbService } from '../anime/tmdb/service/tmdb.service.js';
 import { TvdbService } from '../anime/tvdb/service/tvdb.service.js';
 import { ZoroService } from '../anime/zoro/service/zoro.service.js';
 import { AppLockService } from '../../shared/app.lock.service.js';
+import { UpdateRequestsService } from './update.requests.service.js'
 
-interface IProvider {
+export interface IProvider {
   update: (id: string | number) => Promise<any>;
   type: UpdateType;
 }
 
-interface QueueItem {
+export interface QueueItem {
   animeId: number;
   malId: number | null | undefined;
   priority: 'high' | 'medium' | 'low';
   addedAt: number;
-  reason: 'recent' | 'today' | 'week_ago' | 'missed';
+  reason: 'recent' | 'today' | 'week_ago' | 'missed' | 'finished_monthly' | 'upcoming_weekly' | 'status_change';
 }
 
 const SLEEP_BETWEEN_UPDATES = 30;
@@ -52,6 +53,7 @@ export class UpdateService {
     private readonly tvdbService: TvdbService,
     private readonly kitsuService: KitsuService,
     private readonly lock: AppLockService,
+    private readonly requests: UpdateRequestsService,
     private readonly prisma: PrismaService,
   ) {
     this.providers = [
@@ -195,11 +197,17 @@ export class UpdateService {
   private getReasonWeight(reason: QueueItem['reason']): number {
     switch (reason) {
       case 'recent':
-        return 4; // Highest priority - just aired within hours
+        return 7; // Highest priority - just aired within hours
       case 'today':
-        return 3; // High priority - aired today
+        return 6; // High priority - aired today
+      case 'upcoming_weekly':
+        return 5; // Weekly upcoming anime updates
+      case 'status_change':
+        return 4; // Status changes (released, finished, etc.)
       case 'week_ago':
-        return 2; // Medium priority - aired a week ago
+        return 3; // Medium priority - aired a week ago
+      case 'finished_monthly':
+        return 2; // Monthly finished anime updates
       case 'missed':
         return 1; // Low priority - failed updates or manual additions
       default:
@@ -227,124 +235,10 @@ export class UpdateService {
     return next;
   }
 
-  async getRecentAiredAnime(hoursBack: number = 2) {
-    const londonNow = new Date().toLocaleString('en-US', {
-      timeZone: 'Europe/London',
-    });
-    const today = new Date(londonNow);
-    const startOfDay = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-    );
-    const now = Math.floor(startOfDay.getTime() / 1000);
-    const startTime = now - hoursBack * 60 * 60;
-
-    const todayAired = await this.prisma.anilist.findMany({
-      where: {
-        airingSchedule: {
-          some: {
-            airingAt: {
-              gte: startTime,
-              lte: now,
-            },
-          },
-        },
-      },
-      select: {
-        id: true,
-        idMal: true,
-      },
-      orderBy: {
-        trending: 'desc',
-      },
-    });
-
-    return todayAired;
-  }
-
-  async getTodayAiredAnime() {
-    const londonNow = new Date().toLocaleString('en-US', {
-      timeZone: 'Europe/London',
-    });
-    const today = new Date(londonNow);
-    const startOfDay = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-    );
-    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
-
-    const startTimestamp = Math.floor(startOfDay.getTime() / 1000);
-    const endTimestamp = Math.floor(endOfDay.getTime() / 1000);
-
-    const todayAired = await this.prisma.anilist.findMany({
-      where: {
-        airingSchedule: {
-          some: {
-            airingAt: {
-              gte: startTimestamp,
-              lte: endTimestamp,
-            },
-          },
-        },
-      },
-      select: {
-        id: true,
-        idMal: true,
-      },
-      orderBy: {
-        trending: 'desc',
-      },
-    });
-
-    return todayAired;
-  }
-
-  async getWeekAgoAiredAnime() {
-    const londonNow = new Date().toLocaleString('en-US', {
-      timeZone: 'Europe/London',
-    });
-    const weekAgo = new Date(londonNow);
-    weekAgo.setDate(weekAgo.getDate() - 7);
-
-    const startOfDay = new Date(
-      weekAgo.getFullYear(),
-      weekAgo.getMonth(),
-      weekAgo.getDate(),
-    );
-    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
-
-    const startTimestamp = Math.floor(startOfDay.getTime() / 1000);
-    const endTimestamp = Math.floor(endOfDay.getTime() / 1000);
-
-    const weekAgoAired = await this.prisma.anilist.findMany({
-      where: {
-        airingSchedule: {
-          some: {
-            airingAt: {
-              gte: startTimestamp,
-              lte: endTimestamp,
-            },
-          },
-        },
-      },
-      select: {
-        id: true,
-        idMal: true,
-      },
-      orderBy: {
-        trending: 'desc',
-      },
-    });
-
-    return weekAgoAired;
-  }
-
   async queueRecentAnime() {
-    const recentAnime = await this.getRecentAiredAnime();
+    const recentAnime = await this.requests.getRecentAiredAnime();
     console.log(
-      `[UpdateService] Adding ${recentAnime.length} recent aired anime to queue with PRIORITY status`,
+      `[UpdateService] Adding ${recentAnime.length} recent aired anime to queue with HIGH priority`,
     );
 
     for (const anime of recentAnime) {
@@ -355,7 +249,7 @@ export class UpdateService {
   }
 
   async queueTodayAnime() {
-    const todayAnime = await this.getTodayAiredAnime();
+    const todayAnime = await this.requests.getTodayAiredAnime();
     console.log(
       `[UpdateService] Adding ${todayAnime.length} today aired anime to queue`,
     );
@@ -368,13 +262,61 @@ export class UpdateService {
   }
 
   async queueWeekAgoAnime() {
-    const weekAgoAnime = await this.getWeekAgoAiredAnime();
+    const weekAgoAnime = await this.requests.getWeekAgoAiredAnime();
     console.log(
       `[UpdateService] Adding ${weekAgoAnime.length} week-ago aired anime to queue`,
     );
 
     for (const anime of weekAgoAnime) {
       this.addToQueue(anime, 'medium', 'week_ago');
+    }
+
+    await this.saveQueueToDB();
+  }
+
+  async queueFinishedAnime() {
+    const finishedAnime = await this.requests.getFinishedAnime();
+    console.log(
+      `[UpdateService] Adding ${finishedAnime.length} finished anime to queue for monthly update`,
+    );
+
+    for (const anime of finishedAnime) {
+      if (this.requests.shouldUpdateBasedOnPopularity(anime.popularity)) {
+        const priority = this.requests.getPopularityPriority(anime.popularity);
+        this.addToQueue(anime, priority, 'finished_monthly');
+      }
+    }
+
+    await this.saveQueueToDB();
+  }
+
+  async queueUpcomingAnime() {
+    const upcomingAnime = await this.requests.getUpcomingAnime();
+    console.log(
+      `[UpdateService] Adding ${upcomingAnime.length} upcoming anime to queue for weekly update`,
+    );
+
+    for (const anime of upcomingAnime) {
+      if (this.requests.shouldUpdateBasedOnPopularity(anime.popularity)) {
+        const priority = this.requests.getPopularityPriority(anime.popularity);
+        this.addToQueue(anime, priority, 'upcoming_weekly');
+      }
+    }
+
+    await this.saveQueueToDB();
+  }
+
+  async queueStatusChangedAnime() {
+    const statusChangedAnime = await this.requests.getStatusChangedAnime();
+    console.log(
+      `[UpdateService] Adding ${statusChangedAnime.length} status-changed anime to queue`,
+    );
+
+    for (const anime of statusChangedAnime) {
+      if (this.requests.shouldUpdateBasedOnPopularity(anime.popularity)) {
+        const priority = this.requests.getPopularityPriority(anime.popularity);
+        this.addToQueue(anime, priority, 'status_change');
+      }
     }
 
     await this.saveQueueToDB();
@@ -423,7 +365,7 @@ export class UpdateService {
 
         while (!success && retries < MAX_RETRIES) {
           try {
-            await this.updateAnimeWithAllProviders(
+            await this.updateAnime(
               queueItem.animeId,
               queueItem.malId,
               queueItem.reason,
@@ -495,7 +437,7 @@ export class UpdateService {
     }
   }
 
-  private async updateAnimeWithAllProviders(
+  private async updateAnime(
     animeId: number,
     malId: number | null | undefined,
     triggeredBy: string = 'queue',
@@ -507,6 +449,17 @@ export class UpdateService {
     for (const provider of this.providers) {
       try {
         const providerName = UpdateType[provider.type];
+
+        if (streaming.includes(provider.type)) {
+          if (
+            (provider.type === UpdateType.ANIMEKAI && !Config.ANIMEKAI_ENABLED) ||
+            (provider.type === UpdateType.ANIMEPAHE && !Config.ANIMEPAHE_ENABLED) ||
+            (provider.type === UpdateType.ANIWATCH && !Config.ZORO_ENABLED)
+          ) {
+            console.log(`[${providerName}] Skipped (provider disabled in config)`);
+            continue;
+          }
+        }
 
         if (provider.type === UpdateType.SHIKIMORI) {
           if (malId) {
@@ -543,7 +496,7 @@ export class UpdateService {
     }
 
     const duration = Math.floor((Date.now() - startTime) / 1000);
-    const success = completedProviders.length > 0; // Success if at least one provider worked
+    const success = completedProviders.length > 0;
 
     await this.addUpdateHistory(
       animeId,
@@ -562,6 +515,7 @@ export class UpdateService {
     }
   }
 
+  // Every 30 minutes
   @Cron(CronExpression.EVERY_30_MINUTES)
   async scheduleRecentAnime() {
     console.log(
@@ -586,6 +540,28 @@ export class UpdateService {
     await this.queueWeekAgoAnime();
   }
 
+  // Monthly finished anime update - 1st of every month at 2 AM London time
+  @Cron('0 2 1 * *', { timeZone: 'Europe/London' })
+  async scheduleFinishedAnime() {
+    console.log('[UpdateService] Monthly - queueing finished anime for updates');
+    await this.queueFinishedAnime();
+  }
+
+  // Weekly upcoming anime update - Every Sunday at 3 AM London time
+  @Cron('0 3 * * 0', { timeZone: 'Europe/London' })
+  async scheduleUpcomingAnime() {
+    console.log('[UpdateService] Weekly - queueing upcoming anime for updates');
+    await this.queueUpcomingAnime();
+  }
+
+  // Daily status change check - Every day at 4 AM London time
+  @Cron('0 4 * * *', { timeZone: 'Europe/London' })
+  async scheduleStatusChangedAnime() {
+    console.log('[UpdateService] Daily - queueing status-changed anime');
+    await this.queueStatusChangedAnime();
+  }
+
+  // Every 30 minutes - proccessing all entries in queue
   @Cron(CronExpression.EVERY_30_MINUTES)
   async processUpdateQueue() {
     await this.processQueue();
@@ -604,6 +580,9 @@ export class UpdateService {
       today: queueItems.filter((item) => item.reason === 'today').length,
       week_ago: queueItems.filter((item) => item.reason === 'week_ago').length,
       missed: queueItems.filter((item) => item.reason === 'missed').length,
+      finished_monthly: queueItems.filter((item) => item.reason === 'finished_monthly').length,
+      upcoming_weekly: queueItems.filter((item) => item.reason === 'upcoming_weekly').length,
+      status_change: queueItems.filter((item) => item.reason === 'status_change').length,
     };
 
     return {

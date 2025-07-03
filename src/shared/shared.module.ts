@@ -29,6 +29,7 @@ import { AppLockService } from './app.lock.service.js';
 import { AnilistRandomService } from '../providers/anime/anilist/service/helper/anilist.random.service.js';
 import { TmdbSeasonService } from '../providers/anime/tmdb/service/tmdb.season.service.js';
 import { TmdbEpisodeService } from '../providers/anime/tmdb/service/tmdb.episode.service.js';
+import { UpdateRequestsService } from '../providers/update/update.requests.service.js'
 
 @Module({
   imports: [ShikimoriHelperModule, Redis],
@@ -59,6 +60,7 @@ import { TmdbEpisodeService } from '../providers/anime/tmdb/service/tmdb.episode
     KitsuService,
     KitsuHelper,
     UpdateService,
+    UpdateRequestsService,
     StreamService,
     AppLockService,
   ],
@@ -88,6 +90,7 @@ import { TmdbEpisodeService } from '../providers/anime/tmdb/service/tmdb.episode
     KitsuService,
     KitsuHelper,
     UpdateService,
+    UpdateRequestsService,
     StreamService,
     AppLockService,
   ],
