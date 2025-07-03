@@ -115,11 +115,7 @@ export class StreamService {
           const dub = zoroEp?.isDubbed ?? (paheEp ? true : false);
 
           return {
-            title:
-              tmdbEpisode?.name ||
-              zoroEp?.title ||
-              paheEp?.title ||
-              `EP ${number}`,
+            title: tmdbEpisode?.name || zoroEp?.title || paheEp?.title || ``,
             image: getImage(tmdbEpisode?.still_path) || null,
             number,
             overview: tmdbEpisode?.overview ?? '',
