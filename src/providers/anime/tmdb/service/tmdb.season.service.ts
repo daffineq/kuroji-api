@@ -22,10 +22,21 @@ interface EpisodeMatchCandidate {
   anilistEpisodeNumber: number;
 }
 
+enum MatchStrategy {
+  DATE_RANGE = 'date_range',
+  EPISODE_COUNT = 'episode_count',
+  AIRING_SCHEDULE = 'airing_schedule',
+  SEASON_YEAR = 'season_year',
+  ZORO = 'zoro',
+  ANIMEPAHE = 'animepahe',
+  NONE = 'none',
+}
+
 interface MatchResult {
   episodes: TmdbSeasonEpisode[];
   primarySeason: number;
   confidence: number;
+  strategy: MatchStrategy;
 }
 
 interface SeasonEpisodeGroup {
@@ -221,20 +232,21 @@ export class TmdbSeasonService {
       episodes: [],
       primarySeason: 1,
       confidence: 0,
+      strategy: MatchStrategy.NONE,
     };
 
-    // console.log(
-    //   `Trying to match ${findEpisodeCount(anilist)} episodes for AniList ID ${anilist.id}`,
-    // );
+    console.log(
+      `Trying to match ${findEpisodeCount(anilist)} episodes for AniList ID ${anilist.id}`,
+    );
 
     for (const [index, strategy] of strategies.entries()) {
       try {
         const result = await strategy();
-        // console.log(`Strategy ${index + 1} result:`, {
-        //   episodeCount: result.episodes.length,
-        //   confidence: result.confidence,
-        //   primarySeason: result.primarySeason,
-        // });
+        console.log(`Strategy ${result.strategy} result:`, {
+          episodeCount: result.episodes.length,
+          confidence: result.confidence,
+          primarySeason: result.primarySeason,
+        });
 
         if (result.confidence > bestMatch.confidence) {
           bestMatch = result;
@@ -295,6 +307,8 @@ export class TmdbSeasonService {
     allEpisodes: TmdbSeasonEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
   ): Promise<MatchResult> {
+    const strategy = MatchStrategy.DATE_RANGE;
+
     const startDate = getDateStringFromAnilist(
       (anilist.startDate as DateDetails) || {},
     );
@@ -303,7 +317,7 @@ export class TmdbSeasonService {
     );
 
     if (!startDate || !anilist.seasonYear) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const filteredEpisodes = allEpisodes.filter((ep) => {
@@ -324,12 +338,12 @@ export class TmdbSeasonService {
     });
 
     if (filteredEpisodes.length === 0) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const expectedCount = findEpisodeCount(anilist);
     if (!expectedCount) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const episodes = this.selectBestEpisodes(filteredEpisodes, expectedCount);
@@ -338,7 +352,7 @@ export class TmdbSeasonService {
     const countMatch = episodes.length / expectedCount;
     const confidence = Math.min(0.9, countMatch * 0.85);
 
-    return { episodes, primarySeason, confidence };
+    return { episodes, primarySeason, confidence, strategy };
   }
 
   private async matchByEpisodeCount(
@@ -346,9 +360,11 @@ export class TmdbSeasonService {
     allEpisodes: TmdbSeasonEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
   ): Promise<MatchResult> {
+    const strategy = MatchStrategy.EPISODE_COUNT;
+
     const expectedCount = findEpisodeCount(anilist);
     if (!expectedCount || !anilist.seasonYear) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const anilistYear = anilist.seasonYear;
@@ -372,6 +388,7 @@ export class TmdbSeasonService {
           episodes,
           primarySeason: seasonGroup.seasonNumber,
           confidence: 0.9,
+          strategy,
         };
       }
 
@@ -391,11 +408,12 @@ export class TmdbSeasonService {
           episodes,
           primarySeason: seasonGroup.seasonNumber,
           confidence,
+          strategy,
         };
       }
     }
 
-    return { episodes: [], primarySeason: 1, confidence: 0 };
+    return { episodes: [], primarySeason: 1, confidence: 0, strategy };
   }
 
   private async matchBySeasonYear(
@@ -403,15 +421,17 @@ export class TmdbSeasonService {
     allEpisodes: TmdbSeasonEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
   ): Promise<MatchResult> {
+    const strategy = MatchStrategy.SEASON_YEAR;
+
     if (!anilist.seasonYear) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const anilistYear = anilist.seasonYear;
     const expectedCount = findEpisodeCount(anilist);
 
     if (!expectedCount) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const yearTolerance = [anilistYear, anilistYear + 1];
@@ -420,6 +440,7 @@ export class TmdbSeasonService {
       episodes: [],
       primarySeason: 1,
       confidence: 0,
+      strategy,
     };
 
     for (const seasonGroup of seasonGroups) {
@@ -467,6 +488,7 @@ export class TmdbSeasonService {
             episodes,
             primarySeason: seasonGroup.seasonNumber,
             confidence,
+            strategy,
           };
         }
       }
@@ -479,9 +501,11 @@ export class TmdbSeasonService {
     anilist: AnilistWithRelations,
     allEpisodes: TmdbSeasonEpisode[],
   ): Promise<MatchResult> {
+    const strategy = MatchStrategy.AIRING_SCHEDULE;
+
     const airingSchedule = anilist.airingSchedule || [];
     if (airingSchedule.length === 0) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const matches: EpisodeMatchCandidate[] = [];
@@ -511,7 +535,7 @@ export class TmdbSeasonService {
     }
 
     if (matches.length === 0) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const expectedCount = findEpisodeCount(anilist);
@@ -524,14 +548,14 @@ export class TmdbSeasonService {
     const matchRatio = expectedCount ? episodes.length / expectedCount : 0;
 
     if (matchRatio < 0.5) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const episodesPenalty = episodes.length === expectedCount ? 1 : 0.75;
     const primarySeason = this.getMostCommonSeason(episodes);
     const confidence = Math.min(matchRatio, 0.95 * episodesPenalty);
 
-    return { episodes, primarySeason, confidence };
+    return { episodes, primarySeason, confidence, strategy };
   }
 
   private async matchByZoro(
@@ -539,8 +563,10 @@ export class TmdbSeasonService {
     zoro: ZoroWithRelations,
     allEpisodes: TmdbSeasonEpisode[],
   ): Promise<MatchResult> {
+    const strategy = MatchStrategy.ZORO;
+
     if (!zoro || !zoro.episodes || zoro.episodes.length === 0) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const matches: EpisodeMatchCandidate[] = [];
@@ -567,12 +593,12 @@ export class TmdbSeasonService {
     });
 
     if (matches.length === 0) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const expectedCount = findEpisodeCount(anilist);
     if (!expectedCount) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const episodes = this.selectBestEpisodes(
@@ -582,14 +608,14 @@ export class TmdbSeasonService {
 
     const matchRatio = expectedCount ? episodes.length / expectedCount : 0;
     if (matchRatio < 0.5) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const episodesPenalty = episodes.length === expectedCount ? 1 : 0.75;
     const primarySeason = this.getMostCommonSeason(episodes);
-    const confidence = Math.min(matchRatio, 0.95 * episodesPenalty);
+    const confidence = Math.min(matchRatio, 0.9 * episodesPenalty);
 
-    return { episodes, primarySeason, confidence };
+    return { episodes, primarySeason, confidence, strategy };
   }
 
   private async matchByAnimepahe(
@@ -597,8 +623,10 @@ export class TmdbSeasonService {
     animepahe: AnimepaheWithRelations,
     allEpisodes: TmdbSeasonEpisode[],
   ): Promise<MatchResult> {
+    const strategy = MatchStrategy.ANIMEPAHE;
+
     if (!animepahe || !animepahe.episodes || animepahe.episodes.length === 0) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const matches: EpisodeMatchCandidate[] = [];
@@ -611,7 +639,7 @@ export class TmdbSeasonService {
       if (tmdbEp) {
         matches.push({
           episode: tmdbEp,
-          confidence: 0.9,
+          confidence: 0.7,
           reasons: ['animepahe_episode_number_match'],
           anilistEpisodeNumber: animepaheEp.number ?? index + 1,
         });
@@ -619,12 +647,12 @@ export class TmdbSeasonService {
     });
 
     if (matches.length === 0) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const expectedCount = findEpisodeCount(anilist);
     if (!expectedCount) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const episodes = this.selectBestEpisodes(
@@ -634,14 +662,14 @@ export class TmdbSeasonService {
 
     const matchRatio = expectedCount ? episodes.length / expectedCount : 0;
     if (matchRatio < 0.5) {
-      return { episodes: [], primarySeason: 1, confidence: 0 };
+      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
     const episodesPenalty = episodes.length === expectedCount ? 1 : 0.75;
     const primarySeason = this.getMostCommonSeason(episodes);
-    const confidence = Math.min(matchRatio, 0.95 * episodesPenalty);
+    const confidence = Math.min(matchRatio, 0.7 * episodesPenalty);
 
-    return { episodes, primarySeason, confidence };
+    return { episodes, primarySeason, confidence, strategy };
   }
 
   private getMostCommonSeason(episodes: TmdbSeasonEpisode[]): number {
