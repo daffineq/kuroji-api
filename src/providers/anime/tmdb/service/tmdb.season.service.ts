@@ -235,18 +235,18 @@ export class TmdbSeasonService {
       strategy: MatchStrategy.NONE,
     };
 
-    console.log(
-      `Trying to match ${findEpisodeCount(anilist)} episodes for AniList ID ${anilist.id}`,
-    );
+    // console.log(
+    //   `Trying to match ${findEpisodeCount(anilist)} episodes for AniList ID ${anilist.id}`,
+    // );
 
     for (const [index, strategy] of strategies.entries()) {
       try {
         const result = await strategy();
-        console.log(`Strategy ${result.strategy} result:`, {
-          episodeCount: result.episodes.length,
-          confidence: result.confidence,
-          primarySeason: result.primarySeason,
-        });
+        // console.log(`Strategy ${result.strategy} result:`, {
+        //   episodeCount: result.episodes.length,
+        //   confidence: result.confidence,
+        //   primarySeason: result.primarySeason,
+        // });
 
         if (result.confidence > bestMatch.confidence) {
           bestMatch = result;
