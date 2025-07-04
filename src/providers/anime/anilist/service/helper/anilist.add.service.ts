@@ -6,10 +6,7 @@ import { PrismaService } from '../../../../../prisma.service.js';
 import { ShikimoriService } from '../../../shikimori/service/shikimori.service.js';
 import { AnilistSearchService } from './anilist.search.service.js';
 import { getPageInfo } from '../../../../../utils/utils.js';
-import {
-  BasicAnilist,
-  AnilistWithRelations,
-} from '../../types/types.js';
+import { BasicAnilist, AnilistWithRelations } from '../../types/types.js';
 
 @Injectable()
 export class AnilistAddService {

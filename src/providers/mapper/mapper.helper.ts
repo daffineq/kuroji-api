@@ -405,6 +405,7 @@ export interface ExpectAnime {
         userPreferred?: string;
       };
   japaneseTitle?: string;
+  synonyms?: string[];
   year?: number;
   type?: string;
   episodes?: number;
@@ -415,26 +416,20 @@ export interface ExpectAnime {
  * @param title - The title to get all variations from
  * @returns Array of all available title variations
  */
-function getAllTitles(
-  title?:
-    | string
-    | {
-        english?: string | null;
-        romaji?: string | null;
-        native?: string | null;
-        userPreferred?: string | null;
-      },
-  japaneseTitle: string | null = null,
-): string[] {
-  if (!title) return [];
-  if (typeof title === 'string' && japaneseTitle) return [title, japaneseTitle];
-  if (typeof title === 'string') return [title];
+function getAllTitles<T extends ExpectAnime>(candidate: T): string[] {
+  if (!candidate.title) return [];
+  if (typeof candidate.title === 'string' && candidate.japaneseTitle)
+    return [candidate.title, candidate.japaneseTitle].concat(
+      candidate.synonyms ?? [],
+    );
+  if (typeof candidate.title === 'string')
+    return [candidate.title].concat(candidate.synonyms ?? []);
 
   return [
-    title.userPreferred,
-    title.english,
-    title.romaji,
-    title.native,
+    candidate.title.userPreferred,
+    candidate.title.english,
+    candidate.title.romaji,
+    candidate.title.native,
   ].filter((t): t is string => !!t);
 }
 
@@ -446,8 +441,8 @@ function sortCandidatesByPreference<T extends ExpectAnime>(
   candidates: T[],
 ): T[] {
   return candidates.sort((a, b) => {
-    const aTitles = getAllTitles(a.title, a.japaneseTitle);
-    const bTitles = getAllTitles(b.title, b.japaneseTitle);
+    const aTitles = getAllTitles(a);
+    const bTitles = getAllTitles(b);
 
     const aIsDerivative = aTitles.some((title) => isDerivativeVersion(title));
     const bIsDerivative = bTitles.some((title) => isDerivativeVersion(title));
@@ -476,9 +471,11 @@ export const findBestMatch = <T extends ExpectAnime>(
   // Calculate the best match after 10 fucking layers of security for most accurate asf match.
   if (!search || !results || results.length === 0) return null;
 
-  const sortedResults = sortCandidatesByPreference(results).filter((r) => exclude.indexOf(r.id as string) === -1);
+  const sortedResults = sortCandidatesByPreference(results).filter(
+    (r) => exclude.indexOf(r.id as string) === -1,
+  );
 
-  const searchTitles = getAllTitles(search.title);
+  const searchTitles = getAllTitles(search);
   if (searchTitles.length === 0) return null;
 
   const searchYear = search.year;
@@ -492,10 +489,7 @@ export const findBestMatch = <T extends ExpectAnime>(
     matchedTitle?: string,
     normalizedTitle?: string,
   ): MatchResult<T> => {
-    const candidateTitles = getAllTitles(
-      candidate.title,
-      candidate.japaneseTitle,
-    );
+    const candidateTitles = getAllTitles(candidate);
     const isDerivative = candidateTitles.some((title) =>
       isDerivativeVersion(title),
     );
@@ -528,10 +522,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 1. Exact Match with year, episodes, and type
   if (searchYear && searchEpisodes && searchType) {
     for (const candidate of sortedResults) {
-      const candidateTitles = getAllTitles(
-        candidate.title,
-        candidate.japaneseTitle,
-      );
+      const candidateTitles = getAllTitles(candidate);
 
       if (
         candidate.year === searchYear &&
@@ -555,10 +546,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 2. Exact Match with normalized titles, year, episodes, and type
   if (searchYear && searchEpisodes && searchType) {
     for (const candidate of sortedResults) {
-      const candidateTitles = getAllTitles(
-        candidate.title,
-        candidate.japaneseTitle,
-      );
+      const candidateTitles = getAllTitles(candidate);
       const normalizedCandidateTitles = candidateTitles
         .map(sanitizeTitle)
         .filter((t): t is string => !!t);
@@ -586,10 +574,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 3. Exact Match with year and type
   if (searchYear && searchType) {
     for (const candidate of sortedResults) {
-      const candidateTitles = getAllTitles(
-        candidate.title,
-        candidate.japaneseTitle,
-      );
+      const candidateTitles = getAllTitles(candidate);
 
       if (
         candidate.year === searchYear &&
@@ -612,10 +597,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 4. Exact Match with normalized titles, year, and type
   if (searchYear && searchType) {
     for (const candidate of sortedResults) {
-      const candidateTitles = getAllTitles(
-        candidate.title,
-        candidate.japaneseTitle,
-      );
+      const candidateTitles = getAllTitles(candidate);
       const normalizedCandidateTitles = candidateTitles
         .map(sanitizeTitle)
         .filter((t): t is string => !!t);
@@ -642,10 +624,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 5. Exact Match with type only
   if (searchType) {
     for (const candidate of sortedResults) {
-      const candidateTitles = getAllTitles(
-        candidate.title,
-        candidate.japaneseTitle,
-      );
+      const candidateTitles = getAllTitles(candidate);
 
       if (areTypesCompatible(searchType, candidate.type)) {
         for (const searchTitle of searchTitles) {
@@ -665,10 +644,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   // 6. Exact Match with normalized titles and type
   if (searchType) {
     for (const candidate of sortedResults) {
-      const candidateTitles = getAllTitles(
-        candidate.title,
-        candidate.japaneseTitle,
-      );
+      const candidateTitles = getAllTitles(candidate);
 
       const normalizedCandidateTitles = candidateTitles
         .map(sanitizeTitle)
@@ -694,10 +670,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   let bestLooseMatch: MatchResult<T> | null = null;
 
   for (const candidate of sortedResults) {
-    const candidateTitles = getAllTitles(
-      candidate.title,
-      candidate.japaneseTitle,
-    );
+    const candidateTitles = getAllTitles(candidate);
 
     const normalizedCandidateTitles = candidateTitles
       .map(sanitizeTitle)
@@ -716,10 +689,7 @@ export const findBestMatch = <T extends ExpectAnime>(
               ? Math.min(1.0, similarity + 0.05)
               : similarity;
 
-          const candidateAllTitles = getAllTitles(
-            candidate.title,
-            candidate.japaneseTitle,
-          );
+          const candidateAllTitles = getAllTitles(candidate);
           const isDerivative = candidateAllTitles.some((title) =>
             isDerivativeVersion(title),
           );
@@ -759,10 +729,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   let bestFuzzyMatch: MatchResult<T> | null = null;
 
   for (const candidate of sortedResults) {
-    const candidateTitles = getAllTitles(
-      candidate.title,
-      candidate.japaneseTitle,
-    );
+    const candidateTitles = getAllTitles(candidate);
 
     const normalizedCandidateTitles = candidateTitles
       .map(sanitizeTitle)
@@ -781,10 +748,7 @@ export const findBestMatch = <T extends ExpectAnime>(
               ? Math.min(1.0, similarity + 0.03)
               : similarity;
 
-          const candidateAllTitles = getAllTitles(
-            candidate.title,
-            candidate.japaneseTitle,
-          );
+          const candidateAllTitles = getAllTitles(candidate);
           const isDerivative = candidateAllTitles.some((title) =>
             isDerivativeVersion(title),
           );
@@ -823,10 +787,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   let highestSimilarity = 0;
 
   for (const candidate of sortedResults) {
-    const candidateTitles = getAllTitles(
-      candidate.title,
-      candidate.japaneseTitle,
-    );
+    const candidateTitles = getAllTitles(candidate);
 
     const normalizedCandidateTitles = candidateTitles
       .map(sanitizeTitle)
@@ -844,10 +805,7 @@ export const findBestMatch = <T extends ExpectAnime>(
             ? Math.min(1.0, similarity + 0.02)
             : similarity;
 
-        const candidateAllTitles = getAllTitles(
-          candidate.title,
-          candidate.japaneseTitle,
-        );
+        const candidateAllTitles = getAllTitles(candidate);
         const isDerivative = candidateAllTitles.some((title) =>
           isDerivativeVersion(title),
         );

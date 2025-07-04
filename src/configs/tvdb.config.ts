@@ -30,4 +30,8 @@ export class TVDB {
   static getLanguages(): string {
     return `languages`;
   }
+
+  static search(q: string): string {
+    return `search?query=${q}&country=JPN`;
+  }
 }

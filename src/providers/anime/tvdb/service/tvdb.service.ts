@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { getTvdbInclude, TvdbHelper } from '../utils/tvdb-helper.js';
+import {
+  findBestTvdbMatchFromSearch,
+  getTvdbInclude,
+  TvdbHelper,
+} from '../utils/tvdb-helper.js';
 import { PrismaService } from '../../../../prisma.service.js';
 import { TmdbService } from '../../tmdb/service/tmdb.service.js';
 import { TvdbTokenService } from './token/tvdb.token.service.js';
@@ -18,14 +22,17 @@ import {
 import { Client } from '../../../model/client.js';
 import { UrlConfig } from '../../../../configs/url.config.js';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import { Redis } from 'ioredis'
+import { Redis } from 'ioredis';
 import Config from '../../../../configs/config.js';
 import { undefinedToNull } from '../../../../shared/interceptor.js';
+import { AnilistService } from '../../anilist/service/anilist.service.js';
+import { deepCleanTitle } from '../../../mapper/mapper.helper.js';
 
 @Injectable()
 export class TvdbService extends Client {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly anilist: AnilistService,
     private readonly tmdbService: TmdbService,
     private readonly tokenService: TvdbTokenService,
     private readonly helper: TvdbHelper,
@@ -34,36 +41,21 @@ export class TvdbService extends Client {
     super(UrlConfig.TVDB);
   }
 
-  async getTvdb(id: number): Promise<TvdbWithRelations> {
-    const existingTvdb = await this.prisma.tvdb.findUnique({
-      where: { id },
-      include: getTvdbInclude(),
-    }) as TvdbWithRelations;
-
-    if (existingTvdb) return existingTvdb;
-
-    const type = await this.detectType(id);
-    const tvdb = await this.fetchTvdb(id, type);
-    return await this.saveTvdb(tvdb);
-  }
-
   async getTvdbByAnilist(id: number): Promise<TvdbWithRelations> {
     const tmdb = await this.tmdbService.getTmdbByAnilist(id);
-    const existingTvdb = await this.prisma.tvdb.findFirst({
+
+    if (!tmdb) {
+      throw new Error('No tmdb found');
+    }
+
+    const existingTvdb = (await this.prisma.tvdb.findFirst({
       where: { tmdbId: tmdb.id },
       include: getTvdbInclude(),
-    }) as TvdbWithRelations;
+    })) as TvdbWithRelations;
 
     if (existingTvdb) return existingTvdb;
 
-    const basicTvdb = await this.fetchByRemoteId(
-      String(tmdb.id),
-      tmdb.media_type || 'series',
-    );
-    const tvdb = await this.fetchTvdb(
-      basicTvdb.id,
-      tmdb.media_type || 'series',
-    );
+    const tvdb = await this.fetchTvdbByAnilist(id);
 
     tvdb.tmdbId = tmdb.id;
     tvdb.type = tmdb.media_type ?? undefined;
@@ -145,7 +137,7 @@ export class TvdbService extends Client {
   }
 
   async update(id: number): Promise<void> {
-    const existing = await this.getTvdb(id);
+    const existing = await this.getTvdbByAnilist(id);
 
     if (!existing) return;
 
@@ -154,11 +146,6 @@ export class TvdbService extends Client {
     if (JSON.stringify(tvdb.artworks) !== JSON.stringify(existing.artworks)) {
       await this.saveTvdb(tvdb);
     }
-  }
-
-  async updateByAnilist(id: number) {
-    const tvdb = await this.getTvdbByAnilist(id);
-    return await this.update(tvdb.id);
   }
 
   async updateLanguages(): Promise<TvdbLanguage[]> {
@@ -176,30 +163,36 @@ export class TvdbService extends Client {
     });
   }
 
-  async fetchByRemoteId(id: string, type: string): Promise<BasicTvdb> {
-    const { data, error } = await this.client.get<SearchResponse>(
-      TVDB.getRemoteId(id),
-      {
-        headers: {
-          Authorization: `Bearer ${await this.tokenService.getToken()}`,
-        },
-      },
-    );
+  async fetchTvdbByAnilist(id: number): Promise<TvdbInput> {
+    const anilist = await this.anilist.getAnilist(id);
+    const possibleTitles = [
+      anilist.title?.native,
+      anilist.title?.romaji,
+      anilist.title?.english,
+    ].filter(Boolean) as string[];
 
-    if (error) {
-      throw error;
+    if (possibleTitles.length === 0) {
+      throw new Error('No title found in AniList');
     }
 
-    if (!data) {
-      throw new Error('No data found');
+    let bestMatch: BasicTvdb | null = null;
+
+    for (const title of possibleTitles) {
+      const searchResults = await this.searchTvdb(deepCleanTitle(title));
+      bestMatch = findBestTvdbMatchFromSearch(anilist, searchResults);
+      if (bestMatch) break;
     }
 
-    const match = data.data.find((item) =>
-      type === 'movie' ? item.movie : item.series,
-    );
-    if (!match) throw new Error('Not found');
+    if (!bestMatch || !bestMatch.tvdb_id) {
+      throw new Error('No matching TMDb entry found');
+    }
 
-    return type === 'movie' ? match.movie : match.series;
+    const fetchedTvdb = await this.fetchTvdb(
+      +bestMatch.tvdb_id,
+      bestMatch.id.startsWith('series') ? 'series' : 'movie',
+    );
+
+    return fetchedTvdb;
   }
 
   async fetchTvdb(id: number, type: string): Promise<TvdbInput> {
@@ -263,6 +256,25 @@ export class TvdbService extends Client {
         jsonPath: 'data',
       },
     );
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('Data is null');
+    }
+
+    return data;
+  }
+
+  async searchTvdb(q: string): Promise<BasicTvdb[]> {
+    const { data, error } = await this.client.get<BasicTvdb[]>(TVDB.search(q), {
+      headers: {
+        Authorization: `Bearer ${await this.tokenService.getToken()}`,
+      },
+      jsonPath: 'data',
+    });
 
     if (error) {
       throw error;

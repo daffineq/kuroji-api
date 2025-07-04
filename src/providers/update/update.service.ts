@@ -13,7 +13,7 @@ import { TmdbService } from '../anime/tmdb/service/tmdb.service.js';
 import { TvdbService } from '../anime/tvdb/service/tvdb.service.js';
 import { ZoroService } from '../anime/zoro/service/zoro.service.js';
 import { AppLockService } from '../../shared/app.lock.service.js';
-import { UpdateRequestsService } from './update.requests.service.js'
+import { UpdateRequestsService } from './update.requests.service.js';
 
 export interface IProvider {
   update: (id: string | number) => Promise<any>;
@@ -25,7 +25,14 @@ export interface QueueItem {
   malId: number | null | undefined;
   priority: 'high' | 'medium' | 'low';
   addedAt: number;
-  reason: 'recent' | 'today' | 'week_ago' | 'missed' | 'finished_monthly' | 'upcoming_weekly' | 'status_change';
+  reason:
+    | 'recent'
+    | 'today'
+    | 'week_ago'
+    | 'missed'
+    | 'finished_monthly'
+    | 'upcoming_weekly'
+    | 'status_change';
 }
 
 const SLEEP_BETWEEN_UPDATES = 30;
@@ -82,7 +89,7 @@ export class UpdateService {
         type: UpdateType.TMDB,
       },
       {
-        update: (id: any) => this.tvdbService.updateByAnilist(Number(id)),
+        update: (id: any) => this.tvdbService.update(Number(id)),
         type: UpdateType.TVDB,
       },
       {
@@ -452,11 +459,15 @@ export class UpdateService {
 
         if (streaming.includes(provider.type)) {
           if (
-            (provider.type === UpdateType.ANIMEKAI && !Config.ANIMEKAI_ENABLED) ||
-            (provider.type === UpdateType.ANIMEPAHE && !Config.ANIMEPAHE_ENABLED) ||
+            (provider.type === UpdateType.ANIMEKAI &&
+              !Config.ANIMEKAI_ENABLED) ||
+            (provider.type === UpdateType.ANIMEPAHE &&
+              !Config.ANIMEPAHE_ENABLED) ||
             (provider.type === UpdateType.ANIWATCH && !Config.ZORO_ENABLED)
           ) {
-            console.log(`[${providerName}] Skipped (provider disabled in config)`);
+            console.log(
+              `[${providerName}] Skipped (provider disabled in config)`,
+            );
             continue;
           }
         }
@@ -543,7 +554,9 @@ export class UpdateService {
   // Monthly finished anime update - 1st of every month at 2 AM London time
   @Cron('0 2 1 * *', { timeZone: 'Europe/London' })
   async scheduleFinishedAnime() {
-    console.log('[UpdateService] Monthly - queueing finished anime for updates');
+    console.log(
+      '[UpdateService] Monthly - queueing finished anime for updates',
+    );
     await this.queueFinishedAnime();
   }
 
@@ -580,9 +593,15 @@ export class UpdateService {
       today: queueItems.filter((item) => item.reason === 'today').length,
       week_ago: queueItems.filter((item) => item.reason === 'week_ago').length,
       missed: queueItems.filter((item) => item.reason === 'missed').length,
-      finished_monthly: queueItems.filter((item) => item.reason === 'finished_monthly').length,
-      upcoming_weekly: queueItems.filter((item) => item.reason === 'upcoming_weekly').length,
-      status_change: queueItems.filter((item) => item.reason === 'status_change').length,
+      finished_monthly: queueItems.filter(
+        (item) => item.reason === 'finished_monthly',
+      ).length,
+      upcoming_weekly: queueItems.filter(
+        (item) => item.reason === 'upcoming_weekly',
+      ).length,
+      status_change: queueItems.filter(
+        (item) => item.reason === 'status_change',
+      ).length,
     };
 
     return {

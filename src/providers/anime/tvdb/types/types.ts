@@ -9,10 +9,31 @@ import {
 } from '@prisma/client';
 
 export interface BasicTvdb {
-  id: number;
+  id: string;
+  tvdb_id?: string;
+  objectID?: string;
   name: string;
+  aliases: string[];
   slug: string;
   image: string;
+  image_url?: string;
+  thumbnail?: string;
+  country?: string;
+  year?: string;
+  first_air_time?: string;
+  overview?: string;
+  overviews?: Record<string, string>;
+  primary_language?: string;
+  primary_type?: string;
+  status?: string;
+  type?: string;
+  translations?: Record<string, string>;
+  network?: string;
+  remote_ids?: Array<{
+    id: string;
+    type: number;
+    sourceName: string;
+  }>;
 }
 
 export interface SearchResponse {

@@ -5,7 +5,10 @@ import {
   TvdbLanguageTranslation,
   TvdbLanguage,
 } from '@prisma/client';
-import { TvdbInput } from '../types/types.js';
+import { BasicTvdb, TvdbInput } from '../types/types.js';
+import { BasicTmdb } from '../../tmdb/types/types.js';
+import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
+import { AnilistWithRelations } from '../../anilist/types/types.js';
 
 @Injectable()
 export class TvdbHelper {
@@ -161,4 +164,35 @@ export function getTvdbInclude(): Prisma.TvdbInclude {
   };
 
   return include;
+}
+
+export function findBestTvdbMatchFromSearch(
+  anilist: AnilistWithRelations,
+  results: BasicTvdb[] | undefined,
+): BasicTvdb | null {
+  if (!results || !Array.isArray(results)) return null;
+
+  const searchAnime: ExpectAnime = {
+    title: {
+      romaji: (anilist.title as { romaji: string }).romaji,
+      english: (anilist.title as { english: string }).english,
+      native: (anilist.title as { native: string }).native,
+    },
+  };
+
+  const bestMatch = findBestMatch(
+    searchAnime,
+    results.map((result) => ({
+      id: result.tvdb_id,
+      title: result.name,
+      japaneseTitle: result.name,
+      synonyms: result.aliases,
+    })),
+  );
+
+  if (bestMatch) {
+    return results.find((r) => r.tvdb_id === bestMatch.result.id) || null;
+  }
+
+  return null;
 }
