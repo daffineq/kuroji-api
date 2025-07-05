@@ -31,7 +31,7 @@ export class TVDB {
     return `languages`;
   }
 
-  static search(q: string): string {
-    return `search?query=${q}&country=JPN`;
+  static search(q: string, remote_id: number): string {
+    return `search?query=${q}&remote_id=${remote_id}&country=JPN`;
   }
 }

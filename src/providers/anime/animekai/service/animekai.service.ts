@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
-import { findBestMatch } from '../../../mapper/mapper.helper.js';
+import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
 import {
   ANIME,
   IAnimeInfo,
@@ -15,12 +15,16 @@ import { AnimekaiWithRelations } from '../types/types.js';
 import { Client } from '../../../model/client.js';
 import { getAnimekaiData } from '../utils/animekai-helper.js';
 import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js';
+import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.service.js';
 
 const animekai = new ANIME.AnimeKai();
 
 @Injectable()
 export class AnimekaiService extends Client {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly anilist: AnilistUtilService,
+  ) {
     super(UrlConfig.ANIMEKAI);
   }
 
@@ -132,38 +136,7 @@ export class AnimekaiService extends Client {
   }
 
   async findAnimekai(id: number): Promise<IAnimeInfo> {
-    const anilist = await this.prisma.anilist.findUnique({
-      where: { id: id },
-      select: {
-        title: {
-          select: {
-            romaji: true,
-            english: true,
-            native: true,
-          },
-        },
-        id: true,
-        idMal: true,
-        seasonYear: true,
-        episodes: true,
-        format: true,
-        airingSchedule: true,
-        status: true,
-        shikimori: {
-          select: {
-            english: true,
-            japanese: true,
-            episodes: true,
-            episodesAired: true,
-          },
-        },
-        kitsu: {
-          select: {
-            episodeCount: true,
-          },
-        },
-      },
-    });
+    const anilist = await this.anilist.getMappingAnilist(id);
 
     if (!anilist) {
       throw new Error('Anilist not found');
@@ -179,7 +152,7 @@ export class AnimekaiService extends Client {
       type: result.type,
     }));
 
-    const searchCriteria = {
+    const searchCriteria: ExpectAnime = {
       title: {
         romaji: anilist.title?.romaji || undefined,
         english:
@@ -187,6 +160,7 @@ export class AnimekaiService extends Client {
         native:
           anilist.shikimori?.japanese || anilist.title?.native || undefined,
       },
+      synonyms: anilist.synonyms,
       year: anilist.seasonYear ?? undefined,
       type: anilist.format ?? undefined,
       episodes: findEpisodeCount(anilist),

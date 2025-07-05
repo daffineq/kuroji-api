@@ -87,22 +87,6 @@ export class TvdbHelper {
             },
           })) ?? [],
       },
-
-      airsDays: tvdb.airsDays
-        ? {
-            create: {
-              monday: tvdb.airsDays.monday,
-              tuesday: tvdb.airsDays.tuesday,
-              wednesday: tvdb.airsDays.wednesday,
-              thursday: tvdb.airsDays.thursday,
-              friday: tvdb.airsDays.friday,
-              saturday: tvdb.airsDays.saturday,
-              sunday: tvdb.airsDays.sunday,
-            },
-          }
-        : undefined,
-
-      airsTime: tvdb.airsTime ?? undefined,
     };
   }
 
@@ -155,44 +139,7 @@ export function getTvdbInclude(): Prisma.TvdbInclude {
     artworks: true,
     remoteIds: true,
     trailers: true,
-    airsDays: {
-      omit: {
-        id: true,
-        tvdbId: true,
-      },
-    },
   };
 
   return include;
-}
-
-export function findBestTvdbMatchFromSearch(
-  anilist: AnilistWithRelations,
-  results: BasicTvdb[] | undefined,
-): BasicTvdb | null {
-  if (!results || !Array.isArray(results)) return null;
-
-  const searchAnime: ExpectAnime = {
-    title: {
-      romaji: (anilist.title as { romaji: string }).romaji,
-      english: (anilist.title as { english: string }).english,
-      native: (anilist.title as { native: string }).native,
-    },
-  };
-
-  const bestMatch = findBestMatch(
-    searchAnime,
-    results.map((result) => ({
-      id: result.tvdb_id,
-      title: result.name,
-      japaneseTitle: result.name,
-      synonyms: result.aliases,
-    })),
-  );
-
-  if (bestMatch) {
-    return results.find((r) => r.tvdb_id === bestMatch.result.id) || null;
-  }
-
-  return null;
 }

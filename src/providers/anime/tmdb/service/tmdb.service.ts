@@ -260,8 +260,10 @@ export class TmdbService extends Client {
     const candidates = await this.prisma.tmdb.findMany({
       where: {
         OR: titles.flatMap((t) => [
-          { name: { contains: t, mode: 'insensitive' } },
-          { original_name: { contains: t, mode: 'insensitive' } },
+          { name: { contains: deepCleanTitle(t), mode: 'insensitive' } },
+          {
+            original_name: { contains: deepCleanTitle(t), mode: 'insensitive' },
+          },
         ]),
       },
       include: {
@@ -278,6 +280,7 @@ export class TmdbService extends Client {
         english: anilist.title?.english ?? undefined,
         native: anilist.title?.native ?? undefined,
       },
+      synonyms: anilist.synonyms,
     };
 
     const bestMatch = findBestMatch(

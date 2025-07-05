@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
-import { findBestMatch } from '../../../mapper/mapper.helper.js';
+import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
 import {
   ANIME,
   IAnimeInfo,
@@ -191,6 +191,7 @@ export class ZoroService extends Client {
         format: true,
         airingSchedule: true,
         status: true,
+        synonyms: true,
         shikimori: {
           select: {
             english: true,
@@ -223,7 +224,7 @@ export class ZoroService extends Client {
       episodes: result.sub as number,
     }));
 
-    const searchCriteria = {
+    const searchCriteria: ExpectAnime = {
       title: {
         romaji: anilist.title?.romaji || undefined,
         english:
@@ -231,6 +232,7 @@ export class ZoroService extends Client {
         native:
           anilist.shikimori?.japanese || anilist.title?.native || undefined,
       },
+      synonyms: anilist.synonyms,
       year: anilist.seasonYear ?? undefined,
       type: anilist.format ?? undefined,
       episodes: findEpisodeCount(anilist),

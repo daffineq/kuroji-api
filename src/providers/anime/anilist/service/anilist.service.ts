@@ -1,12 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
-import { AnilistHelper, getAnilistFindUnique } from '../utils/anilist-helper.js';
+import {
+  AnilistHelper,
+  getAnilistFindUnique,
+  getAnilistMappingSelect,
+} from '../utils/anilist-helper.js';
 import { AnilistFetchService } from './helper/anilist.fetch.service.js';
 import { MediaType } from '../filter/Filter.js';
 import { AnilistUtilService } from './helper/anilist.util.service.js';
 import { ShikimoriService } from '../../shikimori/service/shikimori.service.js';
 import { KitsuService } from '../../kitsu/service/kitsu.service.js';
 import { AnilistWithRelations, AnilistResponse } from '../types/types.js';
+import { AnilistSaveService } from './helper/anilist.save.service.js';
 
 @Injectable()
 export class AnilistService {
@@ -15,6 +20,7 @@ export class AnilistService {
     private readonly helper: AnilistHelper,
     private readonly fetch: AnilistFetchService,
     private readonly util: AnilistUtilService,
+    private readonly save: AnilistSaveService,
     private readonly shikimori: ShikimoriService,
     private readonly kitsu: KitsuService,
   ) {}
@@ -53,11 +59,7 @@ export class AnilistService {
 
     const anilist = data.Page.media[0];
 
-    await this.prisma.anilist.upsert({
-      where: { id: anilist.id },
-      create: await this.helper.getDataForPrisma(anilist),
-      update: await this.helper.getDataForPrisma(anilist),
-    });
+    await this.save.saveAnilist(data);
 
     await Promise.all([
       this.shikimori.getShikimori(String(anilist.idMal)).catch(() => null),

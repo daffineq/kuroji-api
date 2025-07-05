@@ -4,7 +4,6 @@ import {
   TvdbArtwork,
   TvdbRemoteId,
   TvdbTrailer,
-  TvdbAirDays,
   TvdbStatus,
 } from '@prisma/client';
 
@@ -61,7 +60,6 @@ export interface TvdbWithRelations extends Tvdb {
   artworks: TvdbArtwork[];
   remoteIds: TvdbRemoteId[];
   trailers: TvdbTrailer[];
-  airsDays: TvdbAirDays;
 }
 
 export enum ETvdbStatus {

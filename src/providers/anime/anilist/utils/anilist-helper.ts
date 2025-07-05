@@ -18,7 +18,7 @@ import {
 import { FullMediaResponse } from '../types/response.js';
 import { KitsuWithRelations } from '../../kitsu/types/types.js';
 import { ShikimoriWithRelations } from '../../shikimori/types/types.js';
-import { MediaStatus } from '../filter/Filter.js'
+import { MediaStatus } from '../filter/Filter.js';
 
 @Injectable()
 export class AnilistHelper {
@@ -53,8 +53,9 @@ export class AnilistHelper {
     const nextEpisode = futureEpisodes[0]?.node;
 
     // Get last episode (last in the series)
-    const lastEpisode = [...anime.airingSchedule.edges]
-      .sort((a, b) => (b.node.episode ?? 0) - (a.node.episode ?? 0))[0]?.node;
+    const lastEpisode = [...anime.airingSchedule.edges].sort(
+      (a, b) => (b.node.episode ?? 0) - (a.node.episode ?? 0),
+    )[0]?.node;
 
     return {
       id: anime.id,
@@ -445,6 +446,39 @@ export function getAnilistFindUnique(id: number): Prisma.AnilistFindUniqueArgs {
   return findUnique;
 }
 
+export function getAnilistMappingSelect() {
+  return {
+    title: {
+      select: {
+        romaji: true,
+        english: true,
+        native: true,
+      },
+    },
+    id: true,
+    idMal: true,
+    seasonYear: true,
+    episodes: true,
+    format: true,
+    airingSchedule: true,
+    status: true,
+    synonyms: true,
+    shikimori: {
+      select: {
+        english: true,
+        japanese: true,
+        episodes: true,
+        episodesAired: true,
+      },
+    },
+    kitsu: {
+      select: {
+        episodeCount: true,
+      },
+    },
+  };
+}
+
 export function getAnilistInclude(): Prisma.AnilistInclude {
   const include = {
     title: {
@@ -601,7 +635,7 @@ export function reorderAnilistItems(raw: AnilistWithRelations) {
     lastAiringEpisode: raw.lastAiringEpisode,
 
     airingSchedule: raw.airingSchedule,
-    
+
     studios: raw.studios,
     tags: raw.tags,
     rankings: raw.rankings,
@@ -657,22 +691,28 @@ export function getDateStringFromAnilist(date: DateDetails): string | null {
   return anilistStartDateString;
 }
 
-export function findEpisodeCount<T extends {
-  episodes?: number | null;
-  airingSchedule?: AnilistAiringSchedule[] | null;
-  shikimori?: {
+export function findEpisodeCount<
+  T extends {
     episodes?: number | null;
-    episodesAired?: number | null;
-  } | null;
-  kitsu?: {
-    episodeCount?: number | null;
-  } | null;
-  status?: string | null;
-}>(data: T, options?: { preferAired?: boolean }): number | undefined {
+    airingSchedule?: AnilistAiringSchedule[] | null;
+    shikimori?: {
+      episodes?: number | null;
+      episodesAired?: number | null;
+    } | null;
+    kitsu?: {
+      episodeCount?: number | null;
+    } | null;
+    status?: string | null;
+  },
+>(data: T, options?: { preferAired?: boolean }): number | undefined {
   const now = Math.floor(Date.now() / 1000);
 
-  const airedSchedule = data.airingSchedule?.filter((schedule) => schedule.airingAt != null && schedule.airingAt <= now)
-    .sort((a, b) => (b.airingAt ?? 0) - (a.airingAt ?? 0)) ?? [];
+  const airedSchedule =
+    data.airingSchedule
+      ?.filter(
+        (schedule) => schedule.airingAt != null && schedule.airingAt <= now,
+      )
+      .sort((a, b) => (b.airingAt ?? 0) - (a.airingAt ?? 0)) ?? [];
 
   const totalEpisodes: (number | null | undefined)[] = [
     data.episodes,

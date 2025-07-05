@@ -2,16 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { getKitsuInclude, KitsuHelper } from '../util/kitsu-helper.js';
 import { KITSU } from '../../../../configs/kitsu.config.js';
-import { findBestMatch } from '../../../mapper/mapper.helper.js';
+import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
 import { KitsuWithRelations, KitsuAnime } from '../types/types.js';
 import { Client } from '../../../model/client.js';
 import { UrlConfig } from '../../../../configs/url.config.js';
 import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js';
+import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.service.js';
 
 @Injectable()
 export class KitsuService extends Client {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly anilist: AnilistUtilService,
     private readonly helper: KitsuHelper,
   ) {
     super(UrlConfig.KITSU);
@@ -79,38 +81,7 @@ export class KitsuService extends Client {
   }
 
   async findKitsuByAnilist(id: number): Promise<KitsuAnime> {
-    const anilist = await this.prisma.anilist.findUnique({
-      where: { id: id },
-      select: {
-        title: {
-          select: {
-            romaji: true,
-            english: true,
-            native: true,
-          },
-        },
-        id: true,
-        idMal: true,
-        seasonYear: true,
-        episodes: true,
-        format: true,
-        airingSchedule: true,
-        status: true,
-        shikimori: {
-          select: {
-            english: true,
-            japanese: true,
-            episodes: true,
-            episodesAired: true,
-          },
-        },
-        kitsu: {
-          select: {
-            episodeCount: true,
-          },
-        },
-      },
-    });
+    const anilist = await this.anilist.getMappingAnilist(id);
 
     if (!anilist) {
       throw new Error('Anilist not found');
@@ -132,12 +103,13 @@ export class KitsuService extends Client {
       };
     });
 
-    const searchCriteria = {
+    const searchCriteria: ExpectAnime = {
       title: {
         romaji: anilist.title?.romaji || undefined,
         english: anilist.title?.english || undefined,
         native: anilist.title?.native || undefined,
       },
+      synonyms: anilist.synonyms,
       year: anilist.seasonYear ?? undefined,
       episodes: findEpisodeCount(anilist),
     };

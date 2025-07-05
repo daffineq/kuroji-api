@@ -50,17 +50,10 @@ export const EXTRA_PATTERNS = [
  * Calculates the Jaro-Winkler distance between two strings.
  * Returns a value between 0 and 1, where 1 means the strings are identical
  * and 0 means they are completely different.
- *
- * @param s1 - First string to compare
- * @param s2 - Second string to compare
- * @param p - Scaling factor for how much the score is adjusted upwards for having common prefixes.
- *            Should not exceed 0.25, defaults to 0.1
- * @returns A number between 0 and 1 representing the similarity between the strings
  */
 export function jaroWinklerDistance(s1: string, s2: string, p = 0.1): number {
   if (s1 === s2) return 1.0;
   if (s1.length === 0 && s2.length === 0) return 1.0;
-
   if (s1.length === 0 || s2.length === 0) return 0.0;
 
   const scalingFactor = Math.max(0, Math.min(0.25, p));
@@ -95,11 +88,9 @@ export function jaroWinklerDistance(s1: string, s2: string, p = 0.1): number {
       while (!s2Matches[k]) {
         k++;
       }
-
       if (s1[i] !== s2[k]) {
         transpositions++;
       }
-
       k++;
     }
   }
@@ -128,7 +119,10 @@ export function jaroWinklerDistance(s1: string, s2: string, p = 0.1): number {
   );
 }
 
-export function titleSimilarity(a: string, b: string): number {
+/**
+ * Levenshtein distance
+ */
+export function levenshteinSimilarity(a: string, b: string): number {
   if (a === b) return 1;
   if (!a.length || !b.length) return 0;
 
@@ -157,56 +151,93 @@ export function titleSimilarity(a: string, b: string): number {
 
   const distance = matrix[b.length][a.length];
   const maxLength = Math.max(a.length, b.length);
-  const similarity = 1 - distance / maxLength;
-
-  return similarity;
+  return 1 - distance / maxLength;
 }
 
-export function hybridSimilarity(a: string, b: string): number {
-  const jw = jaroWinklerDistance(a, b);
-  const lev = titleSimilarity(a, b);
+export function getSimiliarity(
+  target: string,
+  candidate: string,
+  log: Boolean = false,
+): number {
+  if (target === candidate) return 1;
+  if (!target.length || !candidate.length) return 0;
 
-  return jw * 0.4 + lev * 0.6;
-}
+  const normalize = (str: string): string =>
+    str.toLowerCase().trim().replace(/\s+/g, ' ');
 
-/**
- * @param title - The title to check
- * @returns Boolean indicating if this is a derivative version
- */
-export function isDerivativeVersion(title: string): boolean {
-  if (!title) return false;
+  const normTarget = normalize(target);
+  const normCandidate = normalize(candidate);
 
-  return DERIVATIVE_PATTERNS.some((pattern) => pattern.test(title));
-}
+  const targetWords = normTarget.split(/\s+/).filter((word) => word.length > 0);
+  const candidateWords = normCandidate
+    .split(/\s+/)
+    .filter((word) => word.length > 0);
 
-/**
- * Higher penalty = more likely to be deprioritized
- * @param title - The title to check
- * @returns Penalty score (0 = no penalty, higher = more penalty)
- */
-export function getDerivativePenalty(title: string): number {
-  if (!title) return 0;
+  if (targetWords.length === 0 || candidateWords.length === 0) return 0;
 
-  let penalty = 0;
-  const lowerTitle = title.toLowerCase();
+  const targetSet = new Set(targetWords);
+  const candidateSet = new Set(candidateWords);
 
-  if (/re-?edit|redit|新編集版/i.test(title)) penalty += 0.3;
-  if (/director'?s?\s*cut/i.test(title)) penalty += 0.25;
-  if (/recap|summary|compilation/i.test(title)) penalty += 0.35;
-  if (/condensed|abridged|shortened/i.test(title)) penalty += 0.3;
-  if (/remaster|remake/i.test(title)) penalty += 0.2;
-  if (/extended|long\s*version/i.test(title)) penalty += 0.15;
-  if (/alternate|alternative/i.test(title)) penalty += 0.2;
+  const targetMatches = targetWords.filter((word) =>
+    candidateSet.has(word),
+  ).length;
+  const candidateMatches = candidateWords.filter((word) =>
+    targetSet.has(word),
+  ).length;
 
-  if (
-    /\([^)]*(?:re-?edit|director|cut|recap|compilation|remaster)[^)]*\)/i.test(
-      title,
-    )
-  ) {
-    penalty += 0.1;
+  const targetContainment = targetMatches / targetWords.length;
+  const candidateContainment = candidateMatches / candidateWords.length;
+
+  const jaro = jaroWinklerDistance(normTarget, normCandidate);
+  const levenshtein = levenshteinSimilarity(normTarget, normCandidate);
+  const baseSimilarity = jaro * 0.4 + levenshtein * 0.6;
+
+  if (candidateContainment === 1.0) {
+    if (log) {
+      console.log(
+        `Target: ${target}, candidate: ${candidate}, candidate is contained in target, base: ${baseSimilarity}`,
+      );
+    }
+
+    return baseSimilarity * 1.1;
   }
 
-  return Math.min(penalty, 0.5);
+  if (targetContainment === 1.0) {
+    if (log) {
+      console.log(
+        `Target: ${target}, candidate: ${candidate}, target is contained in candidate, base: ${baseSimilarity}`,
+      );
+    }
+
+    return baseSimilarity * 1.05;
+  }
+
+  const matchingWords = Math.min(targetMatches, candidateMatches);
+  const totalUniqueWords = new Set([...targetWords, ...candidateWords]).size;
+  const wordOverlapRatio = matchingWords / totalUniqueWords;
+
+  const candidateExtraWords = candidateWords.length - candidateMatches;
+  const targetExtraWords = targetWords.length - targetMatches;
+
+  let penalty = 1;
+
+  if (wordOverlapRatio < 0.5) {
+    const extraWordPenalty = Math.pow(
+      0.9,
+      candidateExtraWords + targetExtraWords,
+    );
+    penalty = extraWordPenalty * wordOverlapRatio;
+  }
+
+  const finalScore = baseSimilarity * penalty;
+
+  if (log) {
+    console.log(
+      `Target: ${target}, candidate: ${candidate}, score: ${finalScore}, base: ${baseSimilarity}`,
+    );
+  }
+
+  return Math.max(0, Math.min(1.0, finalScore));
 }
 
 /**
@@ -279,18 +310,46 @@ export function deepCleanTitle(title: string): string {
 
 /**
  * Sanitizes a title string by removing unnecessary words and characters for comparison.
+ * Standardizes season/part patterns for consistent comparison.
  * @param {string | undefined} title - The title string to sanitize.
  * @returns {string | undefined} - The sanitized title string, or undefined if the input was undefined.
  */
 export function sanitizeTitle(title?: string): string | undefined {
-  // We need to sanitize this shit because some anime titles are fucking ass
   if (!title) return undefined;
 
   let sanitized = title.toLowerCase();
 
-  // Normalize the string to remove accents and other diacritical marks, and then remove diacritical marks
+  // Remove accents & diacritics
   sanitized = sanitized.normalize('NFD').replace(/\p{M}/gu, '');
+
+  // Standardize known season/part patterns
+  sanitized = standardizedTitle(sanitized);
+
   return cleanTitle(sanitized);
+}
+
+/**
+ * Standardizes anime title patterns like seasons, parts, etc.
+ * @param {string} title - The title string to standardize.
+ * @returns {string} - The standardized title.
+ */
+function standardizedTitle(title: string): string {
+  // Season patterns
+  title = title.replace(/\b(2nd|second)\s*(season)?\b/gi, 'season 2');
+  title = title.replace(/\b(3rd|third)\s*(season)?\b/gi, 'season 3');
+  title = title.replace(/\b(4th|fourth)\s*(season)?\b/gi, 'season 4');
+  title = title.replace(/\b(5th|fifth)\s*(season)?\b/gi, 'season 5');
+
+  // Generic S2, S3, etc
+  title = title.replace(/\bs\s*([0-9]+)\b/gi, 'season $1');
+
+  // Part patterns
+  title = title.replace(/\bpart\s*([0-9]+)\b/gi, 'part $1');
+
+  // Final season meme
+  title = title.replace(/\b(final|last)\s*season\b/gi, 'final season');
+
+  return title;
 }
 
 /**
@@ -390,8 +449,6 @@ export interface MatchResult<T> {
   year?: number;
   episodes?: number;
   type?: string;
-  isDerivative?: boolean;
-  derivativePenalty?: number;
 }
 
 export interface ExpectAnime {
@@ -418,42 +475,20 @@ export interface ExpectAnime {
  */
 function getAllTitles<T extends ExpectAnime>(candidate: T): string[] {
   if (!candidate.title) return [];
-  if (typeof candidate.title === 'string' && candidate.japaneseTitle)
-    return [candidate.title, candidate.japaneseTitle].concat(
-      candidate.synonyms ?? [],
-    );
-  if (typeof candidate.title === 'string')
-    return [candidate.title].concat(candidate.synonyms ?? []);
 
-  return [
-    candidate.title.userPreferred,
-    candidate.title.english,
-    candidate.title.romaji,
-    candidate.title.native,
-  ].filter((t): t is string => !!t);
-}
+  const synonyms = candidate.synonyms ?? [];
 
-/**
- * @param candidates - Array of candidates to sort
- * @returns Sorted array with non-derivative versions first
- */
-function sortCandidatesByPreference<T extends ExpectAnime>(
-  candidates: T[],
-): T[] {
-  return candidates.sort((a, b) => {
-    const aTitles = getAllTitles(a);
-    const bTitles = getAllTitles(b);
+  if (typeof candidate.title === 'string') {
+    if (candidate.japaneseTitle) {
+      return [candidate.title, candidate.japaneseTitle, ...synonyms];
+    }
+    return [candidate.title, ...synonyms];
+  }
 
-    const aIsDerivative = aTitles.some((title) => isDerivativeVersion(title));
-    const bIsDerivative = bTitles.some((title) => isDerivativeVersion(title));
-
-    // Non-derivative versions come first
-    if (aIsDerivative && !bIsDerivative) return 1;
-    if (!aIsDerivative && bIsDerivative) return -1;
-
-    // If both are derivative or both are non-derivative, maintain original order
-    return 0;
-  });
+  const { userPreferred, english, romaji, native } = candidate.title;
+  return [userPreferred, english, romaji, native, ...synonyms].filter(
+    (t): t is string => !!t,
+  );
 }
 
 /**
@@ -471,7 +506,7 @@ export const findBestMatch = <T extends ExpectAnime>(
   // Calculate the best match after 10 fucking layers of security for most accurate asf match.
   if (!search || !results || results.length === 0) return null;
 
-  const sortedResults = sortCandidatesByPreference(results).filter(
+  const sortedResults = results.filter(
     (r) => exclude.indexOf(r.id as string) === -1,
   );
 
@@ -489,18 +524,8 @@ export const findBestMatch = <T extends ExpectAnime>(
     matchedTitle?: string,
     normalizedTitle?: string,
   ): MatchResult<T> => {
-    const candidateTitles = getAllTitles(candidate);
-    const isDerivative = candidateTitles.some((title) =>
-      isDerivativeVersion(title),
-    );
-    const derivativePenalty = isDerivative
-      ? Math.max(...candidateTitles.map(getDerivativePenalty))
-      : 0;
-
-    const adjustedSimilarity = Math.max(0, similarity - derivativePenalty);
-
     return {
-      similarity: adjustedSimilarity,
+      similarity: similarity,
       method,
       result: candidate,
       title: matchedTitle,
@@ -508,8 +533,6 @@ export const findBestMatch = <T extends ExpectAnime>(
       year: searchYear,
       episodes: searchEpisodes,
       type: candidate.type,
-      isDerivative,
-      derivativePenalty,
     };
   };
 
@@ -666,7 +689,7 @@ export const findBestMatch = <T extends ExpectAnime>(
     }
   }
 
-  // 7. Loose match (similarity >= 0.8) with type preference
+  // 7. Loose match (similarity >= 0.7) with type preference
   let bestLooseMatch: MatchResult<T> | null = null;
 
   for (const candidate of sortedResults) {
@@ -678,29 +701,16 @@ export const findBestMatch = <T extends ExpectAnime>(
 
     for (const normalizedSearchTitle of normalizedSearchTitles) {
       for (const normalizedCandidateTitle of normalizedCandidateTitles) {
-        const similarity = hybridSimilarity(
+        const similarity = getSimiliarity(
           normalizedSearchTitle,
           normalizedCandidateTitle,
         );
 
-        if (similarity >= 0.8) {
+        if (similarity >= 0.7) {
           let adjustedSimilarity =
             searchType && areTypesCompatible(searchType, candidate.type)
               ? Math.min(1.0, similarity + 0.05)
               : similarity;
-
-          const candidateAllTitles = getAllTitles(candidate);
-          const isDerivative = candidateAllTitles.some((title) =>
-            isDerivativeVersion(title),
-          );
-          const derivativePenalty = isDerivative
-            ? Math.max(...candidateAllTitles.map(getDerivativePenalty))
-            : 0;
-
-          adjustedSimilarity = Math.max(
-            0,
-            adjustedSimilarity - derivativePenalty,
-          );
 
           if (
             !bestLooseMatch ||
@@ -714,8 +724,6 @@ export const findBestMatch = <T extends ExpectAnime>(
               method: 'loose',
               result: candidate,
               normalized: normalizedSearchTitle,
-              isDerivative,
-              derivativePenalty,
             };
           }
         }
@@ -725,7 +733,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
   if (bestLooseMatch) return bestLooseMatch;
 
-  // 8. Last resort fuzzy match (similarity >= 0.7) with type preference
+  // 8. Last resort fuzzy match (similarity >= 0.65) with type preference
   let bestFuzzyMatch: MatchResult<T> | null = null;
 
   for (const candidate of sortedResults) {
@@ -737,29 +745,16 @@ export const findBestMatch = <T extends ExpectAnime>(
 
     for (const normalizedSearchTitle of normalizedSearchTitles) {
       for (const normalizedCandidateTitle of normalizedCandidateTitles) {
-        const similarity = hybridSimilarity(
+        const similarity = getSimiliarity(
           normalizedSearchTitle,
           normalizedCandidateTitle,
         );
 
-        if (similarity >= 0.7) {
+        if (similarity >= 0.65) {
           let adjustedSimilarity =
             searchType && areTypesCompatible(searchType, candidate.type)
               ? Math.min(1.0, similarity + 0.03)
               : similarity;
-
-          const candidateAllTitles = getAllTitles(candidate);
-          const isDerivative = candidateAllTitles.some((title) =>
-            isDerivativeVersion(title),
-          );
-          const derivativePenalty = isDerivative
-            ? Math.max(...candidateAllTitles.map(getDerivativePenalty))
-            : 0;
-
-          adjustedSimilarity = Math.max(
-            0,
-            adjustedSimilarity - derivativePenalty,
-          );
 
           if (
             !bestFuzzyMatch ||
@@ -795,7 +790,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
     for (const normalizedSearchTitle of normalizedSearchTitles) {
       for (const normalizedCandidateTitle of normalizedCandidateTitles) {
-        const similarity = hybridSimilarity(
+        const similarity = getSimiliarity(
           normalizedSearchTitle,
           normalizedCandidateTitle,
         );
@@ -804,19 +799,6 @@ export const findBestMatch = <T extends ExpectAnime>(
           searchType && areTypesCompatible(searchType, candidate.type)
             ? Math.min(1.0, similarity + 0.02)
             : similarity;
-
-        const candidateAllTitles = getAllTitles(candidate);
-        const isDerivative = candidateAllTitles.some((title) =>
-          isDerivativeVersion(title),
-        );
-        const derivativePenalty = isDerivative
-          ? Math.max(...candidateAllTitles.map(getDerivativePenalty))
-          : 0;
-
-        adjustedSimilarity = Math.max(
-          0,
-          adjustedSimilarity - derivativePenalty,
-        );
 
         if (
           adjustedSimilarity > highestSimilarity ||

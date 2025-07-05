@@ -206,6 +206,7 @@ export function findBestMatchFromSearch(
       english: (anilist.title as { english: string }).english,
       native: (anilist.title as { native: string }).native,
     },
+    synonyms: anilist.synonyms,
   };
 
   const resultsFiltered = results.filter((tmdb) => isProbablyAnime(tmdb));

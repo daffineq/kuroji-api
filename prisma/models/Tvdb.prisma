@@ -17,9 +17,6 @@ model Tvdb {
   artworks             TvdbArtwork[] @relation("TvdbArtworks")
   remoteIds            TvdbRemoteId[] @relation("TvdbRemote")
   trailers             TvdbTrailer[] @relation("TvdbTrailers")
-
-  airsDays             TvdbAirDays? @relation("TvdbAirDays")
-  airsTime             String?
 }
 
 model TvdbStatus {
@@ -74,21 +71,6 @@ model TvdbTrailer {
   language String?
 
   tvdb Tvdb[] @relation("TvdbTrailers")
-}
-
-model TvdbAirDays {
-  id        Int     @id @default(autoincrement())
-  tvdbId    Int @unique
-
-  monday    Boolean @default(false)
-  tuesday   Boolean @default(false)
-  wednesday Boolean @default(false)
-  thursday  Boolean @default(false)
-  friday    Boolean @default(false)
-  saturday  Boolean @default(false)
-  sunday    Boolean @default(false)
-
-  tvdb Tvdb @relation("TvdbAirDays", fields: [tvdbId], references: [id])
 }
 
 model TvdbLogin {

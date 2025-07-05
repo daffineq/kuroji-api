@@ -10,11 +10,13 @@ import {
 } from '../utils/shikimori-helper.js';
 import { ShikimoriResponse, ShikimoriWithRelations } from '../types/types.js';
 import { Client } from '../../../model/client.js';
+import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.service.js';
 
 @Injectable()
 export class ShikimoriService extends Client {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly anilist: AnilistUtilService,
     private readonly helper: ShikimoriHelper,
   ) {
     super(UrlConfig.SHIKIMORI_GRAPHQL);
@@ -27,6 +29,12 @@ export class ShikimoriService extends Client {
 
     const existing = await this.findById(id);
     if (existing) return existing;
+
+    const anilist = await this.anilist.getMappingAnilist(+id, true);
+
+    if (!anilist) {
+      throw new Error('Anilist not found');
+    }
 
     const data = await this.fetchFromGraphQL(id);
     const anime = data.animes[0];

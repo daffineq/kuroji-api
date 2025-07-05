@@ -29,7 +29,8 @@ import { AppLockService } from './app.lock.service.js';
 import { AnilistRandomService } from '../providers/anime/anilist/service/helper/anilist.random.service.js';
 import { TmdbSeasonService } from '../providers/anime/tmdb/service/tmdb.season.service.js';
 import { TmdbEpisodeService } from '../providers/anime/tmdb/service/tmdb.episode.service.js';
-import { UpdateRequestsService } from '../providers/update/update.requests.service.js'
+import { UpdateRequestsService } from '../providers/update/update.requests.service.js';
+import { AnilistSaveService } from '../providers/anime/anilist/service/helper/anilist.save.service.js';
 
 @Module({
   imports: [ShikimoriHelperModule, Redis],
@@ -44,6 +45,7 @@ import { UpdateRequestsService } from '../providers/update/update.requests.servi
     AnilistSearchService,
     AnilistRandomService,
     AnilistUtilService,
+    AnilistSaveService,
     ShikimoriService,
     AnilistHelper,
     ShikimoriHelper,
@@ -75,6 +77,7 @@ import { UpdateRequestsService } from '../providers/update/update.requests.servi
     AnilistSearchService,
     AnilistRandomService,
     AnilistUtilService,
+    AnilistSaveService,
     ShikimoriService,
     AnilistHelper,
     ShikimoriHelper,
