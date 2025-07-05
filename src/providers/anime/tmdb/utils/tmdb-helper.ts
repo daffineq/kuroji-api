@@ -5,13 +5,15 @@ import {
   TmdbSeasonWithRelations,
   TmdbSeasonEpisodeImagesWithRelations,
   BasicTmdb,
+  TmdbDetails,
+  TmdbDetailsMerged,
 } from '../types/types.js';
 import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
 import { AnilistWithRelations } from '../../anilist/types/types.js';
 
 @Injectable()
 export class TmdbHelper {
-  getTmdbData(tmdb: TmdbWithRelations): Prisma.TmdbCreateInput {
+  getTmdbData(tmdb: TmdbDetailsMerged): Prisma.TmdbCreateInput {
     return {
       id: tmdb.id,
       adult: tmdb.adult ?? false,
@@ -22,11 +24,11 @@ export class TmdbHelper {
       homepage: tmdb.homepage ?? undefined,
       in_production: tmdb.in_production ?? undefined,
       last_air_date: tmdb.last_air_date ?? undefined,
-      name: tmdb.name ?? undefined,
+      name: tmdb.name ?? tmdb.title ?? undefined,
       number_of_episodes: tmdb.number_of_episodes ?? undefined,
       number_of_seasons: tmdb.number_of_seasons ?? undefined,
       original_language: tmdb.original_language ?? undefined,
-      original_name: tmdb.original_name ?? undefined,
+      original_name: tmdb.original_name ?? tmdb.original_title ?? undefined,
       origin_country: tmdb.origin_country ?? [],
       overview: tmdb.overview ?? undefined,
       popularity: tmdb.popularity ?? undefined,
@@ -215,8 +217,8 @@ export function findBestMatchFromSearch(
     searchAnime,
     resultsFiltered.map((result) => ({
       id: result.id,
-      title: result.name,
-      japaneseTitle: result.original_name,
+      title: result.name ?? result.title,
+      japaneseTitle: result.original_name ?? result.original_title,
     })),
   );
 

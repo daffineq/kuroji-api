@@ -27,6 +27,7 @@ import { TmdbSeasonService } from '../../tmdb/service/tmdb.season.service.js';
 import { TmdbEpisodeService } from '../../tmdb/service/tmdb.episode.service.js';
 import { ZoroWithRelations } from '../../zoro/types/types.js';
 import { AnimepaheWithRelations } from '../../animepahe/types/types.js';
+import { TmdbService } from '../../tmdb/service/tmdb.service.js';
 
 @Injectable()
 export class StreamService {
@@ -35,6 +36,7 @@ export class StreamService {
     private readonly animekai: AnimekaiService,
     private readonly animepahe: AnimepaheService,
     private readonly anilist: AnilistService,
+    private readonly tmdb: TmdbService,
     private readonly tmdbSeason: TmdbSeasonService,
     private readonly tmdbEpisode: TmdbEpisodeService,
     @InjectRedis() private readonly redis: Redis,
@@ -57,7 +59,8 @@ export class StreamService {
         throw new Error('Anilist not found');
       }
 
-      const [season, aniwatch, animepahe] = await Promise.all([
+      const [tmdb, season, aniwatch, animepahe] = await Promise.all([
+        this.tmdb.getTmdbByAnilist(id).catch(() => null),
         this.tmdbSeason.getTmdbSeasonByAnilist(id).catch(() => null),
         this.aniwatch.getZoroByAnilist(id).catch(() => null),
         this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
@@ -116,7 +119,10 @@ export class StreamService {
 
           return {
             title: tmdbEpisode?.name || zoroEp?.title || paheEp?.title || ``,
-            image: getImage(tmdbEpisode?.still_path) || null,
+            image:
+              getImage(tmdbEpisode?.still_path) ||
+              getImage(tmdb?.backdrop_path) ||
+              null,
             number,
             overview: tmdbEpisode?.overview ?? '',
             date: formattedDate ? formattedDate.toISOString() : '',

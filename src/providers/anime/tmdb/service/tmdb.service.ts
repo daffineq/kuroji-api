@@ -20,6 +20,7 @@ import {
   TmdbResponse,
   TmdbSeasonEpisodeImagesWithRelations,
   BasicTmdb,
+  TmdbDetailsMerged,
 } from '../types/types.js';
 import { Client } from '../../../model/client.js';
 import { UrlConfig } from '../../../../configs/url.config.js';
@@ -58,10 +59,10 @@ export class TmdbService extends Client {
   }
 
   // Data Fetching Methods
-  async fetchTmdb(id: number, type: string): Promise<TmdbWithRelations> {
+  async fetchTmdb(id: number, type: string): Promise<TmdbDetailsMerged> {
     const url =
       type === 'tv' ? TMDB.getTvDetails(id) : TMDB.getMovieDetails(id);
-    const { data, error } = await this.client.get<TmdbWithRelations>(url);
+    const { data, error } = await this.client.get<TmdbDetailsMerged>(url);
 
     if (error) {
       throw error;
@@ -109,7 +110,7 @@ export class TmdbService extends Client {
 
     for (const title of possibleTitles) {
       const searchResults = await this.searchTmdb(deepCleanTitle(title));
-      bestMatch = findBestMatchFromSearch(anilist, searchResults.results);
+      bestMatch = findBestMatchFromSearch(anilist, searchResults);
       if (bestMatch) break;
     }
 
@@ -126,10 +127,15 @@ export class TmdbService extends Client {
     return this.saveTmdb(fetchedTmdb);
   }
 
-  async searchTmdb(query: string): Promise<TmdbResponse> {
-    const { data, error } = await this.client.get<TmdbResponse>(
+  async searchTmdb(query: string): Promise<BasicTmdb[]> {
+    const { data, error } = await this.client.get<BasicTmdb[]>(
       TMDB.multiSearch(query),
+      {
+        jsonPath: 'results',
+      },
     );
+
+    console.log(data);
 
     if (error) {
       throw error;
@@ -164,7 +170,7 @@ export class TmdbService extends Client {
   }
 
   // Database Operations
-  async saveTmdb(tmdb: TmdbWithRelations): Promise<TmdbWithRelations> {
+  async saveTmdb(tmdb: TmdbDetailsMerged): Promise<TmdbWithRelations> {
     return (await this.prisma.tmdb.upsert({
       where: { id: tmdb.id },
       update: this.helper.getTmdbData(tmdb),
@@ -205,9 +211,9 @@ export class TmdbService extends Client {
   async update(id: number): Promise<TmdbWithRelations> {
     const existingTmdb = await this.getTmdb(id);
     const tmdb = await this.fetchTmdb(id, existingTmdb.media_type ?? 'tv');
-    await this.saveTmdb(tmdb);
+    const savedTmdb = await this.saveTmdb(tmdb);
     await this.updateSeason(id);
-    return tmdb;
+    return savedTmdb;
   }
 
   async updateByAnilist(id: number) {

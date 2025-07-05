@@ -40,6 +40,10 @@ export class TMDB {
     return `search/tv?query=${encodeURIComponent(query)}&api_key=${TMDB.API_KEY}`;
   }
 
+  public static searchMovie(query: string): string {
+    return `search/movie?query=${encodeURIComponent(query)}&api_key=${TMDB.API_KEY}`;
+  }
+
   // Multi-search (movies, TV shows, people)
   public static multiSearch(query: string): string {
     return `search/multi?query=${encodeURIComponent(query)}&api_key=${TMDB.API_KEY}`;

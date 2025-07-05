@@ -367,6 +367,8 @@ export class KurojiClient {
 
     const transformedUrl = this.transformUrlForProxy(url);
 
+    console.log(transformedUrl);
+
     try {
       let attempt = 0;
       const maxAttempts = 3;
