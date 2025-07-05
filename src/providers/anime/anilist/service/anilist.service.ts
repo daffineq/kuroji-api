@@ -12,12 +12,13 @@ import { ShikimoriService } from '../../shikimori/service/shikimori.service.js';
 import { KitsuService } from '../../kitsu/service/kitsu.service.js';
 import { AnilistWithRelations, AnilistResponse } from '../types/types.js';
 import { AnilistSaveService } from './helper/anilist.save.service.js';
+import { MappingsService } from '../../mappings/service/mappings.service.js';
 
 @Injectable()
 export class AnilistService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly helper: AnilistHelper,
+    private readonly mappings: MappingsService,
     private readonly fetch: AnilistFetchService,
     private readonly util: AnilistUtilService,
     private readonly save: AnilistSaveService,
@@ -60,6 +61,10 @@ export class AnilistService {
     const anilist = data.Page.media[0];
 
     await this.save.saveAnilist(data);
+
+    await this.mappings
+      .getMapping(anilist.id)
+      .catch((e) => console.log(`Mapping failed: ${e.message ?? e}`));
 
     await Promise.all([
       this.shikimori.getShikimori(String(anilist.idMal)).catch(() => null),

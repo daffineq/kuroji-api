@@ -17,6 +17,9 @@ export class UrlConfig {
   public static readonly ANIWATCH_BASE = withTrailingSlash(
     Config.ANIWATCH || '',
   );
+  public static readonly ANI_ZIP_BASE = withTrailingSlash(
+    Config.ANI_ZIP || 'https://api.ani.zip',
+  );
   public static readonly SHIKIMORI = withTrailingSlash(
     Config.SHIKIMORI || 'https://shikimori.one',
   );

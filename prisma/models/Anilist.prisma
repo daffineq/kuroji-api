@@ -53,6 +53,7 @@ model Anilist {
   zoro      Zoro?
   shikimori Shikimori?
   kitsu     Kitsu?
+  anizip    AniZip?
 }
 
 model AnilistTitle {

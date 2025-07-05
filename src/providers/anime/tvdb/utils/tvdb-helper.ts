@@ -5,17 +5,13 @@ import {
   TvdbLanguageTranslation,
   TvdbLanguage,
 } from '@prisma/client';
-import { BasicTvdb, TvdbInput } from '../types/types.js';
-import { BasicTmdb } from '../../tmdb/types/types.js';
-import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
-import { AnilistWithRelations } from '../../anilist/types/types.js';
+import { TvdbInput } from '../types/types.js';
 
 @Injectable()
 export class TvdbHelper {
   getTvdbData(tvdb: TvdbInput): Prisma.TvdbCreateInput {
     return {
       id: tvdb.id,
-      tmdbId: tvdb.tmdbId ?? undefined,
       type: tvdb.type ?? undefined,
       name: tvdb.name ?? undefined,
       slug: tvdb.slug ?? undefined,

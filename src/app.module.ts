@@ -19,6 +19,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { KitsuModule } from './providers/anime/kitsu/module/kitsu.module.js';
 import { ToolsModule } from './providers/tools/module/tools.module.js';
 import { CustomThrottlerGuard } from './shared/throttler.guard.js';
+import { MappingsModule } from './providers/anime/mappings/module/mappings.module.js';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CustomThrottlerGuard } from './shared/throttler.guard.js';
     UpdateModule,
     ToolsModule,
     ConsoleModule,
+    MappingsModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,

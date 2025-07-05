@@ -1,6 +1,5 @@
 model Tvdb {
   id                   Int                @id
-  tmdbId               Int?
   type                 String?
   name                 String?
   slug                 String?

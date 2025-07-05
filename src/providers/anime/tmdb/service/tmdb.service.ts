@@ -11,25 +11,27 @@ import { AnilistService } from '../../anilist/service/anilist.service.js';
 import {
   filterSeasonEpisodes,
   findBestMatchFromSearch,
+  getTmdbInclude,
   TmdbHelper,
 } from '../utils/tmdb-helper.js';
 import { sleep } from '../../../../utils/utils.js';
 import {
   TmdbWithRelations,
   TmdbSeasonWithRelations,
-  TmdbResponse,
   TmdbSeasonEpisodeImagesWithRelations,
   BasicTmdb,
   TmdbDetailsMerged,
 } from '../types/types.js';
 import { Client } from '../../../model/client.js';
 import { UrlConfig } from '../../../../configs/url.config.js';
+import { MappingsService } from '../../mappings/service/mappings.service.js';
 
 @Injectable()
 export class TmdbService extends Client {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly anilistService: AnilistService,
+    private readonly mappings: MappingsService,
+    private readonly anilist: AnilistService,
     private readonly helper: TmdbHelper,
   ) {
     super(UrlConfig.TMDB);
@@ -39,11 +41,7 @@ export class TmdbService extends Client {
   async getTmdb(id: number): Promise<TmdbWithRelations> {
     const existingTmdb = (await this.prisma.tmdb.findUnique({
       where: { id },
-      include: {
-        seasons: true,
-        last_episode_to_air: true,
-        next_episode_to_air: true,
-      },
+      include: getTmdbInclude(),
     })) as TmdbWithRelations;
 
     if (existingTmdb) return existingTmdb;
@@ -55,7 +53,38 @@ export class TmdbService extends Client {
   }
 
   async getTmdbByAnilist(id: number): Promise<TmdbWithRelations> {
-    return await this.findTmdb(id);
+    const anilist = await this.anilist.getAnilist(id);
+    const mapping = anilist.anizip;
+
+    if (!mapping) {
+      throw new Error('No mappings found');
+    }
+
+    const tmdbId = mapping.mappings?.themoviedbId;
+    const type = mapping.mappings?.type?.toLowerCase();
+
+    if (!type) {
+      throw new Error('No type found');
+    }
+
+    if (!tmdbId) {
+      const tmdb = await this.findTmdb(id);
+      await this.mappings.updateAniZipMappings(mapping.id, {
+        themoviedbId: tmdb.id,
+      });
+      return await this.findTmdb(id);
+    }
+
+    const existing = (await this.prisma.tmdb.findUnique({
+      where: { id: tmdbId },
+      include: getTmdbInclude(),
+    })) as TmdbWithRelations;
+
+    if (existing) return existing;
+
+    const tmdb = await this.fetchTmdb(tmdbId, type);
+
+    return await this.saveTmdb(tmdb);
   }
 
   // Data Fetching Methods
@@ -95,7 +124,7 @@ export class TmdbService extends Client {
   }
 
   async fetchTmdbByAnilist(id: number): Promise<TmdbWithRelations> {
-    const anilist = await this.anilistService.getAnilist(id);
+    const anilist = await this.anilist.getAnilist(id);
     const possibleTitles = [
       anilist.title?.native,
       anilist.title?.romaji,
@@ -173,11 +202,7 @@ export class TmdbService extends Client {
       where: { id: tmdb.id },
       update: this.helper.getTmdbData(tmdb),
       create: this.helper.getTmdbData(tmdb),
-      include: {
-        seasons: true,
-        last_episode_to_air: true,
-        next_episode_to_air: true,
-      },
+      include: getTmdbInclude(),
     })) as TmdbWithRelations;
   }
 
@@ -253,7 +278,7 @@ export class TmdbService extends Client {
   }
 
   async findMatchInPrisma(id: number): Promise<TmdbWithRelations> {
-    const anilist = await this.anilistService.getAnilist(id);
+    const anilist = await this.anilist.getAnilist(id);
 
     const titles = [
       anilist.title?.native,
@@ -270,11 +295,7 @@ export class TmdbService extends Client {
           },
         ]),
       },
-      include: {
-        seasons: true,
-        last_episode_to_air: true,
-        next_episode_to_air: true,
-      },
+      include: getTmdbInclude(),
       take: 25,
     });
 

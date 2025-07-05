@@ -19,6 +19,7 @@ import { FullMediaResponse } from '../types/response.js';
 import { KitsuWithRelations } from '../../kitsu/types/types.js';
 import { ShikimoriWithRelations } from '../../shikimori/types/types.js';
 import { MediaStatus } from '../filter/Filter.js';
+import { getAnizipInclude } from '../../mappings/utils/anizip.helper.js';
 
 @Injectable()
 export class AnilistHelper {
@@ -574,6 +575,9 @@ export function getAnilistInclude(): Prisma.AnilistInclude {
     kitsu: {
       include: getKitsuInclude(),
     },
+    anizip: {
+      include: getAnizipInclude(),
+    },
   };
 
   return include;
@@ -645,6 +649,7 @@ export function reorderAnilistItems(raw: AnilistWithRelations) {
     statusDistribution: raw.statusDistribution,
     shikimori: raw.shikimori,
     kitsu: raw.kitsu,
+    anizip: raw.anizip,
   };
 }
 

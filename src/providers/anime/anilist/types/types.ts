@@ -26,6 +26,7 @@ import { ZoroWithRelations } from '../../zoro/types/types.js';
 import { Type } from 'class-transformer';
 import { IsOptional, IsEnum, IsString, IsInt, Min } from 'class-validator';
 import { TmdbImage } from '../../tmdb/types/types.js';
+import { AniZipWithRelations } from '../../mappings/types/types.js';
 
 export interface AnilistResponse {
   Page: {
@@ -72,6 +73,7 @@ export interface AnilistWithRelations extends Anilist {
   shikimori?: ShikimoriWithRelations;
   kitsu?: KitsuWithRelations;
   zoro?: ZoroWithRelations;
+  anizip?: AniZipWithRelations;
 }
 
 export interface Franchise {
@@ -178,10 +180,13 @@ export interface BasicAnilist {
 export type SortDirection = 'asc' | 'desc';
 export type NullsOrder = 'nulls-first' | 'nulls-last';
 export type NestedSort = {
-    [key: string]: SortDirection | NestedSort | { 
+  [key: string]:
+    | SortDirection
+    | NestedSort
+    | {
         sort?: NullsOrder;
         [key: string]: SortDirection | NullsOrder | undefined;
-    };
+      };
 };
 
 export enum RandomType {

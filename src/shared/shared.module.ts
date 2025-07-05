@@ -31,6 +31,7 @@ import { TmdbSeasonService } from '../providers/anime/tmdb/service/tmdb.season.s
 import { TmdbEpisodeService } from '../providers/anime/tmdb/service/tmdb.episode.service.js';
 import { UpdateRequestsService } from '../providers/update/update.requests.service.js';
 import { AnilistSaveService } from '../providers/anime/anilist/service/helper/anilist.save.service.js';
+import { MappingsService } from '../providers/anime/mappings/service/mappings.service.js';
 
 @Module({
   imports: [ShikimoriHelperModule, Redis],
@@ -64,6 +65,7 @@ import { AnilistSaveService } from '../providers/anime/anilist/service/helper/an
     UpdateService,
     UpdateRequestsService,
     StreamService,
+    MappingsService,
     AppLockService,
   ],
   exports: [
@@ -95,6 +97,7 @@ import { AnilistSaveService } from '../providers/anime/anilist/service/helper/an
     UpdateService,
     UpdateRequestsService,
     StreamService,
+    MappingsService,
     AppLockService,
   ],
 })

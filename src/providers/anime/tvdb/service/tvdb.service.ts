@@ -21,12 +21,17 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Redis } from 'ioredis';
 import Config from '../../../../configs/config.js';
 import { undefinedToNull } from '../../../../shared/interceptor.js';
+import { AnilistService } from '../../anilist/service/anilist.service.js';
+import { MappingsService } from '../../mappings/service/mappings.service.js';
+import { deepCleanTitle } from '../../../mapper/mapper.helper.js';
 
 @Injectable()
 export class TvdbService extends Client {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly mappings: MappingsService,
     private readonly tmdbService: TmdbService,
+    private readonly anilist: AnilistService,
     private readonly tokenService: TvdbTokenService,
     private readonly helper: TvdbHelper,
     @InjectRedis() private readonly redis: Redis,
@@ -48,33 +53,65 @@ export class TvdbService extends Client {
   }
 
   async getTvdbByAnilist(id: number): Promise<TvdbWithRelations> {
-    const tmdb = await this.tmdbService.getTmdbByAnilist(id);
-    const existingTvdb = (await this.prisma.tvdb.findFirst({
-      where: { tmdbId: tmdb.id },
+    const anilist = await this.anilist.getAnilist(id);
+    const mapping = anilist.anizip;
+
+    if (!mapping) {
+      throw new Error('No mappings found');
+    }
+
+    const tvdbId = mapping.mappings?.thetvdbId;
+    const type =
+      mapping.mappings?.type?.toLowerCase() === 'movie' ? 'movie' : 'series';
+
+    if (!type) {
+      throw new Error('No type found');
+    }
+
+    if (!tvdbId) {
+      const tmdb = await this.tmdbService.getTmdbByAnilist(id);
+
+      if (!tmdb.name && !tmdb.original_name) {
+        throw new Error('No titles');
+      }
+
+      const basicTvdb = await this.fetchByRemoteId(
+        tmdb.id,
+        type,
+        deepCleanTitle(
+          anilist.title?.native ??
+            anilist.title?.romaji ??
+            anilist.title?.english ??
+            tmdb.original_name ??
+            tmdb.name ??
+            '',
+        ),
+      );
+
+      if (basicTvdb.tvdb_id === undefined) {
+        throw new Error('tvdb_id is undefined in basicTvdb');
+      }
+
+      const tvdb = await this.fetchTvdb(+basicTvdb.tvdb_id, type);
+      tvdb.type = type;
+
+      await this.mappings.updateAniZipMappings(mapping.id, {
+        thetvdbId: tvdb.id,
+      });
+
+      return await this.saveTvdb(tvdb);
+    }
+
+    const existing = (await this.prisma.tvdb.findUnique({
+      where: { id: tvdbId },
       include: getTvdbInclude(),
     })) as TvdbWithRelations;
 
-    if (existingTvdb) return existingTvdb;
+    if (existing) return existing;
 
-    if (!tmdb.name && !tmdb.original_name) {
-      throw new Error('No titles');
-    }
+    const tvdb = await this.fetchTvdb(+tvdbId, type);
 
-    const basicTvdb = await this.fetchByRemoteId(
-      tmdb.id,
-      tmdb.media_type || 'series',
-      tmdb.name || tmdb.original_name || '',
-    );
-    if (basicTvdb.tvdb_id === undefined) {
-      throw new Error('tvdb_id is undefined in basicTvdb');
-    }
-    const tvdb = await this.fetchTvdb(
-      +basicTvdb.tvdb_id,
-      tmdb.media_type || 'series',
-    );
-
-    tvdb.tmdbId = tmdb.id;
-    tvdb.type = tmdb.media_type ?? undefined;
+    tvdb.type = type;
 
     return await this.saveTvdb(tvdb);
   }
@@ -198,6 +235,8 @@ export class TvdbService extends Client {
         jsonPath: 'data',
       },
     );
+
+    console.log(TVDB.search(title, id));
 
     if (error) {
       throw error;

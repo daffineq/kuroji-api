@@ -71,7 +71,6 @@ export enum ETvdbStatus {
 
 export interface TvdbInput {
   id: number;
-  tmdbId?: number;
   type?: string;
   name?: string;
   slug?: string;

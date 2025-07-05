@@ -184,6 +184,14 @@ export class TmdbHelper {
   }
 }
 
+export function getTmdbInclude(): Prisma.TmdbInclude {
+  return {
+    seasons: true,
+    last_episode_to_air: true,
+    next_episode_to_air: true,
+  };
+}
+
 const ALLOWED_COUNTRIES = ['JP', 'KR', 'CN'];
 const ALLOWED_LANGUAGES = ['ja', 'ko', 'zh'];
 

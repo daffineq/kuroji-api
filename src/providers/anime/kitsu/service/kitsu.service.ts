@@ -8,11 +8,13 @@ import { Client } from '../../../model/client.js';
 import { UrlConfig } from '../../../../configs/url.config.js';
 import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js';
 import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.service.js';
+import { MappingsService } from '../../mappings/service/mappings.service.js';
 
 @Injectable()
 export class KitsuService extends Client {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly mappings: MappingsService,
     private readonly anilist: AnilistUtilService,
     private readonly helper: KitsuHelper,
   ) {
@@ -48,8 +50,24 @@ export class KitsuService extends Client {
       return existingKitsu;
     }
 
-    const rawKitsu = await this.findKitsuByAnilist(id);
+    const mapping = await this.mappings.getMapping(id);
 
+    if (!mapping) {
+      throw new Error('No mapping found');
+    }
+
+    const kitsuId = mapping.mappings?.kitsuId;
+
+    if (!kitsuId) {
+      const rawKitsu = await this.findKitsuByAnilist(id);
+      await this.mappings.updateAniZipMappings(mapping.id, {
+        kitsuId: rawKitsu.id,
+      });
+      return await this.saveKitsu(rawKitsu);
+    }
+
+    const rawKitsu = await this.fetchKitsu(kitsuId);
+    rawKitsu.anilistId = id;
     return await this.saveKitsu(rawKitsu);
   }
 
