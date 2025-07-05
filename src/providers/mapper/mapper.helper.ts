@@ -510,8 +510,6 @@ export const findBestMatch = <T extends ExpectAnime>(
     (r) => exclude.indexOf(r.id as string) === -1,
   );
 
-  console.log(sortedResults);
-
   const searchTitles = getAllTitles(search);
   if (searchTitles.length === 0) return null;
 
@@ -706,7 +704,6 @@ export const findBestMatch = <T extends ExpectAnime>(
         const similarity = getSimiliarity(
           normalizedSearchTitle,
           normalizedCandidateTitle,
-          true,
         );
 
         if (similarity >= 0.7) {

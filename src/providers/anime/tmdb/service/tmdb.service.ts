@@ -135,8 +135,6 @@ export class TmdbService extends Client {
       },
     );
 
-    console.log(data);
-
     if (error) {
       throw error;
     }
