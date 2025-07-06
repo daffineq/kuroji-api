@@ -37,15 +37,27 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     const stack = exception instanceof Error ? exception.stack : undefined;
+    const projectRoot = process.cwd().replace(/\\/g, '/');
 
     const cleanedStack = stack
       ? stack
           .replace(/\\/g, '/')
           .split('\n')
-          .filter((line) => line.includes('/src/'))
+          .filter((line) => {
+            return line.includes(projectRoot) && !line.includes('node_modules');
+          })
           .map((line) => {
-            const match = line.match(/(\/src\/.*?:\d+:\d+)/);
-            return match ? match[1] : line.trim();
+            const match =
+              line.match(/\((.*):(\d+):(\d+)\)/) ||
+              line.match(/(.*):(\d+):(\d+)/);
+
+            if (match && match[1].includes(projectRoot)) {
+              const absolutePath = match[1].replace(/\\/g, '/');
+              const relativePath = absolutePath.replace(projectRoot + '/', '');
+              return `${relativePath}:${match[2]}:${match[3]}`;
+            }
+
+            return line.trim();
           })
           .join('\n')
       : undefined;
