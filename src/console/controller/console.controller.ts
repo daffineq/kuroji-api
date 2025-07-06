@@ -1,12 +1,14 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ConsoleInterceptor } from '../ConsoleInterceptor.js';
 import Config from '../../configs/config.js';
+import { SecretKeyGuard } from '../../shared/secret-key.guard.js';
 
 @Controller('console')
 export class ConsoleController {
   constructor(private readonly logger: ConsoleInterceptor) {}
 
   @Get('all')
+  @UseGuards(SecretKeyGuard)
   getAll(
     @Query('order') order: 'asc' | 'desc' = 'desc',
     @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
@@ -16,6 +18,7 @@ export class ConsoleController {
   }
 
   @Get('logs')
+  @UseGuards(SecretKeyGuard)
   getLogs(
     @Query('order') order: 'asc' | 'desc' = 'desc',
     @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
@@ -25,6 +28,7 @@ export class ConsoleController {
   }
 
   @Get('warns')
+  @UseGuards(SecretKeyGuard)
   getWarns(
     @Query('order') order: 'asc' | 'desc' = 'desc',
     @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
@@ -34,6 +38,7 @@ export class ConsoleController {
   }
 
   @Get('errors')
+  @UseGuards(SecretKeyGuard)
   getErrors(
     @Query('order') order: 'asc' | 'desc' = 'desc',
     @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,

@@ -24,26 +24,36 @@ export class AnilistIndexerService extends Client {
 
   public async index(delay: number = 10, range: number = 25): Promise<void> {
     if (this.lock.isLocked(Config.UPDATE_RUNNING_KEY)) {
-      console.log('Updating is running, skip this round.');
+      console.log(
+        '[AnilistIndexer] Skipping index — update is already running.',
+      );
       return;
     }
 
     if (!this.lock.acquire(Config.INDEXER_RUNNING_KEY)) {
-      console.log('Already running, skip this round.');
+      console.log(
+        '[AnilistIndexer] Indexer already running, skipping new run.',
+      );
       return;
     }
 
     try {
       let page = await this.getLastFetchedPage();
-      let hasNextPage: boolean = true;
+      let hasNextPage = true;
       const perPage = 50;
 
+      console.log(`[AnilistIndexer] Starting index from page ${page}...`);
+
       while (hasNextPage) {
-        console.log(`Fetching ids page ${page}`);
+        console.log(`[AnilistIndexer] Fetching IDs from page ${page}...`);
 
         const response = await this.getIdsGraphql(page, perPage);
         const ids = response.Page.media.map((m) => m.id);
         hasNextPage = response.Page.pageInfo.hasNextPage;
+
+        console.log(
+          `[AnilistIndexer] Fetched ${ids.length} IDs, checking for new releases...`,
+        );
 
         const existingIdsRaw = await this.prisma.releaseIndex.findMany({
           where: {
@@ -55,50 +65,64 @@ export class AnilistIndexerService extends Client {
         const existingIdsSet = new Set(existingIdsRaw.map((e) => e.id));
         const newIds = ids.filter((id) => !existingIdsSet.has(id.toString()));
 
+        console.log(
+          `[AnilistIndexer] Found ${newIds.length} new releases on page ${page}.`,
+        );
+
         for (const id of newIds) {
           if (!this.lock.isLocked(Config.INDEXER_RUNNING_KEY)) {
-            console.log('Indexing manually stopped');
+            console.log(
+              '[AnilistIndexer] Indexing stopped manually. Exiting...',
+            );
             return;
           }
 
-          console.log(`Indexing new release: ${id}`);
+          console.log(`[AnilistIndexer] Indexing release ID: ${id}...`);
 
-          await this.service.getAnilist(id);
+          try {
+            await this.service.getAnilist(id);
+            await this.prisma.releaseIndex.upsert({
+              where: { id: id.toString() },
+              update: {},
+              create: { id: id.toString() },
+            });
+          } catch (err) {
+            console.error(
+              `[AnilistIndexer] Failed to index release ${id}:`,
+              err,
+            );
+          }
 
-          await this.prisma.releaseIndex.upsert({
-            where: { id: id.toString() },
-            update: {},
-            create: { id: id.toString() },
-          });
-
-          await sleep(getRandomNumber(delay, delay + range));
+          await sleep(getRandomNumber(delay, delay + range), false);
         }
 
         await this.setLastFetchedPage(page);
-
-        if (!hasNextPage) break;
         page++;
       }
 
-      console.log('Indexing complete, shutting it down');
+      console.log('[AnilistIndexer] Indexing complete. All done');
+    } catch (err) {
+      console.error('[AnilistIndexer] Unexpected error during indexing:', err);
     } finally {
       this.lock.release(Config.INDEXER_RUNNING_KEY);
     }
   }
 
   public stop(): void {
+    console.log('[AnilistIndexer] Indexing stopped by request.');
     this.lock.release(Config.INDEXER_RUNNING_KEY);
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { timeZone: 'Europe/London' })
   public async updateIndex(): Promise<void> {
     if (!Config.ANILIST_INDEXER_UPDATE_ENABLED) {
-      console.log('Scheduled updates are disabled. Skipping update.');
+      console.log(
+        '[AnilistIndexer] Scheduled update skipped — disabled by config.',
+      );
       return;
     }
 
-    console.log('Scheduled index update started...');
-
+    console.log('[AnilistIndexer] Scheduled Anilist index update started...');
     await this.index();
   }
 

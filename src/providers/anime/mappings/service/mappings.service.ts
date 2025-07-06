@@ -61,6 +61,16 @@ export class MappingsService extends Client {
     })) as AniZipWithRelations;
   }
 
+  async update(anilistId: number) {
+    const anizipRaw = await this.fetchMapping(anilistId);
+
+    if (!anizipRaw) {
+      throw new Error('No data found');
+    }
+
+    return await this.saveMapping(anizipRaw);
+  }
+
   /**
    * Update only the mapping IDs for an AniZip entry.
    * @param aniZipId - The AniZip.id (Int)

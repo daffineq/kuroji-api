@@ -14,6 +14,7 @@ import { TvdbService } from '../anime/tvdb/service/tvdb.service.js';
 import { ZoroService } from '../anime/zoro/service/zoro.service.js';
 import { AppLockService } from '../../shared/app.lock.service.js';
 import { UpdateRequestsService } from './update.requests.service.js';
+import { MappingsService } from '../anime/mappings/service/mappings.service.js';
 
 export interface IProvider {
   update: (id: string | number) => Promise<any>;
@@ -59,6 +60,7 @@ export class UpdateService {
     private readonly tmdbService: TmdbService,
     private readonly tvdbService: TvdbService,
     private readonly kitsuService: KitsuService,
+    private readonly anizip: MappingsService,
     private readonly lock: AppLockService,
     private readonly requests: UpdateRequestsService,
     private readonly prisma: PrismaService,
@@ -95,6 +97,10 @@ export class UpdateService {
       {
         update: (id: any) => this.kitsuService.updateByAnilist(Number(id)),
         type: UpdateType.KITSU,
+      },
+      {
+        update: (id: any) => this.anizip.update(Number(id)),
+        type: UpdateType.ANIZIP,
       },
     ];
 

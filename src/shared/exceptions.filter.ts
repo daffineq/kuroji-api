@@ -38,13 +38,25 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const stack = exception instanceof Error ? exception.stack : undefined;
 
+    const cleanedStack = stack
+      ? stack
+          .replace(/\\/g, '/')
+          .split('\n')
+          .filter((line) => line.includes('/src/'))
+          .map((line) => {
+            const match = line.match(/(\/src\/.*?:\d+:\d+)/);
+            return match ? match[1] : line.trim();
+          })
+          .join('\n')
+      : undefined;
+
     const errorResponse = {
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
       method: request.method,
       message,
-      stack,
+      stack: cleanedStack,
     };
 
     response.status(status).json(errorResponse);
