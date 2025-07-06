@@ -503,7 +503,7 @@ export class UpdateService {
         : SLEEP_BETWEEN_UPDATES;
 
       console.log(`Sleeping ${sleep_time}s before next provider...`);
-      await sleep(sleep_time);
+      await sleep(sleep_time, false);
     }
 
     const duration = Math.floor((Date.now() - startTime) / 1000);

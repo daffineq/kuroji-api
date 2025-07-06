@@ -257,6 +257,10 @@ export class TmdbService extends Client {
     }
 
     for (const season of tmdb.seasons) {
+      console.log(
+        `Updating TMDB season: ${season.season_number} for tmdb: ${tmdb.id}`,
+      );
+
       const tmdbSeason = await this.fetchTmdbSeason(
         id,
         season.season_number || 1,
@@ -264,7 +268,7 @@ export class TmdbService extends Client {
       tmdbSeason.show_id = tmdb.id;
       await this.saveTmdbSeason(tmdbSeason);
 
-      await sleep(15);
+      await sleep(15, false);
     }
 
     return tmdb;
