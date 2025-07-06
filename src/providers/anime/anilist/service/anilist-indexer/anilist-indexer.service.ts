@@ -2,11 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../../../../prisma.service.js';
 import { AnilistService } from '../anilist.service.js';
-import { ZoroService } from '../../../zoro/service/zoro.service.js';
-import { AnimekaiService } from '../../../animekai/service/animekai.service.js';
-import { AnimepaheService } from '../../../animepahe/service/animepahe.service.js';
 import Config from '../../../../../configs/config.js';
-import { sleep } from '../../../../../utils/utils.js';
+import { getRandomNumber, sleep } from '../../../../../utils/utils.js';
 import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder.js';
 import { UrlConfig } from '../../../../../configs/url.config.js';
 import { MediaType } from '../../filter/Filter.js';
@@ -20,9 +17,6 @@ export class AnilistIndexerService extends Client {
   constructor(
     private readonly prisma: PrismaService,
     private readonly service: AnilistService,
-    private readonly zoro: ZoroService,
-    private readonly animekai: AnimekaiService,
-    private readonly animepahe: AnimepaheService,
     private readonly lock: AppLockService,
   ) {
     super(UrlConfig.ANILIST_GRAPHQL);
@@ -69,14 +63,15 @@ export class AnilistIndexerService extends Client {
 
           console.log(`Indexing new release: ${id}`);
 
-          await this.safeGetAnilist(id);
+          await this.service.getAnilist(id);
+
           await this.prisma.releaseIndex.upsert({
             where: { id: id.toString() },
             update: {},
             create: { id: id.toString() },
           });
 
-          await sleep(this.getRandomInt(delay, delay + range));
+          await sleep(getRandomNumber(delay, delay + range));
         }
 
         await this.setLastFetchedPage(page);
@@ -154,84 +149,5 @@ export class AnilistIndexerService extends Client {
       update: { lastFetchedPage: page },
       create: { id: 'anime', lastFetchedPage: page },
     });
-  }
-
-  private async safeGetAnilist(id: number, retries = 3): Promise<void> {
-    let lastError: any = null;
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        const data = await this.service.getAnilist(id);
-        if (!data) {
-          console.warn(`Anilist returned no data for ID ${id}`);
-          return;
-        }
-
-        const providers: Array<{ name: string; fn: () => Promise<any> }> = [];
-
-        if (Config.ZORO_ENABLED) {
-          providers.push({
-            name: 'Zoro',
-            fn: () => this.zoro.getZoroByAnilist(id),
-          });
-        }
-
-        if (Config.ANIMEKAI_ENABLED) {
-          providers.push({
-            name: 'Animekai',
-            fn: () => this.animekai.getAnimekaiByAnilist(id),
-          });
-        }
-
-        if (Config.ANIMEPAHE_ENABLED) {
-          providers.push({
-            name: 'Animepahe',
-            fn: () => this.animepahe.getAnimepaheByAnilist(id),
-          });
-        }
-
-        await Promise.allSettled(
-          providers.map(async (provider) => {
-            try {
-              await provider.fn();
-            } catch (e) {
-              console.warn(
-                `${provider.name} failed for ID ${id}:`,
-                e.message ?? e,
-              );
-            }
-          }),
-        );
-
-        return;
-      } catch (e: any) {
-        lastError = e;
-
-        if (e.response?.status === 429) {
-          const retryAfter = e.response.headers['retry-after']
-            ? parseInt(e.response.headers['retry-after'], 10)
-            : this.getRandomInt(30, 60);
-
-          console.warn(
-            `429 hit - Attempt ${attempt}/${retries}. Sleeping ${retryAfter}s`,
-          );
-          await sleep(retryAfter + 1);
-        } else {
-          console.warn(
-            `Error fetching Anilist for ID ${id} - Attempt ${attempt}/${retries}:`,
-            e.message ?? e,
-          );
-          await sleep(60);
-        }
-      }
-    }
-
-    throw (
-      lastError ?? new Error(`Unknown error fetching Anilist for ID: ${id}`)
-    );
-  }
-
-  private getRandomInt(min: number, max: number): number {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 }

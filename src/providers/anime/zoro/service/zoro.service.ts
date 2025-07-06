@@ -19,6 +19,7 @@ import {
 import { Client } from '../../../model/client.js';
 import { getZoroData } from '../utils/zoro-helper.js';
 import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js';
+import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.service.js';
 
 const zoro = new ANIME.Zoro();
 
@@ -28,7 +29,10 @@ function convertId(slug: string): string {
 
 @Injectable()
 export class ZoroService extends Client {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly anilist: AnilistUtilService,
+  ) {
     super();
   }
 
@@ -174,39 +178,7 @@ export class ZoroService extends Client {
   }
 
   async findZoroByAnilist(id: number): Promise<IAnimeInfo> {
-    const anilist = await this.prisma.anilist.findUnique({
-      where: { id: id },
-      select: {
-        title: {
-          select: {
-            romaji: true,
-            english: true,
-            native: true,
-          },
-        },
-        id: true,
-        idMal: true,
-        seasonYear: true,
-        episodes: true,
-        format: true,
-        airingSchedule: true,
-        status: true,
-        synonyms: true,
-        shikimori: {
-          select: {
-            english: true,
-            japanese: true,
-            episodes: true,
-            episodesAired: true,
-          },
-        },
-        kitsu: {
-          select: {
-            episodeCount: true,
-          },
-        },
-      },
-    });
+    const anilist = await this.anilist.getMappingAnilist(id);
 
     if (!anilist) {
       throw new Error('Anilist not found');

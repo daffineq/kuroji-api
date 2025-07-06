@@ -5,6 +5,7 @@ import {
   getAnilistInclude,
 } from '../../utils/anilist-helper.js';
 import { PrismaService } from '../../../../../prisma.service.js';
+import { FullMediaResponse } from '../../types/response.js';
 
 @Injectable()
 export class AnilistSaveService {
@@ -13,12 +14,12 @@ export class AnilistSaveService {
     private readonly helper: AnilistHelper,
   ) {}
 
-  async saveAnilist(data: AnilistResponse): Promise<AnilistWithRelations> {
-    if (!data.Page?.media || data.Page.media.length === 0) {
+  async saveAnilist(
+    anilist?: FullMediaResponse,
+  ): Promise<AnilistWithRelations> {
+    if (!anilist) {
       throw new Error('No media found');
     }
-
-    const anilist = data.Page.media[0];
 
     return (await this.prisma.anilist.upsert({
       where: { id: anilist.id },
