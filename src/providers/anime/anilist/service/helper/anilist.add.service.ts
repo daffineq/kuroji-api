@@ -51,11 +51,7 @@ export class AnilistAddService {
     return await this.search.getAnilists(filter);
   }
 
-  async getCharacters(
-    id: number,
-    perPage: number,
-    page: number,
-  ): Promise<ApiResponse<AnilistCharacter[]>> {
+  async getCharacters(id: number): Promise<AnilistCharacter[]> {
     const existingAnilist = await this.prisma.anilist.findUnique({
       where: { id },
       include: {
@@ -65,58 +61,49 @@ export class AnilistAddService {
 
     const charactersIds = existingAnilist?.characters?.map((c) => c.id);
 
-    const [data, total] = await Promise.all([
-      this.prisma.anilistCharacterEdge.findMany({
-        where: { id: { in: charactersIds } },
-        omit: {
-          anilistId: true,
-          characterId: true,
-        },
-        include: {
-          character: {
-            include: {
-              image: {
-                omit: {
-                  id: true,
-                  characterId: true,
-                },
-              },
-              name: {
-                omit: {
-                  id: true,
-                  characterId: true,
-                },
+    const data = await this.prisma.anilistCharacterEdge.findMany({
+      where: { id: { in: charactersIds } },
+      omit: {
+        anilistId: true,
+        characterId: true,
+      },
+      include: {
+        character: {
+          include: {
+            image: {
+              omit: {
+                id: true,
+                characterId: true,
               },
             },
-          },
-          voiceActors: {
-            include: {
-              image: {
-                omit: {
-                  id: true,
-                  voiceActorId: true,
-                },
-              },
-              name: {
-                omit: {
-                  id: true,
-                  voiceActorId: true,
-                },
+            name: {
+              omit: {
+                id: true,
+                characterId: true,
               },
             },
           },
         },
-        skip: perPage * (page - 1),
-        take: perPage,
-      }),
-      this.prisma.anilistCharacterEdge.count({
-        where: { id: { in: charactersIds } },
-      }),
-    ]);
+        voiceActors: {
+          include: {
+            image: {
+              omit: {
+                id: true,
+                voiceActorId: true,
+              },
+            },
+            name: {
+              omit: {
+                id: true,
+                voiceActorId: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
-    const pageInfo: PageInfo = getPageInfo(total, perPage, page);
-    const response: ApiResponse<AnilistCharacter[]> = { pageInfo, data };
-    return response;
+    return data;
   }
 
   async getAllGenres(): Promise<string[]> {

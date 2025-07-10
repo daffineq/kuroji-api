@@ -51,12 +51,8 @@ export class AnilistController {
   }
 
   @Get('info/:id/characters')
-  async getCharacters(
-    @Param('id', ParseIntPipe) id: number,
-    @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
-    @Query('page') page: number = Config.DEFAULT_PAGE,
-  ) {
-    return this.add.getCharacters(id, perPage, page);
+  async getCharacters(@Param('id', ParseIntPipe) id: number) {
+    return this.add.getCharacters(id);
   }
 
   @Get('info/:id/chronology')
