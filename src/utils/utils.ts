@@ -1,12 +1,7 @@
-import { PageInfo } from '../shared/ApiResponse.js';
 import { Transform } from 'class-transformer';
 import * as crypto from 'crypto';
 
-export function getPageInfo(
-  total: number,
-  perPage: number,
-  page: number,
-): PageInfo {
+export function getPageInfo(total: number, perPage: number, page: number) {
   const lastPage = Math.ceil(total / perPage);
   return {
     total,

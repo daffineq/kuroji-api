@@ -14,15 +14,15 @@ export enum Provider {
 }
 
 export interface Episode {
-  title: string | null;
-  image: TmdbImage | null;
-  number: number | null;
-  overview: string;
-  date: string;
-  duration: number;
-  filler: boolean | null;
-  sub: boolean | null;
-  dub: boolean | null;
+  title?: string | null;
+  image?: TmdbImage | null;
+  number?: number | null;
+  overview?: string | null;
+  date?: string | null;
+  duration?: number | null;
+  filler?: boolean | null;
+  sub?: boolean | null;
+  dub?: boolean | null;
 }
 
 export interface EpisodeDetails extends Episode {

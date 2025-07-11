@@ -69,6 +69,7 @@ export class StreamService {
       const episodesZoro = aniwatch?.episodes || [];
       const episodesPahe = animepahe?.episodes || [];
       const tmdbEpisodes = season?.episodes || [];
+      const anizipEpisodes = anilist?.anizip?.episodes || [];
 
       const paheMap = new Map<number, AnimepaheEpisode>();
       episodesPahe.forEach((ep, idx) => {
@@ -94,6 +95,7 @@ export class StreamService {
           const tmdbEpisode = tmdbEpisodes.find(
             (e) => e.episode_number === number,
           );
+          const anizipEpisode = anizipEpisodes.find((e) => e.episodeNumber);
 
           const airDate = anilist?.airingSchedule?.find(
             (s) => s.episode === number,
@@ -101,32 +103,41 @@ export class StreamService {
 
           const formattedDate = tmdbEpisode?.air_date
             ? new Date(tmdbEpisode.air_date)
-            : airDate
-              ? new Date(airDate * 1000)
-              : anilist?.startDate?.year &&
-                  anilist?.startDate?.month &&
-                  anilist?.startDate?.day
-                ? new Date(
-                    anilist.startDate.year,
-                    anilist.startDate.month - 1,
-                    anilist.startDate.day,
-                  )
-                : undefined;
+            : anizipEpisode?.airDate
+              ? new Date(anizipEpisode.airDate)
+              : airDate
+                ? new Date(airDate * 1000)
+                : anilist?.startDate?.year &&
+                    anilist?.startDate?.month &&
+                    anilist?.startDate?.day
+                  ? new Date(
+                      anilist.startDate.year,
+                      anilist.startDate.month - 1,
+                      anilist.startDate.day,
+                    )
+                  : undefined;
 
           const filler = zoroEp?.isFiller ?? false;
           const sub = zoroEp?.isSubbed ?? (paheEp ? true : false);
           const dub = zoroEp?.isDubbed ?? (paheEp ? true : false);
 
           return {
-            title: tmdbEpisode?.name || zoroEp?.title || paheEp?.title || ``,
+            title:
+              tmdbEpisode?.name ||
+              anizipEpisode?.titles?.find((t) => t.key === 'en')?.name ||
+              zoroEp?.title ||
+              paheEp?.title,
             image:
               getImage(tmdbEpisode?.still_path) ||
-              getImage(tmdb?.backdrop_path) ||
-              null,
+              getImage(anizipEpisode?.image, true) ||
+              getImage(tmdb?.backdrop_path),
             number,
-            overview: tmdbEpisode?.overview ?? '',
-            date: formattedDate ? formattedDate.toISOString() : '',
-            duration: tmdbEpisode?.runtime || anilist?.duration || 0,
+            overview: tmdbEpisode?.overview || anizipEpisode?.overview,
+            date: formattedDate ? formattedDate.toISOString() : undefined,
+            duration:
+              tmdbEpisode?.runtime ||
+              anizipEpisode?.runtime ||
+              anilist?.duration,
             filler,
             sub,
             dub,

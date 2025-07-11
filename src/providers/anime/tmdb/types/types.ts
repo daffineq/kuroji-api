@@ -62,13 +62,16 @@ export interface TmdbImage {
   original: string;
 }
 
-export function getImage(image: string | undefined | null): TmdbImage | null {
+export function getImage(
+  image: string | undefined | null,
+  ignore: boolean = false,
+): TmdbImage | null {
   if (!image) return null;
 
   return {
-    w300: `${TMDB.getImageUrl('w300')}${image}`,
-    w500: `${TMDB.getImageUrl('w500')}${image}`,
-    original: `${TMDB.IMAGE_BASE_ORIGINAL_URL}${image}`,
+    w300: ignore ? image : `${TMDB.getImageUrl('w300')}${image}`,
+    w500: ignore ? image : `${TMDB.getImageUrl('w500')}${image}`,
+    original: ignore ? image : `${TMDB.IMAGE_BASE_ORIGINAL_URL}${image}`,
   };
 }
 

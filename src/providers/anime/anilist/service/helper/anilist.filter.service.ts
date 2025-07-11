@@ -347,10 +347,23 @@ export class AnilistFilterService {
           { title: { romaji: { contains: t, mode: 'insensitive' } } },
           { title: { english: { contains: t, mode: 'insensitive' } } },
           { title: { native: { contains: t, mode: 'insensitive' } } },
-          { synonyms: { hasSome: [t] } },
           { shikimori: { russian: { contains: t, mode: 'insensitive' } } },
           {
             shikimori: { licenseNameRu: { contains: t, mode: 'insensitive' } },
+          },
+          {
+            anizip: {
+              titles: {
+                some: {
+                  OR: tokens.map((token) => ({
+                    name: {
+                      contains: token,
+                      mode: 'insensitive',
+                    },
+                  })),
+                },
+              },
+            },
           },
         ],
       }));

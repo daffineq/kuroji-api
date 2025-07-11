@@ -63,7 +63,6 @@ export function getAnizipData(anizip: IAniZipData): Prisma.AniZipCreateInput {
                 tvdbId: episodeData.tvdbId ?? 0,
                 airDate: episodeData.airDate ?? null,
                 airDateUtc: episodeData.airDateUtc ?? null,
-                airdate: episodeData.airdate ?? null,
                 runtime: episodeData.runtime ?? null,
                 length: episodeData.length ?? null,
                 overview: episodeData.overview ?? null,
@@ -137,21 +136,20 @@ export function getAnizipInclude(): Prisma.AniZipInclude {
         aniZipId: true,
       },
     },
-    // Uncomment and fix episodes if needed
-    // episodes: {
-    //   omit: {
-    //     id: true,
-    //     aniZipId: true,
-    //   },
-    //   include: {
-    //     titles: {
-    //       omit: {
-    //         id: true,
-    //         episodeId: true,
-    //       },
-    //     },
-    //   },
-    // },
+    episodes: {
+      omit: {
+        id: true,
+        aniZipId: true,
+      },
+      include: {
+        titles: {
+          omit: {
+            id: true,
+            episodeId: true,
+          },
+        },
+      },
+    },
     mappings: {
       omit: {
         id: true,

@@ -1,6 +1,7 @@
 import {
   AniZip,
   AniZipEpisode,
+  AniZipEpisodeTitle,
   AniZipImage,
   AniZipMapping,
   AniZipTitle,
@@ -9,8 +10,12 @@ import {
 export interface AniZipWithRelations extends AniZip {
   titles?: AniZipTitle[];
   images?: AniZipImage[];
-  episodes?: AniZipEpisode[];
+  episodes?: AniZipEpisodeWithRelations[];
   mappings?: AniZipMapping;
+}
+
+export interface AniZipEpisodeWithRelations extends AniZipEpisode {
+  titles?: AniZipEpisodeTitle[];
 }
 
 export interface IAniZipTitles {

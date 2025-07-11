@@ -59,7 +59,6 @@ model AniZipEpisode {
   // Dates and times
   airDate                 String?  @map("air_date")
   airDateUtc              String?  @map("air_date_utc")
-  airdate                 String?  // duplicate field in JSON
   
   // Media info
   runtime                 Int?

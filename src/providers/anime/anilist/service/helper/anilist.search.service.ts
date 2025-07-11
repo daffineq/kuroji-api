@@ -1,9 +1,13 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FilterDto } from '../../filter/FilterDto.js';
 import { AnilistFilterService } from './anilist.filter.service.js';
-import { AnilistAddService } from './anilist.add.service.js';
 import { ApiResponse } from '../../../../../shared/ApiResponse.js';
-import { BasicAnilist, Franchise, FranchiseResponse, SearcnResponse } from '../../types/types.js';
+import {
+  BasicAnilist,
+  Franchise,
+  FranchiseResponse,
+  SearcnResponse,
+} from '../../types/types.js';
 import { convertAnilistToBasic } from '../../utils/anilist-helper.js';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -14,8 +18,8 @@ import { hashFilters } from '../../../../../utils/utils.js';
 import Config from '../../../../../configs/config.js';
 import { undefinedToNull } from '../../../../../shared/interceptor.js';
 import { TagFilterDto } from '../../filter/TagFilterDto.js';
-import { getImage } from '../../../tmdb/types/types.js'
-import { TmdbService } from '../../../tmdb/service/tmdb.service.js'
+import { getImage } from '../../../tmdb/types/types.js';
+import { TmdbService } from '../../../tmdb/service/tmdb.service.js';
 
 @Injectable()
 export class AnilistSearchService {
@@ -101,11 +105,20 @@ export class AnilistSearchService {
     perPage: number,
   ): Promise<SearcnResponse<BasicAnilist[]>> {
     const response = await this.filter.getAnilistByFilter(
-      new FilterDto({ query: q, page: page, perPage: perPage, sort: [MediaSort.TRENDING_DESC, MediaSort.POPULARITY_DESC] }),
+      new FilterDto({
+        query: q,
+        page: page,
+        perPage: perPage,
+        sort: [MediaSort.TRENDING_DESC, MediaSort.POPULARITY_DESC],
+      }),
     );
 
     const response1 = await this.filter.getAnilistByFilter(
-      new FilterDto({ query: q, page: 1, sort: [MediaSort.TRENDING_DESC, MediaSort.POPULARITY_DESC]}),
+      new FilterDto({
+        query: q,
+        page: 1,
+        sort: [MediaSort.TRENDING_DESC, MediaSort.POPULARITY_DESC],
+      }),
     );
 
     const basicAnilist = response.data.map((anilist) =>
@@ -124,7 +137,11 @@ export class AnilistSearchService {
     if (firstBasicFranchise?.shikimori?.franchise) {
       franchise = await this.getFranchise(
         firstBasicFranchise.shikimori.franchise,
-        new FilterDto({ perPage: franchises, page: 1, sort: [MediaSort.POPULARITY_DESC, MediaSort.TRENDING_DESC] }),
+        new FilterDto({
+          perPage: franchises,
+          page: 1,
+          sort: [MediaSort.POPULARITY_DESC, MediaSort.TRENDING_DESC],
+        }),
       );
     }
 
@@ -143,8 +160,8 @@ export class AnilistSearchService {
       throw new Error('Franchise name cannot be empty');
     }
 
-    const baseFilter = { ...filter, franchise: franchiseName }
-    const franchises = await this.getAnilists(baseFilter)
+    const baseFilter = { ...filter, franchise: franchiseName };
+    const franchises = await this.getAnilists(baseFilter);
 
     const firstPageFilter = {
       ...baseFilter,
@@ -154,40 +171,40 @@ export class AnilistSearchService {
         MediaSort.FAVOURITES_DESC,
         MediaSort.SCORE_DESC,
       ],
-    }
-    const franchises1Page = await this.getAnilists(firstPageFilter)
+    };
+    const franchises1Page = await this.getAnilists(firstPageFilter);
 
     const firstFranchise = franchises1Page.data.reduce(
       (best, item) => {
-        const popularity = item.popularity ?? 0
-        const favourites = item.favourites ?? 0
-        const score = item.score ?? 0
+        const popularity = item.popularity ?? 0;
+        const favourites = item.favourites ?? 0;
+        const score = item.score ?? 0;
 
-        const combinedScore = popularity + favourites + score * 10
+        const combinedScore = popularity + favourites + score * 10;
 
-        const bestPopularity = best ? (best.popularity ?? 0) : 0
-        const bestFavourites = best ? (best.favourites ?? 0) : 0
-        const bestScore = best ? (best.score ?? 0) : 0
-        const bestCombined = bestPopularity + bestFavourites + bestScore * 10
+        const bestPopularity = best ? (best.popularity ?? 0) : 0;
+        const bestFavourites = best ? (best.favourites ?? 0) : 0;
+        const bestScore = best ? (best.score ?? 0) : 0;
+        const bestCombined = bestPopularity + bestFavourites + bestScore * 10;
 
-        return combinedScore > bestCombined ? item : best
+        return combinedScore > bestCombined ? item : best;
       },
       null as BasicAnilist | null,
-    )
+    );
 
     if (!firstFranchise) {
       return {
         pageInfo: franchises.pageInfo,
         franchise: {},
         data: [],
-      } as FranchiseResponse<BasicAnilist[]>
+      } as FranchiseResponse<BasicAnilist[]>;
     }
 
     const tmdbFirst = await this.tmdbService
       .getTmdbByAnilist(firstFranchise.id)
-      .catch(() => null)
+      .catch(() => null);
 
-    let franchise: Franchise | null = null
+    let franchise: Franchise | null = null;
 
     if (tmdbFirst) {
       franchise = {
@@ -196,14 +213,14 @@ export class AnilistSearchService {
         title: tmdbFirst.name,
         franchise: franchiseName,
         description: tmdbFirst.overview,
-      }
+      };
     }
 
     const response: FranchiseResponse<BasicAnilist[]> = {
       pageInfo: franchises.pageInfo,
       franchise,
       data: franchises.data,
-    }
-    return response
+    };
+    return response;
   }
 }
