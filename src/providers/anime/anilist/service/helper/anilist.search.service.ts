@@ -199,11 +199,6 @@ export class AnilistSearchService {
     const mainFranchisePromise = this.getAnilists({
       ...filter,
       franchise: franchiseName,
-      sort: [
-        MediaSort.POPULARITY_DESC,
-        MediaSort.FAVOURITES_DESC,
-        MediaSort.SCORE_DESC,
-      ],
     });
 
     let page1Promise: Promise<ApiResponse<BasicAnilist[]>> | null = null;
