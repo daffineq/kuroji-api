@@ -14,7 +14,7 @@ import { validate } from 'class-validator';
 import { MediaSort } from '../../filter/Filter.js';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Redis } from 'ioredis';
-import { hashFilters } from '../../../../../utils/utils.js';
+import { hashFilter, hashFilters } from '../../../../../utils/utils.js';
 import Config from '../../../../../configs/config.js';
 import { undefinedToNull } from '../../../../../shared/interceptor.js';
 import { TagFilterDto } from '../../filter/TagFilterDto.js';
@@ -104,7 +104,16 @@ export class AnilistSearchService {
     page: number,
     perPage: number,
   ): Promise<SearcnResponse<BasicAnilist[]>> {
-    const response = await this.filter.getAnilistByFilter(
+    const searchKey = `search:${q}:${page}:${perPage}:${franchises}`;
+
+    if (Config.REDIS) {
+      const cached = await this.redis.get(searchKey);
+      if (cached) {
+        return JSON.parse(cached) as SearcnResponse<BasicAnilist[]>;
+      }
+    }
+
+    const mainSearchPromise = this.getAnilists(
       new FilterDto({
         query: q,
         page: page,
@@ -113,43 +122,61 @@ export class AnilistSearchService {
       }),
     );
 
-    const response1 = await this.filter.getAnilistByFilter(
-      new FilterDto({
-        query: q,
-        page: 1,
-        sort: [MediaSort.TRENDING_DESC, MediaSort.POPULARITY_DESC],
-      }),
-    );
+    let page1Promise: Promise<ApiResponse<BasicAnilist[]>> | null = null;
+    if (page !== 1) {
+      page1Promise = this.getAnilists(
+        new FilterDto({
+          query: q,
+          page: 1,
+          perPage: 20,
+          sort: [MediaSort.TRENDING_DESC, MediaSort.POPULARITY_DESC],
+        }),
+      );
+    }
 
-    const basicAnilist = response.data.map((anilist) =>
-      convertAnilistToBasic(anilist),
-    );
+    const [response, page1Response] = await Promise.all([
+      mainSearchPromise,
+      page1Promise,
+    ]);
 
-    const basicAnilist1 = response1.data.map((anilist) =>
-      convertAnilistToBasic(anilist),
-    );
+    const dataForFranchise = page === 1 ? response.data : page1Response?.data;
 
-    const firstBasicFranchise = basicAnilist1.find(
+    const firstBasicFranchise = dataForFranchise?.find(
       (b) => b.shikimori?.franchise && b.shikimori.franchise.trim().length > 0,
     );
 
     let franchise: FranchiseResponse<BasicAnilist[]> | null = null;
     if (firstBasicFranchise?.shikimori?.franchise) {
-      franchise = await this.getFranchise(
-        firstBasicFranchise.shikimori.franchise,
-        new FilterDto({
-          perPage: franchises,
-          page: 1,
-          sort: [MediaSort.POPULARITY_DESC, MediaSort.TRENDING_DESC],
-        }),
+      try {
+        franchise = await this.getFranchise(
+          firstBasicFranchise.shikimori.franchise,
+          new FilterDto({
+            perPage: franchises,
+            page: 1,
+            sort: [MediaSort.POPULARITY_DESC, MediaSort.TRENDING_DESC],
+          }),
+        );
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+    const result = {
+      pageInfo: response.pageInfo,
+      franchise,
+      data: response.data,
+    } as SearcnResponse<BasicAnilist[]>;
+
+    if (Config.REDIS) {
+      await this.redis.set(
+        searchKey,
+        JSON.stringify(undefinedToNull(result)),
+        'EX',
+        Config.REDIS_TIME,
       );
     }
 
-    return {
-      pageInfo: response.pageInfo,
-      franchise,
-      data: basicAnilist,
-    } as SearcnResponse<BasicAnilist[]>;
+    return result;
   }
 
   async getFranchise(
@@ -160,37 +187,50 @@ export class AnilistSearchService {
       throw new Error('Franchise name cannot be empty');
     }
 
-    const baseFilter = { ...filter, franchise: franchiseName };
-    const franchises = await this.getAnilists(baseFilter);
+    const franchiseKey = `franchise:${franchiseName}:${hashFilter(filter)}`;
 
-    const firstPageFilter = {
-      ...baseFilter,
-      page: 1,
+    if (Config.REDIS) {
+      const cached = await this.redis.get(franchiseKey);
+      if (cached) {
+        return JSON.parse(cached) as FranchiseResponse<BasicAnilist[]>;
+      }
+    }
+
+    const mainFranchisePromise = this.getAnilists({
+      ...filter,
+      franchise: franchiseName,
       sort: [
         MediaSort.POPULARITY_DESC,
         MediaSort.FAVOURITES_DESC,
         MediaSort.SCORE_DESC,
       ],
-    };
-    const franchises1Page = await this.getAnilists(firstPageFilter);
+    });
 
-    const firstFranchise = franchises1Page.data.reduce(
-      (best, item) => {
-        const popularity = item.popularity ?? 0;
-        const favourites = item.favourites ?? 0;
-        const score = item.score ?? 0;
+    let page1Promise: Promise<ApiResponse<BasicAnilist[]>> | null = null;
+    if (filter.page !== 1) {
+      page1Promise = this.getAnilists({
+        ...filter,
+        franchise: franchiseName,
+        page: 1,
+        perPage: 20,
+        sort: [
+          MediaSort.POPULARITY_DESC,
+          MediaSort.FAVOURITES_DESC,
+          MediaSort.SCORE_DESC,
+        ],
+      });
+    }
 
-        const combinedScore = popularity + favourites + score * 10;
+    const [franchises, page1Franchises] = await Promise.all([
+      mainFranchisePromise,
+      page1Promise,
+    ]);
 
-        const bestPopularity = best ? (best.popularity ?? 0) : 0;
-        const bestFavourites = best ? (best.favourites ?? 0) : 0;
-        const bestScore = best ? (best.score ?? 0) : 0;
-        const bestCombined = bestPopularity + bestFavourites + bestScore * 10;
+    const dataForBestFranchise =
+      filter.page === 1 ? franchises.data : page1Franchises?.data || [];
 
-        return combinedScore > bestCombined ? item : best;
-      },
-      null as BasicAnilist | null,
-    );
+    const firstFranchise =
+      dataForBestFranchise.length > 0 ? dataForBestFranchise[0] : null;
 
     if (!firstFranchise) {
       return {
@@ -200,20 +240,29 @@ export class AnilistSearchService {
       } as FranchiseResponse<BasicAnilist[]>;
     }
 
-    const tmdbFirst = await this.tmdbService
-      .getTmdbByAnilist(firstFranchise.id)
-      .catch(() => null);
-
     let franchise: Franchise | null = null;
+    try {
+      const tmdbFirst = (await Promise.race([
+        this.tmdbService.getTmdbByAnilist(firstFranchise.id),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('TMDB timeout')), 2000),
+        ),
+      ])) as any;
 
-    if (tmdbFirst) {
-      franchise = {
-        cover: getImage(tmdbFirst.poster_path),
-        banner: getImage(tmdbFirst.backdrop_path),
-        title: tmdbFirst.name,
-        franchise: franchiseName,
-        description: tmdbFirst.overview,
-      };
+      if (tmdbFirst) {
+        franchise = {
+          cover: getImage(tmdbFirst.poster_path),
+          banner: getImage(tmdbFirst.backdrop_path),
+          title: tmdbFirst.name,
+          franchise: franchiseName,
+          description: tmdbFirst.overview,
+        };
+      }
+    } catch (error) {
+      console.warn(
+        `TMDB fetch failed for franchise ${franchiseName}:`,
+        error.message,
+      );
     }
 
     const response: FranchiseResponse<BasicAnilist[]> = {
@@ -221,6 +270,16 @@ export class AnilistSearchService {
       franchise,
       data: franchises.data,
     };
+
+    if (Config.REDIS) {
+      await this.redis.set(
+        franchiseKey,
+        JSON.stringify(undefinedToNull(response)),
+        'EX',
+        Config.REDIS_TIME,
+      );
+    }
+
     return response;
   }
 }

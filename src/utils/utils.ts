@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import * as crypto from 'crypto';
+import { FilterDto } from '../providers/anime/anilist/filter/FilterDto.js';
 
 export function getPageInfo(total: number, perPage: number, page: number) {
   const lastPage = Math.ceil(total / perPage);
@@ -42,6 +43,19 @@ export function hashFilters(input: Record<string, any>): string {
     .join(':');
 
   return crypto.createHash('sha1').update(sorted).digest('hex');
+}
+
+export function hashFilter(filter: FilterDto): string {
+  const entries = Object.entries(filter)
+    .filter(([_, value]) => value !== undefined)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => {
+      const val = Array.isArray(value) ? value.join(',') : value;
+      return `${key}=${val}`;
+    });
+
+  const base = entries.join(';');
+  return crypto.createHash('sha1').update(base).digest('hex');
 }
 
 export const TransformToArray = () =>
