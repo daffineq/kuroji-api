@@ -7,7 +7,7 @@ import {
   AnimekaiEpisode,
   AnimepaheEpisode,
   EpisodeZoro,
-  TmdbSeason,
+  TmdbSeasonEpisode,
 } from '@prisma/client';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Redis } from 'ioredis';
@@ -22,12 +22,12 @@ import {
   SourceType,
 } from '../types/types.js';
 import { undefinedToNull } from '../../../../shared/interceptor.js';
-import { getImage, TmdbSeasonWithRelations } from '../../tmdb/types/types.js';
+import { getImage } from '../../tmdb/types/types.js';
 import { TmdbSeasonService } from '../../tmdb/service/tmdb.season.service.js';
 import { TmdbEpisodeService } from '../../tmdb/service/tmdb.episode.service.js';
-import { ZoroWithRelations } from '../../zoro/types/types.js';
-import { AnimepaheWithRelations } from '../../animepahe/types/types.js';
 import { TmdbService } from '../../tmdb/service/tmdb.service.js';
+import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js';
+import { AniZipEpisodeWithRelations } from '../../mappings/types/types.js';
 
 @Injectable()
 export class StreamService {
@@ -59,8 +59,7 @@ export class StreamService {
         throw new Error('Anilist not found');
       }
 
-      const [tmdb, season, aniwatch, animepahe] = await Promise.all([
-        this.tmdb.getTmdbByAnilist(id).catch(() => null),
+      const [season, aniwatch, animepahe] = await Promise.all([
         this.tmdbSeason.getTmdbSeasonByAnilist(id).catch(() => null),
         this.aniwatch.getZoroByAnilist(id).catch(() => null),
         this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
@@ -71,31 +70,145 @@ export class StreamService {
       const tmdbEpisodes = season?.episodes || [];
       const anizipEpisodes = anilist?.anizip?.episodes || [];
 
+      const episodeCount = findEpisodeCount(anilist);
+
+      const zoroMap = new Map<number, EpisodeZoro>();
+      episodesZoro.forEach((ep) => {
+        if (ep.number != null) zoroMap.set(ep.number, ep);
+      });
+
       const paheMap = new Map<number, AnimepaheEpisode>();
       episodesPahe.forEach((ep, idx) => {
         paheMap.set(idx + 1, ep);
       });
 
+      const tmdbMap = new Map<number, TmdbSeasonEpisode>();
+      tmdbEpisodes.forEach((ep) => {
+        if (ep.episode_number != null) tmdbMap.set(ep.episode_number, ep);
+      });
+
+      const anizipMap = new Map<number, AniZipEpisodeWithRelations>();
+      anizipEpisodes.forEach((ep) => {
+        if (ep.episodeNumber != null) anizipMap.set(ep.episodeNumber, ep);
+      });
+
+      const providerCounts = [
+        { name: 'zoro', count: episodesZoro.length, episodes: episodesZoro },
+        { name: 'pahe', count: episodesPahe.length, episodes: episodesPahe },
+        { name: 'tmdb', count: tmdbEpisodes.length, episodes: tmdbEpisodes },
+        {
+          name: 'anizip',
+          count: anizipEpisodes.length,
+          episodes: anizipEpisodes,
+        },
+      ];
+
+      let bestProvider;
+      if (episodeCount != null) {
+        bestProvider = providerCounts.reduce((best, current) => {
+          const currentDiff = Math.abs(current.count - episodeCount);
+          const bestDiff = Math.abs(best.count - episodeCount);
+          return currentDiff < bestDiff ? current : best;
+        });
+      } else {
+        bestProvider = providerCounts.reduce((best, current) => {
+          return current.count > best.count ? current : best;
+        });
+      }
+
       const allNumbers = new Set<number>();
-      episodesZoro.forEach((e) => {
-        if (e.number != null) allNumbers.add(e.number);
-      });
-      tmdbEpisodes.forEach((e) => {
-        if (e.episode_number != null) allNumbers.add(e.episode_number);
-      });
-      for (let i = 1; i <= episodesPahe.length; i++) {
-        allNumbers.add(i);
+
+      if (episodeCount != null) {
+        const maxEpisodes = Math.min(bestProvider.count, episodeCount);
+
+        if (bestProvider.name === 'zoro') {
+          episodesZoro.slice(0, maxEpisodes).forEach((e) => {
+            if (e.number != null) allNumbers.add(e.number);
+          });
+        } else if (bestProvider.name === 'pahe') {
+          for (let i = 1; i <= maxEpisodes; i++) {
+            allNumbers.add(i);
+          }
+        } else if (bestProvider.name === 'tmdb') {
+          tmdbEpisodes.slice(0, maxEpisodes).forEach((e) => {
+            if (e.episode_number != null) allNumbers.add(e.episode_number);
+          });
+        } else if (bestProvider.name === 'anizip') {
+          anizipEpisodes.slice(0, maxEpisodes).forEach((e) => {
+            if (e.episodeNumber != null) allNumbers.add(e.episodeNumber);
+          });
+        }
+
+        for (let i = 1; i <= episodeCount; i++) {
+          if (!allNumbers.has(i)) {
+            const hasInZoro = episodesZoro.some((e) => e.number === i);
+            const hasInPahe = i <= episodesPahe.length;
+            const hasInTmdb = tmdbEpisodes.some((e) => e.episode_number === i);
+            const hasInAnizip = anizipEpisodes.some(
+              (e) => e.episodeNumber === i,
+            );
+
+            if (hasInZoro || hasInPahe || hasInTmdb || hasInAnizip) {
+              allNumbers.add(i);
+            }
+          }
+        }
+      } else {
+        if (bestProvider.name === 'zoro') {
+          episodesZoro.forEach((e) => {
+            if (e.number != null) allNumbers.add(e.number);
+          });
+        } else if (bestProvider.name === 'pahe') {
+          for (let i = 1; i <= episodesPahe.length; i++) {
+            allNumbers.add(i);
+          }
+        } else if (bestProvider.name === 'tmdb') {
+          tmdbEpisodes.forEach((e) => {
+            if (e.episode_number != null) allNumbers.add(e.episode_number);
+          });
+        } else if (bestProvider.name === 'anizip') {
+          anizipEpisodes.forEach((e) => {
+            if (e.episodeNumber != null) allNumbers.add(e.episodeNumber);
+          });
+        }
+
+        const bestProviderNumbers = new Set(Array.from(allNumbers));
+
+        episodesZoro.forEach((e) => {
+          if (e.number != null && !bestProviderNumbers.has(e.number)) {
+            allNumbers.add(e.number);
+          }
+        });
+        tmdbEpisodes.forEach((e) => {
+          if (
+            e.episode_number != null &&
+            !bestProviderNumbers.has(e.episode_number)
+          ) {
+            allNumbers.add(e.episode_number);
+          }
+        });
+        anizipEpisodes.forEach((e) => {
+          if (
+            e.episodeNumber != null &&
+            !bestProviderNumbers.has(e.episodeNumber)
+          ) {
+            allNumbers.add(e.episodeNumber);
+          }
+        });
+        for (let i = 1; i <= episodesPahe.length; i++) {
+          if (!bestProviderNumbers.has(i)) {
+            allNumbers.add(i);
+          }
+        }
       }
 
       let episodes: Episode[] = Array.from(allNumbers)
         .sort((a, b) => a - b)
         .map((number) => {
-          const zoroEp = episodesZoro.find((e) => e.number === number);
+          const zoroEp = zoroMap.get(number);
           const paheEp = paheMap.get(number);
-          const tmdbEpisode = tmdbEpisodes.find(
-            (e) => e.episode_number === number,
-          );
-          const anizipEpisode = anizipEpisodes.find((e) => e.episodeNumber);
+          const tmdbEpisode = tmdbMap.get(number);
+          const anizipEpisode = anizipMap.get(number);
 
           const airDate = anilist?.airingSchedule?.find(
             (s) => s.episode === number,
@@ -117,27 +230,32 @@ export class StreamService {
                     )
                   : undefined;
 
+          const title =
+            tmdbEpisode?.name ||
+            anizipEpisode?.titles?.find((t) => t.key === 'en')?.name ||
+            zoroEp?.title ||
+            paheEp?.title;
+          const image =
+            getImage(tmdbEpisode?.still_path) ||
+            getImage(anizipEpisode?.image, true) ||
+            getImage(paheEp?.image, true);
+
+          const overview = tmdbEpisode?.overview || anizipEpisode?.overview;
+
+          const duration =
+            tmdbEpisode?.runtime || anizipEpisode?.runtime || anilist?.duration;
+
           const filler = zoroEp?.isFiller ?? false;
           const sub = zoroEp?.isSubbed ?? (paheEp ? true : false);
-          const dub = zoroEp?.isDubbed ?? (paheEp ? true : false);
+          const dub = zoroEp?.isDubbed ?? (paheEp ? false : false);
 
           return {
-            title:
-              tmdbEpisode?.name ||
-              anizipEpisode?.titles?.find((t) => t.key === 'en')?.name ||
-              zoroEp?.title ||
-              paheEp?.title,
-            image:
-              getImage(tmdbEpisode?.still_path) ||
-              getImage(anizipEpisode?.image, true) ||
-              getImage(tmdb?.backdrop_path),
+            title,
+            image,
             number,
-            overview: tmdbEpisode?.overview || anizipEpisode?.overview,
+            overview,
             date: formattedDate ? formattedDate.toISOString() : undefined,
-            duration:
-              tmdbEpisode?.runtime ||
-              anizipEpisode?.runtime ||
-              anilist?.duration,
+            duration,
             filler,
             sub,
             dub,
@@ -145,7 +263,7 @@ export class StreamService {
         });
 
       episodes = episodes
-        .filter((e) => e.number)
+        .filter((e) => e.number && e.number > 0)
         .sort((a, b) => a.number! - b.number!);
 
       if (Config.REDIS) {
@@ -176,6 +294,7 @@ export class StreamService {
     const details = await this.tmdbEpisode
       .getEpisodeDetailsByAnilist(id, ep)
       .catch(() => null);
+
     const data = (await this.getEpisodes(id)).find(
       (e) => e.number === ep,
     ) as Episode;
