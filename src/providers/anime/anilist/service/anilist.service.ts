@@ -121,7 +121,6 @@ export class AnilistService {
   }
 
   async update(id: number): Promise<void> {
-    const existingAnilist = await this.getAnilist(id);
     const data = await this.fetch.fetchAnilistFromGraphQL(id);
 
     if (!data) {
@@ -132,10 +131,6 @@ export class AnilistService {
 
     if (!anilist) {
       throw new Error('No media found');
-    }
-
-    if (existingAnilist.updatedAt == anilist.updatedAt) {
-      throw new Error('No changes in anilist');
     }
 
     await this.saveAnilist(anilist);

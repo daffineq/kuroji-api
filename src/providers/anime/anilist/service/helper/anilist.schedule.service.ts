@@ -84,7 +84,7 @@ export class AnilistScheduleService {
   } {
     const now = new Date();
     const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-    const weekEnd = addDays(weekStart, 7);
+    const weekEnd = addDays(weekStart, 14);
     return {
       start: Math.floor(weekStart.getTime() / 1000),
       end: Math.floor(weekEnd.getTime() / 1000),
