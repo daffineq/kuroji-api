@@ -126,7 +126,7 @@ export class ZoroService extends Client {
     const category = dub ? 'dub' : 'sub';
 
     const { data, error } = await this.client.get<ZoroSource>(
-      `${UrlConfig.HIANIME}episode/sources?animeEpisodeId=${convertId(episodeId)}?category=${category}`,
+      `${UrlConfig.HIANIME}episode/sources?animeEpisodeId=${convertId(episodeId)}&category=${category}`,
       {
         jsonPath: 'data',
       },
