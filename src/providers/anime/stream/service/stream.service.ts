@@ -14,6 +14,7 @@ import { Redis } from 'ioredis';
 import Config from '../../../../configs/config.js';
 import { ISource } from '@consumet/extensions';
 import {
+  AvailableOn,
   Episode,
   EpisodeDetails,
   EpisodeImage,
@@ -249,6 +250,12 @@ export class StreamService {
           const sub = zoroEp?.isSubbed ?? (paheEp ? true : false);
           const dub = zoroEp?.isDubbed ?? (paheEp ? false : false);
 
+          const availableOn: AvailableOn = {
+            animepahe: paheEp ? true : false,
+            animekai: false,
+            zoro: zoroEp ? true : false,
+          };
+
           return {
             title,
             image,
@@ -259,6 +266,7 @@ export class StreamService {
             filler,
             sub,
             dub,
+            availableOn,
           };
         });
 

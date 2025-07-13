@@ -23,6 +23,13 @@ export interface Episode {
   filler?: boolean | null;
   sub?: boolean | null;
   dub?: boolean | null;
+  availableOn: AvailableOn;
+}
+
+export interface AvailableOn {
+  animepahe: boolean;
+  animekai: boolean;
+  zoro: boolean;
 }
 
 export interface EpisodeDetails extends Episode {
