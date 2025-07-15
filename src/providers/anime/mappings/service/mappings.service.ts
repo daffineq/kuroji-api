@@ -181,8 +181,10 @@ export class MappingsService extends Client {
   }
 
   async saveMapping(mapping: IAniZipData) {
-    return (await this.prisma.aniZip.create({
-      data: getAnizipData(mapping),
+    return (await this.prisma.aniZip.upsert({
+      where: { id: mapping.mappings.anilist_id },
+      update: getAnizipData(mapping),
+      create: getAnizipData(mapping),
       include: getAnizipInclude(),
     })) as AniZipWithRelations;
   }
