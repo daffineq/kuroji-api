@@ -33,7 +33,8 @@ export interface QueueItem {
     | 'missed'
     | 'finished_monthly'
     | 'upcoming_weekly'
-    | 'status_change';
+    | 'status_change'
+    | 'retry';
 }
 
 const SLEEP_BETWEEN_UPDATES = 30;
@@ -109,6 +110,15 @@ export class UpdateService {
 
   private async loadQueueFromDB() {
     try {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      await this.prisma.updateQueue.deleteMany({
+        where: {
+          addedAt: {
+            lt: oneDayAgo,
+          },
+        },
+      });
+
       const queueItems = await this.prisma.updateQueue.findMany({
         orderBy: [{ priority: 'desc' }, { addedAt: 'asc' }],
       });
@@ -131,25 +141,45 @@ export class UpdateService {
       );
     } catch (e) {
       console.error('[UpdateService] Failed to load queue from DB:', e);
+      this.updateQueue = new Map();
     }
   }
 
   private async saveQueueToDB() {
     try {
-      await this.prisma.updateQueue.deleteMany({});
+      await this.prisma.$transaction(async (prisma) => {
+        const currentAnimeIds = Array.from(this.updateQueue.keys());
+        if (currentAnimeIds.length > 0) {
+          await prisma.updateQueue.deleteMany({
+            where: {
+              animeId: {
+                notIn: currentAnimeIds,
+              },
+            },
+          });
+        } else {
+          await prisma.updateQueue.deleteMany({});
+        }
 
-      const queueArray = Array.from(this.updateQueue.values());
-      if (queueArray.length > 0) {
-        await this.prisma.updateQueue.createMany({
-          data: queueArray.map((item) => ({
-            animeId: item.animeId,
-            malId: item.malId ?? null,
-            priority: item.priority,
-            reason: item.reason,
-            addedAt: new Date(item.addedAt),
-          })),
-        });
-      }
+        const queueArray = Array.from(this.updateQueue.values());
+        for (const item of queueArray) {
+          await prisma.updateQueue.upsert({
+            where: { animeId: item.animeId },
+            update: {
+              priority: item.priority,
+              reason: item.reason,
+              updatedAt: new Date(),
+            },
+            create: {
+              animeId: item.animeId,
+              malId: item.malId ?? null,
+              priority: item.priority,
+              reason: item.reason,
+              addedAt: new Date(item.addedAt),
+            },
+          });
+        }
+      });
     } catch (e) {
       console.error('[UpdateService] Failed to save queue to DB:', e);
     }
@@ -319,33 +349,10 @@ export class UpdateService {
     await this.saveQueueToDB();
   }
 
-  async queueStatusChangedAnime() {
-    const statusChangedAnime = await this.requests.getStatusChangedAnime();
-    console.log(
-      `[UpdateService] Adding ${statusChangedAnime.length} status-changed anime to queue`,
-    );
-
-    for (const anime of statusChangedAnime) {
-      if (this.requests.shouldUpdateBasedOnPopularity(anime.popularity)) {
-        const priority = this.requests.getPopularityPriority(anime.popularity);
-        this.addToQueue(anime, priority, 'status_change');
-      }
-    }
-
-    await this.saveQueueToDB();
-  }
-
   async processQueue() {
     if (!Config.UPDATE_ENABLED) {
       console.log(
         '[UpdateService] Updates disabled. Skipping queue processing.',
-      );
-      return;
-    }
-
-    if (this.lock.isLocked(Config.INDEXER_RUNNING_KEY)) {
-      console.log(
-        '[UpdateService] Indexer is running. Skipping queue processing.',
       );
       return;
     }
@@ -373,43 +380,13 @@ export class UpdateService {
           `[UpdateService] Processing anime ID ${queueItem.animeId} (${queueItem.reason}, ${queueItem.priority} priority)`,
         );
 
-        let success = false;
-        let retries = 0;
-
-        while (!success && retries < MAX_RETRIES) {
-          try {
-            await this.updateAnime(
-              queueItem.animeId,
-              queueItem.malId,
-              queueItem.reason,
-            );
-            success = true;
-            processed++;
-          } catch (error) {
-            retries++;
-            console.error(
-              `[UpdateService] Failed to update anime ${queueItem.animeId} (attempt ${retries}/${MAX_RETRIES}):`,
-              error,
-            );
-
-            if (retries < MAX_RETRIES) {
-              await sleep(10);
-            }
-          }
+        const success = await this.processQueueItem(queueItem);
+        if (success) {
+          processed++;
+          await this.removeFromDBQueue(queueItem.animeId);
         }
 
-        if (!success && queueItem.priority !== 'low') {
-          console.log(
-            `[UpdateService] Re-queueing failed anime ${queueItem.animeId} with lower priority`,
-          );
-          this.addToQueue(
-            { id: queueItem.animeId, idMal: queueItem.malId },
-            'low',
-            'missed',
-          );
-        }
-
-        await sleep(5);
+        await sleep(SLEEP_BETWEEN_UPDATES);
       }
 
       console.log(
@@ -420,6 +397,89 @@ export class UpdateService {
       console.error('[UpdateService] Failed during queue processing:', e);
     } finally {
       this.lock.release(Config.UPDATE_RUNNING_KEY);
+    }
+  }
+
+  private async processQueueItem(queueItem: QueueItem): Promise<boolean> {
+    let success = false;
+    let retries = 0;
+    let lastError: string | null = null;
+
+    while (!success && retries < MAX_RETRIES) {
+      try {
+        await this.updateAnime(
+          queueItem.animeId,
+          queueItem.malId,
+          queueItem.reason,
+        );
+        success = true;
+        console.log(
+          `[UpdateService] Successfully updated anime ${queueItem.animeId} after ${retries + 1} attempts`,
+        );
+      } catch (error) {
+        retries++;
+        lastError = error instanceof Error ? error.message : String(error);
+        console.error(
+          `[UpdateService] Failed to update anime ${queueItem.animeId} (attempt ${retries}/${MAX_RETRIES}):`,
+          error,
+        );
+
+        if (retries < MAX_RETRIES) {
+          const baseDelay = Math.min(1000 * Math.pow(2, retries), 30000);
+          const jitter = Math.random() * 1000;
+          await sleep(Math.floor((baseDelay + jitter) / 1000));
+        }
+      }
+    }
+
+    await this.updateDBQueueItem(queueItem.animeId, retries, lastError);
+
+    if (!success && queueItem.priority !== 'low') {
+      console.log(
+        `[UpdateService] Re-queueing failed anime ${queueItem.animeId} with lower priority`,
+      );
+      this.addToQueue(
+        { id: queueItem.animeId, idMal: queueItem.malId },
+        'low',
+        'retry',
+      );
+    }
+
+    return success;
+  }
+
+  private async updateDBQueueItem(
+    animeId: number,
+    retries: number,
+    lastError: string | null,
+  ) {
+    try {
+      await this.prisma.updateQueue.update({
+        where: { animeId },
+        data: {
+          retries,
+          lastError,
+          updatedAt: new Date(),
+        },
+      });
+    } catch (error) {
+      console.error(
+        `[UpdateService] Failed to update queue item ${animeId} in database:`,
+        error,
+      );
+    }
+  }
+
+  private async removeFromDBQueue(animeId: number) {
+    try {
+      await this.prisma.updateQueue.delete({
+        where: { animeId },
+      });
+    } catch (error) {
+      console.error(
+        `[UpdateService] Failed to remove queue item ${animeId} from database:`,
+        error,
+      );
     }
   }
 
@@ -458,6 +518,7 @@ export class UpdateService {
     const startTime = Date.now();
     const completedProviders: string[] = [];
     const errors: string[] = [];
+    const PROVIDER_TIMEOUT = 60000; // 60 seconds timeout per provider
 
     for (const provider of this.providers) {
       try {
@@ -478,38 +539,61 @@ export class UpdateService {
           }
         }
 
-        if (provider.type === UpdateType.SHIKIMORI) {
-          if (malId) {
-            console.log(`[${providerName}] Updating with MAL ID ${malId}...`);
-            await provider.update(malId);
-            console.log(`[${providerName}] Success`);
-            completedProviders.push(providerName);
+        const updateWithTimeout = async () => {
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => {
+              reject(new Error(`Provider timeout after ${PROVIDER_TIMEOUT}ms`));
+            }, PROVIDER_TIMEOUT);
+          });
+
+          if (provider.type === UpdateType.SHIKIMORI) {
+            if (malId) {
+              console.log(`[${providerName}] Updating with MAL ID ${malId}...`);
+              return Promise.race([provider.update(malId), timeoutPromise]);
+            } else {
+              console.log(`[${providerName}] Skipped (no MAL ID)`);
+              return Promise.resolve();
+            }
           } else {
-            console.log(`[${providerName}] Skipped (no MAL ID)`);
+            console.log(
+              `[${providerName}] Updating with AniList ID ${animeId}...`,
+            );
+            return Promise.race([provider.update(animeId), timeoutPromise]);
           }
+        };
+
+        await updateWithTimeout();
+
+        if (provider.type === UpdateType.SHIKIMORI && !malId) {
+          // Skip adding to completed providers if no MAL ID
         } else {
-          console.log(
-            `[${providerName}] Updating with AniList ID ${animeId}...`,
-          );
-          await provider.update(animeId);
           console.log(`[${providerName}] Success`);
           completedProviders.push(providerName);
         }
       } catch (providerErr) {
+        const isTimeout = providerErr.message.includes('timeout');
         const errorMsg = `${UpdateType[provider.type]} failed: ${providerErr.message}`;
+
         console.error(
-          `[${UpdateType[provider.type]}] Failed to update:`,
+          `[${UpdateType[provider.type]}] Failed to update${isTimeout ? ' (timeout)' : ''}:`,
           providerErr,
         );
         errors.push(errorMsg);
+
+        if (isTimeout) {
+          console.log('Shorter delay due to timeout...');
+          await sleep(1, false);
+        }
       }
 
-      const sleep_time = streaming.includes(provider.type)
-        ? SLEEP_BETWEEN_UPDATES / 3
-        : SLEEP_BETWEEN_UPDATES;
+      if (provider !== this.providers[this.providers.length - 1]) {
+        const sleep_time = streaming.includes(provider.type)
+          ? SLEEP_BETWEEN_UPDATES / 3
+          : SLEEP_BETWEEN_UPDATES;
 
-      console.log(`Sleeping ${sleep_time}s before next provider...`);
-      await sleep(sleep_time, false);
+        console.log(`Sleeping ${sleep_time}s before next provider...`);
+        await sleep(sleep_time, false);
+      }
     }
 
     const duration = Math.floor((Date.now() - startTime) / 1000);
@@ -571,13 +655,6 @@ export class UpdateService {
   async scheduleUpcomingAnime() {
     console.log('[UpdateService] Weekly - queueing upcoming anime for updates');
     await this.queueUpcomingAnime();
-  }
-
-  // Daily status change check - Every day at 4 AM London time
-  @Cron('0 4 * * *', { timeZone: 'Europe/London' })
-  async scheduleStatusChangedAnime() {
-    console.log('[UpdateService] Daily - queueing status-changed anime');
-    await this.queueStatusChangedAnime();
   }
 
   // Every 30 minutes - proccessing all entries in queue

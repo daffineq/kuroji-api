@@ -23,13 +23,6 @@ export class AnilistIndexerService extends Client {
   }
 
   public async index(delay: number = 10, range: number = 25): Promise<void> {
-    if (this.lock.isLocked(Config.UPDATE_RUNNING_KEY)) {
-      console.log(
-        '[AnilistIndexer] Skipping index — update is already running.',
-      );
-      return;
-    }
-
     if (!this.lock.acquire(Config.INDEXER_RUNNING_KEY)) {
       console.log(
         '[AnilistIndexer] Indexer already running, skipping new run.',
