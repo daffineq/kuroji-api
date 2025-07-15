@@ -32,9 +32,9 @@ model Anilist {
 
   trailer AnilistTrailer? @relation("AnilistTrailer")
 
-  latestAiringEpisode   AnilistLatestEpisode? @relation("AnilistLatestEpisode")
-  nextAiringEpisode     AnilistNextEpisode?   @relation("AnilistNextEpisode")
-  lastAiringEpisode     AnilistLastEpisode?   @relation("AnilistLastEpisode")
+  latestAiringEpisode AnilistLatestEpisode? @relation("AnilistLatestEpisode")
+  nextAiringEpisode   AnilistNextEpisode?   @relation("AnilistNextEpisode")
+  lastAiringEpisode   AnilistLastEpisode?   @relation("AnilistLastEpisode")
 
   // Normalized collections
   recommendations    BasicIdAni[]                @relation("AnilistRecs")
@@ -97,6 +97,34 @@ model AnilistIndex {
   id        String   @id
   updatedAt DateTime @default(now()) @updatedAt
   createdAt DateTime @default(now())
+}
+
+model AnilistView {
+  id        Int      @id @default(autoincrement())
+  anilistId Int
+  ipAddress String?
+  userAgent String?
+  viewedAt  DateTime @default(now())
+
+  anilist Anilist @relation("AnilistViews", fields: [anilistId], references: [id])
+
+  @@index([anilistId, viewedAt])
+  @@index([viewedAt])
+}
+
+model AnilistEpisodeView {
+  id        Int      @id @default(autoincrement())
+  anilistId Int
+  episode   Int
+  provider  String
+  ipAddress String?
+  userAgent String?
+  viewedAt  DateTime @default(now())
+
+  anilist Anilist @relation("AnilistEpisodeViews", fields: [anilistId], references: [id])
+
+  @@index([anilistId, viewedAt])
+  @@index([viewedAt])
 }
 
 model AnilistCharacterEdge {

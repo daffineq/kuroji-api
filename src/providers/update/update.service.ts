@@ -50,7 +50,6 @@ const streaming = [
 @Injectable()
 export class UpdateService {
   private readonly providers: IProvider[];
-  private updateQueue: Map<number, QueueItem> = new Map();
 
   constructor(
     private readonly anilistService: AnilistService,
@@ -104,11 +103,9 @@ export class UpdateService {
         type: UpdateType.ANIZIP,
       },
     ];
-
-    void this.loadQueueFromDB();
   }
 
-  private async loadQueueFromDB() {
+  private async cleanupOldQueueItems() {
     try {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       await this.prisma.updateQueue.deleteMany({
@@ -118,109 +115,73 @@ export class UpdateService {
           },
         },
       });
-
-      const queueItems = await this.prisma.updateQueue.findMany({
-        orderBy: [{ priority: 'desc' }, { addedAt: 'asc' }],
-      });
-
-      this.updateQueue = new Map(
-        queueItems.map((item) => [
-          item.animeId,
-          {
-            animeId: item.animeId,
-            malId: item.malId ?? undefined,
-            priority: item.priority as QueueItem['priority'],
-            addedAt: item.addedAt.getTime(),
-            reason: item.reason as QueueItem['reason'],
-          },
-        ]),
-      );
-
-      console.log(
-        `[UpdateService] Loaded ${this.updateQueue.size} items from queue`,
-      );
     } catch (e) {
-      console.error('[UpdateService] Failed to load queue from DB:', e);
-      this.updateQueue = new Map();
+      console.error('[UpdateService] Failed to cleanup old queue items:', e);
     }
   }
 
-  private async saveQueueToDB() {
-    try {
-      await this.prisma.$transaction(async (prisma) => {
-        const currentAnimeIds = Array.from(this.updateQueue.keys());
-        if (currentAnimeIds.length > 0) {
-          await prisma.updateQueue.deleteMany({
-            where: {
-              animeId: {
-                notIn: currentAnimeIds,
-              },
-            },
-          });
-        } else {
-          await prisma.updateQueue.deleteMany({});
-        }
-
-        const queueArray = Array.from(this.updateQueue.values());
-        for (const item of queueArray) {
-          await prisma.updateQueue.upsert({
-            where: { animeId: item.animeId },
-            update: {
-              priority: item.priority,
-              reason: item.reason,
-              updatedAt: new Date(),
-            },
-            create: {
-              animeId: item.animeId,
-              malId: item.malId ?? null,
-              priority: item.priority,
-              reason: item.reason,
-              addedAt: new Date(item.addedAt),
-            },
-          });
-        }
-      });
-    } catch (e) {
-      console.error('[UpdateService] Failed to save queue to DB:', e);
-    }
-  }
-
-  private addToQueue(
+  private async addToQueue(
     anime: { id: number; idMal: number | null | undefined },
     priority: QueueItem['priority'],
     reason: QueueItem['reason'],
   ) {
-    const existing = this.updateQueue.get(anime.id);
+    try {
+      const existing = await this.prisma.updateQueue.findUnique({
+        where: { animeId: anime.id },
+      });
 
-    if (
-      existing &&
-      this.getReasonWeight(reason) > this.getReasonWeight(existing.reason)
-    ) {
-      existing.priority = priority;
-      existing.reason = reason;
-      existing.addedAt = Date.now();
-    } else if (
-      existing &&
-      this.getReasonWeight(reason) === this.getReasonWeight(existing.reason) &&
-      this.getPriorityWeight(priority) >
-        this.getPriorityWeight(existing.priority)
-    ) {
-      existing.priority = priority;
-      existing.addedAt = Date.now();
-    } else if (!existing) {
-      if (this.updateQueue.size < MAX_QUEUE_SIZE) {
-        this.updateQueue.set(anime.id, {
-          animeId: anime.id,
-          malId: anime.idMal ?? undefined,
-          priority,
-          addedAt: Date.now(),
-          reason,
+      if (
+        existing &&
+        this.getReasonWeight(reason) >
+          this.getReasonWeight(existing.reason as QueueItem['reason'])
+      ) {
+        await this.prisma.updateQueue.update({
+          where: { animeId: anime.id },
+          data: {
+            priority,
+            reason,
+            addedAt: new Date(),
+            updatedAt: new Date(),
+          },
         });
-      } else {
-        console.warn(
-          `[UpdateService] Queue is full (${MAX_QUEUE_SIZE}), dropping anime ${anime.id}`,
-        );
+      } else if (
+        existing &&
+        this.getReasonWeight(reason) ===
+          this.getReasonWeight(existing.reason as QueueItem['reason']) &&
+        this.getPriorityWeight(priority) >
+          this.getPriorityWeight(existing.priority as QueueItem['priority'])
+      ) {
+        await this.prisma.updateQueue.update({
+          where: { animeId: anime.id },
+          data: {
+            priority,
+            addedAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+      } else if (!existing) {
+        const queueCount = await this.prisma.updateQueue.count();
+        if (queueCount < MAX_QUEUE_SIZE) {
+          await this.prisma.updateQueue.create({
+            data: {
+              animeId: anime.id,
+              malId: anime.idMal ?? null,
+              priority,
+              reason,
+              addedAt: new Date(),
+            },
+          });
+        } else {
+          console.warn(
+            `[UpdateService] Queue is full (${MAX_QUEUE_SIZE}), dropping anime ${anime.id}`,
+          );
+        }
       }
+    } catch (e) {
+      console.error(
+        `[UpdateService] Failed to add anime ${anime.id} to queue:`,
+        e,
+      );
     }
   }
 
@@ -258,24 +219,40 @@ export class UpdateService {
     }
   }
 
-  private getNextFromQueue(): QueueItem | null {
-    if (this.updateQueue.size === 0) return null;
+  private async getNextFromQueue(): Promise<QueueItem | null> {
+    try {
+      const queueItems = await this.prisma.updateQueue.findMany({
+        orderBy: [{ priority: 'desc' }, { addedAt: 'asc' }],
+      });
 
-    const sorted = Array.from(this.updateQueue.values()).sort((a, b) => {
-      const reasonDiff =
-        this.getReasonWeight(b.reason) - this.getReasonWeight(a.reason);
-      if (reasonDiff !== 0) return reasonDiff;
+      if (queueItems.length === 0) return null;
 
-      const priorityDiff =
-        this.getPriorityWeight(b.priority) - this.getPriorityWeight(a.priority);
-      if (priorityDiff !== 0) return priorityDiff;
+      const sorted = queueItems.sort((a, b) => {
+        const reasonDiff =
+          this.getReasonWeight(b.reason as QueueItem['reason']) -
+          this.getReasonWeight(a.reason as QueueItem['reason']);
+        if (reasonDiff !== 0) return reasonDiff;
 
-      return a.addedAt - b.addedAt;
-    });
+        const priorityDiff =
+          this.getPriorityWeight(b.priority as QueueItem['priority']) -
+          this.getPriorityWeight(a.priority as QueueItem['priority']);
+        if (priorityDiff !== 0) return priorityDiff;
 
-    const next = sorted[0];
-    this.updateQueue.delete(next.animeId);
-    return next;
+        return a.addedAt.getTime() - b.addedAt.getTime();
+      });
+
+      const next = sorted[0];
+      return {
+        animeId: next.animeId,
+        malId: next.malId ?? undefined,
+        priority: next.priority as QueueItem['priority'],
+        addedAt: next.addedAt.getTime(),
+        reason: next.reason as QueueItem['reason'],
+      };
+    } catch (e) {
+      console.error('[UpdateService] Failed to get next queue item:', e);
+      return null;
+    }
   }
 
   async queueRecentAnime() {
@@ -285,10 +262,8 @@ export class UpdateService {
     );
 
     for (const anime of recentAnime) {
-      this.addToQueue(anime, 'high', 'recent');
+      await this.addToQueue(anime, 'high', 'recent');
     }
-
-    await this.saveQueueToDB();
   }
 
   async queueTodayAnime() {
@@ -298,10 +273,8 @@ export class UpdateService {
     );
 
     for (const anime of todayAnime) {
-      this.addToQueue(anime, 'high', 'today');
+      await this.addToQueue(anime, 'high', 'today');
     }
-
-    await this.saveQueueToDB();
   }
 
   async queueWeekAgoAnime() {
@@ -311,10 +284,8 @@ export class UpdateService {
     );
 
     for (const anime of weekAgoAnime) {
-      this.addToQueue(anime, 'medium', 'week_ago');
+      await this.addToQueue(anime, 'medium', 'week_ago');
     }
-
-    await this.saveQueueToDB();
   }
 
   async queueFinishedAnime() {
@@ -326,11 +297,9 @@ export class UpdateService {
     for (const anime of finishedAnime) {
       if (this.requests.shouldUpdateBasedOnPopularity(anime.popularity)) {
         const priority = this.requests.getPopularityPriority(anime.popularity);
-        this.addToQueue(anime, priority, 'finished_monthly');
+        await this.addToQueue(anime, priority, 'finished_monthly');
       }
     }
-
-    await this.saveQueueToDB();
   }
 
   async queueUpcomingAnime() {
@@ -342,11 +311,9 @@ export class UpdateService {
     for (const anime of upcomingAnime) {
       if (this.requests.shouldUpdateBasedOnPopularity(anime.popularity)) {
         const priority = this.requests.getPopularityPriority(anime.popularity);
-        this.addToQueue(anime, priority, 'upcoming_weekly');
+        await this.addToQueue(anime, priority, 'upcoming_weekly');
       }
     }
-
-    await this.saveQueueToDB();
   }
 
   async processQueue() {
@@ -364,16 +331,17 @@ export class UpdateService {
       return;
     }
 
-    console.log(
-      `[UpdateService] Processing queue with ${this.updateQueue.size} items...`,
-    );
+    await this.cleanupOldQueueItems();
+
+    const queueCount = await this.prisma.updateQueue.count();
+    console.log(`[UpdateService] Processing queue with ${queueCount} items...`);
 
     try {
       let processed = 0;
       const maxProcessPerRun = 50;
 
-      while (this.updateQueue.size > 0 && processed < maxProcessPerRun) {
-        const queueItem = this.getNextFromQueue();
+      while (processed < maxProcessPerRun) {
+        const queueItem = await this.getNextFromQueue();
         if (!queueItem) break;
 
         console.log(
@@ -389,10 +357,10 @@ export class UpdateService {
         await sleep(SLEEP_BETWEEN_UPDATES);
       }
 
+      const remainingCount = await this.prisma.updateQueue.count();
       console.log(
-        `[UpdateService] Processed ${processed} anime from queue. ${this.updateQueue.size} remaining.`,
+        `[UpdateService] Processed ${processed} anime from queue. ${remainingCount} remaining.`,
       );
-      await this.saveQueueToDB();
     } catch (e) {
       console.error('[UpdateService] Failed during queue processing:', e);
     } finally {
@@ -438,7 +406,7 @@ export class UpdateService {
       console.log(
         `[UpdateService] Re-queueing failed anime ${queueItem.animeId} with lower priority`,
       );
-      this.addToQueue(
+      await this.addToQueue(
         { id: queueItem.animeId, idMal: queueItem.malId },
         'low',
         'retry',
@@ -549,7 +517,10 @@ export class UpdateService {
           if (provider.type === UpdateType.SHIKIMORI) {
             if (malId) {
               console.log(`[${providerName}] Updating with MAL ID ${malId}...`);
-              return Promise.race([provider.update(malId), timeoutPromise]);
+              return Promise.race([
+                provider.update(malId),
+                timeoutPromise,
+              ]) as Promise<void>;
             } else {
               console.log(`[${providerName}] Skipped (no MAL ID)`);
               return Promise.resolve();
@@ -558,7 +529,10 @@ export class UpdateService {
             console.log(
               `[${providerName}] Updating with AniList ID ${animeId}...`,
             );
-            return Promise.race([provider.update(animeId), timeoutPromise]);
+            return Promise.race([
+              provider.update(animeId),
+              timeoutPromise,
+            ]) as Promise<void>;
           }
         };
 
@@ -571,8 +545,8 @@ export class UpdateService {
           completedProviders.push(providerName);
         }
       } catch (providerErr) {
-        const isTimeout = providerErr.message.includes('timeout');
-        const errorMsg = `${UpdateType[provider.type]} failed: ${providerErr.message}`;
+        const isTimeout = (providerErr as Error).message.includes('timeout');
+        const errorMsg = `${UpdateType[provider.type]} failed: ${(providerErr as Error).message}`;
 
         console.error(
           `[${UpdateType[provider.type]}] Failed to update${isTimeout ? ' (timeout)' : ''}:`,
@@ -663,45 +637,74 @@ export class UpdateService {
     await this.processQueue();
   }
 
-  getQueueStatus() {
-    const queueItems = Array.from(this.updateQueue.values());
-    const priorityCounts = {
-      high: queueItems.filter((item) => item.priority === 'high').length,
-      medium: queueItems.filter((item) => item.priority === 'medium').length,
-      low: queueItems.filter((item) => item.priority === 'low').length,
-    };
+  async getQueueStatus() {
+    try {
+      const queueItems = await this.prisma.updateQueue.findMany({
+        select: {
+          priority: true,
+          reason: true,
+          addedAt: true,
+        },
+      });
 
-    const reasonCounts = {
-      recent: queueItems.filter((item) => item.reason === 'recent').length,
-      today: queueItems.filter((item) => item.reason === 'today').length,
-      week_ago: queueItems.filter((item) => item.reason === 'week_ago').length,
-      missed: queueItems.filter((item) => item.reason === 'missed').length,
-      finished_monthly: queueItems.filter(
-        (item) => item.reason === 'finished_monthly',
-      ).length,
-      upcoming_weekly: queueItems.filter(
-        (item) => item.reason === 'upcoming_weekly',
-      ).length,
-      status_change: queueItems.filter(
-        (item) => item.reason === 'status_change',
-      ).length,
-    };
+      const priorityCounts = {
+        high: queueItems.filter((item) => item.priority === 'high').length,
+        medium: queueItems.filter((item) => item.priority === 'medium').length,
+        low: queueItems.filter((item) => item.priority === 'low').length,
+      };
 
-    return {
-      totalItems: this.updateQueue.size,
-      priorityCounts,
-      reasonCounts,
-      oldestItem:
-        queueItems.length > 0
-          ? Math.min(...queueItems.map((item) => item.addedAt))
-          : null,
-    };
+      const reasonCounts = {
+        recent: queueItems.filter((item) => item.reason === 'recent').length,
+        today: queueItems.filter((item) => item.reason === 'today').length,
+        week_ago: queueItems.filter((item) => item.reason === 'week_ago')
+          .length,
+        missed: queueItems.filter((item) => item.reason === 'missed').length,
+        finished_monthly: queueItems.filter(
+          (item) => item.reason === 'finished_monthly',
+        ).length,
+        upcoming_weekly: queueItems.filter(
+          (item) => item.reason === 'upcoming_weekly',
+        ).length,
+        status_change: queueItems.filter(
+          (item) => item.reason === 'status_change',
+        ).length,
+      };
+
+      return {
+        totalItems: queueItems.length,
+        priorityCounts,
+        reasonCounts,
+        oldestItem:
+          queueItems.length > 0
+            ? Math.min(...queueItems.map((item) => item.addedAt.getTime()))
+            : null,
+      };
+    } catch (e) {
+      console.error('[UpdateService] Failed to get queue status:', e);
+      return {
+        totalItems: 0,
+        priorityCounts: { high: 0, medium: 0, low: 0 },
+        reasonCounts: {
+          recent: 0,
+          today: 0,
+          week_ago: 0,
+          missed: 0,
+          finished_monthly: 0,
+          upcoming_weekly: 0,
+          status_change: 0,
+        },
+        oldestItem: null,
+      };
+    }
   }
 
   async clearQueue() {
-    this.updateQueue.clear();
-    await this.saveQueueToDB();
-    console.log('[UpdateService] Queue cleared manually');
+    try {
+      await this.prisma.updateQueue.deleteMany({});
+      console.log('[UpdateService] Queue cleared manually');
+    } catch (e) {
+      console.error('[UpdateService] Failed to clear queue:', e);
+    }
   }
 
   async addAnimeToQueue(
@@ -709,8 +712,7 @@ export class UpdateService {
     malId: number | null | undefined = undefined,
     priority: QueueItem['priority'] = 'medium',
   ) {
-    this.addToQueue({ id: animeId, idMal: malId }, priority, 'missed');
-    await this.saveQueueToDB();
+    await this.addToQueue({ id: animeId, idMal: malId }, priority, 'missed');
     console.log(
       `[UpdateService] Manually added anime ${animeId} to queue with ${priority} priority`,
     );

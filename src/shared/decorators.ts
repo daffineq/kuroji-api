@@ -14,3 +14,10 @@ export const GetIp = createParamDecorator(
     return ip;
   },
 );
+
+export const GetAgent = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext): string | undefined => {
+    const request = ctx.switchToHttp().getRequest();
+    return request.headers['user-agent'];
+  },
+);
