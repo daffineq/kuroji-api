@@ -69,12 +69,9 @@ export class ShikimoriService extends Client {
   async update(id: string): Promise<ShikimoriWithRelations> {
     const data = await this.fetchFromGraphQL(id);
     const anime = data.animes[0];
-    if (!anime)
-      throw new NotFoundException(`Shikimori not found for ID: ${id}`);
 
-    const existing = await this.prisma.shikimori.findUnique({ where: { id } });
-    if (anime.updatedAt === existing?.updatedAt) {
-      return anime;
+    if (!anime) {
+      throw new NotFoundException(`Shikimori not found for ID: ${id}`);
     }
 
     return this.saveShikimori(anime);

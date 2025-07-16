@@ -19,7 +19,6 @@ import { AnilistAddService } from '../providers/anime/anilist/service/helper/ani
 import { AnilistFilterService } from '../providers/anime/anilist/service/helper/anilist.filter.service.js';
 import { AnilistFetchService } from '../providers/anime/anilist/service/helper/anilist.fetch.service.js';
 import { AnilistScheduleService } from '../providers/anime/anilist/service/helper/anilist.schedule.service.js';
-import { ShikimoriHelperModule } from '../providers/anime/shikimori/module/shikimori-helper.module.js';
 import { Redis } from './redis.module.js';
 import { AnilistSearchService } from '../providers/anime/anilist/service/helper/anilist.search.service.js';
 import { AnilistUtilService } from '../providers/anime/anilist/service/helper/anilist.util.service.js';
@@ -34,7 +33,7 @@ import { AnilistSaveService } from '../providers/anime/anilist/service/helper/an
 import { MappingsService } from '../providers/anime/mappings/service/mappings.service.js';
 
 @Module({
-  imports: [ShikimoriHelperModule, Redis],
+  imports: [Redis],
   providers: [
     PrismaService,
     AnilistService,
