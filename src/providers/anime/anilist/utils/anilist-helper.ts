@@ -1,10 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  AnilistAiringSchedule,
-  DateDetails,
-  EpisodeZoro,
-  Prisma,
-} from '@prisma/client';
+import { AnilistAiringSchedule, DateDetails, Prisma } from '@prisma/client';
 import { getShikimoriInclude } from '../../shikimori/utils/shikimori-helper.js';
 import { getKitsuInclude } from '../../kitsu/util/kitsu-helper.js';
 import { PrismaService } from '../../../../prisma.service.js';
@@ -287,18 +282,24 @@ export class AnilistHelper {
             })) ?? [],
       },
       tags: {
-        connectOrCreate: anime.tags?.map((tag) => ({
-          where: { id: tag.id },
-          create: {
-            id: tag.id,
-            name: tag.name,
-            description: tag.description ?? null,
-            category: tag.category ?? null,
+        create:
+          anime.tags?.map((tag) => ({
             rank: tag.rank ?? null,
-            isSpoiler: tag.isGeneralSpoiler ?? false,
-            isAdult: tag.isAdult ?? false,
-          },
-        })),
+            isMediaSpoiler: tag.isMediaSpoiler ?? false,
+            tag: {
+              connectOrCreate: {
+                where: { id: tag.id },
+                create: {
+                  id: tag.id,
+                  name: tag.name,
+                  description: tag.description ?? null,
+                  category: tag.category ?? null,
+                  isGeneralSpoiler: tag.isGeneralSpoiler ?? false,
+                  isAdult: tag.isAdult ?? false,
+                },
+              },
+            },
+          })) ?? [],
       },
       rankings: {
         connectOrCreate: anime.rankings?.map((ranking) => ({
@@ -481,7 +482,7 @@ export function getAnilistMappingSelect() {
 }
 
 export function getAnilistInclude(): Prisma.AnilistInclude {
-  const include = {
+  return {
     title: {
       omit: {
         id: true,
@@ -540,7 +541,16 @@ export function getAnilistInclude(): Prisma.AnilistInclude {
         anilistId: true,
       },
     },
-    tags: true,
+    tags: {
+      include: {
+        tag: true,
+      },
+      omit: {
+        id: true,
+        tagId: true,
+        anilistId: true,
+      },
+    },
     rankings: {
       omit: {
         anilistId: true,
@@ -579,8 +589,6 @@ export function getAnilistInclude(): Prisma.AnilistInclude {
       include: getAnizipInclude(),
     },
   };
-
-  return include;
 }
 
 export function createScheduleData(

@@ -417,8 +417,7 @@ export class AnilistFilterService {
       ['name', filter.name],
       ['description', filter.description],
       ['category', filter.category],
-      ['rank', filter.rank],
-      ['isSpoiler', filter.isSpoiler],
+      ['isGeneralSpoiler', filter.isGeneralSpoiler],
       ['isAdult', filter.isAdult],
     ];
 
@@ -444,12 +443,6 @@ export class AnilistFilterService {
       conditions.push({ category: { in: filter.categoryIn } });
     if (filter.categoryNotIn)
       conditions.push({ category: { notIn: filter.categoryNotIn } });
-
-    // ======= Rank Filters =======
-    if (filter.rankGreater !== undefined)
-      conditions.push({ rank: { gt: filter.rankGreater } });
-    if (filter.rankLesser !== undefined)
-      conditions.push({ rank: { lt: filter.rankLesser } });
 
     // ======= Query Search =======
     if (filter.query) {
@@ -481,7 +474,7 @@ export class AnilistFilterService {
 
         const field = parts.join('_');
 
-        if (['id', 'name', 'rank', 'category'].includes(field)) {
+        if (['id', 'name', 'category'].includes(field)) {
           orderBy.push({ [field]: direction });
         }
       });

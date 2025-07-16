@@ -41,7 +41,7 @@ model Anilist {
   characters         AnilistCharacterEdge[]      @relation("AnilistCharacters")
   studios            AnilistStudioEdge[]         @relation("AnilistStudios")
   airingSchedule     AnilistAiringSchedule[]     @relation("AnilistAiringSchedules")
-  tags               AnilistTag[]                @relation("AnilistTags")
+  tags               AnilistTagEdge[]            @relation("AnilistTags")
   rankings           AnilistRanking[]            @relation("AnilistRanking")
   externalLinks      AnilistExternalLink[]       @relation("AnilistExternalLinks")
   streamingEpisodes  AnilistStreamingEpisode[]   @relation("AnilistStreamingEpisodes")
@@ -99,33 +99,33 @@ model AnilistIndex {
   createdAt DateTime @default(now())
 }
 
-model AnilistView {
-  id        Int      @id @default(autoincrement())
-  anilistId Int
-  ipAddress String?
-  userAgent String?
-  viewedAt  DateTime @default(now())
+// model AnilistView {
+//   id        Int      @id @default(autoincrement())
+//   anilistId Int
+//   ipAddress String?
+//   userAgent String?
+//   viewedAt  DateTime @default(now())
 
-  anilist Anilist @relation("AnilistViews", fields: [anilistId], references: [id])
+//   anilist Anilist @relation("AnilistViews", fields: [anilistId], references: [id])
 
-  @@index([anilistId, viewedAt])
-  @@index([viewedAt])
-}
+//   @@index([anilistId, viewedAt])
+//   @@index([viewedAt])
+// }
 
-model AnilistEpisodeView {
-  id        Int      @id @default(autoincrement())
-  anilistId Int
-  episode   Int
-  provider  String
-  ipAddress String?
-  userAgent String?
-  viewedAt  DateTime @default(now())
+// model AnilistEpisodeView {
+//   id        Int      @id @default(autoincrement())
+//   anilistId Int
+//   episode   Int
+//   provider  String
+//   ipAddress String?
+//   userAgent String?
+//   viewedAt  DateTime @default(now())
 
-  anilist Anilist @relation("AnilistEpisodeViews", fields: [anilistId], references: [id])
+//   anilist Anilist @relation("AnilistEpisodeViews", fields: [anilistId], references: [id])
 
-  @@index([anilistId, viewedAt])
-  @@index([viewedAt])
-}
+//   @@index([anilistId, viewedAt])
+//   @@index([viewedAt])
+// }
 
 model AnilistCharacterEdge {
   id          Int     @id
@@ -195,16 +195,26 @@ model AnilistVoiceImage {
   voiceActorId Int?        @unique
 }
 
-model AnilistTag {
-  id          Int      @id
-  name        String?  @unique
-  description String?
-  category    String?
-  rank        Int?
-  isSpoiler   Boolean?
-  isAdult     Boolean?
+model AnilistTagEdge {
+  id             Int      @id @default(autoincrement())
+  anilistId      Int
+  tagId          Int?
+  rank           Int?
+  isMediaSpoiler Boolean?
 
-  anilist Anilist[] @relation("AnilistTags")
+  anilist Anilist     @relation("AnilistTags", fields: [anilistId], references: [id])
+  tag     AnilistTag? @relation("AnilistTagEdges", fields: [tagId], references: [id])
+}
+
+model AnilistTag {
+  id               Int      @id
+  name             String?  @unique
+  description      String?
+  category         String?
+  isGeneralSpoiler Boolean?
+  isAdult          Boolean?
+
+  tagEdges AnilistTagEdge[] @relation("AnilistTagEdges")
 }
 
 model AnilistExternalLink {

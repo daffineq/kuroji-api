@@ -96,8 +96,8 @@ export enum TagSort {
   ID_DESC = 'id_desc',
   NAME = 'name',
   NAME_DESC = 'name_desc',
-  RANK = 'rank',
-  RANK_DESC = 'rank_desc',
+  CATEGORY = 'category',
+  CATEGORY_DESC = 'category_desc',
 }
 
 export enum Language {

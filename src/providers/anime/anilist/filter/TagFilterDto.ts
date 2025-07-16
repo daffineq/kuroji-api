@@ -41,7 +41,7 @@ export class TagFilterDto {
   @IsArray()
   @TransformToArray()
   @IsEnum(TagSort, { each: true })
-  sort?: TagSort[] = [TagSort.RANK_DESC];
+  sort?: TagSort[] = [TagSort.NAME];
 
   // ID filters
   @IsOptional()
@@ -107,27 +107,11 @@ export class TagFilterDto {
   @TransformToArray()
   categoryNotIn?: string[];
 
-  // Rank filters
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  rank?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  rankGreater?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  rankLesser?: number;
-
   // Boolean flags
   @IsOptional()
   @IsBoolean()
   @TransformToBoolean()
-  isSpoiler?: boolean;
+  isGeneralSpoiler?: boolean;
 
   @IsOptional()
   @IsBoolean()
