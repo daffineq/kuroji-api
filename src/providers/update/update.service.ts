@@ -261,6 +261,15 @@ export class UpdateService {
       `[UpdateService] Adding ${recentAnime.length} recent aired anime to queue with HIGH priority`,
     );
 
+    if (recentAnime.length > 0) {
+      const animeWithEpisodes = recentAnime.filter(
+        (anime) => anime.airingSchedule.length > 0,
+      );
+      console.log(
+        `[UpdateService] Recent anime with episodes: ${animeWithEpisodes.length}/${recentAnime.length}`,
+      );
+    }
+
     for (const anime of recentAnime) {
       await this.addToQueue(anime, 'high', 'recent');
     }
@@ -278,9 +287,9 @@ export class UpdateService {
   }
 
   async queueWeekAgoAnime() {
-    const weekAgoAnime = await this.requests.getWeekAgoAiredAnime();
+    const weekAgoAnime = await this.requests.getLastWeekAiredAnime();
     console.log(
-      `[UpdateService] Adding ${weekAgoAnime.length} week-ago aired anime to queue`,
+      `[UpdateService] Adding ${weekAgoAnime.length} last week aired anime to queue`,
     );
 
     for (const anime of weekAgoAnime) {
@@ -611,7 +620,9 @@ export class UpdateService {
   // Every 3 days at 1 AM London time
   @Cron('0 1 */3 * *', { timeZone: 'Europe/London' })
   async scheduleWeekAgoAnime() {
-    console.log('[UpdateService] Every 3 days - queueing week-ago aired anime');
+    console.log(
+      '[UpdateService] Every 3 days - queueing last week aired anime',
+    );
     await this.queueWeekAgoAnime();
   }
 

@@ -55,24 +55,23 @@ export class UpdateRequestsService {
     const validatedHoursBack = this.validateHoursBack(hoursBack);
 
     try {
-      const now = DateUtils.getLondonTimestamp();
-      const startTime =
-        DateUtils.getHoursAgoLondonTimestamp(validatedHoursBack);
+      const { start: startTimestamp, end: endTimestamp } =
+        DateUtils.getHourSpanRange(validatedHoursBack);
 
       if (
-        !DateUtils.isValidTimestamp(startTime) ||
-        !DateUtils.isValidTimestamp(now)
+        !DateUtils.isValidTimestamp(startTimestamp) ||
+        !DateUtils.isValidTimestamp(endTimestamp)
       ) {
         throw new Error('Invalid timestamp range calculated');
       }
 
-      const todayAired = await this.prisma.anilist.findMany({
+      const recentAired = await this.prisma.anilist.findMany({
         where: {
           airingSchedule: {
             some: {
               airingAt: {
-                gte: startTime,
-                lte: now,
+                gte: startTimestamp,
+                lte: endTimestamp,
               },
             },
           },
@@ -80,6 +79,19 @@ export class UpdateRequestsService {
         select: {
           id: true,
           idMal: true,
+          popularity: true,
+          airingSchedule: {
+            select: {
+              airingAt: true,
+              episode: true,
+            },
+            where: {
+              airingAt: {
+                gte: startTimestamp,
+                lte: endTimestamp,
+              },
+            },
+          },
         },
         orderBy: {
           trending: 'desc',
@@ -87,9 +99,10 @@ export class UpdateRequestsService {
       });
 
       console.log(
-        `[UpdateRequestsService] Found ${todayAired.length} anime aired in last ${validatedHoursBack} hours`,
+        `[UpdateRequestsService] Found ${recentAired.length} anime aired (${DateUtils.formatTimestamp(startTimestamp)} - ${DateUtils.formatTimestamp(endTimestamp)})`,
       );
-      return todayAired;
+
+      return recentAired;
     } catch (error) {
       console.error(
         '[UpdateRequestsService] Error fetching recent aired anime:',
@@ -104,9 +117,12 @@ export class UpdateRequestsService {
       const { start: startTimestamp, end: endTimestamp } =
         DateUtils.getTodayLondonRange();
 
+      const { start: bufferedStart, end: bufferedEnd } =
+        DateUtils.getBufferedTimeRange(startTimestamp, endTimestamp, 1);
+
       if (
-        !DateUtils.isValidTimestamp(startTimestamp) ||
-        !DateUtils.isValidTimestamp(endTimestamp)
+        !DateUtils.isValidTimestamp(bufferedStart) ||
+        !DateUtils.isValidTimestamp(bufferedEnd)
       ) {
         throw new Error('Invalid timestamp range for today');
       }
@@ -116,8 +132,8 @@ export class UpdateRequestsService {
           airingSchedule: {
             some: {
               airingAt: {
-                gte: startTimestamp,
-                lte: endTimestamp,
+                gte: bufferedStart,
+                lte: bufferedEnd,
               },
             },
           },
@@ -125,6 +141,19 @@ export class UpdateRequestsService {
         select: {
           id: true,
           idMal: true,
+          popularity: true,
+          airingSchedule: {
+            select: {
+              airingAt: true,
+              episode: true,
+            },
+            where: {
+              airingAt: {
+                gte: bufferedStart,
+                lte: bufferedEnd,
+              },
+            },
+          },
         },
         orderBy: {
           trending: 'desc',
@@ -132,8 +161,9 @@ export class UpdateRequestsService {
       });
 
       console.log(
-        `[UpdateRequestsService] Found ${todayAired.length} anime aired today`,
+        `[UpdateRequestsService] Found ${todayAired.length} anime aired today (${DateUtils.formatTimestamp(startTimestamp)} - ${DateUtils.formatTimestamp(endTimestamp)})`,
       );
+
       return todayAired;
     } catch (error) {
       console.error(
@@ -144,14 +174,17 @@ export class UpdateRequestsService {
     }
   }
 
-  async getWeekAgoAiredAnime() {
+  async getLastWeekAiredAnime() {
     try {
       const { start: startTimestamp, end: endTimestamp } =
-        DateUtils.getDaysAgoLondonRange(7);
+        DateUtils.getWeekSpanLondonRange(7);
+
+      const { start: bufferedStart, end: bufferedEnd } =
+        DateUtils.getBufferedTimeRange(startTimestamp, endTimestamp, 2);
 
       if (
-        !DateUtils.isValidTimestamp(startTimestamp) ||
-        !DateUtils.isValidTimestamp(endTimestamp)
+        !DateUtils.isValidTimestamp(bufferedStart) ||
+        !DateUtils.isValidTimestamp(bufferedEnd)
       ) {
         throw new Error('Invalid timestamp range for week ago');
       }
@@ -161,8 +194,8 @@ export class UpdateRequestsService {
           airingSchedule: {
             some: {
               airingAt: {
-                gte: startTimestamp,
-                lte: endTimestamp,
+                gte: bufferedStart,
+                lte: bufferedEnd,
               },
             },
           },
@@ -170,6 +203,19 @@ export class UpdateRequestsService {
         select: {
           id: true,
           idMal: true,
+          popularity: true,
+          airingSchedule: {
+            select: {
+              airingAt: true,
+              episode: true,
+            },
+            where: {
+              airingAt: {
+                gte: bufferedStart,
+                lte: bufferedEnd,
+              },
+            },
+          },
         },
         orderBy: {
           trending: 'desc',
@@ -177,12 +223,13 @@ export class UpdateRequestsService {
       });
 
       console.log(
-        `[UpdateRequestsService] Found ${weekAgoAired.length} anime aired a week ago`,
+        `[UpdateRequestsService] Found ${weekAgoAired.length} anime aired in the last 7 days (${DateUtils.formatTimestamp(startTimestamp)} - ${DateUtils.formatTimestamp(endTimestamp)})`,
       );
+
       return weekAgoAired;
     } catch (error) {
       console.error(
-        '[UpdateRequestsService] Error fetching week ago aired anime:',
+        '[UpdateRequestsService] Error fetching last week aired anime:',
         error,
       );
       return [];
@@ -213,6 +260,7 @@ export class UpdateRequestsService {
       console.log(
         `[UpdateRequestsService] Found ${finishedAnime.length} finished anime`,
       );
+
       return finishedAnime;
     } catch (error) {
       console.error(
@@ -227,8 +275,8 @@ export class UpdateRequestsService {
     const validatedLimit = this.validateLimit(limit, 50);
 
     try {
-      const now = DateUtils.getLondonTimestamp();
-      const futureDate = DateUtils.getFutureLondonTimestamp(30);
+      const now = DateUtils.getCurrentTimestamp();
+      const futureDate = DateUtils.getFutureTimestamp(30);
 
       if (
         !DateUtils.isValidTimestamp(now) ||
@@ -243,29 +291,32 @@ export class UpdateRequestsService {
           popularity: {
             gte: POPULARITY_THRESHOLDS.TRASH,
           },
-          OR: [
-            {
-              startDate: {
-                year: { gte: DateUtils.getLondonDate().getFullYear() },
-              },
-            },
-            {
-              airingSchedule: {
-                some: {
-                  airingAt: {
-                    gte: now,
-                    lte: futureDate,
-                  },
-                },
-              },
-            },
-          ],
+          startDate: {
+            year: { gte: DateUtils.getLondonDate().getFullYear() },
+          },
         },
         select: {
           id: true,
           idMal: true,
           popularity: true,
           startDate: true,
+          status: true,
+          airingSchedule: {
+            select: {
+              airingAt: true,
+              episode: true,
+            },
+            where: {
+              airingAt: {
+                gte: now,
+                lte: futureDate,
+              },
+            },
+            orderBy: {
+              airingAt: 'asc',
+            },
+            take: 3,
+          },
         },
         orderBy: [{ popularity: 'desc' }, { startDate: { year: 'asc' } }],
         take: validatedLimit,
@@ -274,6 +325,7 @@ export class UpdateRequestsService {
       console.log(
         `[UpdateRequestsService] Found ${upcomingAnime.length} upcoming anime`,
       );
+
       return upcomingAnime;
     } catch (error) {
       console.error(
