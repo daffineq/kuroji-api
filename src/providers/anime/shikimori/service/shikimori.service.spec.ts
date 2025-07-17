@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ShikimoriService } from './shikimori.service';
-import { SharedModule } from '../../../../shared/shared.module';
+import { ShikimoriService } from './shikimori.service.js';
+import { SharedModule } from '../../../../shared/shared.module.js';
 
 describe('ShikimoriService', () => {
   let service: ShikimoriService;

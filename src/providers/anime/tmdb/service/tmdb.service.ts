@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { TmdbSeason } from '@prisma/client';
-import { TMDB } from '../../../../configs/tmdb.config.js';
 import { PrismaService } from '../../../../prisma.service.js';
 import {
   findBestMatch,
@@ -8,12 +7,7 @@ import {
   deepCleanTitle,
 } from '../../../mapper/mapper.helper.js';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
-import {
-  filterSeasonEpisodes,
-  findBestMatchFromSearch,
-  getTmdbInclude,
-  TmdbHelper,
-} from '../utils/tmdb-helper.js';
+import { getTmdbInclude, TmdbHelper } from '../utils/tmdb-helper.js';
 import { sleep } from '../../../../utils/utils.js';
 import {
   TmdbWithRelations,
@@ -25,6 +19,8 @@ import {
 import { Client } from '../../../model/client.js';
 import { UrlConfig } from '../../../../configs/url.config.js';
 import { MappingsService } from '../../mappings/service/mappings.service.js';
+import { tmdbFetch } from './tmdb.fetch.service.js';
+import { findBestMatchFromSearch } from '../utils/utils.js';
 
 @Injectable()
 export class TmdbService extends Client {
@@ -47,7 +43,7 @@ export class TmdbService extends Client {
     if (existingTmdb) return existingTmdb;
 
     const type = await this.detectType(id);
-    const tmdb = await this.fetchTmdb(id, type);
+    const tmdb = await tmdbFetch.fetchTmdb(id, type);
 
     return await this.saveTmdb(tmdb);
   }
@@ -82,47 +78,12 @@ export class TmdbService extends Client {
 
     if (existing) return existing;
 
-    const tmdb = await this.fetchTmdb(tmdbId, type);
+    const tmdb = await tmdbFetch.fetchTmdb(tmdbId, type);
 
     return await this.saveTmdb(tmdb);
   }
 
   // Data Fetching Methods
-  async fetchTmdb(id: number, type: string): Promise<TmdbDetailsMerged> {
-    const url =
-      type === 'tv' ? TMDB.getTvDetails(id) : TMDB.getMovieDetails(id);
-    const { data, error } = await this.client.get<TmdbDetailsMerged>(url);
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return data;
-  }
-
-  async fetchTmdbSeason(
-    id: number,
-    seasonNumber: number,
-  ): Promise<TmdbSeasonWithRelations> {
-    const { data, error } = await this.client.get<TmdbSeasonWithRelations>(
-      TMDB.getSeasonDetails(id, seasonNumber),
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return filterSeasonEpisodes(data);
-  }
-
   async fetchTmdbByAnilist(id: number): Promise<TmdbWithRelations> {
     const anilist = await this.anilist.getAnilist(id);
     const possibleTitles = [
@@ -138,7 +99,7 @@ export class TmdbService extends Client {
     let bestMatch: BasicTmdb | null = null;
 
     for (const title of possibleTitles) {
-      const searchResults = await this.searchTmdb(deepCleanTitle(title));
+      const searchResults = await tmdbFetch.searchTmdb(deepCleanTitle(title));
       bestMatch = findBestMatchFromSearch(anilist, searchResults);
       if (bestMatch) break;
     }
@@ -147,53 +108,13 @@ export class TmdbService extends Client {
       throw new Error('No matching TMDb entry found');
     }
 
-    const fetchedTmdb = await this.fetchTmdb(
+    const fetchedTmdb = await tmdbFetch.fetchTmdb(
       bestMatch.id,
       bestMatch.media_type,
     );
     fetchedTmdb.media_type = bestMatch.media_type;
 
     return this.saveTmdb(fetchedTmdb);
-  }
-
-  async searchTmdb(query: string): Promise<BasicTmdb[]> {
-    const { data, error } = await this.client.get<BasicTmdb[]>(
-      TMDB.multiSearch(query),
-      {
-        jsonPath: 'results',
-      },
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return data;
-  }
-
-  async fetchEpisodeImages(
-    tvId: number,
-    seasonNumber: number,
-    episode: number,
-  ): Promise<TmdbSeasonEpisodeImagesWithRelations> {
-    const { data, error } =
-      await this.client.get<TmdbSeasonEpisodeImagesWithRelations>(
-        TMDB.getEpisodeImages(tvId, seasonNumber, episode),
-      );
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return data;
   }
 
   // Database Operations
@@ -233,7 +154,7 @@ export class TmdbService extends Client {
   // Update Methods
   async update(id: number): Promise<TmdbWithRelations> {
     const existingTmdb = await this.getTmdb(id);
-    const tmdb = await this.fetchTmdb(id, existingTmdb.media_type ?? 'tv');
+    const tmdb = await tmdbFetch.fetchTmdb(id, existingTmdb.media_type ?? 'tv');
     const savedTmdb = await this.saveTmdb(tmdb);
     await this.updateSeason(id);
     return savedTmdb;
@@ -261,7 +182,7 @@ export class TmdbService extends Client {
         `Updating TMDB season: ${season.season_number} for tmdb: ${tmdb.id}`,
       );
 
-      const tmdbSeason = await this.fetchTmdbSeason(
+      const tmdbSeason = await tmdbFetch.fetchTmdbSeason(
         id,
         season.season_number || 1,
       );
@@ -332,11 +253,11 @@ export class TmdbService extends Client {
 
   async detectType(id: number): Promise<string> {
     try {
-      await this.fetchTmdb(id, 'tv');
+      await tmdbFetch.fetchTmdb(id, 'tv');
       return 'tv';
     } catch (_) {
       try {
-        await this.fetchTmdb(id, 'movie');
+        await tmdbFetch.fetchTmdb(id, 'movie');
         return 'movie';
       } catch (_) {
         throw new Error('ID not found in TVDB as Movie or Series.');

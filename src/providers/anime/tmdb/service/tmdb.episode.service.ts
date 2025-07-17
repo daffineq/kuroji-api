@@ -3,6 +3,7 @@ import { TmdbSeasonEpisodeWithRelations } from '../types/types.js';
 import { PrismaService } from '../../../../prisma.service.js';
 import { TmdbService } from './tmdb.service.js';
 import { TmdbSeasonService } from './tmdb.season.service.js';
+import { tmdbFetch } from './tmdb.fetch.service.js';
 
 @Injectable()
 export class TmdbEpisodeService {
@@ -44,7 +45,7 @@ export class TmdbEpisodeService {
       return existingEpisode;
     }
 
-    const images = await this.tmdb.fetchEpisodeImages(
+    const images = await tmdbFetch.fetchEpisodeImages(
       existingEpisode.show_id,
       existingEpisode.season_number,
       existingEpisode.episode_number,

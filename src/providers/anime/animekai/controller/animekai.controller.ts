@@ -7,6 +7,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { AnimekaiService } from '../service/animekai.service.js';
+import { animekaiFetch } from '../service/animekai.fetch.service.js';
 
 @Controller('anime')
 export class AnimekaiController {
@@ -22,7 +23,7 @@ export class AnimekaiController {
     @Param('id') id: string,
     @Query('dub') dub: boolean = false,
   ) {
-    return this.service.getSources(id, dub);
+    return animekaiFetch.getSources(id, dub);
   }
 
   @Put('info/:id/animekai/update')

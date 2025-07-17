@@ -7,6 +7,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ZoroService } from '../service/zoro.service.js';
+import { zoroFetch } from '../service/zoro.fetch.service.js';
 
 @Controller('anime')
 export class ZoroController {
@@ -27,7 +28,7 @@ export class ZoroController {
     @Param('id') id: string,
     @Query('dub') dub: boolean = false,
   ) {
-    return this.service.getSources(id, dub);
+    return zoroFetch.getSources(id, dub);
   }
 
   @Put('info/:id/zoro/update')

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AnimepaheService } from './animepahe.service';
-import { AnimePaheHelper } from '../utils/animepahe-helper';
-import { SharedModule } from '../../../../shared/shared.module';
+import { AnimepaheService } from './animepahe.service.js';
+import { SharedModule } from '../../../../shared/shared.module.js';
+import { animepaheFetch } from './animepahe.fetch.service.js';
 
 jest.setTimeout(30000);
 
@@ -11,7 +11,6 @@ describe('AnimepaheService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [SharedModule],
-      providers: [AnimepaheService, AnimePaheHelper],
     }).compile();
 
     service = module.get<AnimepaheService>(AnimepaheService);
@@ -32,7 +31,7 @@ describe('AnimepaheService', () => {
       const id = 21;
       const data = await service.getAnimepaheByAnilist(id);
       const watchId = data?.episodes[0].id ?? '';
-      const watch = await service.getSources(watchId);
+      const watch = await animepaheFetch.getSources(watchId);
       expect(watch).toBeDefined();
     } catch (err) {
       throw new Error(`Animepahe API failed watch test: ${err.message}`);

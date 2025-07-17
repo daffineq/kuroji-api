@@ -1,4 +1,4 @@
-export class GraphQL {
+export class ShikimoriGraphQL {
   /**
    * Generates a GraphQL query for fetching Shikimori anime data.
    * @param ids - A comma-separated string of anime IDs.

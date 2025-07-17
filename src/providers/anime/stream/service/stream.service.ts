@@ -27,8 +27,11 @@ import { getImage } from '../../tmdb/types/types.js';
 import { TmdbSeasonService } from '../../tmdb/service/tmdb.season.service.js';
 import { TmdbEpisodeService } from '../../tmdb/service/tmdb.episode.service.js';
 import { TmdbService } from '../../tmdb/service/tmdb.service.js';
-import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js';
+import { findEpisodeCount } from '../../anilist/utils/utils.js';
 import { AniZipEpisodeWithRelations } from '../../mappings/types/types.js';
+import { animepaheFetch } from '../../animepahe/service/animepahe.fetch.service.js';
+import { animekaiFetch } from '../../animekai/service/animekai.fetch.service.js';
+import { zoroFetch } from '../../zoro/service/zoro.fetch.service.js';
 
 @Injectable()
 export class StreamService {
@@ -66,10 +69,16 @@ export class StreamService {
         this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
       ]);
 
-      const episodesZoro = aniwatch?.episodes || [];
+      const episodesZoro = (aniwatch?.episodes || []).sort(
+        (a, b) => (a.number || 0) - (b.number || 0),
+      );
       const episodesPahe = animepahe?.episodes || [];
-      const tmdbEpisodes = season?.episodes || [];
-      const anizipEpisodes = anilist?.anizip?.episodes || [];
+      const tmdbEpisodes = (season?.episodes || []).sort(
+        (a, b) => (a.episode_number || 0) - (b.episode_number || 0),
+      );
+      const anizipEpisodes = (anilist?.anizip?.episodes || []).sort(
+        (a, b) => (a.episodeNumber || 0) - (b.episodeNumber || 0),
+      );
 
       const episodeCount = findEpisodeCount(anilist);
 
@@ -462,17 +471,17 @@ export class StreamService {
     const fetchMap: { [key: string]: () => Promise<ISource> } = {};
 
     if (Config.ZORO_ENABLED) {
-      fetchMap[Provider.zoro] = async () => this.aniwatch.getSources(epId, dub);
+      fetchMap[Provider.zoro] = async () => zoroFetch.getSources(epId, dub);
     }
 
     if (Config.ANIMEKAI_ENABLED) {
       fetchMap[Provider.animekai] = async () =>
-        this.animekai.getSources(epId, dub);
+        animekaiFetch.getSources(epId, dub);
     }
 
     if (Config.ANIMEPAHE_ENABLED) {
       fetchMap[Provider.animepahe] = async () =>
-        this.animepahe.getSources(epId);
+        animepaheFetch.getSources(epId);
     }
 
     const fetchFn = fetchMap[provider];

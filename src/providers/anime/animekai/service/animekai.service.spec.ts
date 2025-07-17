@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AnimekaiService } from './animekai.service';
-import { SharedModule } from '../../../../shared/shared.module';
-import { AnimeKaiHelper } from '../utils/animekai-helper';
+import { AnimekaiService } from './animekai.service.js';
+import { SharedModule } from '../../../../shared/shared.module.js';
+import { animekaiFetch } from './animekai.fetch.service.js';
 
 jest.setTimeout(30000);
 
@@ -11,7 +11,6 @@ describe('AnimekaiService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [SharedModule],
-      providers: [AnimekaiService, AnimeKaiHelper],
     }).compile();
 
     service = module.get<AnimekaiService>(AnimekaiService);
@@ -31,7 +30,7 @@ describe('AnimekaiService', () => {
     try {
       const id = 21;
       const data = await service.getAnimekaiByAnilist(id);
-      const watch = await service.getSources(data.episodes[0].id, false);
+      const watch = await animekaiFetch.getSources(data.episodes[0].id, false);
       expect(watch).toBeDefined();
     } catch (err) {
       throw new Error(`Animekai API failed watch test: ${err.message}`);

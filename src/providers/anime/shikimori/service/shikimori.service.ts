@@ -2,15 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { BasicIdShik, Shikimori } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service.js';
 import { UrlConfig } from '../../../../configs/url.config.js';
-import { GraphQL } from '../graphql/shikimori.graphql.js';
 import {
   getShikimoriInclude,
   ShikimoriHelper,
   shikimoriToBasicId,
 } from '../utils/shikimori-helper.js';
-import { ShikimoriResponse, ShikimoriWithRelations } from '../types/types.js';
+import { ShikimoriWithRelations } from '../types/types.js';
 import { Client } from '../../../model/client.js';
 import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.service.js';
+import { shikimoriFetch } from './shikimori.fetch.service.js';
 
 @Injectable()
 export class ShikimoriService extends Client {
@@ -36,7 +36,7 @@ export class ShikimoriService extends Client {
       throw new Error('Anilist not found');
     }
 
-    const data = await this.fetchFromGraphQL(id);
+    const data = await shikimoriFetch.fetchFromGraphQL(id);
     const anime = data.animes[0];
     if (!anime)
       throw new NotFoundException(`No Shikimori data found for ID: ${id}`);
@@ -67,7 +67,7 @@ export class ShikimoriService extends Client {
   }
 
   async update(id: string): Promise<ShikimoriWithRelations> {
-    const data = await this.fetchFromGraphQL(id);
+    const data = await shikimoriFetch.fetchFromGraphQL(id);
     const anime = data.animes[0];
 
     if (!anime) {
@@ -84,30 +84,6 @@ export class ShikimoriService extends Client {
   async getFranchiseIds(franchise: string): Promise<BasicIdShik[]> {
     const items = await this.getFranchise(franchise);
     return items.map((item) => shikimoriToBasicId(item));
-  }
-
-  private async fetchFromGraphQL(
-    id: string,
-    page = 1,
-    perPage = 1,
-  ): Promise<ShikimoriResponse> {
-    const query = GraphQL.getShikimoriAnime(id, page, perPage);
-    const { data, error } = await this.client.post<ShikimoriResponse>(``, {
-      json: {
-        query,
-      },
-      jsonPath: 'data',
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return data;
   }
 
   private async findById(id: string): Promise<ShikimoriWithRelations | null> {

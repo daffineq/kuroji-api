@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ZoroHelper } from '../utils/zoro-helper';
-import { ZoroService } from './zoro.service';
-import { SharedModule } from '../../../../shared/shared.module';
+import { SharedModule } from '../../../../shared/shared.module.js';
+import { ZoroService } from './zoro.service.js';
+import { zoroFetch } from './zoro.fetch.service.js';
 
 jest.setTimeout(30000);
 
@@ -11,7 +11,6 @@ describe('ZoroService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [SharedModule],
-      providers: [ZoroService, ZoroHelper],
     }).compile();
 
     service = module.get<ZoroService>(ZoroService);
@@ -31,7 +30,7 @@ describe('ZoroService', () => {
     try {
       const id = 21;
       const data = await service.getZoroByAnilist(id);
-      const watch = await service.getSources(data.episodes[0].id, false);
+      const watch = await zoroFetch.getSources(data.episodes[0].id, false);
       expect(watch).toBeDefined();
     } catch (err) {
       throw new Error(`Zoro API failed watch test: ${err.message}`);

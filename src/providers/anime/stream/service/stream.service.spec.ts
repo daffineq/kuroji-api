@@ -1,14 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { StreamService } from './stream.service';
-import { HttpModule } from '@nestjs/axios';
-import { SharedModule } from '../../../../shared/shared.module';
+import { StreamService } from './stream.service.js';
+import { SharedModule } from '../../../../shared/shared.module.js';
 
 describe('StreamService', () => {
   let service: StreamService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [HttpModule, SharedModule],
+      imports: [SharedModule],
     }).compile();
 
     service = module.get<StreamService>(StreamService);

@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { getKitsuInclude, KitsuHelper } from '../util/kitsu-helper.js';
-import { KITSU } from '../../../../configs/kitsu.config.js';
 import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
 import { KitsuWithRelations, KitsuAnime } from '../types/types.js';
 import { Client } from '../../../model/client.js';
 import { UrlConfig } from '../../../../configs/url.config.js';
-import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js';
+import { findEpisodeCount } from '../../anilist/utils/utils.js';
 import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.service.js';
 import { MappingsService } from '../../mappings/service/mappings.service.js';
+import { kitsuFetch } from './kitsu.fetch.service.js';
 
 @Injectable()
 export class KitsuService extends Client {
@@ -33,7 +33,7 @@ export class KitsuService extends Client {
       return existingKitsu;
     }
 
-    const rawKitsu = await this.fetchKitsu(id);
+    const rawKitsu = await kitsuFetch.fetchKitsu(id);
 
     return await this.saveKitsu(rawKitsu);
   }
@@ -66,7 +66,7 @@ export class KitsuService extends Client {
       return await this.saveKitsu(rawKitsu);
     }
 
-    const rawKitsu = await this.fetchKitsu(kitsuId);
+    const rawKitsu = await kitsuFetch.fetchKitsu(kitsuId);
     rawKitsu.anilistId = id;
     return await this.saveKitsu(rawKitsu);
   }
@@ -87,7 +87,7 @@ export class KitsuService extends Client {
       throw new Error('Not found');
     }
 
-    const rawKitsu = await this.fetchKitsu(id);
+    const rawKitsu = await kitsuFetch.fetchKitsu(id);
     rawKitsu.anilistId = existingKitsu.anilistId ?? 0;
 
     await this.saveKitsu(rawKitsu);
@@ -105,7 +105,7 @@ export class KitsuService extends Client {
       throw new Error('Anilist not found');
     }
 
-    const searchResult = await this.searchKitsu(
+    const searchResult = await kitsuFetch.searchKitsu(
       (anilist.title as { romaji: string }).romaji,
     );
 
@@ -135,49 +135,11 @@ export class KitsuService extends Client {
     const bestMatch = findBestMatch(searchCriteria, results);
 
     if (bestMatch) {
-      const data = await this.fetchKitsu(bestMatch.result.id);
+      const data = await kitsuFetch.fetchKitsu(bestMatch.result.id);
       data.anilistId = id;
       return data;
     }
 
     throw new Error('Kitsu not found');
-  }
-
-  async searchKitsu(query: string): Promise<KitsuAnime[]> {
-    const { data, error } = await this.client.get<KitsuAnime[]>(
-      KITSU.searchKitsu(query),
-      {
-        jsonPath: 'data',
-      },
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return data;
-  }
-
-  async fetchKitsu(id: string): Promise<KitsuAnime> {
-    const { data, error } = await this.client.get<KitsuAnime>(
-      KITSU.getKitsu(id),
-      {
-        jsonPath: 'data',
-      },
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return data;
   }
 }

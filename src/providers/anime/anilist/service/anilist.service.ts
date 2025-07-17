@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { getAnilistFindUnique } from '../utils/anilist-helper.js';
-import { AnilistFetchService } from './helper/anilist.fetch.service.js';
+import { anilistFetch } from './helper/anilist.fetch.service.js';
 import { MediaType } from '../filter/Filter.js';
 import { AnilistUtilService } from './helper/anilist.util.service.js';
 import { ShikimoriService } from '../../shikimori/service/shikimori.service.js';
 import { KitsuService } from '../../kitsu/service/kitsu.service.js';
-import { AnilistWithRelations, AnilistResponse } from '../types/types.js';
+import { AnilistWithRelations } from '../types/types.js';
 import { AnilistSaveService } from './helper/anilist.save.service.js';
 import { MappingsService } from '../../mappings/service/mappings.service.js';
-import { id } from 'date-fns/locale';
 import Config from '../../../../configs/config.js';
 import { AnimekaiService } from '../../animekai/service/animekai.service.js';
 import { AnimepaheService } from '../../animepahe/service/animepahe.service.js';
@@ -21,7 +20,6 @@ export class AnilistService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mappings: MappingsService,
-    private readonly fetch: AnilistFetchService,
     private readonly util: AnilistUtilService,
     private readonly save: AnilistSaveService,
     private readonly zoro: ZoroService,
@@ -43,7 +41,7 @@ export class AnilistService {
       return await this.util.adjustAnilist(existingAnilist);
     }
 
-    const data = await this.fetch.fetchAnilistFromGraphQL(id, isMal);
+    const data = await anilistFetch.fetchAnilistFromGraphQL(id, isMal);
 
     const anilist = data.Page.media[0];
 
@@ -121,7 +119,7 @@ export class AnilistService {
   }
 
   async update(id: number): Promise<void> {
-    const data = await this.fetch.fetchAnilistFromGraphQL(id);
+    const data = await anilistFetch.fetchAnilistFromGraphQL(id);
 
     if (!data) {
       throw new Error('No data');

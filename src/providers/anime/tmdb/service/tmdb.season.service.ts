@@ -6,7 +6,7 @@ import { DateDetails, TmdbSeasonEpisode } from '@prisma/client';
 import {
   findEpisodeCount,
   getDateStringFromAnilist,
-} from '../../anilist/utils/anilist-helper.js';
+} from '../../anilist/utils/utils.js';
 import { TmdbSeasonWithRelations } from '../types/types.js';
 import { AnilistWithRelations } from '../../anilist/types/types.js';
 import { MediaFormat } from '@consumet/extensions';
@@ -14,6 +14,7 @@ import { ZoroWithRelations } from '../../zoro/types/types.js';
 import { AnimepaheWithRelations } from '../../animepahe/types/types.js';
 import { ZoroService } from '../../zoro/service/zoro.service.js';
 import { AnimepaheService } from '../../animepahe/service/animepahe.service.js';
+import { tmdbFetch } from './tmdb.fetch.service.js';
 
 interface EpisodeMatchCandidate {
   episode: TmdbSeasonEpisode;
@@ -140,7 +141,7 @@ export class TmdbSeasonService {
 
       if (!tmdbSeason) {
         try {
-          tmdbSeason = await this.tmdb.fetchTmdbSeason(
+          tmdbSeason = await tmdbFetch.fetchTmdbSeason(
             showId,
             season.season_number,
           );

@@ -1,12 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MalService } from './mal.service';
+import { MalService } from './mal.service.js';
+import { SharedModule } from '../../../../shared/shared.module.js';
 
 describe('MalService', () => {
   let service: MalService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [MalService],
+      imports: [SharedModule],
     }).compile();
 
     service = module.get<MalService>(MalService);

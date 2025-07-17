@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { KitsuService } from './kitsu.service';
-import { SharedModule } from '../../../../shared/shared.module';
+import { KitsuService } from './kitsu.service.js';
+import { SharedModule } from '../../../../shared/shared.module.js';
 
 describe('KitsuService', () => {
   let service: KitsuService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SharedModule],
+      imports: [SharedModule],
     }).compile();
 
     service = module.get<KitsuService>(KitsuService);

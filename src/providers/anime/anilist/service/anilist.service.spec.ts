@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AnilistService } from './anilist.service';
-import { AnilistController } from '../controller/anilist.controller';
-import { SharedModule } from '../../../../shared/shared.module';
+import { AnilistService } from './anilist.service.js';
+import { AnilistController } from '../controller/anilist.controller.js';
+import { SharedModule } from '../../../../shared/shared.module.js';
 
 describe('AnilistService', () => {
   let service: AnilistService;

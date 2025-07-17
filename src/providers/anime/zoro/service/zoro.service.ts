@@ -1,31 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
-import {
-  ANIME,
-  IAnimeInfo,
-  IAnimeResult,
-  ISearch,
-  ISource,
-  StreamingServers,
-  SubOrSub,
-} from '@consumet/extensions';
-import { UrlConfig } from '../../../../configs/url.config.js';
-import {
-  convertZoroSource,
-  ZoroSource,
-  ZoroWithRelations,
-} from '../types/types.js';
+import { IAnimeInfo } from '@consumet/extensions';
+import { ZoroWithRelations } from '../types/types.js';
 import { Client } from '../../../model/client.js';
 import { getZoroData } from '../utils/zoro-helper.js';
-import { findEpisodeCount } from '../../anilist/utils/anilist-helper.js';
 import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.service.js';
-
-const zoro = new ANIME.Zoro();
-
-function convertId(slug: string): string {
-  return slug.replace(/\$episode\$/, '?ep=');
-}
+import { zoroFetch } from './zoro.fetch.service.js';
+import { findEpisodeCount } from '../../anilist/utils/utils.js';
 
 @Injectable()
 export class ZoroService extends Client {
@@ -48,7 +30,7 @@ export class ZoroService extends Client {
       return existingZoro;
     }
 
-    const zoro = await this.fetchZoro(id);
+    const zoro = await zoroFetch.fetchZoro(id);
 
     if (!zoro) {
       throw new Error('Zoro not found');
@@ -102,7 +84,7 @@ export class ZoroService extends Client {
       throw new Error('Zoro not found');
     }
 
-    const zoro = await this.fetchZoro(existingZoro.id);
+    const zoro = await zoroFetch.fetchZoro(existingZoro.id);
 
     if (!zoro) {
       throw new Error('Zoro not fetched');
@@ -117,66 +99,6 @@ export class ZoroService extends Client {
     return this.saveZoro(zoro);
   }
 
-  async getSources(episodeId: string, dub: boolean): Promise<ISource> {
-    // return await zoro.fetchEpisodeSources(episodeId, StreamingServers.VidCloud, dub ? SubOrSub.DUB : SubOrSub.SUB);
-    // const { data, error } = await this.client.get<ISource>(
-    //   `watch/${episodeId}?dub=${dub}`,
-    // );
-
-    const category = dub ? 'dub' : 'sub';
-
-    const { data, error } = await this.client.get<ZoroSource>(
-      `${UrlConfig.HIANIME}episode/sources?animeEpisodeId=${convertId(episodeId)}&category=${category}`,
-      {
-        jsonPath: 'data',
-      },
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return convertZoroSource(data);
-  }
-
-  async fetchZoro(id: string): Promise<IAnimeInfo> {
-    // return await zoro.fetchAnimeInfo(id);
-    const { data, error } = await this.client.get<IAnimeInfo>(
-      `${UrlConfig.ZORO}info?id=${id}`,
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return data;
-  }
-
-  async searchZoro(q: string): Promise<ISearch<IAnimeResult>> {
-    // return (await zoro.search(q)).results;
-    const { data, error } = await this.client.get<ISearch<IAnimeResult>>(
-      `${UrlConfig.ZORO}${q}`,
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return data;
-  }
-
   async findZoroByAnilist(id: number): Promise<IAnimeInfo> {
     const anilist = await this.anilist.getMappingAnilist(id);
 
@@ -184,7 +106,7 @@ export class ZoroService extends Client {
       throw new Error('Anilist not found');
     }
 
-    const searchResult = await this.searchZoro(
+    const searchResult = await zoroFetch.searchZoro(
       (anilist.title as { romaji: string }).romaji,
     );
 
@@ -216,7 +138,7 @@ export class ZoroService extends Client {
       const bestMatch = findBestMatch(searchCriteria, results, exclude);
 
       if (bestMatch) {
-        const data = await this.fetchZoro(bestMatch.result.id);
+        const data = await zoroFetch.fetchZoro(bestMatch.result.id);
 
         if (
           (data.alID && Number(data.alID) === anilist.id) ||

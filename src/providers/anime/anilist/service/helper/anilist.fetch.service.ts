@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { UrlConfig } from '../../../../../configs/url.config.js';
 import AnilistQL from '../../graphql/AnilistQL.js';
 import AnilistQueryBuilder from '../../graphql/query/AnilistQueryBuilder.js';
@@ -11,7 +10,6 @@ import {
 import { AnilistResponse } from '../../types/types.js';
 import { Client } from '../../../../model/client.js';
 
-@Injectable()
 export class AnilistFetchService extends Client {
   constructor() {
     super(UrlConfig.ANILIST_GRAPHQL);
@@ -88,3 +86,5 @@ export class AnilistFetchService extends Client {
     return data;
   }
 }
+
+export const anilistFetch = new AnilistFetchService();

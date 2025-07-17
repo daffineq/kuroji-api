@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AnilistResponse, AnilistWithRelations } from '../../types/types.js';
+import { AnilistWithRelations } from '../../types/types.js';
 import {
   AnilistHelper,
   getAnilistInclude,

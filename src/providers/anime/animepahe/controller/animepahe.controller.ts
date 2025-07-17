@@ -7,6 +7,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { AnimepaheService } from '../service/animepahe.service.js';
+import { animepaheFetch } from '../service/animepahe.fetch.service.js';
 
 @Controller('anime')
 export class AnimepaheController {
@@ -19,7 +20,7 @@ export class AnimepaheController {
 
   @Get('watch/:id/animepahe')
   async getSources(@Param('id') id: string) {
-    return this.service.getSources(id);
+    return animepaheFetch.getSources(id);
   }
 
   @Put('info/:id/animepahe/update')

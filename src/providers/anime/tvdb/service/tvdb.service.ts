@@ -2,19 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { getTvdbInclude, TvdbHelper } from '../utils/tvdb-helper.js';
 import { PrismaService } from '../../../../prisma.service.js';
 import { TmdbService } from '../../tmdb/service/tmdb.service.js';
-import { TvdbTokenService } from './token/tvdb.token.service.js';
-import { TVDB } from '../../../../configs/tvdb.config.js';
 import {
   TvdbArtwork,
   TvdbLanguage,
   TvdbLanguageTranslation,
 } from '@prisma/client';
-import {
-  TvdbWithRelations,
-  BasicTvdb,
-  SearchResponse,
-  TvdbInput,
-} from '../types/types.js';
+import { TvdbWithRelations, TvdbInput } from '../types/types.js';
 import { Client } from '../../../model/client.js';
 import { UrlConfig } from '../../../../configs/url.config.js';
 import { InjectRedis } from '@nestjs-modules/ioredis';
@@ -24,6 +17,7 @@ import { undefinedToNull } from '../../../../shared/interceptor.js';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
 import { MappingsService } from '../../mappings/service/mappings.service.js';
 import { deepCleanTitle } from '../../../mapper/mapper.helper.js';
+import { TvdbFetchService } from './tvdb.fetch.service.js';
 
 @Injectable()
 export class TvdbService extends Client {
@@ -32,7 +26,7 @@ export class TvdbService extends Client {
     private readonly mappings: MappingsService,
     private readonly tmdbService: TmdbService,
     private readonly anilist: AnilistService,
-    private readonly tokenService: TvdbTokenService,
+    private readonly fetch: TvdbFetchService,
     private readonly helper: TvdbHelper,
     @InjectRedis() private readonly redis: Redis,
   ) {
@@ -48,7 +42,7 @@ export class TvdbService extends Client {
     if (existingTvdb) return existingTvdb;
 
     const type = await this.detectType(id);
-    const tvdb = await this.fetchTvdb(id, type);
+    const tvdb = await this.fetch.fetchTvdb(id, type);
     return await this.saveTvdb(tvdb);
   }
 
@@ -75,7 +69,7 @@ export class TvdbService extends Client {
         throw new Error('No titles');
       }
 
-      const basicTvdb = await this.fetchByRemoteId(
+      const basicTvdb = await this.fetch.fetchByRemoteId(
         tmdb.id,
         type,
         deepCleanTitle(
@@ -92,7 +86,7 @@ export class TvdbService extends Client {
         throw new Error('tvdb_id is undefined in basicTvdb');
       }
 
-      const tvdb = await this.fetchTvdb(+basicTvdb.tvdb_id, type);
+      const tvdb = await this.fetch.fetchTvdb(+basicTvdb.tvdb_id, type);
       tvdb.type = type;
 
       await this.mappings.updateAniZipMappings(mapping.id, {
@@ -109,7 +103,7 @@ export class TvdbService extends Client {
 
     if (existing) return existing;
 
-    const tvdb = await this.fetchTvdb(+tvdbId, type);
+    const tvdb = await this.fetch.fetchTvdb(+tvdbId, type);
 
     tvdb.type = type;
 
@@ -152,7 +146,7 @@ export class TvdbService extends Client {
     if (existing) return existing;
 
     const tmdb = await this.tmdbService.getTmdbByAnilist(id);
-    const translations = await this.fetchTranslations(
+    const translations = await this.fetch.fetchTranslations(
       tvdb.id,
       tmdb.media_type || 'series',
       translation,
@@ -164,7 +158,7 @@ export class TvdbService extends Client {
   async getLanguages(): Promise<TvdbLanguage[]> {
     const existing = await this.prisma.tvdbLanguage.findMany();
     if (existing.length > 0) return existing;
-    const langs = await this.fetchLanguages();
+    const langs = await this.fetch.fetchLanguages();
     return await this.saveLanguages(langs);
   }
 
@@ -194,7 +188,7 @@ export class TvdbService extends Client {
 
     if (!existing) return;
 
-    const tvdb = await this.fetchTvdb(id, existing.type || 'series');
+    const tvdb = await this.fetch.fetchTvdb(id, existing.type || 'series');
 
     if (JSON.stringify(tvdb.artworks) !== JSON.stringify(existing.artworks)) {
       await this.saveTvdb(tvdb);
@@ -207,7 +201,7 @@ export class TvdbService extends Client {
   }
 
   async updateLanguages(): Promise<TvdbLanguage[]> {
-    const langs = await this.fetchLanguages();
+    const langs = await this.fetch.fetchLanguages();
     return await this.saveLanguages(langs);
   }
 
@@ -221,117 +215,13 @@ export class TvdbService extends Client {
     });
   }
 
-  async fetchByRemoteId(
-    id: number,
-    type: string,
-    title: string,
-  ): Promise<BasicTvdb> {
-    const { data, error } = await this.client.get<BasicTvdb[]>(
-      TVDB.search(title, id),
-      {
-        headers: {
-          Authorization: `Bearer ${await this.tokenService.getToken()}`,
-        },
-        jsonPath: 'data',
-      },
-    );
-
-    console.log(TVDB.search(title, id));
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('No data found');
-    }
-
-    const match = data[0];
-    if (!match) throw new Error('Not found');
-
-    return match;
-  }
-
-  async fetchTvdb(id: number, type: string): Promise<TvdbInput> {
-    const url = type === 'movie' ? TVDB.getMovie(id) : TVDB.getSeries(id);
-    const { data, error } = await this.client.get<TvdbInput>(url, {
-      headers: {
-        Authorization: `Bearer ${await this.tokenService.getToken()}`,
-      },
-      jsonPath: 'data',
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return data;
-  }
-
-  async fetchTranslations(
-    id: number,
-    type: string,
-    lang: string,
-  ): Promise<TvdbLanguageTranslation> {
-    const url =
-      type === 'movie'
-        ? TVDB.getMovieTranslations(id, lang)
-        : TVDB.getSeriesTranslations(id, lang);
-
-    const { data, error } = await this.client.get<TvdbLanguageTranslation>(
-      url,
-      {
-        headers: {
-          Authorization: `Bearer ${await this.tokenService.getToken()}`,
-        },
-        jsonPath: 'data',
-      },
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return data;
-  }
-
-  async fetchLanguages(): Promise<TvdbLanguage[]> {
-    const { data, error } = await this.client.get<TvdbLanguage[]>(
-      TVDB.getLanguages(),
-      {
-        headers: {
-          Authorization: `Bearer ${await this.tokenService.getToken()}`,
-        },
-        jsonPath: 'data',
-      },
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return data;
-  }
-
   async detectType(id: number): Promise<string> {
     try {
-      await this.fetchTvdb(id, 'series');
+      await this.fetch.fetchTvdb(id, 'series');
       return 'series';
     } catch (_) {
       try {
-        await this.fetchTvdb(id, 'movie');
+        await this.fetch.fetchTvdb(id, 'movie');
         return 'movie';
       } catch (_) {
         throw new Error('ID not found in TVDB as Movie or Series.');

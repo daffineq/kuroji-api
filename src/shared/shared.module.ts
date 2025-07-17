@@ -31,6 +31,9 @@ import { TmdbEpisodeService } from '../providers/anime/tmdb/service/tmdb.episode
 import { UpdateRequestsService } from '../providers/update/update.requests.service.js';
 import { AnilistSaveService } from '../providers/anime/anilist/service/helper/anilist.save.service.js';
 import { MappingsService } from '../providers/anime/mappings/service/mappings.service.js';
+import { TvdbFetchService } from '../providers/anime/tvdb/service/tvdb.fetch.service.js';
+import { MalService } from '../providers/anime/mal/service/mal.service.js';
+import { ToolsService } from '../providers/tools/service/tools.service.js';
 
 @Module({
   imports: [Redis],
@@ -49,6 +52,7 @@ import { MappingsService } from '../providers/anime/mappings/service/mappings.se
     ShikimoriService,
     AnilistHelper,
     ShikimoriHelper,
+    MalService,
     AnimekaiService,
     ZoroService,
     AnimepaheService,
@@ -58,6 +62,7 @@ import { MappingsService } from '../providers/anime/mappings/service/mappings.se
     TmdbHelper,
     TvdbService,
     TvdbTokenService,
+    TvdbFetchService,
     TvdbHelper,
     KitsuService,
     KitsuHelper,
@@ -65,6 +70,7 @@ import { MappingsService } from '../providers/anime/mappings/service/mappings.se
     UpdateRequestsService,
     StreamService,
     MappingsService,
+    ToolsService,
     AppLockService,
   ],
   exports: [
@@ -82,6 +88,7 @@ import { MappingsService } from '../providers/anime/mappings/service/mappings.se
     ShikimoriService,
     AnilistHelper,
     ShikimoriHelper,
+    MalService,
     AnimekaiService,
     AnimepaheService,
     TmdbService,
@@ -90,6 +97,7 @@ import { MappingsService } from '../providers/anime/mappings/service/mappings.se
     TmdbHelper,
     TvdbService,
     TvdbTokenService,
+    TvdbFetchService,
     TvdbHelper,
     KitsuService,
     KitsuHelper,
@@ -97,6 +105,7 @@ import { MappingsService } from '../providers/anime/mappings/service/mappings.se
     UpdateRequestsService,
     StreamService,
     MappingsService,
+    ToolsService,
     AppLockService,
   ],
 })

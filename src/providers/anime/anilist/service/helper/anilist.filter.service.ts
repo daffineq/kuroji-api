@@ -219,25 +219,49 @@ export class AnilistFilterService {
     // ========== Tags Filters ==========
     if (filter.tagIn) {
       conditions.push({
-        tags: { some: { name: { in: filter.tagIn } } },
+        tags: {
+          some: {
+            tag: {
+              name: { in: filter.tagIn },
+            },
+          },
+        },
       });
     }
     if (filter.tagNotIn) {
       conditions.push({
         NOT: {
-          tags: { some: { name: { in: filter.tagNotIn } } },
+          tags: {
+            some: {
+              tag: {
+                name: { in: filter.tagNotIn },
+              },
+            },
+          },
         },
       } as any);
     }
     if (filter.tagCategoryIn) {
       conditions.push({
-        tags: { some: { category: { in: filter.tagCategoryIn } } },
+        tags: {
+          some: {
+            tag: {
+              category: { in: filter.tagCategoryIn },
+            },
+          },
+        },
       });
     }
     if (filter.tagCategoryNotIn) {
       conditions.push({
         NOT: {
-          tags: { some: { category: { in: filter.tagCategoryNotIn } } },
+          tags: {
+            some: {
+              tag: {
+                category: { in: filter.tagCategoryNotIn },
+              },
+            },
+          },
         },
       } as any);
     }

@@ -1,25 +1,27 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TmdbService } from './tmdb.service.js';
 import { SharedModule } from '../../../../shared/shared.module.js';
+import { MappingsService } from './mappings.service.js';
 
-describe('TmdbService', () => {
-  let service: TmdbService;
+jest.setTimeout(30000);
+
+describe('AnizipService', () => {
+  let service: MappingsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [SharedModule],
     }).compile();
 
-    service = module.get<TmdbService>(TmdbService);
+    service = module.get<MappingsService>(MappingsService);
   });
 
-  it('fetch info', async () => {
+  it('fetch mapping', async () => {
     try {
       const id = 21;
-      const data = await service.getTmdbByAnilist(id);
+      const data = await service.getMapping(id);
       expect(data).toBeDefined();
     } catch (err) {
-      throw new Error(`TMDB API failed info test: ${err.message}`);
+      throw new Error(`Anizip API failed info test: ${err.message}`);
     }
   });
 

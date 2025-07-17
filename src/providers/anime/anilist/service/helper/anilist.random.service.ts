@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../../prisma.service.js';
 import { AnilistService } from '../anilist.service.js';
-import { AnilistWithRelations, RandomDto, RandomType } from '../../types/types.js';
+import {
+  AnilistWithRelations,
+  RandomDto,
+  RandomType,
+} from '../../types/types.js';
 
 @Injectable()
 export class AnilistRandomService {
