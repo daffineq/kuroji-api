@@ -29,6 +29,7 @@ export interface QueueItem {
   reason:
     | 'recent'
     | 'today'
+    | 'two_days_ago'
     | 'week_ago'
     | 'missed'
     | 'finished_monthly'
@@ -37,7 +38,7 @@ export interface QueueItem {
     | 'retry';
 }
 
-const SLEEP_BETWEEN_UPDATES = 30;
+const SLEEP_BETWEEN_UPDATES = 4;
 const MAX_QUEUE_SIZE = 1000;
 const MAX_RETRIES = 3;
 
@@ -297,31 +298,128 @@ export class UpdateService {
     }
   }
 
-  async queueFinishedAnime() {
-    const finishedAnime = await this.requests.getFinishedAnime();
+  async queueTwoDaysAgoAnime() {
+    const twoDaysAgoAnime = await this.requests.getTwoDaysAgoAiredAnime();
     console.log(
-      `[UpdateService] Adding ${finishedAnime.length} finished anime to queue for monthly update`,
+      `[UpdateService] Adding ${twoDaysAgoAnime.length} two days ago aired anime to queue`,
     );
 
-    for (const anime of finishedAnime) {
-      if (this.requests.shouldUpdateBasedOnPopularity(anime.popularity)) {
-        const priority = this.requests.getPopularityPriority(anime.popularity);
-        await this.addToQueue(anime, priority, 'finished_monthly');
+    for (const anime of twoDaysAgoAnime) {
+      await this.addToQueue(anime, 'medium', 'two_days_ago');
+    }
+  }
+
+  async queueFinishedAnime() {
+    const BATCH_SIZE = 100;
+    const DELAY_BETWEEN_PAGES = 30;
+
+    const totalCount = await this.requests.getTotalFinishedAnimeCount();
+    const totalPages = Math.ceil(totalCount / BATCH_SIZE);
+
+    console.log(
+      `[UpdateService] Processing ${totalCount} finished anime across ${totalPages} pages`,
+    );
+
+    let currentOffset = 0;
+    let pageNumber = 1;
+
+    while (true) {
+      console.log(
+        `[UpdateService] Fetching page ${pageNumber}/${totalPages} (offset: ${currentOffset})`,
+      );
+
+      const finishedAnime = await this.requests.getFinishedAnime(
+        BATCH_SIZE,
+        currentOffset,
+      );
+
+      if (finishedAnime.length === 0) {
+        console.log('[UpdateService] No more finished anime found, done!');
+        break;
       }
+
+      console.log(
+        `[UpdateService] Adding ${finishedAnime.length} finished anime to queue`,
+      );
+
+      for (const anime of finishedAnime) {
+        if (this.requests.shouldUpdateBasedOnPopularity(anime.popularity)) {
+          const priority = this.requests.getPopularityPriority(
+            anime.popularity,
+          );
+          await this.addToQueue(anime, priority, 'finished_monthly');
+        }
+      }
+
+      currentOffset += BATCH_SIZE;
+      pageNumber++;
+
+      if (finishedAnime.length < BATCH_SIZE) {
+        console.log('[UpdateService] Reached end of finished anime');
+        break;
+      }
+
+      console.log(
+        `[UpdateService] Waiting ${DELAY_BETWEEN_PAGES} seconds before next page...`,
+      );
+      await sleep(DELAY_BETWEEN_PAGES);
     }
   }
 
   async queueUpcomingAnime() {
-    const upcomingAnime = await this.requests.getUpcomingAnime();
+    const BATCH_SIZE = 50;
+    const DELAY_BETWEEN_PAGES = 30;
+
+    const totalCount = await this.requests.getTotalUpcomingAnimeCount();
+    const totalPages = Math.ceil(totalCount / BATCH_SIZE);
+
     console.log(
-      `[UpdateService] Adding ${upcomingAnime.length} upcoming anime to queue for weekly update`,
+      `[UpdateService] Processing ${totalCount} upcoming anime across ${totalPages} pages`,
     );
 
-    for (const anime of upcomingAnime) {
-      if (this.requests.shouldUpdateBasedOnPopularity(anime.popularity)) {
-        const priority = this.requests.getPopularityPriority(anime.popularity);
-        await this.addToQueue(anime, priority, 'upcoming_weekly');
+    let currentOffset = 0;
+    let pageNumber = 1;
+
+    while (true) {
+      console.log(
+        `[UpdateService] Fetching page ${pageNumber}/${totalPages} (offset: ${currentOffset})`,
+      );
+
+      const upcomingAnime = await this.requests.getUpcomingAnime(
+        BATCH_SIZE,
+        currentOffset,
+      );
+
+      if (upcomingAnime.length === 0) {
+        console.log('[UpdateService] No more upcoming anime found, done!');
+        break;
       }
+
+      console.log(
+        `[UpdateService] Adding ${upcomingAnime.length} upcoming anime to queue`,
+      );
+
+      for (const anime of upcomingAnime) {
+        if (this.requests.shouldUpdateBasedOnPopularity(anime.popularity)) {
+          const priority = this.requests.getPopularityPriority(
+            anime.popularity,
+          );
+          await this.addToQueue(anime, priority, 'upcoming_weekly');
+        }
+      }
+
+      currentOffset += BATCH_SIZE;
+      pageNumber++;
+
+      if (upcomingAnime.length < BATCH_SIZE) {
+        console.log('[UpdateService] Reached end of upcoming anime');
+        break;
+      }
+
+      console.log(
+        `[UpdateService] Waiting ${DELAY_BETWEEN_PAGES} seconds before next page...`,
+      );
+      await sleep(DELAY_BETWEEN_PAGES);
     }
   }
 
@@ -570,9 +668,7 @@ export class UpdateService {
       }
 
       if (provider !== this.providers[this.providers.length - 1]) {
-        const sleep_time = streaming.includes(provider.type)
-          ? SLEEP_BETWEEN_UPDATES / 3
-          : SLEEP_BETWEEN_UPDATES;
+        const sleep_time = SLEEP_BETWEEN_UPDATES;
 
         console.log(`Sleeping ${sleep_time}s before next provider...`);
         await sleep(sleep_time, false);
@@ -608,13 +704,20 @@ export class UpdateService {
     await this.queueRecentAnime();
   }
 
-  // Every day at midnight London time
-  @Cron('0 0 * * *', { timeZone: 'Europe/London' })
+  // Every 4 hours
+  @Cron('0 */4 * * *', { timeZone: 'Europe/London' })
   async scheduleTodayAnime() {
-    console.log(
-      "[UpdateService] Midnight in London - queueing today's aired anime",
-    );
+    console.log("[UpdateService] Every 4 hours - queueing today's aired anime");
     await this.queueTodayAnime();
+  }
+
+  // Every 8 hours
+  @Cron('0 */8 * * *', { timeZone: 'Europe/London' })
+  async scheduleTwoDaysAgoAnime() {
+    console.log(
+      '[UpdateService] Every 8 hours - queueing two days ago aired anime',
+    );
+    await this.queueTwoDaysAgoAnime();
   }
 
   // Every 3 days at 1 AM London time
@@ -626,19 +729,21 @@ export class UpdateService {
     await this.queueWeekAgoAnime();
   }
 
-  // Monthly finished anime update - 1st of every month at 2 AM London time
-  @Cron('0 2 1 * *', { timeZone: 'Europe/London' })
+  // Every day at 2 AM London time
+  @Cron('0 2 * * *', { timeZone: 'Europe/London' })
   async scheduleFinishedAnime() {
     console.log(
-      '[UpdateService] Monthly - queueing finished anime for updates',
+      '[UpdateService] Daily - queueing finished anime batch for updates',
     );
     await this.queueFinishedAnime();
   }
 
-  // Weekly upcoming anime update - Every Sunday at 3 AM London time
-  @Cron('0 3 * * 0', { timeZone: 'Europe/London' })
+  // Every day at 3 AM London time
+  @Cron('0 3 * * *', { timeZone: 'Europe/London' })
   async scheduleUpcomingAnime() {
-    console.log('[UpdateService] Weekly - queueing upcoming anime for updates');
+    console.log(
+      '[UpdateService] Daily - queueing upcoming anime batch for updates',
+    );
     await this.queueUpcomingAnime();
   }
 
@@ -667,6 +772,9 @@ export class UpdateService {
       const reasonCounts = {
         recent: queueItems.filter((item) => item.reason === 'recent').length,
         today: queueItems.filter((item) => item.reason === 'today').length,
+        two_days_ago: queueItems.filter(
+          (item) => item.reason === 'two_days_ago',
+        ).length,
         week_ago: queueItems.filter((item) => item.reason === 'week_ago')
           .length,
         missed: queueItems.filter((item) => item.reason === 'missed').length,
@@ -698,6 +806,7 @@ export class UpdateService {
         reasonCounts: {
           recent: 0,
           today: 0,
+          two_days_ago: 0,
           week_ago: 0,
           missed: 0,
           finished_monthly: 0,

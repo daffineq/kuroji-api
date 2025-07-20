@@ -15,6 +15,7 @@ import { ShikimoriWithRelations } from '../../shikimori/types/types.js';
 import { getAnizipInclude } from '../../mappings/utils/anizip.helper.js';
 import { findNextAiringInSchedule } from './utils.js';
 import { Prisma } from '@prisma/client';
+import { DateUtils } from '../../../../shared/date.utils.js';
 
 @Injectable()
 export class AnilistHelper {
@@ -30,16 +31,14 @@ export class AnilistHelper {
         }))
       : false;
 
-    const now = Math.floor(Date.now() / 1000);
-
     // Get all aired episodes
     const airedEpisodes = anime.airingSchedule.edges
-      .filter((schedule) => schedule.node.airingAt <= now)
+      .filter((schedule) => DateUtils.isPast(schedule.node.airingAt))
       .sort((a, b) => b.node.airingAt - a.node.airingAt);
 
     // Get all future episodes
     const futureEpisodes = anime.airingSchedule.edges
-      .filter((schedule) => schedule.node.airingAt > now)
+      .filter((schedule) => DateUtils.isFuture(schedule.node.airingAt))
       .sort((a, b) => a.node.airingAt - b.node.airingAt);
 
     // Get latest episode (most recent aired)

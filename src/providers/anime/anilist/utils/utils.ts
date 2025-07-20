@@ -2,6 +2,7 @@ import { AnilistAiringSchedule, DateDetails } from '@prisma/client';
 import { AnilistWithRelations, BasicAnilist } from '../types/types.js';
 import { convertAnilistToBasic } from './anilist-helper.js';
 import { MediaStatus } from '../filter/Filter.js';
+import { DateUtils } from '../../../../shared/date.utils.js';
 
 export function mapToBasic(data: AnilistWithRelations[]): BasicAnilist[] {
   return data.map((anilist) => convertAnilistToBasic(anilist));
@@ -60,12 +61,11 @@ export function findEpisodeCount<
     status?: string | null;
   },
 >(data: T, options?: { preferAired?: boolean }): number | undefined {
-  const now = Math.floor(Date.now() / 1000);
-
   const airedSchedule =
     data.airingSchedule
       ?.filter(
-        (schedule) => schedule.airingAt != null && schedule.airingAt <= now,
+        (schedule) =>
+          schedule.airingAt != null && DateUtils.isPast(schedule.airingAt),
       )
       .sort((a, b) => (b.airingAt ?? 0) - (a.airingAt ?? 0)) ?? [];
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
@@ -63,11 +64,6 @@ export class TmdbSeasonService {
       throw new Error(`Anilist not found`);
     }
 
-    const [zoro, animepahe] = await Promise.all([
-      this.zoro.getZoroByAnilist(id),
-      this.animepahe.getAnimepaheByAnilist(id),
-    ]);
-
     if (
       !anilist.format ||
       anilist.format in
@@ -81,6 +77,11 @@ export class TmdbSeasonService {
     ) {
       throw new Error(`Nuh uh, ${anilist.format} cant have tmdb episodes`);
     }
+
+    const [zoro, animepahe] = await Promise.all([
+      this.zoro.getZoroByAnilist(id).catch(() => null),
+      this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
+    ]);
 
     const tmdb = await this.tmdb.findTmdb(id);
 
@@ -215,8 +216,8 @@ export class TmdbSeasonService {
 
   private async findBestEpisodeSequence(
     anilist: AnilistWithRelations,
-    zoro: ZoroWithRelations,
-    animepahe: AnimepaheWithRelations,
+    zoro: ZoroWithRelations | null,
+    animepahe: AnimepaheWithRelations | null,
     allEpisodes: TmdbSeasonEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
   ): Promise<MatchResult> {
@@ -561,7 +562,7 @@ export class TmdbSeasonService {
 
   private async matchByZoro(
     anilist: AnilistWithRelations,
-    zoro: ZoroWithRelations,
+    zoro: ZoroWithRelations | null,
     allEpisodes: TmdbSeasonEpisode[],
   ): Promise<MatchResult> {
     const strategy = MatchStrategy.ZORO;
@@ -621,7 +622,7 @@ export class TmdbSeasonService {
 
   private async matchByAnimepahe(
     anilist: AnilistWithRelations,
-    animepahe: AnimepaheWithRelations,
+    animepahe: AnimepaheWithRelations | null,
     allEpisodes: TmdbSeasonEpisode[],
   ): Promise<MatchResult> {
     const strategy = MatchStrategy.ANIMEPAHE;

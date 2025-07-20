@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service.js';
 import { QueueItem } from './update.service.js';
-import { DateUtils } from './utils/date.utils.js';
+import { DateUtils } from '../../shared/date.utils.js';
 
 const POPULARITY_THRESHOLDS = {
-  HIGH: 200 * 1000, // 200k
+  HIGH: 100 * 1000, // 100k
   MEDIUM: 30 * 1000, // 30k
   LOW: 10 * 1000, // 10k
   TRASH: 3 * 1000, // 3k
@@ -25,6 +25,16 @@ export class UpdateRequestsService {
   shouldUpdateBasedOnPopularity(popularity: number | null): boolean {
     if (!popularity || popularity < 0) return false;
     return popularity >= POPULARITY_THRESHOLDS.TRASH;
+  }
+
+  private validateOffset(offset: number): number {
+    if (offset < 0) {
+      console.warn(
+        `[UpdateRequestsService] Invalid offset: ${offset}, using default: 0`,
+      );
+      return 0;
+    }
+    return offset;
   }
 
   private validateHoursBack(hoursBack: number): number {
@@ -115,7 +125,7 @@ export class UpdateRequestsService {
   async getTodayAiredAnime() {
     try {
       const { start: startTimestamp, end: endTimestamp } =
-        DateUtils.getTodayLondonRange();
+        DateUtils.getTodayRange();
 
       const { start: bufferedStart, end: bufferedEnd } =
         DateUtils.getBufferedTimeRange(startTimestamp, endTimestamp, 1);
@@ -177,7 +187,7 @@ export class UpdateRequestsService {
   async getLastWeekAiredAnime() {
     try {
       const { start: startTimestamp, end: endTimestamp } =
-        DateUtils.getWeekSpanLondonRange(7);
+        DateUtils.getWeekSpanRange(7);
 
       const { start: bufferedStart, end: bufferedEnd } =
         DateUtils.getBufferedTimeRange(startTimestamp, endTimestamp, 2);
@@ -236,8 +246,9 @@ export class UpdateRequestsService {
     }
   }
 
-  async getFinishedAnime(limit: number = 100) {
+  async getFinishedAnime(limit: number = 100, offset: number = 0) {
     const validatedLimit = this.validateLimit(limit, 100);
+    const validatedOffset = this.validateOffset(offset);
 
     try {
       const finishedAnime = await this.prisma.anilist.findMany({
@@ -255,10 +266,11 @@ export class UpdateRequestsService {
         },
         orderBy: [{ popularity: 'desc' }, { averageScore: 'desc' }],
         take: validatedLimit,
+        skip: validatedOffset,
       });
 
       console.log(
-        `[UpdateRequestsService] Found ${finishedAnime.length} finished anime`,
+        `[UpdateRequestsService] Found ${finishedAnime.length} finished anime (offset: ${validatedOffset})`,
       );
 
       return finishedAnime;
@@ -271,8 +283,9 @@ export class UpdateRequestsService {
     }
   }
 
-  async getUpcomingAnime(limit: number = 50) {
+  async getUpcomingAnime(limit: number = 50, offset: number = 0) {
     const validatedLimit = this.validateLimit(limit, 50);
+    const validatedOffset = this.validateOffset(offset);
 
     try {
       const now = DateUtils.getCurrentTimestamp();
@@ -292,7 +305,7 @@ export class UpdateRequestsService {
             gte: POPULARITY_THRESHOLDS.TRASH,
           },
           startDate: {
-            year: { gte: DateUtils.getLondonDate().getFullYear() },
+            year: { gte: DateUtils.getCurrentDate().getFullYear() },
           },
         },
         select: {
@@ -320,10 +333,11 @@ export class UpdateRequestsService {
         },
         orderBy: [{ popularity: 'desc' }, { startDate: { year: 'asc' } }],
         take: validatedLimit,
+        skip: validatedOffset,
       });
 
       console.log(
-        `[UpdateRequestsService] Found ${upcomingAnime.length} upcoming anime`,
+        `[UpdateRequestsService] Found ${upcomingAnime.length} upcoming anime (offset: ${validatedOffset})`,
       );
 
       return upcomingAnime;
@@ -333,6 +347,109 @@ export class UpdateRequestsService {
         error,
       );
       return [];
+    }
+  }
+
+  async getTwoDaysAgoAiredAnime() {
+    try {
+      const { start: startTimestamp, end: endTimestamp } =
+        DateUtils.getDaysAgoRange(2);
+
+      const { start: bufferedStart, end: bufferedEnd } =
+        DateUtils.getBufferedTimeRange(startTimestamp, endTimestamp, 2);
+
+      if (
+        !DateUtils.isValidTimestamp(bufferedStart) ||
+        !DateUtils.isValidTimestamp(bufferedEnd)
+      ) {
+        throw new Error('Invalid timestamp range for two days ago');
+      }
+
+      const twoDaysAgoAired = await this.prisma.anilist.findMany({
+        where: {
+          airingSchedule: {
+            some: {
+              airingAt: {
+                gte: bufferedStart,
+                lte: bufferedEnd,
+              },
+            },
+          },
+        },
+        select: {
+          id: true,
+          idMal: true,
+          popularity: true,
+          airingSchedule: {
+            select: {
+              airingAt: true,
+              episode: true,
+            },
+            where: {
+              airingAt: {
+                gte: bufferedStart,
+                lte: bufferedEnd,
+              },
+            },
+          },
+        },
+        orderBy: {
+          trending: 'desc',
+        },
+      });
+
+      console.log(
+        `[UpdateRequestsService] Found ${twoDaysAgoAired.length} anime aired two days ago (${DateUtils.formatTimestamp(startTimestamp)} - ${DateUtils.formatTimestamp(endTimestamp)})`,
+      );
+
+      return twoDaysAgoAired;
+    } catch (error) {
+      console.error(
+        '[UpdateRequestsService] Error fetching two days ago aired anime:',
+        error,
+      );
+      return [];
+    }
+  }
+
+  async getTotalFinishedAnimeCount(): Promise<number> {
+    try {
+      return await this.prisma.anilist.count({
+        where: {
+          status: 'FINISHED',
+          popularity: {
+            gte: POPULARITY_THRESHOLDS.TRASH,
+          },
+        },
+      });
+    } catch (error) {
+      console.error(
+        '[UpdateRequestsService] Error counting finished anime:',
+        error,
+      );
+      return 0;
+    }
+  }
+
+  async getTotalUpcomingAnimeCount(): Promise<number> {
+    try {
+      return await this.prisma.anilist.count({
+        where: {
+          status: 'NOT_YET_RELEASED',
+          popularity: {
+            gte: POPULARITY_THRESHOLDS.TRASH,
+          },
+          startDate: {
+            year: { gte: DateUtils.getCurrentDate().getFullYear() },
+          },
+        },
+      });
+    } catch (error) {
+      console.error(
+        '[UpdateRequestsService] Error counting upcoming anime:',
+        error,
+      );
+      return 0;
     }
   }
 }
