@@ -329,6 +329,7 @@ export const fullSelect: Prisma.AnilistSelect = {
       isMediaSpoiler: true,
       tag: {
         select: {
+          id: true,
           name: true,
           description: true,
           category: true,
@@ -340,6 +341,7 @@ export const fullSelect: Prisma.AnilistSelect = {
   },
   rankings: {
     select: {
+      id: true,
       rank: true,
       type: true,
       format: true,
@@ -351,6 +353,7 @@ export const fullSelect: Prisma.AnilistSelect = {
   },
   externalLinks: {
     select: {
+      id: true,
       url: true,
       site: true,
       siteId: true,
