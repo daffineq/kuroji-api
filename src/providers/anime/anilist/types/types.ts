@@ -279,6 +279,7 @@ export const fullSelect: Prisma.AnilistSelect = {
   synonyms: true,
   trailer: {
     select: {
+      id: true,
       site: true,
       thumbnail: true,
     },
