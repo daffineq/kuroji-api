@@ -1,13 +1,21 @@
 import { Controller, Post, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiQuery, ApiSecurity, ApiOperation } from '@nestjs/swagger';
 import { AnilistIndexerService } from './anilist-indexer.service.js';
 import { SecretKeyGuard } from '../../../../../shared/secret-key.guard.js';
 
+@ApiSecurity('x-api-key')
+@ApiTags('Indexer')
 @Controller('anime')
 export class AnilistIndexerController {
   constructor(private readonly indexer: AnilistIndexerService) {}
 
   @Post('index')
   @UseGuards(SecretKeyGuard)
+  @ApiOperation({
+    summary: 'Start the anime indexing process',
+  })
+  @ApiQuery({ name: 'delay', type: Number, required: false })
+  @ApiQuery({ name: 'range', type: Number, required: false })
   index(
     @Query('delay') delay: number = 10,
     @Query('range') range: number = 25,
@@ -23,6 +31,9 @@ export class AnilistIndexerController {
 
   @Post('index/stop')
   @UseGuards(SecretKeyGuard)
+  @ApiOperation({
+    summary: 'Stop the anime indexing process',
+  })
   stopIndex() {
     this.indexer.stop();
     return {
