@@ -20,6 +20,9 @@ RUN npx prisma generate --schema=./prisma/schema.prisma
 # Copy the rest
 COPY . .
 
+# Fix the line endings in entrypoint.sh (convert CRLF to LF in case we are running docker on windows)
+RUN sed -i 's/\r$//' ./entrypoint.sh
+
 # Make entrypoint executable
 RUN chmod +x ./entrypoint.sh
 
@@ -27,4 +30,4 @@ RUN chmod +x ./entrypoint.sh
 RUN bun run build
 
 # Start app
-CMD ["./entrypoint.sh"]
+CMD ["/bin/sh", "./entrypoint.sh"]
