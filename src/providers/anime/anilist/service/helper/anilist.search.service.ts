@@ -217,27 +217,23 @@ export class AnilistSearchService {
     );
 
     const tmdbSelect = {
-      ...select,
       id: true,
     };
 
-    const page1Promise =
-      filter.page !== 1
-        ? this.getAnilists(
-            {
-              ...filter,
-              franchise: franchiseName,
-              page: 1,
-              perPage: 20,
-              sort: [
-                MediaSort.POPULARITY_DESC,
-                MediaSort.FAVOURITES_DESC,
-                MediaSort.SCORE_DESC,
-              ],
-            },
-            tmdbSelect,
-          )
-        : null;
+    const page1Promise = this.getAnilists(
+      {
+        ...filter,
+        franchise: franchiseName,
+        page: 1,
+        perPage: 20,
+        sort: [
+          MediaSort.POPULARITY_DESC,
+          MediaSort.FAVOURITES_DESC,
+          MediaSort.SCORE_DESC,
+        ],
+      },
+      tmdbSelect,
+    );
 
     const [franchises, page1Franchises] = await Promise.all([
       mainFranchisePromise,
