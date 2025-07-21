@@ -147,7 +147,7 @@ export class AnilistController {
     @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
     @Query('page') page: number = Config.DEFAULT_PAGE,
   ) {
-    return this.search.searchAnilist(q, franchises, page, perPage);
+    return this.search.searchAnilist(q, franchises, page, perPage, basicSelect);
   }
 
   @Post('search/:q')
@@ -168,7 +168,7 @@ export class AnilistController {
 
   @Get('random')
   async getRandom(@Query() query: RandomDto) {
-    return this.random.getRandom(query);
+    return this.random.getRandom(query, basicSelect);
   }
 
   @Post('random')
@@ -184,7 +184,7 @@ export class AnilistController {
     @Param('franchise') franchise: string,
     @Query() filter: FilterDto,
   ) {
-    return this.search.getFranchise(franchise, filter);
+    return this.search.getFranchise(franchise, filter, basicSelect);
   }
 
   @Post('franchise/:franchise')
@@ -208,7 +208,7 @@ export class AnilistController {
 
   @Put('info/:id/update')
   async updateAnilist(@Param('id', ParseIntPipe) id: number) {
-    return this.service.update(id);
+    return this.service.update(id, basicSelect);
   }
 
   @Post('info/:id/update')
