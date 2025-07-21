@@ -11,7 +11,9 @@ export class UrlConfig {
   );
 
   // 🌐 API Base URLs
-  public static readonly ANILIBRIA = withTrailingSlash(Config.ANILIBRIA || '');
+  public static readonly ANILIBRIA = withTrailingSlash(
+    Config.ANILIBRIA || 'https://aniliberty.top/api/v1',
+  );
   public static readonly CONSUMET_BASE = withTrailingSlash(
     Config.CONSUMET || '',
   );
