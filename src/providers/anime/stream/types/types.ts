@@ -1,3 +1,9 @@
+import {
+  EpisodeZoro,
+  AnimepaheEpisode,
+  TmdbSeasonEpisode,
+} from '@prisma/client';
+import { AniZipEpisodeWithRelations } from '../../mappings/types/types.js';
 import { TmdbImage } from '../../tmdb/types/types.js';
 
 export enum SourceType {
@@ -52,3 +58,15 @@ export interface ProviderInfo {
   provider: Provider;
   type: SourceType;
 }
+
+export interface BestProvider<T> {
+  name: 'zoro' | 'pahe' | 'tmdb' | 'anizip';
+  count: number;
+  episodes: T[];
+}
+
+export type EpisodeUnion =
+  | EpisodeZoro
+  | AnimepaheEpisode
+  | TmdbSeasonEpisode
+  | AniZipEpisodeWithRelations;

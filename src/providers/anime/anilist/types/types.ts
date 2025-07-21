@@ -14,6 +14,7 @@ import { zoroSelect } from '../../zoro/types/types.js';
 import { animepaheSelect } from '../../animepahe/types/types.js';
 import { kitsuSelect } from '../../kitsu/types/types.js';
 import { shikimoriSelect } from '../../shikimori/types/types.js';
+import { animeKaiSelect } from '../../animekai/types/types.js';
 
 export interface MapperAnilist {
   id: number;
@@ -399,6 +400,9 @@ export const fullSelect: Prisma.AnilistSelect = {
   },
   animepahe: {
     select: animepaheSelect,
+  },
+  animekai: {
+    select: animeKaiSelect,
   },
 };
 

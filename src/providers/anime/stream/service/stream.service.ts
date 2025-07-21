@@ -1,7 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ZoroService } from '../../zoro/service/zoro.service.js';
-import { AnimekaiService } from '../../animekai/service/animekai.service.js';
-import { AnimepaheService } from '../../animepahe/service/animepahe.service.js';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
 import {
   AnimekaiEpisode,
@@ -15,9 +12,11 @@ import Config from '../../../../configs/config.js';
 import { ISource } from '@consumet/extensions';
 import {
   AvailableOn,
+  BestProvider,
   Episode,
   EpisodeDetails,
   EpisodeImage,
+  EpisodeUnion,
   Provider,
   ProviderInfo,
   SourceType,
@@ -26,7 +25,6 @@ import { undefinedToNull } from '../../../../shared/interceptor.js';
 import { getImage } from '../../tmdb/types/types.js';
 import { TmdbSeasonService } from '../../tmdb/service/tmdb.season.service.js';
 import { TmdbEpisodeService } from '../../tmdb/service/tmdb.episode.service.js';
-import { TmdbService } from '../../tmdb/service/tmdb.service.js';
 import { findEpisodeCount } from '../../anilist/utils/utils.js';
 import {
   AniZipEpisodeWithRelations,
@@ -38,15 +36,12 @@ import { zoroFetch } from '../../zoro/service/zoro.fetch.service.js';
 import { fullSelect } from '../../anilist/types/types.js';
 import { ZoroPayload } from '../../zoro/types/types.js';
 import { AnimepahePayload } from '../../animepahe/types/types.js';
+import { AnimeKaiPayload } from '../../animekai/types/types.js';
 
 @Injectable()
 export class StreamService {
   constructor(
-    private readonly aniwatch: ZoroService,
-    private readonly animekai: AnimekaiService,
-    private readonly animepahe: AnimepaheService,
     private readonly anilist: AnilistService,
-    private readonly tmdb: TmdbService,
     private readonly tmdbSeason: TmdbSeasonService,
     private readonly tmdbEpisode: TmdbEpisodeService,
     @InjectRedis() private readonly redis: Redis,
@@ -66,10 +61,7 @@ export class StreamService {
       const anilist = await this.anilist
         .getAnilist(id, fullSelect)
         .catch(() => null);
-
-      if (!anilist) {
-        throw new Error('Anilist not found');
-      }
+      if (!anilist) throw new Error('Anilist not found');
 
       const season = await this.tmdbSeason
         .getTmdbSeasonByAnilist(id)
@@ -112,7 +104,7 @@ export class StreamService {
         if (ep.episodeNumber != null) anizipMap.set(ep.episodeNumber, ep);
       });
 
-      const providerCounts = [
+      const providerCounts: BestProvider<EpisodeUnion>[] = [
         { name: 'zoro', count: episodesZoro.length, episodes: episodesZoro },
         { name: 'pahe', count: episodesPahe.length, episodes: episodesPahe },
         { name: 'tmdb', count: tmdbEpisodes.length, episodes: tmdbEpisodes },
@@ -123,7 +115,7 @@ export class StreamService {
         },
       ];
 
-      let bestProvider;
+      let bestProvider: BestProvider<EpisodeUnion>;
       if (episodeCount != null) {
         bestProvider = providerCounts.reduce((best, current) => {
           const currentDiff = Math.abs(current.count - episodeCount);
@@ -368,29 +360,14 @@ export class StreamService {
 
       const providers: ProviderInfo[] = [];
 
-      const promises: Promise<any>[] = [];
+      const anilist = await this.anilist
+        .getAnilist(id, fullSelect)
+        .catch(() => null);
+      if (!anilist) throw new Error('Anilist not found');
 
-      if (Config.ZORO_ENABLED) {
-        promises.push(this.aniwatch.getZoroByAnilist(id).catch(() => null));
-      } else {
-        promises.push(Promise.resolve(null));
-      }
-
-      if (Config.ANIMEPAHE_ENABLED) {
-        promises.push(
-          this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
-        );
-      } else {
-        promises.push(Promise.resolve(null));
-      }
-
-      if (Config.ANIMEKAI_ENABLED) {
-        promises.push(this.animekai.getAnimekaiByAnilist(id).catch(() => null));
-      } else {
-        promises.push(Promise.resolve(null));
-      }
-
-      const [zoro, pahe, kai] = await Promise.all(promises);
+      const zoro = anilist.zoro as ZoroPayload;
+      const animepahe = anilist.animepahe as AnimepahePayload;
+      const animekai = anilist.animekai as AnimeKaiPayload;
 
       const pushProvider = (
         id: string,
@@ -419,8 +396,8 @@ export class StreamService {
         }
       }
 
-      if (Config.ANIMEPAHE_ENABLED && pahe) {
-        const paheEp = pahe.episodes?.find(
+      if (Config.ANIMEPAHE_ENABLED && animepahe) {
+        const paheEp = animepahe.episodes?.find(
           (e: AnimepaheEpisode, idx: number) =>
             e.number === ep || idx + 1 === ep,
         );
@@ -429,8 +406,8 @@ export class StreamService {
         }
       }
 
-      if (Config.ANIMEKAI_ENABLED && kai) {
-        const kaiEp = kai.episodes?.find(
+      if (Config.ANIMEKAI_ENABLED && animekai) {
+        const kaiEp = animekai.episodes?.find(
           (e: AnimekaiEpisode, idx: number) =>
             e.number === ep || idx + 1 === ep,
         );
