@@ -5,6 +5,7 @@ import {
   AniZipImage,
   AniZipMapping,
   AniZipTitle,
+  Prisma,
 } from '@prisma/client';
 
 export interface AniZipWithRelations extends AniZip {
@@ -78,7 +79,65 @@ export interface IAniZipData {
   mappings: IAniZipMappings;
 }
 
-// Utility type if you need to work with individual episodes
-export type IAniZipEpisodeWithNumber = IAniZipEpisode & {
-  episodeKey: string; // The episode number as string key
+export const aniZipSelect: Prisma.AniZipSelect = {
+  id: true,
+  episodeCount: true,
+  specialCount: true,
+
+  titles: {
+    select: {
+      key: true,
+      name: true,
+    },
+  },
+  images: {
+    select: {
+      coverType: true,
+      url: true,
+    },
+  },
+  episodes: {
+    select: {
+      episodeKey: true,
+      episodeNumber: true,
+      seasonNumber: true,
+      absoluteEpisodeNumber: true,
+      airDate: true,
+      airDateUtc: true,
+      runtime: true,
+      length: true,
+      overview: true,
+      image: true,
+      rating: true,
+      episode: true,
+      anidbEid: true,
+
+      titles: {
+        select: {
+          key: true,
+          name: true,
+        },
+      },
+    },
+  },
+  mappings: {
+    select: {
+      animePlanetId: true,
+      kitsuId: true,
+      malId: true,
+      type: true,
+      anilistId: true,
+      anisearchId: true,
+      anidbId: true,
+      notifymoeId: true,
+      livechartId: true,
+      thetvdbId: true,
+      imdbId: true,
+      themoviedbId: true,
+    },
+  },
 };
+
+export type AniZipPayload = Prisma.AniZipGetPayload<{
+  select: typeof aniZipSelect;
+}>;

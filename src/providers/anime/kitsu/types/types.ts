@@ -1,15 +1,4 @@
-import {
-  Kitsu,
-  KitsuTitle,
-  KitsuPosterImage,
-  KitsuCoverImage,
-} from '@prisma/client';
-
-export interface KitsuWithRelations extends Kitsu {
-  titles: KitsuTitle;
-  posterImage: KitsuPosterImage;
-  coverImage: KitsuCoverImage;
-}
+import { Prisma } from '@prisma/client';
 
 export interface KitsuAnime {
   id: string;
@@ -99,3 +88,40 @@ export interface KitsuImageSetWithMeta {
     };
   };
 }
+
+export const kitsuSelect: Prisma.KitsuSelect = {
+  id: true,
+  anilistId: true,
+  type: true,
+  selfLink: true,
+
+  createdAt: true,
+  updatedAt: true,
+  slug: true,
+  synopsis: true,
+  coverImageTopOffset: true,
+  canonicalTitle: true,
+  abbreviatedTitles: true,
+  averageRating: true,
+  ratingFrequencies: true,
+  userCount: true,
+  favoritesCount: true,
+  startDate: true,
+  endDate: true,
+  popularityRank: true,
+  ratingRank: true,
+  ageRating: true,
+  ageRatingGuide: true,
+  subtype: true,
+  status: true,
+  tba: true,
+  episodeCount: true,
+  episodeLength: true,
+  youtubeVideoId: true,
+  showType: true,
+  nsfw: true,
+};
+
+export type KitsuPayload = Prisma.KitsuGetPayload<{
+  select: typeof kitsuSelect;
+}>;

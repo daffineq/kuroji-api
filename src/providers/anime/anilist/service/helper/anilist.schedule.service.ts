@@ -1,23 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { startOfWeek, addDays } from 'date-fns';
 import { createScheduleData } from '../../utils/anilist-helper.js';
-import { BasicAnilist, Schedule, Weekday } from '../../types/types.js';
+import { basicSelect, Schedule, Weekday } from '../../types/types.js';
 import { AnilistSearchService } from './anilist.search.service.js';
 import { FilterDto } from '../../filter/FilterDto.js';
 @Injectable()
 export class AnilistScheduleService {
   constructor(private readonly search: AnilistSearchService) {}
-
-  async getWithCurrentWeek(): Promise<BasicAnilist[]> {
-    const { start, end } = this.getWeekRangeTimestamps();
-    const response = await this.search.getAnilists(
-      new FilterDto({
-        airingAtGreater: start,
-        airingAtLesser: end,
-      }),
-    );
-    return response.data;
-  }
 
   async getSchedule(): Promise<Schedule> {
     const now = new Date();
@@ -29,9 +18,10 @@ export class AnilistScheduleService {
         airingAtGreater: start,
         airingAtLesser: end,
       }),
+      basicSelect,
     );
 
-    const releasesByDay: Partial<Record<Weekday, BasicAnilist[]>> = {};
+    const releasesByDay: Partial<Record<Weekday, any[]>> = {};
 
     for (const release of releases.data) {
       const airingAt = release.nextAiringEpisode?.airingAt;

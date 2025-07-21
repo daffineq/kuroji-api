@@ -1,5 +1,15 @@
-import { Controller, Get, Param, ParseIntPipe, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { TvdbService } from '../service/tvdb.service.js';
+import { Prisma } from '@prisma/client';
+import { tvdbSelect } from '../types/types.js';
 
 @Controller('anime')
 export class TvdbController {
@@ -7,7 +17,15 @@ export class TvdbController {
 
   @Get('info/:id/tvdb')
   async getTvdbByAnilist(@Param('id', ParseIntPipe) id: number) {
-    return this.service.getTvdbByAnilist(id);
+    return this.service.getTvdbByAnilist(id, tvdbSelect);
+  }
+
+  @Post('info/:id/tvdb')
+  async postTvdbByAnilist(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('select') select: Prisma.TvdbSelect = tvdbSelect,
+  ) {
+    return this.service.getTvdbByAnilist(id, select);
   }
 
   @Get('info/:id/artworks')
@@ -35,7 +53,14 @@ export class TvdbController {
 
   @Put('info/:id/tvdb/update')
   async updateTvdbByAnilist(@Param('id', ParseIntPipe) id: number) {
-    const data = await this.getTvdbByAnilist(id);
-    return this.service.update(data.id);
+    return this.service.update(id, tvdbSelect);
+  }
+
+  @Post('info/:id/tvdb/update')
+  async postUpdateTvdbByAnilist(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('select') select: Prisma.TvdbSelect = tvdbSelect,
+  ) {
+    return this.service.update(id, select);
   }
 }

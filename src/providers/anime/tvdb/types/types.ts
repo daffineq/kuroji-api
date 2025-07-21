@@ -5,6 +5,7 @@ import {
   TvdbRemoteId,
   TvdbTrailer,
   TvdbStatus,
+  Prisma,
 } from '@prisma/client';
 
 export interface BasicTvdb {
@@ -132,3 +133,70 @@ export interface TvdbInput {
 
   airsTime?: string;
 }
+
+export const tvdbSelect: Prisma.TvdbSelect = {
+  id: true,
+  type: true,
+  name: true,
+  slug: true,
+  image: true,
+  score: true,
+  runtime: true,
+  lastUpdated: true,
+  year: true,
+  nameTranslations: true,
+  overviewTranslations: true,
+
+  status: {
+    select: {
+      id: true,
+      name: true,
+      recordType: true,
+      keepUpdated: true,
+    },
+  },
+
+  aliases: {
+    select: {
+      id: true,
+      name: true,
+      language: true,
+    },
+  },
+
+  artworks: {
+    select: {
+      id: true,
+      height: true,
+      image: true,
+      includesText: true,
+      language: true,
+      score: true,
+      thumbnail: true,
+      type: true,
+      width: true,
+    },
+  },
+
+  remoteIds: {
+    select: {
+      id: true,
+      type: true,
+      sourceName: true,
+    },
+  },
+
+  trailers: {
+    select: {
+      id: true,
+      url: true,
+      name: true,
+      runtime: true,
+      language: true,
+    },
+  },
+};
+
+export type TvdbPayload = Prisma.TvdbGetPayload<{
+  select: typeof tvdbSelect;
+}>;

@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
-import { getAnilistFindUnique } from '../utils/anilist-helper.js';
 import { anilistFetch } from './helper/anilist.fetch.service.js';
 import { MediaType } from '../filter/Filter.js';
-import { AnilistUtilService } from './helper/anilist.util.service.js';
 import { ShikimoriService } from '../../shikimori/service/shikimori.service.js';
 import { KitsuService } from '../../kitsu/service/kitsu.service.js';
-import { AnilistWithRelations } from '../types/types.js';
 import { AnilistSaveService } from './helper/anilist.save.service.js';
 import { MappingsService } from '../../mappings/service/mappings.service.js';
 import Config from '../../../../configs/config.js';
@@ -14,13 +11,13 @@ import { AnimekaiService } from '../../animekai/service/animekai.service.js';
 import { AnimepaheService } from '../../animepahe/service/animepahe.service.js';
 import { ZoroService } from '../../zoro/service/zoro.service.js';
 import { FullMediaResponse } from '../types/response.js';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AnilistService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mappings: MappingsService,
-    private readonly util: AnilistUtilService,
     private readonly save: AnilistSaveService,
     private readonly zoro: ZoroService,
     private readonly animekai: AnimekaiService,
@@ -29,39 +26,35 @@ export class AnilistService {
     private readonly kitsu: KitsuService,
   ) {}
 
-  async getAnilist(
+  async getAnilist<T extends Prisma.AnilistSelect>(
     id: number,
-    isMal: boolean = false,
-  ): Promise<AnilistWithRelations> {
-    let existingAnilist = await this.prisma.anilist.findUnique(
-      getAnilistFindUnique(id),
-    );
+    select?: T,
+  ): Promise<Prisma.AnilistGetPayload<{ select: T }>> {
+    const existingAnilist = await this.prisma.anilist.findUnique({
+      where: { id },
+      select,
+    });
 
     if (existingAnilist) {
-      return await this.util.adjustAnilist(existingAnilist);
+      return existingAnilist as Prisma.AnilistGetPayload<{ select: T }>;
     }
 
-    const data = await anilistFetch.fetchAnilistFromGraphQL(id, isMal);
-
+    const data = await anilistFetch.fetchAnilistFromGraphQL(id);
     const anilist = data.Page.media[0];
 
     const type = anilist.type as MediaType;
-    if (type == MediaType.MANGA) {
-      throw new Error('Nuh uh, no mangas here');
-    }
+    if (type == MediaType.MANGA) throw new Error('Nuh uh, no mangas here');
 
-    existingAnilist = await this.saveAnilist(anilist);
-    return await this.util.adjustAnilist(existingAnilist);
+    return await this.saveAnilist(anilist, select);
   }
 
-  async saveAnilist(
+  async saveAnilist<T extends Prisma.AnilistSelect>(
     anilist?: FullMediaResponse,
-  ): Promise<AnilistWithRelations> {
-    if (!anilist) {
-      throw new Error('No media found');
-    }
+    select?: T,
+  ): Promise<Prisma.AnilistGetPayload<{ select: T }>> {
+    if (!anilist) throw new Error('No media found');
 
-    await this.save.saveAnilist(anilist);
+    await this.save.saveAnilist(anilist, select);
 
     await this.mappings
       .getMapping(anilist.id)
@@ -113,24 +106,22 @@ export class AnilistService {
       }),
     );
 
-    return (await this.prisma.anilist.findUnique(
-      getAnilistFindUnique(anilist.id),
-    )) as AnilistWithRelations;
+    return (await this.prisma.anilist.findUnique({
+      where: { id: anilist.id },
+      select,
+    })) as Prisma.AnilistGetPayload<{ select: T }>;
   }
 
-  async update(id: number): Promise<void> {
+  async update<T extends Prisma.AnilistSelect>(
+    id: number,
+    select?: T,
+  ): Promise<Prisma.AnilistGetPayload<{ select: T }>> {
     const data = await anilistFetch.fetchAnilistFromGraphQL(id);
-
-    if (!data) {
-      throw new Error('No data');
-    }
+    if (!data) throw new Error('No data');
 
     const anilist = data.Page?.media[0];
+    if (!anilist) throw new Error('No media found');
 
-    if (!anilist) {
-      throw new Error('No media found');
-    }
-
-    await this.saveAnilist(anilist);
+    return await this.saveAnilist(anilist, select);
   }
 }

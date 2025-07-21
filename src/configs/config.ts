@@ -18,6 +18,7 @@ export default class Config {
     (process.env.ZORO_ENABLED ?? 'true') === 'true';
 
   public static readonly ANILIST = process.env.ANILIST;
+  public static readonly ANILIBRIA = process.env.ANILIBRIA;
   public static readonly SHIKIMORI = process.env.SHIKIMORI;
   public static readonly CONSUMET = process.env.CONSUMET;
   public static readonly ANIWATCH = process.env.ANIWATCH;

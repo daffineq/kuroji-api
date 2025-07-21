@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { BasicIdAni, AnilistCharacter } from '@prisma/client';
-import { ApiResponse } from '../../../../../shared/ApiResponse.js';
+import { BasicIdAni, AnilistCharacter, Prisma } from '@prisma/client';
 import { FilterDto } from '../../filter/FilterDto.js';
 import { PrismaService } from '../../../../../prisma.service.js';
 import { ShikimoriService } from '../../../shikimori/service/shikimori.service.js';
 import { AnilistSearchService } from './anilist.search.service.js';
-import { BasicAnilist, AnilistWithRelations } from '../../types/types.js';
+import { ApiResponse } from '../../../../../shared/ApiResponse.js';
 
 @Injectable()
 export class AnilistAddService {
@@ -15,29 +14,40 @@ export class AnilistAddService {
     private readonly shikimori: ShikimoriService,
   ) {}
 
-  async getChronology(
+  async getChronology<T extends Prisma.AnilistSelect>(
     id: number,
     filter: FilterDto,
-  ): Promise<ApiResponse<BasicAnilist[]>> {
-    const existingAnilist = (await this.prisma.anilist.findUnique({
+    select?: T,
+  ): Promise<ApiResponse<Prisma.AnilistGetPayload<{ select: T }>[]>> {
+    const existingAnilist = await this.prisma.anilist.findUnique({
       where: { id },
-    })) as AnilistWithRelations;
+      select: {
+        idMal: true,
+      },
+    });
+
+    if (!existingAnilist) throw new Error('Anilist not found');
 
     const chronologyRaw = await this.shikimori.getChronology(
       String(existingAnilist.idMal),
     );
     const chronologyIds = chronologyRaw.map((c) => Number(c.malId));
     filter.idMalIn = [...(filter.idMalIn ?? []), ...chronologyIds];
-    return await this.search.getAnilists(filter);
+
+    return await this.search.getAnilists(filter, select);
   }
 
-  async getRecommendations(
+  async getRecommendations<T extends Prisma.AnilistSelect>(
     id: number,
     filter: FilterDto,
-  ): Promise<ApiResponse<BasicAnilist[]>> {
+    select?: T,
+  ): Promise<ApiResponse<Prisma.AnilistGetPayload<{ select: T }>[]>> {
     const existingAnilist = (await this.prisma.anilist.findUnique({
       where: { id },
-      include: { recommendations: true },
+      select: {
+        id: true,
+        recommendations: true,
+      },
     })) as {
       id: number;
       recommendations: BasicIdAni[];
@@ -47,7 +57,8 @@ export class AnilistAddService {
       Number(r.id),
     );
     filter.idIn = [...(filter.idIn ?? []), ...recommendationIds];
-    return await this.search.getAnilists(filter);
+
+    return await this.search.getAnilists(filter, select);
   }
 
   async getCharacters(id: number): Promise<AnilistCharacter[]> {

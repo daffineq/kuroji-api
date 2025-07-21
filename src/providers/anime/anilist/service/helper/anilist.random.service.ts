@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../../prisma.service.js';
 import { AnilistService } from '../anilist.service.js';
-import {
-  AnilistWithRelations,
-  RandomDto,
-  RandomType,
-} from '../../types/types.js';
+import { RandomDto, RandomType } from '../../types/types.js';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AnilistRandomService {
@@ -14,7 +11,10 @@ export class AnilistRandomService {
     private readonly anilist: AnilistService,
   ) {}
 
-  async getRandom(params: RandomDto): Promise<AnilistWithRelations> {
+  async getRandom<T extends Prisma.AnilistSelect>(
+    params: RandomDto,
+    select?: T,
+  ): Promise<Prisma.AnilistGetPayload<{ select: T }>> {
     const {
       type = RandomType.ANY,
       genre,
@@ -85,10 +85,9 @@ export class AnilistRandomService {
         Object.keys(orderByClause).length > 0 ? orderByClause : undefined,
     });
 
-    if (!data) {
+    if (!data)
       throw new Error('Could not retrieve an anime matching your criteria.');
-    }
 
-    return await this.anilist.getAnilist(data.id);
+    return await this.anilist.getAnilist(data.id, select);
   }
 }

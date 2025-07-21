@@ -3,19 +3,19 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
 import { TmdbService } from './tmdb.service.js';
-import { DateDetails, TmdbSeasonEpisode } from '@prisma/client';
+import { DateDetails, Prisma, TmdbSeasonEpisode } from '@prisma/client';
 import {
   findEpisodeCount,
   getDateStringFromAnilist,
 } from '../../anilist/utils/utils.js';
 import { TmdbSeasonWithRelations } from '../types/types.js';
-import { AnilistWithRelations } from '../../anilist/types/types.js';
 import { MediaFormat } from '@consumet/extensions';
-import { ZoroWithRelations } from '../../zoro/types/types.js';
-import { AnimepaheWithRelations } from '../../animepahe/types/types.js';
+import { ZoroPayload } from '../../zoro/types/types.js';
+import { AnimepahePayload } from '../../animepahe/types/types.js';
 import { ZoroService } from '../../zoro/service/zoro.service.js';
 import { AnimepaheService } from '../../animepahe/service/animepahe.service.js';
 import { tmdbFetch } from './tmdb.fetch.service.js';
+import { MapperAnilist, mappingSelect } from '../../anilist/types/types.js';
 
 interface EpisodeMatchCandidate {
   episode: TmdbSeasonEpisode;
@@ -58,7 +58,7 @@ export class TmdbSeasonService {
   ) {}
 
   async getTmdbSeasonByAnilist(id: number): Promise<TmdbSeasonWithRelations> {
-    const anilist = await this.anilist.getAnilist(id);
+    const anilist = await this.anilist.getAnilist(id, mappingSelect);
 
     if (!anilist) {
       throw new Error(`Anilist not found`);
@@ -78,12 +78,7 @@ export class TmdbSeasonService {
       throw new Error(`Nuh uh, ${anilist.format} cant have tmdb episodes`);
     }
 
-    const [zoro, animepahe] = await Promise.all([
-      this.zoro.getZoroByAnilist(id).catch(() => null),
-      this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
-    ]);
-
-    const tmdb = await this.tmdb.findTmdb(id);
+    const tmdb = await this.tmdb.getTmdbByAnilist(id);
 
     if (!tmdb.seasons || tmdb.seasons.length === 0) {
       throw new Error(`No seasons found for TMDb ID: ${tmdb.id}`);
@@ -92,6 +87,9 @@ export class TmdbSeasonService {
     const allEpisodes = await this.getAllTmdbEpisodes(tmdb.id);
     const mainEpisodes = this.filterMainEpisodes(allEpisodes);
     const seasonGroups = this.groupEpisodesBySeasons(mainEpisodes);
+
+    const zoro = anilist.zoro as ZoroPayload;
+    const animepahe = anilist.animepahe as AnimepahePayload;
 
     const matchResult = await this.findBestEpisodeSequence(
       anilist,
@@ -215,9 +213,9 @@ export class TmdbSeasonService {
   }
 
   private async findBestEpisodeSequence(
-    anilist: AnilistWithRelations,
-    zoro: ZoroWithRelations | null,
-    animepahe: AnimepaheWithRelations | null,
+    anilist: MapperAnilist,
+    zoro: ZoroPayload | null,
+    animepahe: AnimepahePayload | null,
     allEpisodes: TmdbSeasonEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
   ): Promise<MatchResult> {
@@ -305,7 +303,7 @@ export class TmdbSeasonService {
   }
 
   private async matchByDateRange(
-    anilist: AnilistWithRelations,
+    anilist: MapperAnilist,
     allEpisodes: TmdbSeasonEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
   ): Promise<MatchResult> {
@@ -358,7 +356,7 @@ export class TmdbSeasonService {
   }
 
   private async matchByEpisodeCount(
-    anilist: AnilistWithRelations,
+    anilist: MapperAnilist,
     allEpisodes: TmdbSeasonEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
   ): Promise<MatchResult> {
@@ -419,7 +417,7 @@ export class TmdbSeasonService {
   }
 
   private async matchBySeasonYear(
-    anilist: AnilistWithRelations,
+    anilist: MapperAnilist,
     allEpisodes: TmdbSeasonEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
   ): Promise<MatchResult> {
@@ -500,7 +498,7 @@ export class TmdbSeasonService {
   }
 
   private async matchByAiringSchedule(
-    anilist: AnilistWithRelations,
+    anilist: MapperAnilist,
     allEpisodes: TmdbSeasonEpisode[],
   ): Promise<MatchResult> {
     const strategy = MatchStrategy.AIRING_SCHEDULE;
@@ -561,8 +559,8 @@ export class TmdbSeasonService {
   }
 
   private async matchByZoro(
-    anilist: AnilistWithRelations,
-    zoro: ZoroWithRelations | null,
+    anilist: MapperAnilist,
+    zoro: ZoroPayload | null,
     allEpisodes: TmdbSeasonEpisode[],
   ): Promise<MatchResult> {
     const strategy = MatchStrategy.ZORO;
@@ -621,8 +619,8 @@ export class TmdbSeasonService {
   }
 
   private async matchByAnimepahe(
-    anilist: AnilistWithRelations,
-    animepahe: AnimepaheWithRelations | null,
+    anilist: MapperAnilist,
+    animepahe: AnimepahePayload | null,
     allEpisodes: TmdbSeasonEpisode[],
   ): Promise<MatchResult> {
     const strategy = MatchStrategy.ANIMEPAHE;

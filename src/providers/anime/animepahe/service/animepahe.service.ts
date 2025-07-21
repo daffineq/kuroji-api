@@ -1,84 +1,72 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
-import { IAnimeInfo, ISource } from '@consumet/extensions';
-import { UrlConfig } from '../../../../configs/url.config.js';
-import { AnimepaheWithRelations } from '../types/types.js';
-import { Client } from '../../../model/client.js';
+import { IAnimeInfo } from '@consumet/extensions';
 import { getAnimePaheData } from '../utils/animepahe-helper.js';
 import { findEpisodeCount } from '../../anilist/utils/utils.js';
 import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.service.js';
 import { animepaheFetch } from './animepahe.fetch.service.js';
+import { deepCleanTitle } from '../../../mapper/mapper.cleaning.js';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class AnimepaheService extends Client {
+export class AnimepaheService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly anilist: AnilistUtilService,
-  ) {
-    super(UrlConfig.ANIMEPAHE);
-  }
+  ) {}
 
-  async getAnimepaheByAnilist(id: number): Promise<AnimepaheWithRelations> {
+  async getAnimepaheByAnilist<T extends Prisma.AnimepaheSelect>(
+    id: number,
+    select?: T,
+  ): Promise<Prisma.AnimepaheGetPayload<{ select: T }>> {
     const existingAnimepahe = await this.prisma.animepahe.findFirst({
       where: { alId: id },
-      include: {
-        externalLinks: true,
-        episodes: true,
-      },
+      select,
     });
 
     if (existingAnimepahe) {
-      return existingAnimepahe;
+      return existingAnimepahe as Prisma.AnimepaheGetPayload<{ select: T }>;
     }
 
     const animepahe = await this.findAnimepahe(id);
-    return this.saveAnimepahe(animepahe);
+    return this.saveAnimepahe(animepahe, select);
   }
 
-  async saveAnimepahe(animepahe: IAnimeInfo): Promise<AnimepaheWithRelations> {
-    return await this.prisma.animepahe.upsert({
+  async saveAnimepahe<T extends Prisma.AnimepaheSelect>(
+    animepahe: IAnimeInfo,
+    select?: T,
+  ): Promise<Prisma.AnimepaheGetPayload<{ select: T }>> {
+    return (await this.prisma.animepahe.upsert({
       where: { id: animepahe.id },
       update: getAnimePaheData(animepahe),
       create: getAnimePaheData(animepahe),
-      include: {
-        externalLinks: true,
-        episodes: true,
-      },
-    });
+      select,
+    })) as Prisma.AnimepaheGetPayload<{ select: T }>;
   }
 
-  async update(
+  async update<T extends Prisma.AnimepaheSelect>(
     id: number,
     force: boolean = false,
-  ): Promise<AnimepaheWithRelations> {
+    select?: T,
+  ): Promise<Prisma.AnimepaheGetPayload<{ select: T }>> {
     if (force) {
       const animepahe = await this.findAnimepahe(id);
-
-      if (!animepahe) {
-        throw new Error('Animepahe not found');
-      }
+      if (!animepahe) throw new Error('Animepahe not found');
 
       animepahe.alId = id;
 
-      return await this.saveAnimepahe(animepahe);
+      return await this.saveAnimepahe(animepahe, select);
     }
 
     const existingAnimepahe = await this.getAnimepaheByAnilist(id);
-
-    if (!existingAnimepahe) {
-      throw new Error('No animepahe');
-    }
+    if (!existingAnimepahe) throw new Error('No animepahe');
 
     const animepahe = await animepaheFetch.fetchAnimepahe(existingAnimepahe.id);
+    if (!animepahe) throw new Error('Animepahe not found');
 
-    if (!animepahe) {
-      throw new Error('Animepahe not found');
-    }
-
-    if (existingAnimepahe.episodes.length === animepahe.episodes?.length) {
+    if (existingAnimepahe.episodes.length === animepahe.episodes?.length)
       throw new Error('Nothing to update');
-    }
 
     animepahe.alId = id;
 
@@ -87,17 +75,14 @@ export class AnimepaheService extends Client {
 
   async findAnimepahe(id: number): Promise<IAnimeInfo> {
     const anilist = await this.anilist.getMappingAnilist(id);
-
-    if (!anilist) {
-      throw new Error('Anilist not found');
-    }
+    if (!anilist) throw new Error('Anilist not found');
 
     const searchResult = await animepaheFetch.searchAnimepahe(
-      (anilist.title as { romaji: string }).romaji,
+      deepCleanTitle(anilist.title?.romaji ?? ''),
     );
 
     const results = searchResult.results.map((result) => ({
-      title: result.title,
+      titles: [result.title as string],
       id: result.id,
       type: result.type,
       year:
@@ -107,14 +92,12 @@ export class AnimepaheService extends Client {
     }));
 
     const searchCriteria: ExpectAnime = {
-      title: {
-        romaji: anilist.title?.romaji || undefined,
-        english:
-          anilist.shikimori?.english || anilist.title?.english || undefined,
-        native:
-          anilist.shikimori?.japanese || anilist.title?.native || undefined,
-      },
-      synonyms: anilist.synonyms,
+      titles: [
+        anilist.title?.romaji,
+        anilist.title?.english,
+        anilist.title?.native,
+        ...anilist.synonyms,
+      ],
       year: anilist.seasonYear ?? undefined,
       type: anilist.format ?? undefined,
       episodes: findEpisodeCount(anilist),

@@ -7,22 +7,19 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { AnilistService } from '../service/anilist.service.js';
-import { AnilistIndexerService } from '../service/anilist-indexer/anilist-indexer.service.js';
 import { StreamService } from '../../stream/service/stream.service.js';
 import { FilterDto } from '../filter/FilterDto.js';
 import { AnilistAddService } from '../service/helper/anilist.add.service.js';
 import { AnilistScheduleService } from '../service/helper/anilist.schedule.service.js';
 import { AnilistSearchService } from '../service/helper/anilist.search.service.js';
-import { UpdateService } from '../../../update/update.service.js';
 import { Provider } from '../../stream/types/types.js';
 import Config from '../../../../configs/config.js';
 import { AnilistRandomService } from '../service/helper/anilist.random.service.js';
-import { RandomDto } from '../types/types.js';
-import { SecretKeyGuard } from '../../../../shared/secret-key.guard.js';
+import { basicSelect, fullSelect, RandomDto } from '../types/types.js';
 import { TagFilterDto } from '../filter/TagFilterDto.js';
+import { Prisma } from '@prisma/client';
 
 @Controller('anime')
 export class AnilistController {
@@ -32,14 +29,20 @@ export class AnilistController {
     private readonly search: AnilistSearchService,
     private readonly schedule: AnilistScheduleService,
     private readonly stream: StreamService,
-    private readonly indexer: AnilistIndexerService,
     private readonly random: AnilistRandomService,
-    private readonly update: UpdateService,
   ) {}
 
   @Get('info/:id')
   async getAnilist(@Param('id', ParseIntPipe) id: number) {
-    return this.service.getAnilist(id);
+    return this.service.getAnilist(id, fullSelect);
+  }
+
+  @Post('info/:id')
+  async postAnilist(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('select') select: Prisma.AnilistSelect = basicSelect,
+  ) {
+    return this.service.getAnilist(id, select);
   }
 
   @Get('info/:id/recommendations')
@@ -47,7 +50,16 @@ export class AnilistController {
     @Param('id', ParseIntPipe) id: number,
     @Query() filter: FilterDto,
   ) {
-    return this.add.getRecommendations(id, filter);
+    return this.add.getRecommendations(id, filter, basicSelect);
+  }
+
+  @Post('info/:id/recommendations')
+  async postRecommendations(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() filter: FilterDto,
+    @Body('select') select: Prisma.AnilistSelect = basicSelect,
+  ) {
+    return this.add.getRecommendations(id, filter, select);
   }
 
   @Get('info/:id/characters')
@@ -60,7 +72,16 @@ export class AnilistController {
     @Param('id', ParseIntPipe) id: number,
     @Query() filter: FilterDto,
   ) {
-    return this.add.getChronology(id, filter);
+    return this.add.getChronology(id, filter, basicSelect);
+  }
+
+  @Post('info/:id/chronology')
+  async postChronology(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() filter: FilterDto,
+    @Body('select') select: Prisma.AnilistSelect = basicSelect,
+  ) {
+    return this.add.getChronology(id, filter, select);
   }
 
   @Get('info/:id/episodes')
@@ -100,12 +121,23 @@ export class AnilistController {
 
   @Get('filter')
   async filterAnilist(@Query() filter: FilterDto) {
-    return this.search.getAnilists(filter);
+    return this.search.getAnilists(filter, basicSelect);
+  }
+
+  @Post('filter')
+  async postFilterAnilist(
+    @Query() filter: FilterDto,
+    @Body('select') select: Prisma.AnilistSelect = basicSelect,
+  ) {
+    return this.search.getAnilists(filter, select);
   }
 
   @Post('filter/batch')
-  async getBatch(@Body() filters: Record<string, any>): Promise<any> {
-    return this.search.getAnilistsBatched(filters);
+  async getBatch(
+    @Body('filters') filters: Record<string, any>,
+    @Body('select') select: Prisma.AnilistSelect = basicSelect,
+  ): Promise<any> {
+    return this.search.getAnilistsBatched(filters, select);
   }
 
   @Get('search/:q')
@@ -118,6 +150,17 @@ export class AnilistController {
     return this.search.searchAnilist(q, franchises, page, perPage);
   }
 
+  @Post('search/:q')
+  async postSearchAnilist(
+    @Param('q') q: string,
+    @Query('franchises') franchises: number = 3,
+    @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
+    @Query('page') page: number = Config.DEFAULT_PAGE,
+    @Body('select') select: Prisma.AnilistSelect,
+  ) {
+    return this.search.searchAnilist(q, franchises, page, perPage, select);
+  }
+
   @Get('schedule')
   async getSchedule() {
     return this.schedule.getSchedule();
@@ -128,12 +171,29 @@ export class AnilistController {
     return this.random.getRandom(query);
   }
 
+  @Post('random')
+  async postRandom(
+    @Query() query: RandomDto,
+    @Body('select') select: Prisma.AnilistSelect = basicSelect,
+  ) {
+    return this.random.getRandom(query, select);
+  }
+
   @Get('franchise/:franchise')
   async getFranchise(
     @Param('franchise') franchise: string,
     @Query() filter: FilterDto,
   ) {
     return this.search.getFranchise(franchise, filter);
+  }
+
+  @Post('franchise/:franchise')
+  async postFranchise(
+    @Param('franchise') franchise: string,
+    @Query() filter: FilterDto,
+    @Body('select') select: Prisma.AnilistSelect = basicSelect,
+  ) {
+    return this.search.getFranchise(franchise, filter, select);
   }
 
   @Get('genres')
@@ -151,63 +211,11 @@ export class AnilistController {
     return this.service.update(id);
   }
 
-  @Put('update/recent')
-  @UseGuards(SecretKeyGuard)
-  updateRecent() {
-    this.update
-      .queueRecentAnime()
-      .catch((err) => console.error('Recent update failed:', err)); // just in case it blows up
-
-    return {
-      status: 'Recent update started',
-    };
-  }
-
-  @Put('update/today')
-  @UseGuards(SecretKeyGuard)
-  updateToday() {
-    this.update
-      .queueTodayAnime()
-      .catch((err) => console.error('Today update failed:', err)); // just in case it blows up
-
-    return {
-      status: 'Today update started',
-    };
-  }
-
-  @Put('update/week')
-  @UseGuards(SecretKeyGuard)
-  updateWeek() {
-    this.update
-      .queueWeekAgoAnime()
-      .catch((err) => console.error('Week update failed:', err)); // just in case it blows up
-
-    return {
-      status: 'Week update started',
-    };
-  }
-
-  @Post('index')
-  @UseGuards(SecretKeyGuard)
-  index(
-    @Query('delay') delay: number = 10,
-    @Query('range') range: number = 25,
+  @Post('info/:id/update')
+  async postUpdateAnilist(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('select') select: Prisma.AnilistSelect = basicSelect,
   ) {
-    this.indexer
-      .index(delay, range)
-      .catch((err) => console.error('Indexer failed:', err)); // just in case it blows up
-
-    return {
-      status: 'Indexing started',
-    };
-  }
-
-  @Post('index/stop')
-  @UseGuards(SecretKeyGuard)
-  stopIndex() {
-    this.indexer.stop();
-    return {
-      status: 'Indexing stopped',
-    };
+    return this.service.update(id, select);
   }
 }

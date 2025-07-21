@@ -58,6 +58,19 @@ export function hashFilter(filter: FilterDto): string {
   return crypto.createHash('sha1').update(base).digest('hex');
 }
 
+export function hashSelect(select: any) {
+  const entries = Object.entries(select)
+    .filter(([_, value]) => value !== undefined)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => {
+      const val = Array.isArray(value) ? value.join(',') : value;
+      return `${key}=${val}`;
+    });
+
+  const base = entries.join(';');
+  return crypto.createHash('sha1').update(base).digest('hex');
+}
+
 export const TransformToArray = () =>
   Transform(({ value }: { value: unknown }) => {
     if (Array.isArray(value)) return value as string[];

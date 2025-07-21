@@ -88,7 +88,7 @@ export class UpdateService {
         type: UpdateType.SHIKIMORI,
       },
       {
-        update: (id: any) => this.tmdbService.updateByAnilist(Number(id)),
+        update: (id: any) => this.tmdbService.update(Number(id)),
         type: UpdateType.TMDB,
       },
       {
@@ -96,7 +96,7 @@ export class UpdateService {
         type: UpdateType.TVDB,
       },
       {
-        update: (id: any) => this.kitsuService.updateByAnilist(Number(id)),
+        update: (id: any) => this.kitsuService.update(Number(id)),
         type: UpdateType.KITSU,
       },
       {

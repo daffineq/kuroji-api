@@ -28,10 +28,16 @@ import { TmdbSeasonService } from '../../tmdb/service/tmdb.season.service.js';
 import { TmdbEpisodeService } from '../../tmdb/service/tmdb.episode.service.js';
 import { TmdbService } from '../../tmdb/service/tmdb.service.js';
 import { findEpisodeCount } from '../../anilist/utils/utils.js';
-import { AniZipEpisodeWithRelations } from '../../mappings/types/types.js';
+import {
+  AniZipEpisodeWithRelations,
+  AniZipPayload,
+} from '../../mappings/types/types.js';
 import { animepaheFetch } from '../../animepahe/service/animepahe.fetch.service.js';
 import { animekaiFetch } from '../../animekai/service/animekai.fetch.service.js';
 import { zoroFetch } from '../../zoro/service/zoro.fetch.service.js';
+import { fullSelect } from '../../anilist/types/types.js';
+import { ZoroPayload } from '../../zoro/types/types.js';
+import { AnimepahePayload } from '../../animepahe/types/types.js';
 
 @Injectable()
 export class StreamService {
@@ -57,26 +63,30 @@ export class StreamService {
         }
       }
 
-      const anilist = await this.anilist.getAnilist(id).catch(() => null);
+      const anilist = await this.anilist
+        .getAnilist(id, fullSelect)
+        .catch(() => null);
 
       if (!anilist) {
         throw new Error('Anilist not found');
       }
 
-      const [season, aniwatch, animepahe] = await Promise.all([
-        this.tmdbSeason.getTmdbSeasonByAnilist(id).catch(() => null),
-        this.aniwatch.getZoroByAnilist(id).catch(() => null),
-        this.animepahe.getAnimepaheByAnilist(id).catch(() => null),
-      ]);
+      const season = await this.tmdbSeason
+        .getTmdbSeasonByAnilist(id)
+        .catch(() => null);
 
-      const episodesZoro = (aniwatch?.episodes || []).sort(
+      const zoro = anilist.zoro as ZoroPayload;
+      const animepahe = anilist.animepahe as AnimepahePayload;
+      const anizip = anilist.anizip as AniZipPayload;
+
+      const episodesZoro = (zoro?.episodes || []).sort(
         (a, b) => (a.number || 0) - (b.number || 0),
       );
       const episodesPahe = animepahe?.episodes || [];
       const tmdbEpisodes = (season?.episodes || []).sort(
         (a, b) => (a.episode_number || 0) - (b.episode_number || 0),
       );
-      const anizipEpisodes = (anilist?.anizip?.episodes || []).sort(
+      const anizipEpisodes = (anizip?.episodes || []).sort(
         (a, b) => (a.episodeNumber || 0) - (b.episodeNumber || 0),
       );
 

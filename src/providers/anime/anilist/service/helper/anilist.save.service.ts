@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { AnilistWithRelations } from '../../types/types.js';
-import {
-  AnilistHelper,
-  getAnilistInclude,
-} from '../../utils/anilist-helper.js';
+import { AnilistHelper } from '../../utils/anilist-helper.js';
 import { PrismaService } from '../../../../../prisma.service.js';
 import { FullMediaResponse } from '../../types/response.js';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AnilistSaveService {
@@ -14,18 +11,17 @@ export class AnilistSaveService {
     private readonly helper: AnilistHelper,
   ) {}
 
-  async saveAnilist(
+  async saveAnilist<T extends Prisma.AnilistSelect>(
     anilist?: FullMediaResponse,
-  ): Promise<AnilistWithRelations> {
-    if (!anilist) {
-      throw new Error('No media found');
-    }
+    select?: T,
+  ): Promise<Prisma.AnilistGetPayload<{ select: T }>> {
+    if (!anilist) throw new Error('No media found');
 
     return (await this.prisma.anilist.upsert({
       where: { id: anilist.id },
       create: await this.helper.getDataForPrisma(anilist),
       update: await this.helper.getDataForPrisma(anilist),
-      include: getAnilistInclude(),
-    })) as unknown as AnilistWithRelations;
+      select,
+    })) as Prisma.AnilistGetPayload<{ select: T }>;
   }
 }

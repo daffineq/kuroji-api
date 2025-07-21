@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Anilist, AnilistTag } from '@prisma/client';
+import { AnilistTag, Prisma } from '@prisma/client';
 import { ApiResponse } from '../../../../../shared/ApiResponse.js';
 import { FilterDto } from '../../filter/FilterDto.js';
 import { PrismaService } from '../../../../../prisma.service.js';
-import { getAnilistInclude } from '../../utils/anilist-helper.js';
 import { firstUpperList, getPageInfo } from '../../../../../utils/utils.js';
 import { Language, MediaSort } from '../../filter/Filter.js';
 import { NestedSort, SortDirection } from '../../types/types.js';
@@ -13,7 +12,10 @@ import { TagFilterDto } from '../../filter/TagFilterDto.js';
 export class AnilistFilterService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAnilistByFilter(filter: FilterDto): Promise<ApiResponse<Anilist[]>> {
+  async getAnilistByFilter<T extends Prisma.AnilistSelect>(
+    filter: FilterDto,
+    select?: T,
+  ): Promise<ApiResponse<Prisma.AnilistGetPayload<{ select: T }>[]>> {
     const conditions: any[] = [];
 
     // ========== Basic Filters ==========
@@ -416,7 +418,7 @@ export class AnilistFilterService {
     const [data, total] = await Promise.all([
       this.prisma.anilist.findMany({
         where: whereCondition,
-        include: getAnilistInclude(),
+        select,
         take: perPage,
         skip,
         orderBy,
@@ -427,7 +429,10 @@ export class AnilistFilterService {
     // ========== Pagination Info ==========
     const pageInfo = getPageInfo(total, perPage, currentPage);
 
-    return { pageInfo, data };
+    return {
+      pageInfo,
+      data: data as Prisma.AnilistGetPayload<{ select: T }>[],
+    };
   }
 
   async getAnilistTagByFilter(

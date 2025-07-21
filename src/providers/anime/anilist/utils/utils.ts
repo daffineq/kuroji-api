@@ -1,12 +1,12 @@
-import { AnilistAiringSchedule, DateDetails } from '@prisma/client';
-import { AnilistWithRelations, BasicAnilist } from '../types/types.js';
-import { convertAnilistToBasic } from './anilist-helper.js';
+import { AnilistAiringSchedule, DateDetails, Prisma } from '@prisma/client';
+import { basicSelect } from '../types/types.js';
 import { MediaStatus } from '../filter/Filter.js';
 import { DateUtils } from '../../../../shared/date.utils.js';
-
-export function mapToBasic(data: AnilistWithRelations[]): BasicAnilist[] {
-  return data.map((anilist) => convertAnilistToBasic(anilist));
-}
+import {
+  createParamDecorator,
+  ExecutionContext,
+  BadRequestException,
+} from '@nestjs/common';
 
 export function findNextAiringInSchedule(
   data: AnilistAiringSchedule[] | null,

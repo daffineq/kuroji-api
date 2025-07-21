@@ -131,29 +131,3 @@ export function shikimoriToBasicId(shikimori: Shikimori): BasicIdShik {
     malId: String(shikimori.malId),
   };
 }
-
-export function getShikimoriInclude(): Prisma.ShikimoriInclude {
-  const include = {
-    poster: {
-      omit: {
-        shikimoriId: true,
-      },
-    },
-    airedOn: {
-      omit: {
-        id: true,
-        shikimoriId: true,
-      },
-    },
-    releasedOn: {
-      omit: {
-        id: true,
-        shikimoriId: true,
-      },
-    },
-    videos: true,
-    screenshots: true,
-  };
-
-  return include;
-}

@@ -1,25 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { FilterDto } from '../../filter/FilterDto.js';
 import { AnilistFilterService } from './anilist.filter.service.js';
-import { ApiResponse } from '../../../../../shared/ApiResponse.js';
 import {
-  BasicAnilist,
   Franchise,
   FranchiseResponse,
-  SearcnResponse,
+  SearchResponse,
 } from '../../types/types.js';
-import { convertAnilistToBasic } from '../../utils/anilist-helper.js';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
 import { MediaSort } from '../../filter/Filter.js';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Redis } from 'ioredis';
-import { hashFilter, hashFilters } from '../../../../../utils/utils.js';
+import {
+  hashFilter,
+  hashFilters,
+  hashSelect,
+} from '../../../../../utils/utils.js';
 import Config from '../../../../../configs/config.js';
 import { undefinedToNull } from '../../../../../shared/interceptor.js';
-import { TagFilterDto } from '../../filter/TagFilterDto.js';
 import { getImage } from '../../../tmdb/types/types.js';
 import { TmdbService } from '../../../tmdb/service/tmdb.service.js';
+import { Prisma } from '@prisma/client';
+import { ApiResponse } from '../../../../../shared/ApiResponse.js';
+import { TagFilterDto } from '../../filter/TagFilterDto.js';
 
 @Injectable()
 export class AnilistSearchService {
@@ -29,29 +32,27 @@ export class AnilistSearchService {
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
-  async getAnilists(filter: FilterDto): Promise<ApiResponse<BasicAnilist[]>> {
-    const response = await this.filter.getAnilistByFilter(filter);
-
-    const basicAnilist = response.data.map((anilist) =>
-      convertAnilistToBasic(anilist),
-    );
-
-    return { pageInfo: response.pageInfo, data: basicAnilist } as ApiResponse<
-      BasicAnilist[]
-    >;
+  async getAnilists<T extends Prisma.AnilistSelect>(
+    filter: FilterDto,
+    select?: T,
+  ): Promise<ApiResponse<Prisma.AnilistGetPayload<{ select: T }>[]>> {
+    return await this.filter.getAnilistByFilter(filter, select);
   }
 
-  async getAnilistsBatched(
+  async getAnilistsBatched<T extends Prisma.AnilistSelect>(
     filters: Record<string, any>,
-  ): Promise<Record<string, ApiResponse<BasicAnilist[]>>> {
-    const key = `filter:batched:${hashFilters(filters)}`;
+    select?: T,
+  ): Promise<
+    Record<string, ApiResponse<Prisma.AnilistGetPayload<{ select: T }>[]>>
+  > {
+    const key = `filter:batched:${hashFilters(filters)}:${hashSelect(select)}`;
 
     if (Config.REDIS) {
       const cached = await this.redis.get(key);
       if (cached) {
         return JSON.parse(cached) as Record<
           string,
-          ApiResponse<BasicAnilist[]>
+          ApiResponse<Prisma.AnilistGetPayload<{ select: T }>[]>
         >;
       }
     }
@@ -75,8 +76,8 @@ export class AnilistSearchService {
           );
         }
 
-        const data = await this.getAnilists(filter);
-        return [key, data] as [string, ApiResponse<BasicAnilist[]>];
+        const data = await this.getAnilists(filter, select);
+        return [key, data];
       }),
     );
 
@@ -94,22 +95,21 @@ export class AnilistSearchService {
     return obj;
   }
 
-  async getTags(filter: TagFilterDto) {
-    return this.filter.getAnilistTagByFilter(filter);
-  }
-
-  async searchAnilist(
+  async searchAnilist<T extends Prisma.AnilistSelect>(
     q: string,
     franchises: number = 3,
     page: number,
     perPage: number,
-  ): Promise<SearcnResponse<BasicAnilist[]>> {
-    const searchKey = `search:${q}:${page}:${perPage}:${franchises}`;
+    select?: T,
+  ): Promise<SearchResponse<Prisma.AnilistGetPayload<{ select: T }>[]>> {
+    const searchKey = `search:${q}:${page}:${perPage}:${franchises}:${hashSelect(select)}`;
 
     if (Config.REDIS) {
       const cached = await this.redis.get(searchKey);
       if (cached) {
-        return JSON.parse(cached) as SearcnResponse<BasicAnilist[]>;
+        return JSON.parse(cached) as SearchResponse<
+          Prisma.AnilistGetPayload<{ select: T }>[]
+        >;
       }
     }
 
@@ -120,32 +120,43 @@ export class AnilistSearchService {
         perPage: perPage,
         sort: [MediaSort.TRENDING_DESC, MediaSort.POPULARITY_DESC],
       }),
+      select,
     );
 
-    let page1Promise: Promise<ApiResponse<BasicAnilist[]>> | null = null;
-    if (page !== 1) {
-      page1Promise = this.getAnilists(
-        new FilterDto({
-          query: q,
-          page: 1,
-          perPage: 20,
-          sort: [MediaSort.TRENDING_DESC, MediaSort.POPULARITY_DESC],
-        }),
-      );
-    }
+    const franchiseSelect = {
+      ...select,
+      id: true,
+      shikimori: {
+        select: {
+          franchise: true,
+        },
+      },
+    };
+
+    const page1Promise = this.getAnilists(
+      new FilterDto({
+        query: q,
+        page: 1,
+        perPage: 20,
+        sort: [MediaSort.TRENDING_DESC, MediaSort.POPULARITY_DESC],
+      }),
+      franchiseSelect,
+    );
 
     const [response, page1Response] = await Promise.all([
       mainSearchPromise,
       page1Promise,
     ]);
 
-    const dataForFranchise = page === 1 ? response.data : page1Response?.data;
+    const dataForFranchise = page1Response?.data;
 
     const firstBasicFranchise = dataForFranchise?.find(
       (b) => b.shikimori?.franchise && b.shikimori.franchise.trim().length > 0,
     );
 
-    let franchise: FranchiseResponse<BasicAnilist[]> | null = null;
+    let franchise: FranchiseResponse<
+      Prisma.AnilistGetPayload<{ select: T }>[]
+    > | null = null;
     if (firstBasicFranchise?.shikimori?.franchise) {
       try {
         franchise = await this.getFranchise(
@@ -155,17 +166,18 @@ export class AnilistSearchService {
             page: 1,
             sort: [MediaSort.POPULARITY_DESC, MediaSort.TRENDING_DESC],
           }),
+          select,
         );
       } catch (e) {
         console.log(e);
       }
     }
 
-    const result = {
+    const result: SearchResponse<Prisma.AnilistGetPayload<{ select: T }>[]> = {
       pageInfo: response.pageInfo,
       franchise,
       data: response.data,
-    } as SearcnResponse<BasicAnilist[]>;
+    };
 
     if (Config.REDIS) {
       await this.redis.set(
@@ -179,70 +191,70 @@ export class AnilistSearchService {
     return result;
   }
 
-  async getFranchise(
+  async getFranchise<T extends Prisma.AnilistSelect>(
     franchiseName: string,
     filter: FilterDto,
-  ): Promise<FranchiseResponse<BasicAnilist[]>> {
+    select?: T,
+  ): Promise<FranchiseResponse<Prisma.AnilistGetPayload<{ select: T }>[]>> {
     if (franchiseName.trim().length === 0) {
       throw new Error('Franchise name cannot be empty');
     }
 
-    const franchiseKey = `franchise:${franchiseName}:${hashFilter(filter)}`;
+    const franchiseKey = `franchise:${franchiseName}:${hashFilter(filter)}:${hashSelect(select)}`;
 
     if (Config.REDIS) {
       const cached = await this.redis.get(franchiseKey);
       if (cached) {
-        return JSON.parse(cached) as FranchiseResponse<BasicAnilist[]>;
+        return JSON.parse(cached) as FranchiseResponse<
+          Prisma.AnilistGetPayload<{ select: T }>[]
+        >;
       }
     }
 
-    const mainFranchisePromise = this.getAnilists({
-      ...filter,
-      franchise: franchiseName,
-    });
+    const mainFranchisePromise = this.getAnilists(
+      { ...filter, franchise: franchiseName },
+      select,
+    );
 
-    let page1Promise: Promise<ApiResponse<BasicAnilist[]>> | null = null;
-    if (filter.page !== 1) {
-      page1Promise = this.getAnilists({
-        ...filter,
-        franchise: franchiseName,
-        page: 1,
-        perPage: 20,
-        sort: [
-          MediaSort.POPULARITY_DESC,
-          MediaSort.FAVOURITES_DESC,
-          MediaSort.SCORE_DESC,
-        ],
-      });
-    }
+    const tmdbSelect = {
+      ...select,
+      id: true,
+    };
+
+    const page1Promise =
+      filter.page !== 1
+        ? this.getAnilists(
+            {
+              ...filter,
+              franchise: franchiseName,
+              page: 1,
+              perPage: 20,
+              sort: [
+                MediaSort.POPULARITY_DESC,
+                MediaSort.FAVOURITES_DESC,
+                MediaSort.SCORE_DESC,
+              ],
+            },
+            tmdbSelect,
+          )
+        : null;
 
     const [franchises, page1Franchises] = await Promise.all([
       mainFranchisePromise,
       page1Promise,
     ]);
 
-    const dataForBestFranchise =
-      filter.page === 1 ? franchises.data : page1Franchises?.data || [];
+    if (!page1Franchises) throw new Error('Page 1 franchises not found');
 
     const firstFranchise =
-      dataForBestFranchise.length > 0 ? dataForBestFranchise[0] : null;
-
-    if (!firstFranchise) {
-      return {
-        pageInfo: franchises.pageInfo,
-        franchise: {},
-        data: [],
-      } as FranchiseResponse<BasicAnilist[]>;
-    }
+      page1Franchises?.data.length > 0 ? page1Franchises.data[0] : null;
+    if (!firstFranchise) throw new Error('Franchise not found');
 
     let franchise: Franchise | null = null;
     try {
-      const tmdbFirst = (await Promise.race([
-        this.tmdbService.getTmdbByAnilist(firstFranchise.id),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('TMDB timeout')), 2000),
-        ),
-      ])) as any;
+      const tmdbFirst = await this.tmdbService.getTmdbByAnilist(
+        firstFranchise.id,
+      );
 
       if (tmdbFirst) {
         franchise = {
@@ -260,7 +272,9 @@ export class AnilistSearchService {
       );
     }
 
-    const response: FranchiseResponse<BasicAnilist[]> = {
+    const response: FranchiseResponse<
+      Prisma.AnilistGetPayload<{ select: T }>[]
+    > = {
       pageInfo: franchises.pageInfo,
       franchise,
       data: franchises.data,
@@ -276,5 +290,9 @@ export class AnilistSearchService {
     }
 
     return response;
+  }
+
+  async getTags(filter: TagFilterDto) {
+    return this.filter.getAnilistTagByFilter(filter);
   }
 }

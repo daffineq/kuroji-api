@@ -1,5 +1,4 @@
 import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
-import { AnilistWithRelations } from '../../anilist/types/types.js';
 import { BasicTmdb } from '../types/types.js';
 
 const ALLOWED_COUNTRIES = ['JP', 'KR', 'CN'];
@@ -15,18 +14,25 @@ const isProbablyAnime = (tmdb: BasicTmdb): boolean => {
 };
 
 export function findBestMatchFromSearch(
-  anilist: AnilistWithRelations,
+  anilist: {
+    title?: {
+      romaji: string | null;
+      english: string | null;
+      native: string | null;
+    } | null;
+    synonyms?: string[];
+  },
   results: BasicTmdb[] | undefined,
 ): BasicTmdb | null {
   if (!results || !Array.isArray(results)) return null;
 
   const searchAnime: ExpectAnime = {
-    title: {
-      romaji: (anilist.title as { romaji: string }).romaji,
-      english: (anilist.title as { english: string }).english,
-      native: (anilist.title as { native: string }).native,
-    },
-    synonyms: anilist.synonyms,
+    titles: [
+      anilist.title?.romaji ?? null,
+      anilist.title?.english ?? null,
+      anilist.title?.native ?? null,
+      ...(anilist.synonyms ?? []),
+    ].filter((t): t is string => t !== null),
   };
 
   const resultsFiltered = results.filter((tmdb) => isProbablyAnime(tmdb));
@@ -35,8 +41,10 @@ export function findBestMatchFromSearch(
     searchAnime,
     resultsFiltered.map((result) => ({
       id: result.id,
-      title: result.name ?? result.title,
-      japaneseTitle: result.original_name ?? result.original_title,
+      title: [
+        result.name ?? result.title,
+        result.original_name ?? result.original_title,
+      ].filter(Boolean),
     })),
   );
 

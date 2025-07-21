@@ -1,13 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { TmdbSeason } from '@prisma/client';
+import { Prisma, TmdbSeason } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service.js';
-import {
-  findBestMatch,
-  ExpectAnime,
-  deepCleanTitle,
-} from '../../../mapper/mapper.helper.js';
+import { findBestMatch, ExpectAnime } from '../../../mapper/mapper.helper.js';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
-import { getTmdbInclude, TmdbHelper } from '../utils/tmdb-helper.js';
+import { TmdbHelper } from '../utils/tmdb-helper.js';
 import { sleep } from '../../../../utils/utils.js';
 import {
   TmdbWithRelations,
@@ -21,6 +17,9 @@ import { UrlConfig } from '../../../../configs/url.config.js';
 import { MappingsService } from '../../mappings/service/mappings.service.js';
 import { tmdbFetch } from './tmdb.fetch.service.js';
 import { findBestMatchFromSearch } from '../utils/utils.js';
+import { deepCleanTitle } from '../../../mapper/mapper.cleaning.js';
+import { fullSelect } from '../../anilist/types/types.js';
+import { AniZipPayload } from '../../mappings/types/types.js';
 
 @Injectable()
 export class TmdbService extends Client {
@@ -34,13 +33,18 @@ export class TmdbService extends Client {
   }
 
   // Core TMDB Methods
-  async getTmdb(id: number): Promise<TmdbWithRelations> {
-    const existingTmdb = (await this.prisma.tmdb.findUnique({
+  async getTmdb<T extends Prisma.TmdbSelect>(
+    id: number,
+    select?: T,
+  ): Promise<Prisma.TmdbGetPayload<{ select: T }>> {
+    const existingTmdb = await this.prisma.tmdb.findUnique({
       where: { id },
-      include: getTmdbInclude(),
-    })) as TmdbWithRelations;
+      select,
+    });
 
-    if (existingTmdb) return existingTmdb;
+    if (existingTmdb) {
+      return existingTmdb as Prisma.TmdbGetPayload<{ select: T }>;
+    }
 
     const type = await this.detectType(id);
     const tmdb = await tmdbFetch.fetchTmdb(id, type);
@@ -48,53 +52,53 @@ export class TmdbService extends Client {
     return await this.saveTmdb(tmdb);
   }
 
-  async getTmdbByAnilist(id: number): Promise<TmdbWithRelations> {
-    const anilist = await this.anilist.getAnilist(id);
-    const mapping = anilist.anizip;
+  async getTmdbByAnilist<T extends Prisma.TmdbSelect>(
+    id: number,
+    select?: T,
+  ): Promise<Prisma.TmdbGetPayload<{ select: T }>> {
+    const anilist = await this.anilist.getAnilist(id, fullSelect);
+    if (!anilist) throw new Error('Anilist not found');
 
-    if (!mapping) {
-      throw new Error('No mappings found');
-    }
+    const mapping = anilist.anizip as AniZipPayload;
+    if (!mapping) throw new Error('No mappings found');
 
     const tmdbId = mapping.mappings?.themoviedbId;
     const type = mapping.mappings?.type?.toLowerCase();
-
-    if (!type) {
-      throw new Error('No type found');
-    }
+    if (!type) throw new Error('No type found');
 
     if (!tmdbId) {
       const tmdb = await this.findTmdb(id);
       await this.mappings.updateAniZipMappings(mapping.id, {
         themoviedbId: tmdb.id,
       });
-      return await this.findTmdb(id);
+      return this.findTmdb(id, select);
     }
 
-    const existing = (await this.prisma.tmdb.findUnique({
+    const existing = await this.prisma.tmdb.findUnique({
       where: { id: tmdbId },
-      include: getTmdbInclude(),
-    })) as TmdbWithRelations;
+      select,
+    });
 
-    if (existing) return existing;
+    if (existing) return existing as Prisma.TmdbGetPayload<{ select: T }>;
 
     const tmdb = await tmdbFetch.fetchTmdb(tmdbId, type);
-
-    return await this.saveTmdb(tmdb);
+    return await this.saveTmdb(tmdb, select);
   }
 
   // Data Fetching Methods
-  async fetchTmdbByAnilist(id: number): Promise<TmdbWithRelations> {
-    const anilist = await this.anilist.getAnilist(id);
+  async fetchTmdbByAnilist<T extends Prisma.TmdbSelect>(
+    id: number,
+    select?: T,
+  ): Promise<Prisma.TmdbGetPayload<{ select: T }>> {
+    const anilist = await this.anilist.getAnilist(id, fullSelect);
     const possibleTitles = [
       anilist.title?.native,
       anilist.title?.romaji,
       anilist.title?.english,
     ].filter(Boolean) as string[];
 
-    if (possibleTitles.length === 0) {
+    if (possibleTitles.length === 0)
       throw new Error('No title found in AniList');
-    }
 
     let bestMatch: BasicTmdb | null = null;
 
@@ -104,9 +108,7 @@ export class TmdbService extends Client {
       if (bestMatch) break;
     }
 
-    if (!bestMatch) {
-      throw new Error('No matching TMDb entry found');
-    }
+    if (!bestMatch) throw new Error('No matching TMDb entry found');
 
     const fetchedTmdb = await tmdbFetch.fetchTmdb(
       bestMatch.id,
@@ -114,55 +116,57 @@ export class TmdbService extends Client {
     );
     fetchedTmdb.media_type = bestMatch.media_type;
 
-    return this.saveTmdb(fetchedTmdb);
+    return this.saveTmdb(fetchedTmdb, select);
   }
 
   // Database Operations
-  async saveTmdb(tmdb: TmdbDetailsMerged): Promise<TmdbWithRelations> {
+  async saveTmdb<T extends Prisma.TmdbSelect>(
+    tmdb: TmdbDetailsMerged,
+    select?: T,
+  ): Promise<Prisma.TmdbGetPayload<{ select: T }>> {
     return (await this.prisma.tmdb.upsert({
       where: { id: tmdb.id },
       update: this.helper.getTmdbData(tmdb),
       create: this.helper.getTmdbData(tmdb),
-      include: getTmdbInclude(),
-    })) as TmdbWithRelations;
+      select,
+    })) as Prisma.TmdbGetPayload<{ select: T }>;
   }
 
-  async saveTmdbSeason(
+  async saveTmdbSeason<T extends Prisma.TmdbSeasonSelect>(
     tmdbSeason: TmdbSeasonWithRelations,
-  ): Promise<TmdbSeason> {
-    return this.prisma.tmdbSeason.upsert({
+    select?: T,
+  ): Promise<Prisma.TmdbSeasonGetPayload<{ select: T }>> {
+    return (await this.prisma.tmdbSeason.upsert({
       where: { id: tmdbSeason.id },
       update: this.helper.getTmdbSeasonData(tmdbSeason),
       create: this.helper.getTmdbSeasonData(tmdbSeason),
-      include: {
-        episodes: true,
-      },
-    });
+      select,
+    })) as Prisma.TmdbSeasonGetPayload<{ select: T }>;
   }
 
-  async saveImages(
+  async saveImages<T extends Prisma.TmdbSeasonEpisodeImagesSelect>(
     images: TmdbSeasonEpisodeImagesWithRelations,
-  ): Promise<TmdbSeasonEpisodeImagesWithRelations> {
-    return this.prisma.tmdbSeasonEpisodeImages.create({
+    select?: T,
+  ): Promise<Prisma.TmdbSeasonEpisodeImagesGetPayload<{ select: T }>> {
+    return (await this.prisma.tmdbSeasonEpisodeImages.create({
       data: this.helper.getTmdbEpisodeImagesData(images),
-      include: {
-        stills: true,
-      },
-    });
+      select,
+    })) as Prisma.TmdbSeasonEpisodeImagesGetPayload<{ select: T }>;
   }
 
   // Update Methods
-  async update(id: number): Promise<TmdbWithRelations> {
-    const existingTmdb = await this.getTmdb(id);
-    const tmdb = await tmdbFetch.fetchTmdb(id, existingTmdb.media_type ?? 'tv');
-    const savedTmdb = await this.saveTmdb(tmdb);
+  async update<T extends Prisma.TmdbSelect>(
+    id: number,
+    select?: T,
+  ): Promise<Prisma.TmdbGetPayload<{ select: T }>> {
+    const existingTmdb = await this.getTmdbByAnilist(id);
+    const tmdb = await tmdbFetch.fetchTmdb(
+      existingTmdb.id,
+      existingTmdb.media_type ?? 'tv',
+    );
+    const savedTmdb = await this.saveTmdb(tmdb, select);
     await this.updateSeason(id);
     return savedTmdb;
-  }
-
-  async updateByAnilist(id: number) {
-    const tmdb = await this.getTmdbByAnilist(id);
-    return await this.update(tmdb.id);
   }
 
   async updateSeason(id: number): Promise<TmdbWithRelations> {
@@ -173,9 +177,7 @@ export class TmdbService extends Client {
       },
     })) as TmdbWithRelations;
 
-    if (!tmdb) {
-      throw new Error(`TMDb ID ${id} not found`);
-    }
+    if (!tmdb) throw new Error(`TMDb ID ${id} not found`);
 
     for (const season of tmdb.seasons) {
       console.log(
@@ -196,15 +198,20 @@ export class TmdbService extends Client {
   }
 
   // Matching Methods
-  async findTmdb(id: number): Promise<TmdbWithRelations> {
-    const tmdb = await this.findMatchInPrisma(id).catch(() => null);
+  async findTmdb<T extends Prisma.TmdbSelect>(
+    id: number,
+    select?: T,
+  ): Promise<Prisma.TmdbGetPayload<{ select: T }>> {
+    const tmdb = await this.findMatchInPrisma(id, select).catch(() => null);
     if (tmdb) return tmdb;
     return await this.fetchTmdbByAnilist(id);
   }
 
-  async findMatchInPrisma(id: number): Promise<TmdbWithRelations> {
+  async findMatchInPrisma<T extends Prisma.TmdbSelect>(
+    id: number,
+    select?: T,
+  ): Promise<Prisma.TmdbGetPayload<{ select: T }>> {
     const anilist = await this.anilist.getAnilist(id);
-
     const titles = [
       anilist.title?.native,
       anilist.title?.romaji,
@@ -220,35 +227,32 @@ export class TmdbService extends Client {
           },
         ]),
       },
-      include: getTmdbInclude(),
+      select,
       take: 25,
     });
 
     const searchAnime: ExpectAnime = {
-      title: {
-        romaji: anilist.title?.romaji ?? undefined,
-        english: anilist.title?.english ?? undefined,
-        native: anilist.title?.native ?? undefined,
-      },
-      synonyms: anilist.synonyms,
+      titles: [
+        anilist.title?.native,
+        anilist.title?.romaji,
+        anilist.title?.english,
+        ...anilist.synonyms,
+      ],
     };
 
     const bestMatch = findBestMatch(
       searchAnime,
       candidates.map((result) => ({
         id: result.id,
-        title: result.name ?? undefined,
-        japaneseTitle: result.original_name ?? undefined,
+        titles: [result.name, result.original_name],
       })),
     );
 
-    if (!bestMatch) {
-      throw new Error('No matching TMDb entry found');
-    }
+    if (!bestMatch) throw new Error('No matching TMDb entry found');
 
     return candidates.find(
       (c) => c.id === bestMatch.result.id,
-    )! as TmdbWithRelations;
+    )! as Prisma.TmdbGetPayload<{ select: T }>;
   }
 
   async detectType(id: number): Promise<string> {

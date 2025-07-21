@@ -1,4 +1,5 @@
 import {
+  Prisma,
   Tmdb,
   TmdbLastEpisodeToAir,
   TmdbNextEpisodeToAir,
@@ -195,3 +196,259 @@ export interface TmdbDetailsMerged extends TmdbBase {
   type?: string;
   original_title?: string;
 }
+
+export const tmdbSelect: Prisma.TmdbSelect = {
+  id: true,
+  adult: true,
+  backdrop_path: true,
+  episode_run_time: true,
+  media_type: true,
+  first_air_date: true,
+  homepage: true,
+  in_production: true,
+  last_air_date: true,
+  name: true,
+  number_of_episodes: true,
+  number_of_seasons: true,
+  original_language: true,
+  original_name: true,
+  origin_country: true,
+  overview: true,
+  popularity: true,
+  poster_path: true,
+  tagline: true,
+  status: true,
+  type: true,
+  vote_average: true,
+  vote_count: true,
+
+  next_episode_to_air: {
+    select: {
+      id: true,
+      name: true,
+      overview: true,
+      vote_average: true,
+      vote_count: true,
+      air_date: true,
+      episode_number: true,
+      episode_type: true,
+      production_code: true,
+      runtime: true,
+      season_number: true,
+      still_path: true,
+    },
+  },
+  last_episode_to_air: {
+    select: {
+      id: true,
+      name: true,
+      overview: true,
+      vote_average: true,
+      vote_count: true,
+      air_date: true,
+      episode_number: true,
+      episode_type: true,
+      production_code: true,
+      runtime: true,
+      season_number: true,
+      still_path: true,
+    },
+  },
+  seasons: {
+    select: {
+      id: true,
+      air_date: true,
+      episode_count: true,
+      name: true,
+      overview: true,
+      poster_path: true,
+      season_number: true,
+      vote_average: true,
+    },
+  },
+  episodeSeasons: {
+    select: {
+      id: true,
+      air_date: true,
+      name: true,
+      overview: true,
+      poster_path: true,
+      season_number: true,
+      vote_average: true,
+      episodes: {
+        select: {
+          id: true,
+          air_date: true,
+          episode_number: true,
+          episode_type: true,
+          name: true,
+          overview: true,
+          production_code: true,
+          runtime: true,
+          season_number: true,
+          still_path: true,
+          vote_average: true,
+          vote_count: true,
+          images: {
+            select: {
+              id: true,
+              stills: {
+                select: {
+                  id: true,
+                  aspect_ratio: true,
+                  height: true,
+                  width: true,
+                  iso_639_1: true,
+                  file_path: true,
+                  vote_average: true,
+                  vote_count: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  episodes: {
+    select: {
+      id: true,
+      air_date: true,
+      episode_number: true,
+      episode_type: true,
+      name: true,
+      overview: true,
+      production_code: true,
+      runtime: true,
+      season_number: true,
+      still_path: true,
+      vote_average: true,
+      vote_count: true,
+      images: {
+        select: {
+          id: true,
+          stills: {
+            select: {
+              id: true,
+              aspect_ratio: true,
+              height: true,
+              width: true,
+              iso_639_1: true,
+              file_path: true,
+              vote_average: true,
+              vote_count: true,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const tmdbSeasonSelect: Prisma.TmdbSeasonSelect = {
+  id: true,
+  air_date: true,
+  name: true,
+  overview: true,
+  poster_path: true,
+  season_number: true,
+  vote_average: true,
+
+  episodes: {
+    select: {
+      id: true,
+      air_date: true,
+      episode_number: true,
+      episode_type: true,
+      name: true,
+      overview: true,
+      production_code: true,
+      runtime: true,
+      season_number: true,
+      still_path: true,
+      vote_average: true,
+      vote_count: true,
+
+      images: {
+        select: {
+          id: true,
+          stills: {
+            select: {
+              id: true,
+              aspect_ratio: true,
+              height: true,
+              width: true,
+              iso_639_1: true,
+              file_path: true,
+              vote_average: true,
+              vote_count: true,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const tmdbEpisodeSelect: Prisma.TmdbSeasonEpisodeSelect = {
+  id: true,
+  air_date: true,
+  episode_number: true,
+  episode_type: true,
+  name: true,
+  overview: true,
+  production_code: true,
+  runtime: true,
+  season_number: true,
+  still_path: true,
+  vote_average: true,
+  vote_count: true,
+
+  images: {
+    select: {
+      id: true,
+      stills: {
+        select: {
+          id: true,
+          aspect_ratio: true,
+          height: true,
+          width: true,
+          iso_639_1: true,
+          file_path: true,
+          vote_average: true,
+          vote_count: true,
+        },
+      },
+    },
+  },
+};
+
+export const tmdbImagesSelect: Prisma.TmdbSeasonEpisodeImagesSelect = {
+  id: true,
+  stills: {
+    select: {
+      id: true,
+      aspect_ratio: true,
+      height: true,
+      width: true,
+      iso_639_1: true,
+      file_path: true,
+      vote_average: true,
+      vote_count: true,
+    },
+  },
+};
+
+export type TmdbPayload = Prisma.TmdbGetPayload<{ select: typeof tmdbSelect }>;
+
+export type TmdbSeasonPayload = Prisma.TmdbSeasonGetPayload<{
+  select: typeof tmdbSeasonSelect;
+}>;
+
+export type TmdbEpisodePayload = Prisma.TmdbSeasonEpisodeGetPayload<{
+  select: typeof tmdbEpisodeSelect;
+}>;
+
+export type TmdbImagesPayload = Prisma.TmdbSeasonEpisodeImagesGetPayload<{
+  select: typeof tmdbImagesSelect;
+}>;

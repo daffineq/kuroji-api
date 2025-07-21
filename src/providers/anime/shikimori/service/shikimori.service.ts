@@ -1,45 +1,44 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { BasicIdShik, Shikimori } from '@prisma/client';
+import { BasicIdShik, Prisma, Shikimori } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service.js';
-import { UrlConfig } from '../../../../configs/url.config.js';
 import {
-  getShikimoriInclude,
   ShikimoriHelper,
   shikimoriToBasicId,
 } from '../utils/shikimori-helper.js';
 import { ShikimoriWithRelations } from '../types/types.js';
-import { Client } from '../../../model/client.js';
 import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.service.js';
 import { shikimoriFetch } from './shikimori.fetch.service.js';
 
 @Injectable()
-export class ShikimoriService extends Client {
+export class ShikimoriService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly anilist: AnilistUtilService,
     private readonly helper: ShikimoriHelper,
-  ) {
-    super(UrlConfig.SHIKIMORI_GRAPHQL);
-  }
+  ) {}
 
-  async getShikimori(id: string): Promise<ShikimoriWithRelations> {
-    if (!id || id == '') {
-      throw new Error('Shikimori id is empty');
+  async getShikimori<T extends Prisma.ShikimoriSelect>(
+    id: string,
+    select?: T,
+  ): Promise<Prisma.ShikimoriGetPayload<{ select: T }>> {
+    if (!id || id == '') throw new Error('Shikimori id is empty');
+
+    const existing = await this.prisma.shikimori.findUnique({
+      where: { id },
+      select,
+    });
+
+    if (existing) {
+      return existing as Prisma.ShikimoriGetPayload<{ select: T }>;
     }
-
-    const existing = await this.findById(id);
-    if (existing) return existing;
 
     const anilist = await this.anilist.getMappingAnilist(+id, true);
-
-    if (!anilist) {
-      throw new Error('Anilist not found');
-    }
+    if (!anilist) throw new Error('Anilist not found');
 
     const data = await shikimoriFetch.fetchFromGraphQL(id);
     const anime = data.animes[0];
-    if (!anime)
-      throw new NotFoundException(`No Shikimori data found for ID: ${id}`);
+
+    if (!anime) throw new Error(`No Shikimori data found for ID: ${id}`);
 
     return await this.saveShikimori(anime);
   }
@@ -47,34 +46,35 @@ export class ShikimoriService extends Client {
   async getChronology(id: string): Promise<BasicIdShik[]> {
     const shikimori = await this.prisma.shikimori.findUnique({
       where: { id },
-      include: { chronology: true },
+      select: { chronology: true },
     });
 
-    if (!shikimori)
-      throw new NotFoundException(`Shikimori not found for ID: ${id}`);
+    if (!shikimori) throw new Error(`No Shikimori data found for ID: ${id}`);
+
     return shikimori.chronology;
   }
 
-  async saveShikimori(
+  async saveShikimori<T extends Prisma.ShikimoriSelect>(
     anime: ShikimoriWithRelations,
-  ): Promise<ShikimoriWithRelations> {
+    select?: T,
+  ): Promise<Prisma.ShikimoriGetPayload<{ select: T }>> {
     return (await this.prisma.shikimori.upsert({
       where: { id: anime.id },
       update: this.helper.getDataForPrisma(anime),
       create: this.helper.getDataForPrisma(anime),
-      include: getShikimoriInclude(),
-    })) as ShikimoriWithRelations;
+      select,
+    })) as Prisma.ShikimoriGetPayload<{ select: T }>;
   }
 
-  async update(id: string): Promise<ShikimoriWithRelations> {
+  async update<T extends Prisma.ShikimoriSelect>(
+    id: string,
+    select?: T,
+  ): Promise<Prisma.ShikimoriGetPayload<{ select: T }>> {
     const data = await shikimoriFetch.fetchFromGraphQL(id);
     const anime = data.animes[0];
+    if (!anime) throw new Error(`No Shikimori data found for ID: ${id}`);
 
-    if (!anime) {
-      throw new NotFoundException(`Shikimori not found for ID: ${id}`);
-    }
-
-    return this.saveShikimori(anime);
+    return this.saveShikimori(anime, select);
   }
 
   async getFranchise(franchise: string): Promise<Shikimori[]> {
@@ -84,12 +84,5 @@ export class ShikimoriService extends Client {
   async getFranchiseIds(franchise: string): Promise<BasicIdShik[]> {
     const items = await this.getFranchise(franchise);
     return items.map((item) => shikimoriToBasicId(item));
-  }
-
-  private async findById(id: string): Promise<ShikimoriWithRelations | null> {
-    return this.prisma.shikimori.findUnique({
-      where: { id },
-      include: getShikimoriInclude(),
-    }) as Promise<ShikimoriWithRelations | null>;
   }
 }

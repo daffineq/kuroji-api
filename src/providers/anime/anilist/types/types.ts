@@ -1,32 +1,36 @@
 import {
-  Anilist,
   AnilistAiringSchedule,
-  AnilistCover,
-  AnilistExternalLink,
-  AnilistRanking,
-  AnilistScoreDistribution,
-  AnilistStatusDistribution,
-  AnilistStreamingEpisode,
-  AnilistStudio,
-  AnilistTag,
-  AnilistTitle,
-  AnilistTrailer,
   EndDate,
-  KitsuCoverImage,
-  KitsuPosterImage,
-  KitsuTitle,
-  ShikimoriPoster,
+  Prisma,
   StartDate,
 } from '@prisma/client';
 import { FullMediaResponse } from './response.js';
 import { PageInfo } from '../graphql/types/PageInfo.js';
-import { KitsuWithRelations } from '../../kitsu/types/types.js';
-import { ShikimoriWithRelations } from '../../shikimori/types/types.js';
-import { ZoroWithRelations } from '../../zoro/types/types.js';
 import { Type } from 'class-transformer';
 import { IsOptional, IsEnum, IsString, IsInt, Min } from 'class-validator';
 import { TmdbImage } from '../../tmdb/types/types.js';
-import { AniZipWithRelations } from '../../mappings/types/types.js';
+import { aniZipSelect } from '../../mappings/types/types.js';
+import { zoroSelect } from '../../zoro/types/types.js';
+import { animepaheSelect } from '../../animepahe/types/types.js';
+import { kitsuSelect } from '../../kitsu/types/types.js';
+import { shikimoriSelect } from '../../shikimori/types/types.js';
+
+export interface MapperAnilist {
+  id: number;
+  episodes?: number | null;
+  airingSchedule?: AnilistAiringSchedule[] | null;
+  shikimori?: {
+    episodes?: number | null;
+    episodesAired?: number | null;
+  } | null;
+  kitsu?: {
+    episodeCount?: number | null;
+  } | null;
+  status?: string | null;
+  startDate: StartDate | null;
+  endDate: EndDate | null;
+  seasonYear: number | null;
+}
 
 export interface AnilistResponse {
   Page: {
@@ -47,33 +51,10 @@ export interface FranchiseResponse<T> {
   data: T;
 }
 
-export interface SearcnResponse<T> {
+export interface SearchResponse<T> {
   franchise: any;
   data: T;
   pageInfo: PageInfo;
-}
-
-export interface AnilistWithRelations extends Anilist {
-  title?: AnilistTitle;
-  coverImage?: AnilistCover;
-  startDate?: StartDate;
-  endDate?: EndDate;
-  trailer?: AnilistTrailer;
-  studios?: AnilistStudio[];
-  airingSchedule?: AnilistAiringSchedule[];
-  nextAiringEpisode?: AnilistAiringSchedule;
-  latestAiringEpisode?: AnilistAiringSchedule;
-  lastAiringEpisode?: AnilistAiringSchedule;
-  tags?: AnilistTag[];
-  rankings?: AnilistRanking[];
-  externalLinks?: AnilistExternalLink[];
-  streamingEpisodes?: AnilistStreamingEpisode[];
-  scoreDistribution?: AnilistScoreDistribution[];
-  statusDistribution?: AnilistStatusDistribution[];
-  shikimori?: ShikimoriWithRelations;
-  kitsu?: KitsuWithRelations;
-  zoro?: ZoroWithRelations;
-  anizip?: AniZipWithRelations;
 }
 
 export interface Franchise {
@@ -99,82 +80,7 @@ export type Schedule = {
 
 export interface ScheduleData {
   current: boolean;
-  data: BasicAnilist[];
-}
-
-export interface BasicShikimori {
-  id?: string;
-  malId?: number;
-  russian?: string;
-  licenseNameRu?: string;
-  episodes?: number;
-  episodesAired?: number;
-  rating?: string;
-  url?: string;
-  franchise?: string;
-  poster?: ShikimoriPoster;
-  description?: string;
-}
-
-export interface BasicKitsu {
-  id?: string;
-  anilistId?: number;
-  titles?: KitsuTitle;
-  slug?: string;
-  synopsis?: string;
-  episodeCount?: number;
-  episodeLength?: number;
-  canonicalTitle?: string;
-  averageRating?: string;
-  ageRating?: string;
-  ageRatingGuide?: string;
-  posterImage?: KitsuPosterImage;
-  coverImage?: KitsuCoverImage;
-  showType?: string;
-}
-
-export interface BasicAnilist {
-  id: number;
-  idMal?: number;
-
-  title?: AnilistTitle;
-
-  synonyms?: string[];
-
-  bannerImage?: string;
-  coverImage?: AnilistCover;
-
-  type?: string;
-  format?: string;
-  status?: string;
-  description?: string;
-
-  startDate?: StartDate;
-
-  season?: string;
-  seasonYear?: number;
-
-  episodes?: number;
-  sub?: number;
-  dub?: number;
-  duration?: number;
-
-  countryOfOrigin?: string;
-  source?: string;
-  popularity?: number;
-  favourites?: number;
-
-  score?: number;
-
-  isLocked?: boolean;
-  isAdult?: boolean;
-
-  genres?: string[];
-
-  nextAiringEpisode?: AnilistAiringSchedule;
-
-  shikimori?: BasicShikimori;
-  kitsu?: BasicKitsu;
+  data: any[];
 }
 
 export type SortDirection = 'asc' | 'desc';
@@ -223,3 +129,322 @@ export class RandomDto {
   @Min(1)
   maxTrendingRank?: number;
 }
+
+export const basicSelect: Prisma.AnilistSelect = {
+  id: true,
+  idMal: true,
+  title: {
+    select: {
+      romaji: true,
+      english: true,
+      native: true,
+    },
+  },
+  synonyms: true,
+  bannerImage: true,
+  coverImage: {
+    select: {
+      color: true,
+      large: true,
+      medium: true,
+      extraLarge: true,
+    },
+  },
+  type: true,
+  format: true,
+  status: true,
+  description: true,
+  startDate: {
+    select: {
+      day: true,
+      month: true,
+      year: true,
+    },
+  },
+  season: true,
+  seasonYear: true,
+  episodes: true,
+  duration: true,
+  countryOfOrigin: true,
+  source: true,
+  popularity: true,
+  favourites: true,
+  score: true,
+  isLocked: true,
+  isAdult: true,
+  genres: true,
+  nextAiringEpisode: {
+    select: {
+      id: true,
+      episode: true,
+      airingAt: true,
+    },
+  },
+  shikimori: {
+    select: {
+      id: true,
+      malId: true,
+      russian: true,
+      licenseNameRu: true,
+      episodes: true,
+      episodesAired: true,
+      rating: true,
+      url: true,
+      franchise: true,
+      poster: {
+        select: {
+          id: true,
+          originalUrl: true,
+          mainUrl: true,
+        },
+      },
+      description: true,
+    },
+  },
+  kitsu: {
+    select: {
+      id: true,
+      anilistId: true,
+      titles: true,
+      slug: true,
+      synopsis: true,
+      episodeCount: true,
+      episodeLength: true,
+      canonicalTitle: true,
+      averageRating: true,
+      ageRating: true,
+      ageRatingGuide: true,
+      posterImage: true,
+      coverImage: true,
+      showType: true,
+    },
+  },
+};
+
+export const fullSelect: Prisma.AnilistSelect = {
+  id: true,
+  idMal: true,
+  title: {
+    select: {
+      romaji: true,
+      english: true,
+      native: true,
+    },
+  },
+  bannerImage: true,
+  status: true,
+  type: true,
+  format: true,
+  coverImage: {
+    select: {
+      color: true,
+      large: true,
+      medium: true,
+      extraLarge: true,
+    },
+  },
+  updatedAt: true,
+  description: true,
+  startDate: {
+    select: {
+      day: true,
+      month: true,
+      year: true,
+    },
+  },
+  endDate: {
+    select: {
+      day: true,
+      month: true,
+      year: true,
+    },
+  },
+  season: true,
+  seasonYear: true,
+  episodes: true,
+  duration: true,
+  countryOfOrigin: true,
+  isLicensed: true,
+  source: true,
+  hashtag: true,
+  isLocked: true,
+  isAdult: true,
+  averageScore: true,
+  meanScore: true,
+  score: true,
+  popularity: true,
+  trending: true,
+  favourites: true,
+  genres: true,
+  synonyms: true,
+  trailer: {
+    select: {
+      site: true,
+      thumbnail: true,
+    },
+  },
+  latestAiringEpisode: {
+    select: {
+      id: true,
+      episode: true,
+      airingAt: true,
+    },
+  },
+  nextAiringEpisode: {
+    select: {
+      id: true,
+      episode: true,
+      airingAt: true,
+    },
+  },
+  lastAiringEpisode: {
+    select: {
+      id: true,
+      episode: true,
+      airingAt: true,
+    },
+  },
+  studios: {
+    select: {
+      isMain: true,
+      studio: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  },
+  airingSchedule: {
+    select: {
+      id: true,
+      episode: true,
+      airingAt: true,
+    },
+  },
+  tags: {
+    select: {
+      rank: true,
+      isMediaSpoiler: true,
+      tag: {
+        select: {
+          name: true,
+          description: true,
+          category: true,
+          isGeneralSpoiler: true,
+          isAdult: true,
+        },
+      },
+    },
+  },
+  rankings: {
+    select: {
+      rank: true,
+      type: true,
+      format: true,
+      year: true,
+      season: true,
+      allTime: true,
+      context: true,
+    },
+  },
+  externalLinks: {
+    select: {
+      url: true,
+      site: true,
+      siteId: true,
+      type: true,
+      language: true,
+      color: true,
+      icon: true,
+      notes: true,
+      isDisabled: true,
+    },
+  },
+  streamingEpisodes: {
+    select: {
+      title: true,
+      thumbnail: true,
+      url: true,
+      site: true,
+    },
+  },
+  scoreDistribution: {
+    select: {
+      score: true,
+      amount: true,
+    },
+  },
+  statusDistribution: {
+    select: {
+      status: true,
+      amount: true,
+    },
+  },
+  shikimori: {
+    select: shikimoriSelect,
+  },
+  kitsu: {
+    select: kitsuSelect,
+  },
+  anizip: {
+    select: aniZipSelect,
+  },
+  zoro: {
+    select: zoroSelect,
+  },
+  animepahe: {
+    select: animepaheSelect,
+  },
+};
+
+export const mappingSelect: Prisma.AnilistSelect = {
+  title: {
+    select: {
+      romaji: true,
+      english: true,
+      native: true,
+    },
+  },
+  id: true,
+  idMal: true,
+  seasonYear: true,
+  episodes: true,
+  format: true,
+  airingSchedule: true,
+  status: true,
+  synonyms: true,
+  startDate: {
+    select: {
+      year: true,
+      month: true,
+      day: true,
+    },
+  },
+  endDate: {
+    select: {
+      year: true,
+      month: true,
+      day: true,
+    },
+  },
+  shikimori: {
+    select: {
+      english: true,
+      japanese: true,
+      episodes: true,
+      episodesAired: true,
+    },
+  },
+  kitsu: {
+    select: {
+      episodeCount: true,
+    },
+  },
+  zoro: {
+    select: zoroSelect,
+  },
+  animepahe: {
+    select: animepaheSelect,
+  },
+};

@@ -48,6 +48,7 @@ model Anilist {
   scoreDistribution  AnilistScoreDistribution[]  @relation("AnilistScoreDistribution")
   statusDistribution AnilistStatusDistribution[] @relation("AnilistStatusDistribution")
 
+  anilibria Anilibria?
   animepahe Animepahe?
   animekai  AnimeKai?
   zoro      Zoro?
@@ -198,12 +199,14 @@ model AnilistVoiceImage {
 model AnilistTagEdge {
   id             Int      @id @default(autoincrement())
   anilistId      Int
-  tagId          Int?
+  tagId          Int
   rank           Int?
   isMediaSpoiler Boolean?
 
-  anilist Anilist     @relation("AnilistTags", fields: [anilistId], references: [id])
-  tag     AnilistTag? @relation("AnilistTagEdges", fields: [tagId], references: [id])
+  anilist Anilist    @relation("AnilistTags", fields: [anilistId], references: [id])
+  tag     AnilistTag @relation("AnilistTagEdges", fields: [tagId], references: [id])
+
+  @@unique([anilistId, tagId])
 }
 
 model AnilistTag {
