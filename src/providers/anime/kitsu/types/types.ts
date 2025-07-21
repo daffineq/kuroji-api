@@ -94,7 +94,6 @@ export const kitsuSelect: Prisma.KitsuSelect = {
   anilistId: true,
   type: true,
   selfLink: true,
-
   createdAt: true,
   updatedAt: true,
   slug: true,
@@ -120,6 +119,152 @@ export const kitsuSelect: Prisma.KitsuSelect = {
   youtubeVideoId: true,
   showType: true,
   nsfw: true,
+
+  titles: {
+    select: {
+      id: true,
+      en: true,
+      en_jp: true,
+      ja_jp: true,
+    },
+  },
+  posterImage: {
+    select: {
+      id: true,
+      tiny: true,
+      small: true,
+      medium: true,
+      large: true,
+      original: true,
+      dimensions: {
+        select: {
+          id: true,
+          tiny: {
+            select: { id: true, width: true, height: true },
+          },
+          small: {
+            select: { id: true, width: true, height: true },
+          },
+          medium: {
+            select: { id: true, width: true, height: true },
+          },
+          large: {
+            select: { id: true, width: true, height: true },
+          },
+        },
+      },
+    },
+  },
+  coverImage: {
+    select: {
+      id: true,
+      tiny: true,
+      small: true,
+      large: true,
+      original: true,
+      dimensions: {
+        select: {
+          id: true,
+          tiny: {
+            select: { id: true, width: true, height: true },
+          },
+          small: {
+            select: { id: true, width: true, height: true },
+          },
+          medium: {
+            select: { id: true, width: true, height: true },
+          },
+          large: {
+            select: { id: true, width: true, height: true },
+          },
+        },
+      },
+    },
+  },
+  genres: {
+    select: {
+      id: true,
+      selfLink: true,
+      related: true,
+    },
+  },
+  categories: {
+    select: {
+      id: true,
+      selfLink: true,
+      related: true,
+    },
+  },
+  castings: {
+    select: {
+      id: true,
+      selfLink: true,
+      related: true,
+    },
+  },
+  installments: {
+    select: {
+      id: true,
+      selfLink: true,
+      related: true,
+    },
+  },
+  mappings: {
+    select: {
+      id: true,
+      selfLink: true,
+      related: true,
+    },
+  },
+  reviews: {
+    select: {
+      id: true,
+      selfLink: true,
+      related: true,
+    },
+  },
+  mediaRelationships: {
+    select: {
+      id: true,
+      selfLink: true,
+      related: true,
+    },
+  },
+  episodes: {
+    select: {
+      id: true,
+      selfLink: true,
+      related: true,
+    },
+  },
+  streamingLinks: {
+    select: {
+      id: true,
+      selfLink: true,
+      related: true,
+    },
+  },
+  animeProductions: {
+    select: {
+      id: true,
+      selfLink: true,
+      related: true,
+    },
+  },
+  animeCharacters: {
+    select: {
+      id: true,
+      selfLink: true,
+      related: true,
+    },
+  },
+  animeStaff: {
+    select: {
+      id: true,
+      selfLink: true,
+      related: true,
+    },
+  },
 };
 
 export type KitsuPayload = Prisma.KitsuGetPayload<{
