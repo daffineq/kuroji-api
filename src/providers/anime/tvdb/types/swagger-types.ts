@@ -16,7 +16,7 @@ class TvdbAliasSelectDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() language?: boolean;
 }
 
-class TvdbArtworkSelectDto {
+export class TvdbArtworkSelectDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() id?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() height?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() image?: boolean;
@@ -53,27 +53,53 @@ export class TvdbSelectDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() lastUpdated?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() year?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() nameTranslations?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() overviewTranslations?: boolean;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  overviewTranslations?: boolean;
 
   @ApiPropertyOptional({ type: () => TvdbStatusSelectDto })
-  @ValidateNested() @Type(() => TvdbStatusSelectDto)
+  @ValidateNested()
+  @Type(() => TvdbStatusSelectDto)
   status?: { select?: TvdbStatusSelectDto };
 
   @ApiPropertyOptional({ type: () => TvdbAliasSelectDto, isArray: true })
-  @ValidateNested() @Type(() => TvdbAliasSelectDto)
+  @ValidateNested()
+  @Type(() => TvdbAliasSelectDto)
   aliases?: { select?: TvdbAliasSelectDto };
 
   @ApiPropertyOptional({ type: () => TvdbArtworkSelectDto, isArray: true })
-  @ValidateNested() @Type(() => TvdbArtworkSelectDto)
+  @ValidateNested()
+  @Type(() => TvdbArtworkSelectDto)
   artworks?: { select?: TvdbArtworkSelectDto };
 
   @ApiPropertyOptional({ type: () => TvdbRemoteIdSelectDto, isArray: true })
-  @ValidateNested() @Type(() => TvdbRemoteIdSelectDto)
+  @ValidateNested()
+  @Type(() => TvdbRemoteIdSelectDto)
   remoteIds?: { select?: TvdbRemoteIdSelectDto };
 
   @ApiPropertyOptional({ type: () => TvdbTrailerSelectDto, isArray: true })
-  @ValidateNested() @Type(() => TvdbTrailerSelectDto)
+  @ValidateNested()
+  @Type(() => TvdbTrailerSelectDto)
   trailers?: { select?: TvdbTrailerSelectDto };
+}
+
+export class TvdbLanguageSelectDto {
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() id?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() name?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() nativeName?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() shortCode?: boolean;
+}
+
+export class TvdbLanguageTranslationSelectDto {
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() id?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() name?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() overview?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isAlias?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() isPrimary?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() language?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() tagline?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() aliases?: boolean;
 }
 
 export class PartialTvdbSelectDto extends PartialType(TvdbSelectDto) {}

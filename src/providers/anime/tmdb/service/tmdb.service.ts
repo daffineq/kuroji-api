@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, TmdbSeason } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service.js';
 import { findBestMatch, ExpectAnime } from '../../../mapper/mapper.helper.js';
@@ -57,14 +57,14 @@ export class TmdbService extends Client {
     select?: T,
   ): Promise<Prisma.TmdbGetPayload<{ select: T }>> {
     const anilist = await this.anilist.getAnilist(id, fullSelect);
-    if (!anilist) throw new Error('Anilist not found');
+    if (!anilist) throw new NotFoundException('Anilist not found');
 
     const mapping = anilist.anizip as AniZipPayload;
-    if (!mapping) throw new Error('No mappings found');
+    if (!mapping) throw new NotFoundException('No mappings found');
 
     const tmdbId = mapping.mappings?.themoviedbId;
     const type = mapping.mappings?.type?.toLowerCase();
-    if (!type) throw new Error('No type found');
+    if (!type) throw new NotFoundException('No type found');
 
     if (!tmdbId) {
       const tmdb = await this.findTmdb(id);
@@ -98,7 +98,7 @@ export class TmdbService extends Client {
     ].filter(Boolean) as string[];
 
     if (possibleTitles.length === 0)
-      throw new Error('No title found in AniList');
+      throw new NotFoundException('No title found in AniList');
 
     let bestMatch: BasicTmdb | null = null;
 
@@ -108,7 +108,7 @@ export class TmdbService extends Client {
       if (bestMatch) break;
     }
 
-    if (!bestMatch) throw new Error('No matching TMDb entry found');
+    if (!bestMatch) throw new NotFoundException('No matching TMDb entry found');
 
     const fetchedTmdb = await tmdbFetch.fetchTmdb(
       bestMatch.id,
@@ -177,7 +177,7 @@ export class TmdbService extends Client {
       },
     })) as TmdbWithRelations;
 
-    if (!tmdb) throw new Error(`TMDb ID ${id} not found`);
+    if (!tmdb) throw new NotFoundException(`TMDb ID ${id} not found`);
 
     for (const season of tmdb.seasons) {
       console.log(
@@ -248,7 +248,7 @@ export class TmdbService extends Client {
       })),
     );
 
-    if (!bestMatch) throw new Error('No matching TMDb entry found');
+    if (!bestMatch) throw new NotFoundException('No matching TMDb entry found');
 
     return candidates.find(
       (c) => c.id === bestMatch.result.id,
@@ -264,7 +264,7 @@ export class TmdbService extends Client {
         await tmdbFetch.fetchTmdb(id, 'movie');
         return 'movie';
       } catch (_) {
-        throw new Error('ID not found in TVDB as Movie or Series.');
+        throw new NotFoundException('ID not found in TVDB as Movie or Series.');
       }
     }
   }

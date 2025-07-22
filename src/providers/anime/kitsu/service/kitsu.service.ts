@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { KitsuHelper } from '../util/kitsu-helper.js';
 import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
@@ -8,7 +8,7 @@ import { MappingsService } from '../../mappings/service/mappings.service.js';
 import { kitsuFetch } from './kitsu.fetch.service.js';
 import { deepCleanTitle } from '../../../mapper/mapper.cleaning.js';
 import { Prisma } from '@prisma/client';
-import { KitsuAnime } from '../types/types.js';
+import { KitsuAnime, kitsuSelect } from '../types/types.js';
 
 @Injectable()
 export class KitsuService {
@@ -54,8 +54,11 @@ export class KitsuService {
       return existingKitsu as Prisma.KitsuGetPayload<{ select: T }>;
     }
 
-    const mapping = await this.mappings.getMapping(id);
-    if (!mapping) throw new Error('No mapping found');
+    const mapping = await this.mappings.getMapping(id, {
+      id: true,
+      mappings: true,
+    });
+    if (!mapping) throw new NotFoundException('No mapping found');
 
     const kitsuId = mapping.mappings?.kitsuId;
 
@@ -88,8 +91,8 @@ export class KitsuService {
     id: number,
     select?: T,
   ): Promise<Prisma.KitsuGetPayload<{ select: T }>> {
-    const existingKitsu = await this.getKitsuByAnilist(id);
-    if (!existingKitsu) throw new Error('Not found');
+    const existingKitsu = await this.getKitsuByAnilist(id, kitsuSelect);
+    if (!existingKitsu) throw new NotFoundException('Not found');
 
     const rawKitsu = await kitsuFetch.fetchKitsu(existingKitsu.id);
     rawKitsu.anilistId = existingKitsu.anilistId ?? 0;
@@ -99,7 +102,7 @@ export class KitsuService {
 
   async findKitsuByAnilist(id: number): Promise<KitsuAnime> {
     const anilist = await this.anilist.getMappingAnilist(id);
-    if (!anilist) throw new Error('Anilist not found');
+    if (!anilist) throw new NotFoundException('Anilist not found');
 
     const searchResult = await kitsuFetch.searchKitsu(
       deepCleanTitle(anilist.title?.romaji ?? ''),
@@ -140,6 +143,6 @@ export class KitsuService {
       return data;
     }
 
-    throw new Error('Kitsu not found');
+    throw new NotFoundException('Kitsu not found');
   }
 }

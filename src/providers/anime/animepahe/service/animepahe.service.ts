@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
 import { IAnimeInfo } from '@consumet/extensions';
@@ -8,6 +8,7 @@ import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.se
 import { animepaheFetch } from './animepahe.fetch.service.js';
 import { deepCleanTitle } from '../../../mapper/mapper.cleaning.js';
 import { Prisma } from '@prisma/client';
+import { animepaheSelect } from '../types/types.js';
 
 @Injectable()
 export class AnimepaheService {
@@ -52,21 +53,24 @@ export class AnimepaheService {
   ): Promise<Prisma.AnimepaheGetPayload<{ select: T }>> {
     if (force) {
       const animepahe = await this.findAnimepahe(id);
-      if (!animepahe) throw new Error('Animepahe not found');
+      if (!animepahe) throw new NotFoundException('Animepahe not found');
 
       animepahe.alId = id;
 
       return await this.saveAnimepahe(animepahe, select);
     }
 
-    const existingAnimepahe = await this.getAnimepaheByAnilist(id);
-    if (!existingAnimepahe) throw new Error('No animepahe');
+    const existingAnimepahe = await this.getAnimepaheByAnilist(
+      id,
+      animepaheSelect,
+    );
+    if (!existingAnimepahe) throw new NotFoundException('No animepahe found');
 
     const animepahe = await animepaheFetch.fetchAnimepahe(existingAnimepahe.id);
-    if (!animepahe) throw new Error('Animepahe not found');
+    if (!animepahe) throw new NotFoundException('Animepahe not found');
 
     if (existingAnimepahe.episodes.length === animepahe.episodes?.length)
-      throw new Error('Nothing to update');
+      throw new NotFoundException('Nothing to update');
 
     animepahe.alId = id;
 
@@ -75,7 +79,7 @@ export class AnimepaheService {
 
   async findAnimepahe(id: number): Promise<IAnimeInfo> {
     const anilist = await this.anilist.getMappingAnilist(id);
-    if (!anilist) throw new Error('Anilist not found');
+    if (!anilist) throw new NotFoundException('Anilist not found');
 
     const searchResult = await animepaheFetch.searchAnimepahe(
       deepCleanTitle(anilist.title?.romaji ?? ''),
@@ -130,6 +134,6 @@ export class AnimepaheService {
       }
     }
 
-    throw new Error('Animepahe not found');
+    throw new NotFoundException('Animepahe not found');
   }
 }

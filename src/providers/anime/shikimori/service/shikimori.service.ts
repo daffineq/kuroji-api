@@ -33,12 +33,13 @@ export class ShikimoriService {
     }
 
     const anilist = await this.anilist.getMappingAnilist(+id, true);
-    if (!anilist) throw new Error('Anilist not found');
+    if (!anilist) throw new NotFoundException('Anilist not found');
 
     const data = await shikimoriFetch.fetchFromGraphQL(id);
     const anime = data.animes[0];
 
-    if (!anime) throw new Error(`No Shikimori data found for ID: ${id}`);
+    if (!anime)
+      throw new NotFoundException(`No Shikimori data found for ID: ${id}`);
 
     return await this.saveShikimori(anime);
   }
@@ -49,7 +50,8 @@ export class ShikimoriService {
       select: { chronology: true },
     });
 
-    if (!shikimori) throw new Error(`No Shikimori data found for ID: ${id}`);
+    if (!shikimori)
+      throw new NotFoundException(`No Shikimori data found for ID: ${id}`);
 
     return shikimori.chronology;
   }
@@ -72,7 +74,8 @@ export class ShikimoriService {
   ): Promise<Prisma.ShikimoriGetPayload<{ select: T }>> {
     const data = await shikimoriFetch.fetchFromGraphQL(id);
     const anime = data.animes[0];
-    if (!anime) throw new Error(`No Shikimori data found for ID: ${id}`);
+    if (!anime)
+      throw new NotFoundException(`No Shikimori data found for ID: ${id}`);
 
     return this.saveShikimori(anime, select);
   }

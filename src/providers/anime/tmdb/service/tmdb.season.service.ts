@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
 import { TmdbService } from './tmdb.service.js';
@@ -8,7 +8,7 @@ import {
   findEpisodeCount,
   getDateStringFromAnilist,
 } from '../../anilist/utils/utils.js';
-import { TmdbSeasonWithRelations } from '../types/types.js';
+import { TmdbSeasonWithRelations, tmdbSelect } from '../types/types.js';
 import { MediaFormat } from '@consumet/extensions';
 import { ZoroPayload } from '../../zoro/types/types.js';
 import { AnimepahePayload } from '../../animepahe/types/types.js';
@@ -61,7 +61,7 @@ export class TmdbSeasonService {
     const anilist = await this.anilist.getAnilist(id, mappingSelect);
 
     if (!anilist) {
-      throw new Error(`Anilist not found`);
+      throw new NotFoundException(`Anilist not found`);
     }
 
     if (
@@ -78,10 +78,10 @@ export class TmdbSeasonService {
       throw new Error(`Nuh uh, ${anilist.format} cant have tmdb episodes`);
     }
 
-    const tmdb = await this.tmdb.getTmdbByAnilist(id);
+    const tmdb = await this.tmdb.getTmdbByAnilist(id, tmdbSelect);
 
     if (!tmdb.seasons || tmdb.seasons.length === 0) {
-      throw new Error(`No seasons found for TMDb ID: ${tmdb.id}`);
+      throw new NotFoundException(`No seasons found for TMDb ID: ${tmdb.id}`);
     }
 
     const allEpisodes = await this.getAllTmdbEpisodes(tmdb.id);
@@ -100,7 +100,9 @@ export class TmdbSeasonService {
     );
 
     if (!matchResult.episodes || matchResult.episodes.length === 0) {
-      throw new Error('Could not find matching episodes for AniList entry');
+      throw new NotFoundException(
+        'Could not find matching episodes for AniList entry',
+      );
     }
 
     if (matchResult.confidence < 0.4) {
@@ -113,7 +115,7 @@ export class TmdbSeasonService {
       (s) => s.season_number === matchResult.primarySeason,
     );
     if (!season) {
-      throw new Error('Primary season not found');
+      throw new NotFoundException('Primary season not found');
     }
 
     const trimmedSeason: TmdbSeasonWithRelations = {
@@ -128,7 +130,7 @@ export class TmdbSeasonService {
   private async getAllTmdbEpisodes(
     showId: number,
   ): Promise<TmdbSeasonEpisode[]> {
-    const tmdb = await this.tmdb.getTmdb(showId);
+    const tmdb = await this.tmdb.getTmdb(showId, tmdbSelect);
 
     const allEpisodes: TmdbSeasonEpisode[] = [];
 

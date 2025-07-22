@@ -40,7 +40,7 @@ export function convertZoroSource(data: ZoroSource): ISource {
   };
 }
 
-export const zoroSelect: Prisma.ZoroSelect = {
+export const zoroSelect = {
   id: true,
   title: true,
   malID: true,
@@ -69,6 +69,6 @@ export const zoroSelect: Prisma.ZoroSelect = {
       url: true,
     },
   },
-};
+} satisfies Prisma.ZoroSelect;
 
 export type ZoroPayload = Prisma.ZoroGetPayload<{ select: typeof zoroSelect }>;

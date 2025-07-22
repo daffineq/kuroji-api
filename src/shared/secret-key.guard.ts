@@ -11,8 +11,13 @@ export class SecretKeyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
 
     const apiKey = request.headers['x-api-key'];
-    if (!apiKey || apiKey !== Config.SECURITY_PASSWORD) {
-      throw new UnauthorizedException('Dame da yo! Unauthorized 😠🔒');
+
+    if (!apiKey) {
+      throw new UnauthorizedException('Missing api key');
+    }
+
+    if (apiKey !== Config.SECURITY_PASSWORD) {
+      throw new UnauthorizedException('Incorrect api key');
     }
 
     return true;

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AnimepaheService } from './animepahe.service.js';
 import { SharedModule } from '../../../../shared/shared.module.js';
 import { animepaheFetch } from './animepahe.fetch.service.js';
+import { animepaheSelect } from '../types/types.js';
 
 jest.setTimeout(30000);
 
@@ -19,7 +20,7 @@ describe('AnimepaheService', () => {
   it('fetch info', async () => {
     try {
       const id = 21;
-      const data = await service.getAnimepaheByAnilist(id);
+      const data = await service.getAnimepaheByAnilist(id, animepaheSelect);
       expect(data).toBeDefined();
     } catch (err) {
       throw new Error(`Animepahe API failed info test: ${err.message}`);
@@ -29,7 +30,7 @@ describe('AnimepaheService', () => {
   it('fetch watch', async () => {
     try {
       const id = 21;
-      const data = await service.getAnimepaheByAnilist(id);
+      const data = await service.getAnimepaheByAnilist(id, animepaheSelect);
       const watchId = data?.episodes[0].id ?? '';
       const watch = await animepaheFetch.getSources(watchId);
       expect(watch).toBeDefined();

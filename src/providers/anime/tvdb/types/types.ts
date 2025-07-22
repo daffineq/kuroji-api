@@ -134,7 +134,7 @@ export interface TvdbInput {
   airsTime?: string;
 }
 
-export const tvdbSelect: Prisma.TvdbSelect = {
+export const tvdbSelect = {
   id: true,
   type: true,
   name: true,
@@ -195,7 +195,37 @@ export const tvdbSelect: Prisma.TvdbSelect = {
       language: true,
     },
   },
-};
+} satisfies Prisma.TvdbSelect;
+
+export const tvdbArtworkSelect = {
+  id: true,
+  height: true,
+  image: true,
+  includesText: true,
+  language: true,
+  score: true,
+  thumbnail: true,
+  type: true,
+  width: true,
+} satisfies Prisma.TvdbArtworkSelect;
+
+export const tvdbLanguageTranslationSelect = {
+  id: true,
+  name: true,
+  overview: true,
+  isAlias: true,
+  isPrimary: true,
+  language: true,
+  tagline: true,
+  aliases: true,
+} satisfies Prisma.TvdbLanguageTranslationSelect;
+
+export const tvdbLanguageSelect = {
+  id: true,
+  name: true,
+  nativeName: true,
+  shortCode: true,
+} satisfies Prisma.TvdbLanguageSelect;
 
 export type TvdbPayload = Prisma.TvdbGetPayload<{
   select: typeof tvdbSelect;

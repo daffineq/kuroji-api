@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { TmdbSeasonEpisodeWithRelations } from '../types/types.js';
 import { PrismaService } from '../../../../prisma.service.js';
 import { TmdbService } from './tmdb.service.js';
@@ -67,7 +67,7 @@ export class TmdbEpisodeService {
     const epId = season.episodes.find((e) => e.episode_number === ep)?.id;
 
     if (!epId) {
-      throw new Error('Episode id not found');
+      throw new NotFoundException('Episode id not found');
     }
 
     return await this.getEpisodeDetails(epId);

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
 import { IAnimeInfo } from '@consumet/extensions';
@@ -8,6 +8,7 @@ import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.se
 import { animekaiFetch } from './animekai.fetch.service.js';
 import { deepCleanTitle } from '../../../mapper/mapper.cleaning.js';
 import { Prisma } from '@prisma/client';
+import { animeKaiSelect } from '../types/types.js';
 
 @Injectable()
 export class AnimekaiService {
@@ -52,21 +53,24 @@ export class AnimekaiService {
   ): Promise<Prisma.AnimeKaiGetPayload<{ select: T }>> {
     if (force) {
       const animekai = await this.findAnimekai(id);
-      if (!animekai) throw new Error('Animekai not found');
+      if (!animekai) throw new NotFoundException('Animekai not found');
 
       animekai.anilistId = id;
 
       return await this.saveAnimekai(animekai, select);
     }
 
-    const existingAnimekai = await this.getAnimekaiByAnilist(id);
+    const existingAnimekai = await this.getAnimekaiByAnilist(
+      id,
+      animeKaiSelect,
+    );
     if (!existingAnimekai) throw new Error('Animekai not found');
 
     const animekai = await animekaiFetch.fetchAnimekai(existingAnimekai.id);
-    if (!animekai) throw new Error('Animekai not found');
+    if (!animekai) throw new NotFoundException('Animekai not found');
 
     if (existingAnimekai.episodes.length === animekai.episodes?.length)
-      throw new Error('Nothing to update');
+      throw new NotFoundException('Nothing to update');
 
     animekai.anilistId = id;
 
@@ -75,7 +79,7 @@ export class AnimekaiService {
 
   async findAnimekai(id: number): Promise<IAnimeInfo> {
     const anilist = await this.anilist.getMappingAnilist(id);
-    if (!anilist) throw new Error('Anilist not found');
+    if (!anilist) throw new NotFoundException('Anilist not found');
 
     const searchResult = await animekaiFetch.searchAnimekai(
       deepCleanTitle(anilist.title?.romaji ?? ''),
@@ -107,6 +111,6 @@ export class AnimekaiService {
       return data;
     }
 
-    throw new Error('Animekai not found');
+    throw new NotFoundException('Animekai not found');
   }
 }

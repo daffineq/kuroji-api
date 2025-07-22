@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { getTvdbInclude, TvdbHelper } from '../utils/tvdb-helper.js';
 import { PrismaService } from '../../../../prisma.service.js';
 import { TmdbService } from '../../tmdb/service/tmdb.service.js';
@@ -20,6 +20,7 @@ import { deepCleanTitle } from '../../../mapper/mapper.cleaning.js';
 import { fullSelect } from '../../anilist/types/types.js';
 import { AniZipPayload } from '../../mappings/types/types.js';
 import { tmdbSelect } from '../../tmdb/types/types.js';
+import { hashSelect } from '../../../../utils/utils.js';
 
 @Injectable()
 export class TvdbService {
@@ -56,19 +57,20 @@ export class TvdbService {
     select?: T,
   ): Promise<Prisma.TvdbGetPayload<{ select: T }>> {
     const anilist = await this.anilist.getAnilist(id, fullSelect);
-    if (!anilist) throw new Error('No Anilist data found');
+    if (!anilist) throw new NotFoundException('No Anilist data found');
 
     const mapping = anilist.anizip as AniZipPayload;
-    if (!mapping) throw new Error('No mappings found');
+    if (!mapping) throw new NotFoundException('No mappings found');
 
     const tvdbId = mapping.mappings?.thetvdbId;
     const type =
       mapping.mappings?.type?.toLowerCase() === 'movie' ? 'movie' : 'series';
-    if (!type) throw new Error('No type found');
+    if (!type) throw new NotFoundException('No type found');
 
     if (!tvdbId) {
       const tmdb = await this.tmdbService.getTmdbByAnilist(id, tmdbSelect);
-      if (!tmdb.name && !tmdb.original_name) throw new Error('No titles');
+      if (!tmdb.name && !tmdb.original_name)
+        throw new NotFoundException('No titles');
 
       const basicTvdb = await this.fetch.fetchByRemoteId(
         tmdb.id,
@@ -112,17 +114,32 @@ export class TvdbService {
     return await this.saveTvdb(tvdb, select);
   }
 
-  async getArtworksWithRedis(id: number): Promise<TvdbArtwork[]> {
-    const key = `tvdb:artworks:${id}`;
+  async getArtworksWithRedis<T extends Prisma.TvdbArtworkSelect>(
+    id: number,
+    select?: T,
+  ): Promise<Prisma.TvdbArtworkGetPayload<{ select: T }>[]> {
+    const key = `tvdb:artworks:${id}:${hashSelect(select)}`;
     if (Config.REDIS) {
       const cached = await this.redis.get(key);
       if (cached) {
-        return JSON.parse(cached) as TvdbArtwork[];
+        return JSON.parse(cached) as Prisma.TvdbArtworkGetPayload<{
+          select: T;
+        }>[];
       }
     }
 
-    const tvdb = await this.getTvdbByAnilist(id);
-    const artworks = tvdb.artworks;
+    const tvdb = await this.getTvdbByAnilist(id, tvdbSelect);
+
+    const artworks = await this.prisma.tvdbArtwork.findMany({
+      where: {
+        tvdb: {
+          some: {
+            id: tvdb.id,
+          },
+        },
+      },
+      select,
+    });
 
     if (Config.REDIS) {
       await this.redis.set(
@@ -133,35 +150,49 @@ export class TvdbService {
       );
     }
 
-    return artworks;
+    return artworks as Prisma.TvdbArtworkGetPayload<{ select: T }>[];
   }
 
-  async getTranslations(
+  async getTranslations<T extends Prisma.TvdbLanguageTranslationSelect>(
     id: number,
     translation: string,
-  ): Promise<TvdbLanguageTranslation> {
-    const tvdb = await this.getTvdbByAnilist(id);
-    const existing = (await this.prisma.tvdbLanguageTranslation.findFirst({
+    select?: T,
+  ): Promise<Prisma.TvdbLanguageTranslationGetPayload<{ select: T }>> {
+    const tvdb = await this.getTvdbByAnilist(id, tvdbSelect);
+    const existing = await this.prisma.tvdbLanguageTranslation.findFirst({
       where: { tvdbId: tvdb.id, language: translation },
-      omit: { id: true, tvdbId: true },
-    })) as TvdbLanguageTranslation;
-    if (existing) return existing;
+      select,
+    });
 
-    const tmdb = await this.tmdbService.getTmdbByAnilist(id);
+    if (existing) {
+      return existing as Prisma.TvdbLanguageTranslationGetPayload<{
+        select: T;
+      }>;
+    }
+
+    const tmdb = await this.tmdbService.getTmdbByAnilist(id, tmdbSelect);
     const translations = await this.fetch.fetchTranslations(
       tvdb.id,
       tmdb.media_type || 'series',
       translation,
     );
     translations.tvdbId = tvdb.id;
-    return await this.saveTranslation(translations);
+    return await this.saveTranslation(translations, select);
   }
 
-  async getLanguages(): Promise<TvdbLanguage[]> {
-    const existing = await this.prisma.tvdbLanguage.findMany();
-    if (existing.length > 0) return existing;
+  async getLanguages<T extends Prisma.TvdbLanguageSelect>(
+    select?: T,
+  ): Promise<Prisma.TvdbLanguageGetPayload<{ select: T }>[]> {
+    const existing = await this.prisma.tvdbLanguage.findMany({
+      select,
+    });
+
+    if (existing.length > 0) {
+      return existing as Prisma.TvdbLanguageGetPayload<{ select: T }>[];
+    }
+
     const langs = await this.fetch.fetchLanguages();
-    return await this.saveLanguages(langs);
+    return await this.saveLanguages(langs, select);
   }
 
   async saveTvdb<T extends Prisma.TvdbSelect>(
@@ -176,16 +207,33 @@ export class TvdbService {
     })) as Prisma.TvdbGetPayload<{ select: T }>;
   }
 
-  async saveTranslation(
+  async saveTranslation<T extends Prisma.TvdbLanguageTranslationSelect>(
     translation: TvdbLanguageTranslation,
-  ): Promise<TvdbLanguageTranslation> {
+    select?: T,
+  ): Promise<Prisma.TvdbLanguageTranslationGetPayload<{ select: T }>> {
     await this.prisma.tvdbLanguageTranslation.create({
       data: this.helper.getTvdbLanguageTranslationData(translation),
     });
+
     return (await this.prisma.tvdbLanguageTranslation.findFirst({
       where: { tvdbId: translation.tvdbId, language: translation.language },
-      omit: { id: true, tvdbId: true },
-    })) as TvdbLanguageTranslation;
+      select,
+    })) as Prisma.TvdbLanguageTranslationGetPayload<{ select: T }>;
+  }
+
+  async saveLanguages<T extends Prisma.TvdbLanguageSelect>(
+    langs: TvdbLanguage[],
+    select?: T,
+  ): Promise<Prisma.TvdbLanguageGetPayload<{ select: T }>[]> {
+    await this.prisma.tvdbLanguage.createMany({
+      data: langs.map((l) => this.helper.getTvdbLanguageData(l)),
+      skipDuplicates: true,
+    });
+
+    return (await this.prisma.tvdbLanguage.findMany({
+      where: { id: { in: langs.map((l) => l.id) } },
+      select,
+    })) as Prisma.TvdbLanguageGetPayload<{ select: T }>[];
   }
 
   async update<T extends Prisma.TvdbSelect>(
@@ -203,19 +251,11 @@ export class TvdbService {
     return await this.saveTvdb(tvdb, select);
   }
 
-  async updateLanguages(): Promise<TvdbLanguage[]> {
+  async updateLanguages<T extends Prisma.TvdbLanguageSelect>(
+    select?: T,
+  ): Promise<Prisma.TvdbLanguageGetPayload<{ select: T }>[]> {
     const langs = await this.fetch.fetchLanguages();
-    return await this.saveLanguages(langs);
-  }
-
-  async saveLanguages(langs: TvdbLanguage[]): Promise<TvdbLanguage[]> {
-    await this.prisma.tvdbLanguage.createMany({
-      data: langs.map((l) => this.helper.getTvdbLanguageData(l)),
-      skipDuplicates: true,
-    });
-    return await this.prisma.tvdbLanguage.findMany({
-      where: { id: { in: langs.map((l) => l.id) } },
-    });
+    return await this.saveLanguages(langs, select);
   }
 
   async detectType(id: number): Promise<string> {

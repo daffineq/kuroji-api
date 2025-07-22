@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
 import {
   AnimekaiEpisode,
@@ -61,7 +61,7 @@ export class StreamService {
       const anilist = await this.anilist
         .getAnilist(id, fullSelect)
         .catch(() => null);
-      if (!anilist) throw new Error('Anilist not found');
+      if (!anilist) throw new NotFoundException('Anilist not found');
 
       const season = await this.tmdbSeason
         .getTmdbSeasonByAnilist(id)
@@ -363,7 +363,7 @@ export class StreamService {
       const anilist = await this.anilist
         .getAnilist(id, fullSelect)
         .catch(() => null);
-      if (!anilist) throw new Error('Anilist not found');
+      if (!anilist) throw new NotFoundException('Anilist not found');
 
       const zoro = anilist.zoro as ZoroPayload;
       const animepahe = anilist.animepahe as AnimepahePayload;
@@ -453,7 +453,7 @@ export class StreamService {
   ): Promise<ISource> {
     const providers = await this.getProvidersSingle(alId, ep);
     const epId = providers.find((p) => p.provider === provider)?.id;
-    if (!epId) throw new Error('Episode not found for provider');
+    if (!epId) throw new NotFoundException('Episode not found for provider');
 
     const fetchMap: { [key: string]: () => Promise<ISource> } = {};
 
@@ -477,7 +477,7 @@ export class StreamService {
     try {
       return fetchFn();
     } catch {
-      throw new Error('No sources found');
+      throw new NotFoundException('No sources found');
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { IAniZipData } from '../types/types.js';
 import { getAnizipData } from '../utils/anizip.helper.js';
@@ -30,10 +30,10 @@ export class MappingsService {
     }
 
     const anilist = await this.anilist.getMappingAnilist(anilistId);
-    if (!anilist) throw new Error('No anilist found');
+    if (!anilist) throw new NotFoundException('No anilist found');
 
     const anizipRaw = await mappingsFetch.fetchMapping(anilistId);
-    if (!anizipRaw) throw new Error('No data found');
+    if (!anizipRaw) throw new NotFoundException('No data found');
 
     return await this.saveMapping(anizipRaw, select);
   }
@@ -182,7 +182,7 @@ export class MappingsService {
     select?: T,
   ): Promise<Prisma.AniZipGetPayload<{ select: T }>> {
     const anizipRaw = await mappingsFetch.fetchMapping(anilistId);
-    if (!anizipRaw) throw new Error('No data found');
+    if (!anizipRaw) throw new NotFoundException('No data found');
     return await this.saveMapping(anizipRaw, select);
   }
 
@@ -214,7 +214,9 @@ export class MappingsService {
     });
 
     if (!mapping)
-      throw new Error(`AniZipMapping not found for aniZipId ${aniZipId}`);
+      throw new NotFoundException(
+        `AniZipMapping not found for aniZipId ${aniZipId}`,
+      );
 
     await this.prisma.aniZipMapping.update({
       where: { aniZipId },

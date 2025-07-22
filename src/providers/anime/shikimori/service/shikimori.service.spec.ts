@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ShikimoriService } from './shikimori.service.js';
 import { SharedModule } from '../../../../shared/shared.module.js';
+import { shikimoriSelect } from '../types/types.js';
 
 describe('ShikimoriService', () => {
   let service: ShikimoriService;
@@ -16,7 +17,7 @@ describe('ShikimoriService', () => {
   it('fetch info', async () => {
     try {
       const id = '21';
-      const data = await service.getShikimori(id);
+      const data = await service.getShikimori(id, shikimoriSelect);
       expect(data).toBeDefined();
     } catch (err) {
       throw new Error(`Shikimori API failed info test: ${err.message}`);
