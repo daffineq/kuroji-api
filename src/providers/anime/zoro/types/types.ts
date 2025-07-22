@@ -1,6 +1,39 @@
 import { ISource } from '@consumet/extensions';
 import { Prisma } from '@prisma/client';
 
+/* New types for anime-api */
+export interface ZoroServer {
+  type: string;
+  data_id: number;
+  server_id: number;
+  serverName: string;
+}
+
+interface ZoroStreamTrack {
+  file: string;
+  label?: string;
+  kind?: string;
+  default?: boolean;
+}
+
+interface ZoroStreamLink {
+  id: number;
+  type: string;
+  link: {
+    file: string;
+    type: string;
+  };
+  tracks: ZoroStreamTrack[];
+  intro?: { start: number; end: number };
+  outro?: { start: number; end: number };
+  server: string;
+}
+
+export interface ZoroStreamResults {
+  streamingLink: ZoroStreamLink;
+  servers: ZoroServer[];
+}
+
 export interface ZoroSource {
   headers?: { [key: string]: string };
 
