@@ -1,14 +1,24 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiQuery, ApiSecurity, ApiOperation } from '@nestjs/swagger';
 import { ConsoleInterceptor } from '../ConsoleInterceptor.js';
 import Config from '../../configs/config.js';
 import { SecretKeyGuard } from '../../shared/secret-key.guard.js';
 
+@ApiSecurity('x-api-key')
+@ApiTags('Console')
 @Controller('console')
 export class ConsoleController {
   constructor(private readonly logger: ConsoleInterceptor) {}
 
   @Get('all')
   @UseGuards(SecretKeyGuard)
+  @ApiOperation({
+    summary: 'Get all console logs',
+    description: 'Get all kind of console logs like logs, warns and errors.',
+  })
+  @ApiQuery({ name: 'order', enum: ['asc', 'desc'], required: false })
+  @ApiQuery({ name: 'perPage', type: Number, required: false })
+  @ApiQuery({ name: 'page', type: Number, required: false })
   getAll(
     @Query('order') order: 'asc' | 'desc' = 'desc',
     @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
@@ -19,6 +29,10 @@ export class ConsoleController {
 
   @Get('logs')
   @UseGuards(SecretKeyGuard)
+  @ApiOperation({ summary: 'Get logs from console' })
+  @ApiQuery({ name: 'order', enum: ['asc', 'desc'], required: false })
+  @ApiQuery({ name: 'perPage', type: Number, required: false })
+  @ApiQuery({ name: 'page', type: Number, required: false })
   getLogs(
     @Query('order') order: 'asc' | 'desc' = 'desc',
     @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
@@ -29,6 +43,10 @@ export class ConsoleController {
 
   @Get('warns')
   @UseGuards(SecretKeyGuard)
+  @ApiOperation({ summary: 'Get warnings from console' })
+  @ApiQuery({ name: 'order', enum: ['asc', 'desc'], required: false })
+  @ApiQuery({ name: 'perPage', type: Number, required: false })
+  @ApiQuery({ name: 'page', type: Number, required: false })
   getWarns(
     @Query('order') order: 'asc' | 'desc' = 'desc',
     @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
@@ -39,6 +57,10 @@ export class ConsoleController {
 
   @Get('errors')
   @UseGuards(SecretKeyGuard)
+  @ApiOperation({ summary: 'Get errors from console' })
+  @ApiQuery({ name: 'order', enum: ['asc', 'desc'], required: false })
+  @ApiQuery({ name: 'perPage', type: Number, required: false })
+  @ApiQuery({ name: 'page', type: Number, required: false })
   getErrors(
     @Query('order') order: 'asc' | 'desc' = 'desc',
     @Query('perPage') perPage: number = Config.DEFAULT_PER_PAGE,
