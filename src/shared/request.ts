@@ -212,6 +212,7 @@ export class KurojiClient {
     this.baseUrl = baseUrl;
     this.client = ky.create({
       prefixUrl: baseUrl,
+      timeout: 20000,
       hooks: {
         beforeRequest: [
           (request) => {
