@@ -550,8 +550,9 @@ export class StreamService {
     if (!epId) throw new NotFoundException('Episode not found for provider');
 
     const anilist = await this.anilist.getAnilist(alId, fullSelect);
-    const anilibria = anilist.anilibria as AnilibriaPayload;
-    const anilibriaEp = anilibria.episodes.find((e) => e.id === anilibriaId);
+    const anilibria = anilist.anilibria as AnilibriaPayload | null;
+
+    const anilibriaEp = anilibria?.episodes?.find((e) => e.id === anilibriaId);
 
     const fetchMap: { [key: string]: () => Promise<ISource> } = {};
 
