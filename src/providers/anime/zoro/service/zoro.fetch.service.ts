@@ -63,12 +63,11 @@ export class ZoroFetchService extends Client {
       intro: streamingLink.intro,
       outro: streamingLink.outro,
       sources: [
-        // TEMPORARY FIX!! Servers for M3U8 are blocking access
-        /*{
-          url: streamingLink.link.file,
+        {
+          url: `${UrlConfig.BASE}api/anime/watch/0/zoro/proxy?url=${streamingLink.link.file}`,
           isM3U8: streamingLink.link.type === 'hls',
           type: streamingLink.link.type,
-        },*/
+        },
       ],
     });
   }
