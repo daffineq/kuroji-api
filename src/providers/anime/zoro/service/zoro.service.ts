@@ -9,37 +9,17 @@ import { findEpisodeCount } from '../../anilist/utils/utils.js';
 import { deepCleanTitle } from '../../../mapper/mapper.cleaning.js';
 import { Prisma } from '@prisma/client';
 import { zoroSelect } from '../types/types.js';
+import { MappingsService } from '../../mappings/service/mappings.service.js';
 
 @Injectable()
 export class ZoroService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly anilist: AnilistUtilService,
+    private readonly mappings: MappingsService,
   ) {}
 
-  async getZoro<T extends Prisma.ZoroSelect>(
-    id: string,
-    select?: T,
-  ): Promise<Prisma.ZoroGetPayload<{ select: T }>> {
-    const existingZoro = await this.prisma.zoro.findUnique({
-      where: { id: id },
-      select,
-    });
-
-    if (existingZoro) {
-      return existingZoro as Prisma.ZoroGetPayload<{ select: T }>;
-    }
-
-    const zoro = await zoroFetch.fetchZoro(id);
-
-    if (!zoro) {
-      throw new NotFoundException('Zoro not found');
-    }
-
-    return this.saveZoro(zoro, select);
-  }
-
-  async getZoroByAnilist<T extends Prisma.ZoroSelect>(
+  async getInfoByAnilist<T extends Prisma.ZoroSelect>(
     id: number,
     select?: T,
   ): Promise<Prisma.ZoroGetPayload<{ select: T }>> {
@@ -52,11 +32,15 @@ export class ZoroService {
       return existingZoro as Prisma.ZoroGetPayload<{ select: T }>;
     }
 
-    const zoro = await this.findZoroByAnilist(id);
-    return this.saveZoro(zoro, select);
+    const zoro = await this.findByAnilist(id);
+    if (!zoro) throw new NotFoundException(`Zoro not found`);
+
+    await this.mappings.updateAniZipMappings(id, { zoroId: zoro.id });
+
+    return await this.save(zoro, select);
   }
 
-  async saveZoro<T extends Prisma.ZoroSelect>(
+  async save<T extends Prisma.ZoroSelect>(
     zoro: IAnimeInfo,
     select?: T,
   ): Promise<Prisma.ZoroGetPayload<{ select: T }>> {
@@ -74,18 +58,18 @@ export class ZoroService {
     select?: T,
   ): Promise<Prisma.ZoroGetPayload<{ select: T }>> {
     if (force) {
-      const zoro = await this.findZoroByAnilist(id);
+      const zoro = await this.findByAnilist(id);
       if (!zoro) throw new NotFoundException('Zoro not found');
 
       zoro.alID = id;
 
-      return this.saveZoro(zoro, select);
+      return this.save(zoro, select);
     }
 
-    const existingZoro = await this.getZoroByAnilist(id, zoroSelect);
+    const existingZoro = await this.getInfoByAnilist(id, zoroSelect);
     if (!existingZoro) throw new NotFoundException('Existing Zoro not found');
 
-    const zoro = await zoroFetch.fetchZoro(existingZoro.id);
+    const zoro = await zoroFetch.fetchInfo(existingZoro.id);
     if (!zoro) throw new NotFoundException('Zoro not found');
 
     if (existingZoro.episodes.length === zoro.episodes?.length)
@@ -93,14 +77,14 @@ export class ZoroService {
 
     zoro.alID = id;
 
-    return this.saveZoro(zoro, select);
+    return this.save(zoro, select);
   }
 
-  async findZoroByAnilist(id: number): Promise<IAnimeInfo> {
+  async findByAnilist(id: number): Promise<IAnimeInfo> {
     const anilist = await this.anilist.getMappingAnilist(id);
     if (!anilist) throw new NotFoundException('Anilist not found');
 
-    const searchResult = await zoroFetch.searchZoro(
+    const searchResult = await zoroFetch.search(
       deepCleanTitle(anilist.title?.romaji ?? ''),
     );
 
@@ -128,7 +112,7 @@ export class ZoroService {
       const bestMatch = findBestMatch(searchCriteria, results, exclude);
 
       if (bestMatch) {
-        const data = await zoroFetch.fetchZoro(bestMatch.result.id);
+        const data = await zoroFetch.fetchInfo(bestMatch.result.id);
 
         if (
           (data.alID && Number(data.alID) === anilist.id) ||

@@ -9,15 +9,17 @@ import { animepaheFetch } from './animepahe.fetch.service.js';
 import { deepCleanTitle } from '../../../mapper/mapper.cleaning.js';
 import { Prisma } from '@prisma/client';
 import { animepaheSelect } from '../types/types.js';
+import { MappingsService } from '../../mappings/service/mappings.service.js';
 
 @Injectable()
 export class AnimepaheService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly anilist: AnilistUtilService,
+    private readonly mappings: MappingsService,
   ) {}
 
-  async getAnimepaheByAnilist<T extends Prisma.AnimepaheSelect>(
+  async getInfoByAnilist<T extends Prisma.AnimepaheSelect>(
     id: number,
     select?: T,
   ): Promise<Prisma.AnimepaheGetPayload<{ select: T }>> {
@@ -30,11 +32,15 @@ export class AnimepaheService {
       return existingAnimepahe as Prisma.AnimepaheGetPayload<{ select: T }>;
     }
 
-    const animepahe = await this.findAnimepahe(id);
-    return this.saveAnimepahe(animepahe, select);
+    const animepahe = await this.findByAnilist(id);
+    if (!animepahe) throw new NotFoundException(`Animepahe not found`);
+
+    await this.mappings.updateAniZipMappings(id, { animepaheId: animepahe.id });
+
+    return this.save(animepahe, select);
   }
 
-  async saveAnimepahe<T extends Prisma.AnimepaheSelect>(
+  async save<T extends Prisma.AnimepaheSelect>(
     animepahe: IAnimeInfo,
     select?: T,
   ): Promise<Prisma.AnimepaheGetPayload<{ select: T }>> {
@@ -52,21 +58,18 @@ export class AnimepaheService {
     select?: T,
   ): Promise<Prisma.AnimepaheGetPayload<{ select: T }>> {
     if (force) {
-      const animepahe = await this.findAnimepahe(id);
+      const animepahe = await this.findByAnilist(id);
       if (!animepahe) throw new NotFoundException('Animepahe not found');
 
       animepahe.alId = id;
 
-      return await this.saveAnimepahe(animepahe, select);
+      return await this.save(animepahe, select);
     }
 
-    const existingAnimepahe = await this.getAnimepaheByAnilist(
-      id,
-      animepaheSelect,
-    );
+    const existingAnimepahe = await this.getInfoByAnilist(id, animepaheSelect);
     if (!existingAnimepahe) throw new NotFoundException('No animepahe found');
 
-    const animepahe = await animepaheFetch.fetchAnimepahe(existingAnimepahe.id);
+    const animepahe = await animepaheFetch.fetchInfo(existingAnimepahe.id);
     if (!animepahe) throw new NotFoundException('Animepahe not found');
 
     if (existingAnimepahe.episodes.length === animepahe.episodes?.length)
@@ -74,14 +77,14 @@ export class AnimepaheService {
 
     animepahe.alId = id;
 
-    return await this.saveAnimepahe(animepahe);
+    return await this.save(animepahe);
   }
 
-  async findAnimepahe(id: number): Promise<IAnimeInfo> {
+  async findByAnilist(id: number): Promise<IAnimeInfo> {
     const anilist = await this.anilist.getMappingAnilist(id);
     if (!anilist) throw new NotFoundException('Anilist not found');
 
-    const searchResult = await animepaheFetch.searchAnimepahe(
+    const searchResult = await animepaheFetch.search(
       deepCleanTitle(anilist.title?.romaji ?? ''),
     );
 
@@ -113,7 +116,7 @@ export class AnimepaheService {
       const bestMatch = findBestMatch(searchCriteria, results, exclude);
 
       if (bestMatch) {
-        const data = await animepaheFetch.fetchAnimepahe(bestMatch.result.id);
+        const data = await animepaheFetch.fetchInfo(bestMatch.result.id);
 
         const anilistLink = data.externalLinks?.find(
           (e) => e.sourceName === 'AniList',

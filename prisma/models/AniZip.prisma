@@ -105,6 +105,10 @@ model AniZipMapping {
   thetvdbId     Int?    @map("thetvdb_id")
   imdbId        String? @map("imdb_id")
   themoviedbId  Int?    @map("themoviedb_id")
+  anilibriaId   Int?    @map("anilibria_id")
+  zoroId        String? @map("zoro_id")
+  animepaheId   String? @map("animepahe_id")
+  animekaiId    String? @map("animekai_id")
 
   // One-to-one relationship
   aniZipId Int    @unique @map("anizip_id")

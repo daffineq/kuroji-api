@@ -24,7 +24,7 @@ export class ToolsService {
 
     for (const entry of entries) {
       try {
-        await this.animekaiService.saveAnimekai(entry as IAnimeInfo);
+        await this.animekaiService.save(entry as IAnimeInfo);
         console.log(`Updated Animekai ${entry.id}`);
       } catch (e) {
         console.error(`Failed to update Animekai ${entry.id}:`, e.message);
@@ -42,7 +42,7 @@ export class ToolsService {
 
     for (const entry of entries) {
       try {
-        await this.animepaheService.saveAnimepahe(entry as IAnimeInfo);
+        await this.animepaheService.save(entry as IAnimeInfo);
         console.log(`Updated Animepahe ${entry.id}`);
       } catch (e) {
         console.error(`Failed to update Animepahe ${entry.id}:`, e.message);
@@ -60,7 +60,7 @@ export class ToolsService {
 
     for (const entry of entries) {
       try {
-        await this.zoroService.saveZoro(entry as IAnimeInfo);
+        await this.zoroService.save(entry as IAnimeInfo);
         console.log(`Updated Zoro ${entry.id}`);
       } catch (e) {
         console.error(`Failed to update Zoro ${entry.id}:`, e.message);

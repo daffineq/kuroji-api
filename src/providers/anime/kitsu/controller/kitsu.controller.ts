@@ -24,7 +24,7 @@ export class KitsuController {
   })
   @ApiParam({ name: 'id', type: Number, description: 'Anilist ID' })
   async getByAnilist(@Param('id', ParseIntPipe) id: number) {
-    return this.kitsu.getKitsuByAnilist(id, kitsuSelect);
+    return this.kitsu.getInfoByAnilist(id, kitsuSelect);
   }
 
   @Post('info/:id/kitsu')
@@ -37,7 +37,7 @@ export class KitsuController {
     @Param('id', ParseIntPipe) id: number,
     @Body('select') select: Prisma.KitsuSelect = kitsuSelect,
   ) {
-    return this.kitsu.getKitsuByAnilist(id, select);
+    return this.kitsu.getInfoByAnilist(id, select);
   }
 
   @Put('info/:id/kitsu/update')

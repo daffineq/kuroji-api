@@ -34,7 +34,7 @@ export class TvdbController {
   })
   @ApiParam({ name: 'id', type: Number, description: 'Anilist ID' })
   async getTvdbByAnilist(@Param('id', ParseIntPipe) id: number) {
-    return this.service.getTvdbByAnilist(id, tvdbSelect);
+    return this.service.getInfoByAnilist(id, tvdbSelect);
   }
 
   @Post('info/:id/tvdb')
@@ -47,7 +47,7 @@ export class TvdbController {
     @Param('id', ParseIntPipe) id: number,
     @Body('select') select: Prisma.TvdbSelect = tvdbSelect,
   ) {
-    return this.service.getTvdbByAnilist(id, select);
+    return this.service.getInfoByAnilist(id, select);
   }
 
   @Get('info/:id/artworks')

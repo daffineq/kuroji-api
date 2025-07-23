@@ -32,7 +32,7 @@ export class AnimepaheController {
   })
   @ApiParam({ name: 'id', type: Number, description: 'Anilist ID' })
   async getAnimepaheByAnilist(@Param('id', ParseIntPipe) id: number) {
-    return this.service.getAnimepaheByAnilist(id, animepaheSelect);
+    return this.service.getInfoByAnilist(id, animepaheSelect);
   }
 
   @Post('info/:id/animepahe')
@@ -45,7 +45,7 @@ export class AnimepaheController {
     @Param('id', ParseIntPipe) id: number,
     @Body('select') select: Prisma.AnimepaheSelect = animepaheSelect,
   ) {
-    return this.service.getAnimepaheByAnilist(id, select);
+    return this.service.getInfoByAnilist(id, select);
   }
 
   @Get('watch/:id/animepahe')

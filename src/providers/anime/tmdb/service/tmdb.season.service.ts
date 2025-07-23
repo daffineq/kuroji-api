@@ -3,7 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
 import { TmdbService } from './tmdb.service.js';
-import { DateDetails, Prisma, TmdbSeasonEpisode } from '@prisma/client';
+import { DateDetails, TmdbSeasonEpisode } from '@prisma/client';
 import {
   findEpisodeCount,
   getDateStringFromAnilist,
@@ -78,7 +78,7 @@ export class TmdbSeasonService {
       throw new Error(`Nuh uh, ${anilist.format} cant have tmdb episodes`);
     }
 
-    const tmdb = await this.tmdb.getTmdbByAnilist(id, tmdbSelect);
+    const tmdb = await this.tmdb.getInfoByAnilist(id, tmdbSelect);
 
     if (!tmdb.seasons || tmdb.seasons.length === 0) {
       throw new NotFoundException(`No seasons found for TMDb ID: ${tmdb.id}`);
@@ -130,7 +130,7 @@ export class TmdbSeasonService {
   private async getAllTmdbEpisodes(
     showId: number,
   ): Promise<TmdbSeasonEpisode[]> {
-    const tmdb = await this.tmdb.getTmdb(showId, tmdbSelect);
+    const tmdb = await this.tmdb.getInfo(showId, tmdbSelect);
 
     const allEpisodes: TmdbSeasonEpisode[] = [];
 
@@ -142,7 +142,7 @@ export class TmdbSeasonService {
 
       if (!tmdbSeason) {
         try {
-          tmdbSeason = await tmdbFetch.fetchTmdbSeason(
+          tmdbSeason = await tmdbFetch.fetchSeasonInfo(
             showId,
             season.season_number,
           );
@@ -155,7 +155,7 @@ export class TmdbSeasonService {
           }
 
           tmdbSeason.show_id = showId;
-          await this.tmdb.saveTmdbSeason(tmdbSeason);
+          await this.tmdb.saveSeason(tmdbSeason);
         } catch (error) {
           console.warn(
             `Season ${season.season_number} not found for show ${showId}`,

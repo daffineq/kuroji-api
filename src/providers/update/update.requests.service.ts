@@ -350,10 +350,10 @@ export class UpdateRequestsService {
     }
   }
 
-  async getTwoDaysAgoAiredAnime() {
+  async getDaysAgoAiredAnime(range: number) {
     try {
       const { start: startTimestamp, end: endTimestamp } =
-        DateUtils.getDaysAgoRange(2);
+        DateUtils.getDaysAgoRange(range);
 
       const { start: bufferedStart, end: bufferedEnd } =
         DateUtils.getBufferedTimeRange(startTimestamp, endTimestamp, 2);

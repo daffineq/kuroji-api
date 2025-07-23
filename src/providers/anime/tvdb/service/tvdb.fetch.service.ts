@@ -12,7 +12,7 @@ export class TvdbFetchService extends Client {
     super(UrlConfig.TVDB);
   }
 
-  async fetchByRemoteId(
+  async searchByRemoteId(
     id: number,
     type: string,
     title: string,
@@ -43,7 +43,7 @@ export class TvdbFetchService extends Client {
     return match;
   }
 
-  async fetchTvdb(id: number, type: string): Promise<TvdbInput> {
+  async fetchInfo(id: number, type: string): Promise<TvdbInput> {
     const url = type === 'movie' ? TVDB.getMovie(id) : TVDB.getSeries(id);
     const { data, error } = await this.client.get<TvdbInput>(url, {
       headers: {

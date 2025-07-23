@@ -16,7 +16,7 @@ export class ShikimoriController {
   })
   @ApiParam({ name: 'id', type: String, description: 'MAL ID' })
   async getShikimori(@Param('id') id: string) {
-    return this.service.getShikimori(id, shikimoriSelect);
+    return this.service.getInfo(id, shikimoriSelect);
   }
 
   @Post('info/:id')
@@ -29,7 +29,7 @@ export class ShikimoriController {
     @Param('id') id: string,
     @Body('select') select: Prisma.ShikimoriSelect = shikimoriSelect,
   ) {
-    return this.service.getShikimori(id, select);
+    return this.service.getInfo(id, select);
   }
 
   @Put('info/:id/update')

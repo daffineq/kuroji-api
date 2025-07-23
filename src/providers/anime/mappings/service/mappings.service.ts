@@ -35,7 +35,7 @@ export class MappingsService {
     const anizipRaw = await mappingsFetch.fetchMapping(anilistId);
     if (!anizipRaw) throw new NotFoundException('No data found');
 
-    return await this.saveMapping(anizipRaw, select);
+    return await this.save(anizipRaw, select);
   }
 
   async getMappings<T extends Prisma.AniZipSelect>(
@@ -165,7 +165,7 @@ export class MappingsService {
     return { pageInfo, data: data as Prisma.AniZipGetPayload<{ select: T }>[] };
   }
 
-  async saveMapping<T extends Prisma.AniZipSelect>(
+  async save<T extends Prisma.AniZipSelect>(
     mapping: IAniZipData,
     select?: T,
   ): Promise<Prisma.AniZipGetPayload<{ select: T }>> {
@@ -183,7 +183,7 @@ export class MappingsService {
   ): Promise<Prisma.AniZipGetPayload<{ select: T }>> {
     const anizipRaw = await mappingsFetch.fetchMapping(anilistId);
     if (!anizipRaw) throw new NotFoundException('No data found');
-    return await this.saveMapping(anizipRaw, select);
+    return await this.save(anizipRaw, select);
   }
 
   /**
@@ -206,6 +206,10 @@ export class MappingsService {
       thetvdbId: number | null;
       imdbId: string | null;
       themoviedbId: number | null;
+      anilibriaId: number | null;
+      zoroId: string | null;
+      animepaheId: string | null;
+      animekaiId: string | null;
     }>,
     select?: T,
   ): Promise<Prisma.AniZipGetPayload<{ select: T }>> {

@@ -34,6 +34,7 @@ import { MappingsService } from '../providers/anime/mappings/service/mappings.se
 import { TvdbFetchService } from '../providers/anime/tvdb/service/tvdb.fetch.service.js';
 import { MalService } from '../providers/anime/mal/service/mal.service.js';
 import { ToolsService } from '../providers/tools/service/tools.service.js';
+import { AnilibriaService } from '../providers/anime/anilibria/service/anilibria.service.js';
 
 @Module({
   imports: [Redis],
@@ -49,6 +50,7 @@ import { ToolsService } from '../providers/tools/service/tools.service.js';
     AnilistRandomService,
     AnilistUtilService,
     AnilistSaveService,
+    AnilibriaService,
     ShikimoriService,
     AnilistHelper,
     ShikimoriHelper,
@@ -85,6 +87,7 @@ import { ToolsService } from '../providers/tools/service/tools.service.js';
     AnilistRandomService,
     AnilistUtilService,
     AnilistSaveService,
+    AnilibriaService,
     ShikimoriService,
     AnilistHelper,
     ShikimoriHelper,

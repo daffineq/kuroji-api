@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
 import {
+  AnilibriaEpisode,
   AnimekaiEpisode,
   AnimepaheEpisode,
   EpisodeZoro,
@@ -17,6 +18,7 @@ import {
   EpisodeDetails,
   EpisodeImage,
   EpisodeUnion,
+  Language,
   Provider,
   ProviderInfo,
   SourceType,
@@ -37,6 +39,13 @@ import { fullSelect } from '../../anilist/types/types.js';
 import { ZoroPayload } from '../../zoro/types/types.js';
 import { AnimepahePayload } from '../../animepahe/types/types.js';
 import { AnimeKaiPayload } from '../../animekai/types/types.js';
+import {
+  AnilibriaPayload,
+  convertToSource,
+  EpisodePayload,
+  getIntro,
+  getOutro,
+} from '../../anilibria/types/types.js';
 
 @Injectable()
 export class StreamService {
@@ -69,6 +78,7 @@ export class StreamService {
 
       const zoro = anilist.zoro as ZoroPayload;
       const animepahe = anilist.animepahe as AnimepahePayload;
+      const anilibria = anilist.anilibria as AnilibriaPayload;
       const anizip = anilist.anizip as AniZipPayload;
 
       const episodesZoro = (zoro?.episodes || []).sort(
@@ -77,6 +87,9 @@ export class StreamService {
       const episodesPahe = animepahe?.episodes || [];
       const tmdbEpisodes = (season?.episodes || []).sort(
         (a, b) => (a.episode_number || 0) - (b.episode_number || 0),
+      );
+      const anilibriaEpisodes = (anilibria?.episodes || []).sort(
+        (a, b) => (a.ordinal || 0) - (b.ordinal || 0),
       );
       const anizipEpisodes = (anizip?.episodes || []).sort(
         (a, b) => (a.episodeNumber || 0) - (b.episodeNumber || 0),
@@ -99,6 +112,11 @@ export class StreamService {
         if (ep.episode_number != null) tmdbMap.set(ep.episode_number, ep);
       });
 
+      const anilibriaMap = new Map<number, EpisodePayload>();
+      anilibriaEpisodes.forEach((ep) => {
+        if (ep.ordinal != null) anilibriaMap.set(ep.ordinal, ep);
+      });
+
       const anizipMap = new Map<number, AniZipEpisodeWithRelations>();
       anizipEpisodes.forEach((ep) => {
         if (ep.episodeNumber != null) anizipMap.set(ep.episodeNumber, ep);
@@ -108,6 +126,11 @@ export class StreamService {
         { name: 'zoro', count: episodesZoro.length, episodes: episodesZoro },
         { name: 'pahe', count: episodesPahe.length, episodes: episodesPahe },
         { name: 'tmdb', count: tmdbEpisodes.length, episodes: tmdbEpisodes },
+        {
+          name: 'anilibria',
+          count: anilibriaEpisodes.length,
+          episodes: anilibriaEpisodes,
+        },
         {
           name: 'anizip',
           count: anizipEpisodes.length,
@@ -145,6 +168,10 @@ export class StreamService {
           tmdbEpisodes.slice(0, maxEpisodes).forEach((e) => {
             if (e.episode_number != null) allNumbers.add(e.episode_number);
           });
+        } else if (bestProvider.name === 'anilibria') {
+          anilibriaEpisodes.slice(0, maxEpisodes).forEach((e) => {
+            if (e.ordinal != null) allNumbers.add(e.ordinal);
+          });
         } else if (bestProvider.name === 'anizip') {
           anizipEpisodes.slice(0, maxEpisodes).forEach((e) => {
             if (e.episodeNumber != null) allNumbers.add(e.episodeNumber);
@@ -156,11 +183,20 @@ export class StreamService {
             const hasInZoro = episodesZoro.some((e) => e.number === i);
             const hasInPahe = i <= episodesPahe.length;
             const hasInTmdb = tmdbEpisodes.some((e) => e.episode_number === i);
+            const hasInAnilibria = anilibriaEpisodes.some(
+              (e) => e.ordinal === i,
+            );
             const hasInAnizip = anizipEpisodes.some(
               (e) => e.episodeNumber === i,
             );
 
-            if (hasInZoro || hasInPahe || hasInTmdb || hasInAnizip) {
+            if (
+              hasInZoro ||
+              hasInPahe ||
+              hasInTmdb ||
+              hasInAnilibria ||
+              hasInAnizip
+            ) {
               allNumbers.add(i);
             }
           }
@@ -177,6 +213,10 @@ export class StreamService {
         } else if (bestProvider.name === 'tmdb') {
           tmdbEpisodes.forEach((e) => {
             if (e.episode_number != null) allNumbers.add(e.episode_number);
+          });
+        } else if (bestProvider.name === 'anilibria') {
+          anilibriaEpisodes.forEach((e) => {
+            if (e.ordinal != null) allNumbers.add(e.ordinal);
           });
         } else if (bestProvider.name === 'anizip') {
           anizipEpisodes.forEach((e) => {
@@ -197,6 +237,11 @@ export class StreamService {
             !bestProviderNumbers.has(e.episode_number)
           ) {
             allNumbers.add(e.episode_number);
+          }
+        });
+        anilibriaEpisodes.forEach((e) => {
+          if (e.ordinal != null && !bestProviderNumbers.has(e.ordinal)) {
+            allNumbers.add(e.ordinal);
           }
         });
         anizipEpisodes.forEach((e) => {
@@ -220,6 +265,7 @@ export class StreamService {
           const zoroEp = zoroMap.get(number);
           const paheEp = paheMap.get(number);
           const tmdbEpisode = tmdbMap.get(number);
+          const anilibriaEpisode = anilibriaMap.get(number);
           const anizipEpisode = anizipMap.get(number);
 
           const airDate = anilist?.airingSchedule?.find(
@@ -247,15 +293,25 @@ export class StreamService {
             anizipEpisode?.titles?.find((t) => t.key === 'en')?.name ||
             zoroEp?.title ||
             paheEp?.title;
+          const russianTitle = anilibriaEpisode?.name;
           const image =
             getImage(tmdbEpisode?.still_path) ||
             getImage(anizipEpisode?.image, true) ||
+            getImage(
+              `https://anilibria.top${anilibriaEpisode?.preview?.thumbnail}`,
+              true,
+            ) ||
             getImage(paheEp?.image, true);
 
           const overview = tmdbEpisode?.overview || anizipEpisode?.overview;
 
           const duration =
-            tmdbEpisode?.runtime || anizipEpisode?.runtime || anilist?.duration;
+            tmdbEpisode?.runtime ??
+            anizipEpisode?.runtime ??
+            (anilibriaEpisode?.duration !== undefined &&
+            anilibriaEpisode?.duration !== null
+              ? anilibriaEpisode.duration / 60
+              : anilist?.duration);
 
           const filler = zoroEp?.isFiller ?? false;
           const sub = zoroEp?.isSubbed ?? (paheEp ? true : false);
@@ -265,10 +321,12 @@ export class StreamService {
             animepahe: paheEp ? true : false,
             animekai: false,
             zoro: zoroEp ? true : false,
+            anilibria: anilibriaEpisode ? true : false,
           };
 
           return {
             title,
+            russianTitle,
             image,
             number,
             overview,
@@ -368,14 +426,16 @@ export class StreamService {
       const zoro = anilist.zoro as ZoroPayload;
       const animepahe = anilist.animepahe as AnimepahePayload;
       const animekai = anilist.animekai as AnimeKaiPayload;
+      const anilibria = anilist.anilibria as AnilibriaPayload;
 
       const pushProvider = (
         id: string,
         filler: boolean,
         provider: Provider,
         type: SourceType,
+        language: Language,
       ) => {
-        providers.push({ id, filler, provider, type });
+        providers.push({ id, filler, provider, type, language });
       };
 
       if (Config.ZORO_ENABLED && zoro) {
@@ -390,9 +450,16 @@ export class StreamService {
               isFiller || false,
               Provider.zoro,
               SourceType.soft_sub,
+              Language.multi,
             );
           if (isDubbed)
-            pushProvider(id, isFiller || false, Provider.zoro, SourceType.dub);
+            pushProvider(
+              id,
+              isFiller || false,
+              Provider.zoro,
+              SourceType.dub,
+              Language.english,
+            );
         }
       }
 
@@ -402,7 +469,13 @@ export class StreamService {
             e.number === ep || idx + 1 === ep,
         );
         if (paheEp) {
-          pushProvider(paheEp.id, false, Provider.animepahe, SourceType.both);
+          pushProvider(
+            paheEp.id,
+            false,
+            Provider.animepahe,
+            SourceType.both,
+            Language.english,
+          );
         }
       }
 
@@ -419,6 +492,7 @@ export class StreamService {
               isFiller || false,
               Provider.animekai,
               SourceType.hard_sub,
+              Language.english,
             );
           if (isDubbed)
             pushProvider(
@@ -426,7 +500,24 @@ export class StreamService {
               isFiller || false,
               Provider.animekai,
               SourceType.dub,
+              Language.english,
             );
+        }
+      }
+
+      if (anilibria) {
+        const anilibriaEp = anilibria.episodes?.find(
+          (e: EpisodePayload, idx: number) =>
+            e.ordinal === ep || idx + 1 === ep,
+        );
+        if (anilibriaEp) {
+          pushProvider(
+            anilibriaEp.id,
+            false,
+            Provider.anilibria,
+            SourceType.dub,
+            Language.russian,
+          );
         }
       }
 
@@ -453,7 +544,14 @@ export class StreamService {
   ): Promise<ISource> {
     const providers = await this.getProvidersSingle(alId, ep);
     const epId = providers.find((p) => p.provider === provider)?.id;
+    const anilibriaId = providers.find(
+      (p) => p.provider === Provider.anilibria,
+    )?.id;
     if (!epId) throw new NotFoundException('Episode not found for provider');
+
+    const anilist = await this.anilist.getAnilist(alId, fullSelect);
+    const anilibria = anilist.anilibria as AnilibriaPayload;
+    const anilibriaEp = anilibria.episodes.find((e) => e.id === anilibriaId);
 
     const fetchMap: { [key: string]: () => Promise<ISource> } = {};
 
@@ -471,11 +569,29 @@ export class StreamService {
         animepaheFetch.getSources(epId);
     }
 
+    fetchMap[Provider.anilibria] = async () => {
+      if (!anilibriaEp)
+        throw new NotFoundException('Anilibria episode not found');
+      return convertToSource(anilibriaEp);
+    };
+
     const fetchFn = fetchMap[provider];
     if (!fetchFn) throw new Error('Invalid provider');
 
     try {
-      return fetchFn();
+      const sources = await fetchFn();
+
+      if (anilibriaEp) {
+        if (!sources.intro) {
+          sources.intro = getIntro(anilibriaEp);
+        }
+
+        if (!sources.outro) {
+          sources.outro = getOutro(anilibriaEp);
+        }
+      }
+
+      return sources;
     } catch {
       throw new NotFoundException('No sources found');
     }

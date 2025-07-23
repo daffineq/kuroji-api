@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AnilibriaService } from './anilibria.service';
+import { AnilibriaService } from './anilibria.service.js';
 
 describe('AnilibriaService', () => {
   let service: AnilibriaService;

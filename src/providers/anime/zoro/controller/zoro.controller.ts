@@ -35,7 +35,7 @@ export class ZoroController {
   })
   @ApiParam({ name: 'id', type: Number, description: 'Anilist ID' })
   async getZoroByAnilist(@Param('id', ParseIntPipe) id: number) {
-    return this.service.getZoroByAnilist(id, zoroSelect);
+    return this.service.getInfoByAnilist(id, zoroSelect);
   }
 
   @Post('info/:id/zoro')
@@ -48,7 +48,7 @@ export class ZoroController {
     @Param('id', ParseIntPipe) id: number,
     @Body('select') select: Prisma.ZoroSelect = zoroSelect,
   ) {
-    return this.service.getZoroByAnilist(id, select);
+    return this.service.getInfoByAnilist(id, select);
   }
 
   @Get('watch/:id/zoro')

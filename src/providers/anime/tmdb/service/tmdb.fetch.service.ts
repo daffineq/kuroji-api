@@ -14,7 +14,7 @@ export class TmdbFetchService extends Client {
     super(UrlConfig.TMDB);
   }
 
-  async fetchTmdb(id: number, type: string): Promise<TmdbDetailsMerged> {
+  async fetchInfo(id: number, type: string): Promise<TmdbDetailsMerged> {
     const url =
       type === 'tv' ? TMDB.getTvDetails(id) : TMDB.getMovieDetails(id);
     const { data, error } = await this.client.get<TmdbDetailsMerged>(url);
@@ -30,7 +30,7 @@ export class TmdbFetchService extends Client {
     return data;
   }
 
-  async fetchTmdbSeason(
+  async fetchSeasonInfo(
     id: number,
     seasonNumber: number,
   ): Promise<TmdbSeasonWithRelations> {
@@ -49,7 +49,7 @@ export class TmdbFetchService extends Client {
     return filterSeasonEpisodes(data);
   }
 
-  async searchTmdb(query: string): Promise<BasicTmdb[]> {
+  async search(query: string): Promise<BasicTmdb[]> {
     const { data, error } = await this.client.get<BasicTmdb[]>(
       TMDB.multiSearch(query),
       {

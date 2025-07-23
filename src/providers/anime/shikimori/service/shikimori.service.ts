@@ -17,7 +17,7 @@ export class ShikimoriService {
     private readonly helper: ShikimoriHelper,
   ) {}
 
-  async getShikimori<T extends Prisma.ShikimoriSelect>(
+  async getInfo<T extends Prisma.ShikimoriSelect>(
     id: string,
     select?: T,
   ): Promise<Prisma.ShikimoriGetPayload<{ select: T }>> {
@@ -41,7 +41,7 @@ export class ShikimoriService {
     if (!anime)
       throw new NotFoundException(`No Shikimori data found for ID: ${id}`);
 
-    return await this.saveShikimori(anime);
+    return await this.save(anime);
   }
 
   async getChronology(id: string): Promise<BasicIdShik[]> {
@@ -56,7 +56,7 @@ export class ShikimoriService {
     return shikimori.chronology;
   }
 
-  async saveShikimori<T extends Prisma.ShikimoriSelect>(
+  async save<T extends Prisma.ShikimoriSelect>(
     anime: ShikimoriWithRelations,
     select?: T,
   ): Promise<Prisma.ShikimoriGetPayload<{ select: T }>> {
@@ -77,7 +77,7 @@ export class ShikimoriService {
     if (!anime)
       throw new NotFoundException(`No Shikimori data found for ID: ${id}`);
 
-    return this.saveShikimori(anime, select);
+    return this.save(anime, select);
   }
 
   async getFranchise(franchise: string): Promise<Shikimori[]> {

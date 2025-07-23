@@ -17,7 +17,7 @@ describe('ShikimoriService', () => {
   it('fetch info', async () => {
     try {
       const id = '21';
-      const data = await service.getShikimori(id, shikimoriSelect);
+      const data = await service.getInfo(id, shikimoriSelect);
       expect(data).toBeDefined();
     } catch (err) {
       throw new Error(`Shikimori API failed info test: ${err.message}`);

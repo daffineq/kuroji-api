@@ -29,7 +29,7 @@ export class AnimekaiFetchService extends Client {
     return data;
   }
 
-  async fetchAnimekai(id: string): Promise<IAnimeInfo> {
+  async fetchInfo(id: string): Promise<IAnimeInfo> {
     // return await animekai.fetchAnimeInfo(id);
     const { data, error } = await this.client.get<IAnimeInfo>(`info?id=${id}`);
 
@@ -44,7 +44,7 @@ export class AnimekaiFetchService extends Client {
     return data;
   }
 
-  async searchAnimekai(q: string): Promise<ISearch<IAnimeResult>> {
+  async search(q: string): Promise<ISearch<IAnimeResult>> {
     // return (await animekai.search(q)).results;
     const { data, error } = await this.client.get<ISearch<IAnimeResult>>(q);
 

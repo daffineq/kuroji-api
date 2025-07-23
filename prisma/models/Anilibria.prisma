@@ -1,43 +1,50 @@
 model Anilibria {
-  id                         Int      @id
-  anilistId                  Int?     @unique
-  year                       Int?
-  alias                      String?  @unique
-  freshAt                    String?
-  createdAt                  String?
-  updatedAt                  String?
-  isOngoing                  Boolean?
-  publishDay                 Int?
-  description                String?
-  notification               String?
-  episodesTotal              Int?
-  externalPlayer             String?
-  isInProduction             Boolean?
-  isBlockedByGeo             Boolean?
-  isBlockedByCopyrights      Boolean?
-  addedInUsersFavorites      Int?
-  averageDurationOfEpisode   Int?
-  addedInPlannedCollection   Int?
-  addedInWatchedCollection   Int?
-  addedInWatchingCollection  Int?
-  addedInPostponedCollection Int?
-  addedInAbandonedCollection Int?
+  id                            Int      @id
+  anilist_id                    Int?     @unique
+  year                          Int?
+  alias                         String?  @unique
+  fresh_at                      String?
+  created_at                    String?
+  updated_at                    String?
+  is_ongoing                    Boolean?
+  description                   String?
+  notification                  String?
+  episodes_total                Int?
+  external_player               String?
+  is_in_production              Boolean?
+  is_blocked_by_copyrights      Boolean?
+  added_in_users_favorites      Int?
+  average_duration_of_episode   Int?
+  added_in_planned_collection   Int?
+  added_in_watched_collection   Int?
+  added_in_watching_collection  Int?
+  added_in_postponed_collection Int?
+  added_in_abandoned_collection Int?
 
   // Normalized relations
-  type      AnilibriaType?      @relation("AnilibriaType")
-  name      AnilibriaName?      @relation("AnilibriaName")
-  season    AnilibriaSeason?    @relation("AnilibriaSeason")
-  poster    AnilibriaPoster?    @relation("AnilibriaPoster")
-  ageRating AnilibriaAgeRating? @relation("AnilibriaAgeRating")
-  sponsor   AnilibriaSponsor?   @relation("AnilibriaSponsor")
+  type        AnilibriaType?       @relation("AnilibriaType")
+  name        AnilibriaName?       @relation("AnilibriaName")
+  season      AnilibriaSeason?     @relation("AnilibriaSeason")
+  poster      AnilibriaPoster?     @relation("AnilibriaPoster")
+  age_rating  AnilibriaAgeRating?  @relation("AnilibriaAgeRating")
+  sponsor     AnilibriaSponsor?    @relation("AnilibriaSponsor")
+  publish_day AnilibriaPublishDay? @relation("AnilibriaPublishDay")
 
   // Collections
-  genres   AnilibriaGenreEdge[]  @relation("AnilibriaGenres")
-  members  AnilibriaMemberEdge[] @relation("AnilibriaMembers")
-  episodes AnilibriaEpisode[]    @relation("AnilibriaEpisodes")
-  torrents AnilibriaTorrent[]    @relation("AnilibriaTorrents")
+  genres   AnilibriaGenreEdge[] @relation("AnilibriaGenres")
+  episodes AnilibriaEpisode[]   @relation("AnilibriaEpisodes")
+  torrents AnilibriaTorrent[]   @relation("AnilibriaTorrents")
 
-  anilist Anilist? @relation(fields: [anilistId], references: [id])
+  anilist Anilist? @relation(fields: [anilist_id], references: [id])
+}
+
+model AnilibriaPublishDay {
+  id          Int     @id @default(autoincrement())
+  anilibriaId Int     @unique
+  value       Int?
+  description String?
+
+  anilibria Anilibria @relation("AnilibriaPublishDay", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaType {
@@ -69,12 +76,12 @@ model AnilibriaSeason {
 }
 
 model AnilibriaPoster {
-  id                 Int     @id @default(autoincrement())
-  anilibriaId        Int     @unique
-  preview            String?
-  thumbnail          String?
-  optimizedPreview   String?
-  optimizedThumbnail String?
+  id                  Int     @id @default(autoincrement())
+  anilibriaId         Int     @unique
+  preview             String?
+  thumbnail           String?
+  optimized_preview   String?
+  optimized_thumbnail String?
 
   anilibria Anilibria @relation("AnilibriaPoster", fields: [anilibriaId], references: [id])
 }
@@ -84,100 +91,59 @@ model AnilibriaAgeRating {
   anilibriaId Int      @unique
   value       String?
   label       String?
-  isAdult     Boolean?
+  is_adult    Boolean?
   description String?
 
   anilibria Anilibria @relation("AnilibriaAgeRating", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaSponsor {
-  id          Int     @id @default(autoincrement())
+  id          String  @id
   anilibriaId Int     @unique
-  sponsorId   String?
   title       String?
   description String?
-  urlTitle    String?
+  url_title   String?
   url         String?
 
   anilibria Anilibria @relation("AnilibriaSponsor", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaGenreEdge {
-  id            Int  @id @default(autoincrement())
-  anilibriaId   Int
-  genreId       Int
-  totalReleases Int?
+  id             Int  @id @default(autoincrement())
+  anilibriaId    Int
+  genreId        Int
+  total_releases Int?
 
   anilibria Anilibria      @relation("AnilibriaGenres", fields: [anilibriaId], references: [id])
   genre     AnilibriaGenre @relation(fields: [genreId], references: [id])
 }
 
 model AnilibriaGenre {
-  id                 Int     @id
-  name               String?
-  preview            String?
-  thumbnail          String?
-  optimizedPreview   String?
-  optimizedThumbnail String?
+  id                  Int     @id
+  name                String?
+  preview             String?
+  thumbnail           String?
+  optimized_preview   String?
+  optimized_thumbnail String?
 
   genreEdges AnilibriaGenreEdge[]
 }
 
-model AnilibriaMemberEdge {
-  id          Int     @id @default(autoincrement())
-  anilibriaId Int
-  memberId    String
-  nickname    String?
-
-  anilibria Anilibria       @relation("AnilibriaMembers", fields: [anilibriaId], references: [id])
-  member    AnilibriaMember @relation(fields: [memberId], references: [id])
-}
-
-model AnilibriaMember {
-  id String @id
-
-  role AnilibriaMemberRole? @relation("AnilibriaMemberRole")
-  user AnilibriaMemberUser? @relation("AnilibriaMemberUser")
-
-  memberEdges AnilibriaMemberEdge[]
-}
-
-model AnilibriaMemberRole {
-  id          Int     @id @default(autoincrement())
-  memberId    String  @unique
-  value       String?
-  description String?
-
-  member AnilibriaMember @relation("AnilibriaMemberRole", fields: [memberId], references: [id])
-}
-
-model AnilibriaMemberUser {
-  id                 Int     @id @default(autoincrement())
-  memberId           String  @unique
-  userId             Int?
-  preview            String?
-  thumbnail          String?
-  optimizedPreview   String?
-  optimizedThumbnail String?
-
-  member AnilibriaMember @relation("AnilibriaMemberUser", fields: [memberId], references: [id])
-}
-
 model AnilibriaEpisode {
-  id          String  @id
-  anilibriaId Int
-  name        String?
-  nameEnglish String?
-  ordinal     Float?
-  duration    Int?
-  rutubeId    String?
-  youtubeId   String?
-  updatedAt   String?
-  sortOrder   Int?
-  releaseId   Int?
-  hls480      String?
-  hls720      String?
-  hls1080     String?
+  id           String  @id
+  anilibriaId  Int
+  name         String?
+  name_english String?
+  ordinal      Float?
+  duration     Int?
+  rutube_id    String?
+  youtube_id   String?
+  updated_at   String?
+  sort_order   Int?
+  release_id   Int?
+  hls_480      String?
+  hls_720      String?
+  hls_1080     String?
 
   anilibria Anilibria                @relation("AnilibriaEpisodes", fields: [anilibriaId], references: [id])
   ending    AnilibriaEpisodeEnding?  @relation("AnilibriaEpisodeEnding")
@@ -204,33 +170,33 @@ model AnilibriaEpisodeOpening {
 }
 
 model AnilibriaEpisodePreview {
-  id                 Int     @id @default(autoincrement())
-  episodeId          String  @unique
-  preview            String?
-  thumbnail          String?
-  optimizedPreview   String?
-  optimizedThumbnail String?
+  id                  Int     @id @default(autoincrement())
+  episodeId           String  @unique
+  preview             String?
+  thumbnail           String?
+  optimized_preview   String?
+  optimized_thumbnail String?
 
   episode AnilibriaEpisode @relation("AnilibriaEpisodePreview", fields: [episodeId], references: [id])
 }
 
 model AnilibriaTorrent {
-  id             Int      @id
-  anilibriaId    Int
-  hash           String?
-  size           BigInt?
-  label          String?
-  magnet         String?
-  filename       String?
-  seeders        Int?
-  bitrate        Int?
-  leechers       Int?
-  sortOrder      Int?
-  updatedAt      String?
-  isHardsub      Boolean?
-  description    String?
-  createdAt      String?
-  completedTimes Int?
+  id              Int      @id
+  anilibriaId     Int
+  hash            String?
+  size            BigInt?
+  label           String?
+  magnet          String?
+  filename        String?
+  seeders         Int?
+  bitrate         Int?
+  leechers        Int?
+  sort_order      Int?
+  updated_at      String?
+  is_hardsub      Boolean?
+  description     String?
+  created_at      String?
+  completed_times Int?
 
   anilibria Anilibria                @relation("AnilibriaTorrents", fields: [anilibriaId], references: [id])
   type      AnilibriaTorrentType?    @relation("AnilibriaTorrentType")
@@ -258,13 +224,13 @@ model AnilibriaTorrentColor {
 }
 
 model AnilibriaTorrentCodec {
-  id             Int      @id @default(autoincrement())
-  torrentId      Int      @unique
-  value          String?
-  label          String?
-  description    String?
-  labelColor     String?
-  labelIsVisible Boolean?
+  id               Int      @id @default(autoincrement())
+  torrentId        Int      @unique
+  value            String?
+  label            String?
+  description      String?
+  label_color      String?
+  label_is_visible Boolean?
 
   torrent AnilibriaTorrent @relation("AnilibriaTorrentCodec", fields: [torrentId], references: [id])
 }

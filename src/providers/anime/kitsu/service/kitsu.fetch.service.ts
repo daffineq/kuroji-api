@@ -8,9 +8,9 @@ export class KitsuFetchService extends Client {
     super(UrlConfig.KITSU);
   }
 
-  async searchKitsu(query: string): Promise<KitsuAnime[]> {
-    const { data, error } = await this.client.get<KitsuAnime[]>(
-      KITSU.searchKitsu(query),
+  async fetchInfo(id: string): Promise<KitsuAnime> {
+    const { data, error } = await this.client.get<KitsuAnime>(
+      KITSU.getKitsu(id),
       {
         jsonPath: 'data',
       },
@@ -27,9 +27,9 @@ export class KitsuFetchService extends Client {
     return data;
   }
 
-  async fetchKitsu(id: string): Promise<KitsuAnime> {
-    const { data, error } = await this.client.get<KitsuAnime>(
-      KITSU.getKitsu(id),
+  async search(query: string): Promise<KitsuAnime[]> {
+    const { data, error } = await this.client.get<KitsuAnime[]>(
+      KITSU.searchKitsu(query),
       {
         jsonPath: 'data',
       },

@@ -5,6 +5,7 @@ import {
 } from '@prisma/client';
 import { AniZipEpisodeWithRelations } from '../../mappings/types/types.js';
 import { TmdbImage } from '../../tmdb/types/types.js';
+import { EpisodePayload } from '../../anilibria/types/types.js';
 
 export enum SourceType {
   soft_sub = 'soft_sub',
@@ -17,10 +18,18 @@ export enum Provider {
   zoro = 'zoro',
   animekai = 'animekai',
   animepahe = 'animepahe',
+  anilibria = 'anilibria',
+}
+
+export enum Language {
+  russian = 'ru',
+  english = 'en',
+  multi = 'multi',
 }
 
 export interface Episode {
   title?: string | null;
+  russianTitle?: string | null;
   image?: TmdbImage | null;
   number?: number | null;
   overview?: string | null;
@@ -36,6 +45,7 @@ export interface AvailableOn {
   animepahe: boolean;
   animekai: boolean;
   zoro: boolean;
+  anilibria: boolean;
 }
 
 export interface EpisodeDetails extends Episode {
@@ -57,10 +67,11 @@ export interface ProviderInfo {
   filler: boolean;
   provider: Provider;
   type: SourceType;
+  language: Language;
 }
 
 export interface BestProvider<T> {
-  name: 'zoro' | 'pahe' | 'tmdb' | 'anizip';
+  name: 'zoro' | 'pahe' | 'tmdb' | 'anilibria' | 'anizip';
   count: number;
   episodes: T[];
 }
@@ -69,4 +80,5 @@ export type EpisodeUnion =
   | EpisodeZoro
   | AnimepaheEpisode
   | TmdbSeasonEpisode
+  | EpisodePayload
   | AniZipEpisodeWithRelations;

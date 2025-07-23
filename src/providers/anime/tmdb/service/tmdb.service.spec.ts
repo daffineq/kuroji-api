@@ -17,7 +17,7 @@ describe('TmdbService', () => {
   it('fetch info', async () => {
     try {
       const id = 21;
-      const data = await service.getTmdbByAnilist(id, tmdbSelect);
+      const data = await service.getInfoByAnilist(id, tmdbSelect);
       expect(data).toBeDefined();
     } catch (err) {
       throw new Error(`TMDB API failed info test: ${err.message}`);

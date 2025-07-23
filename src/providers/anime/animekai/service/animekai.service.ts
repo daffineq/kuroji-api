@@ -9,15 +9,17 @@ import { animekaiFetch } from './animekai.fetch.service.js';
 import { deepCleanTitle } from '../../../mapper/mapper.cleaning.js';
 import { Prisma } from '@prisma/client';
 import { animeKaiSelect } from '../types/types.js';
+import { MappingsService } from '../../mappings/service/mappings.service.js';
 
 @Injectable()
 export class AnimekaiService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly anilist: AnilistUtilService,
+    private readonly mappings: MappingsService,
   ) {}
 
-  async getAnimekaiByAnilist<T extends Prisma.AnimeKaiSelect>(
+  async getInfoByAnilist<T extends Prisma.AnimeKaiSelect>(
     id: number,
     select?: T,
   ): Promise<Prisma.AnimeKaiGetPayload<{ select: T }>> {
@@ -30,11 +32,15 @@ export class AnimekaiService {
       return existingAnimekai as Prisma.AnimeKaiGetPayload<{ select: T }>;
     }
 
-    const animekai = await this.findAnimekai(id);
-    return this.saveAnimekai(animekai, select);
+    const animekai = await this.findByAnilist(id);
+    if (!animekai) throw new NotFoundException('Anime not found');
+
+    await this.mappings.updateAniZipMappings(id, { animekaiId: animekai.id });
+
+    return this.save(animekai, select);
   }
 
-  async saveAnimekai<T extends Prisma.AnimeKaiSelect>(
+  async save<T extends Prisma.AnimeKaiSelect>(
     animekai: IAnimeInfo,
     select?: T,
   ): Promise<Prisma.AnimeKaiGetPayload<{ select: T }>> {
@@ -52,21 +58,18 @@ export class AnimekaiService {
     select?: T,
   ): Promise<Prisma.AnimeKaiGetPayload<{ select: T }>> {
     if (force) {
-      const animekai = await this.findAnimekai(id);
+      const animekai = await this.findByAnilist(id);
       if (!animekai) throw new NotFoundException('Animekai not found');
 
       animekai.anilistId = id;
 
-      return await this.saveAnimekai(animekai, select);
+      return await this.save(animekai, select);
     }
 
-    const existingAnimekai = await this.getAnimekaiByAnilist(
-      id,
-      animeKaiSelect,
-    );
+    const existingAnimekai = await this.getInfoByAnilist(id, animeKaiSelect);
     if (!existingAnimekai) throw new Error('Animekai not found');
 
-    const animekai = await animekaiFetch.fetchAnimekai(existingAnimekai.id);
+    const animekai = await animekaiFetch.fetchInfo(existingAnimekai.id);
     if (!animekai) throw new NotFoundException('Animekai not found');
 
     if (existingAnimekai.episodes.length === animekai.episodes?.length)
@@ -74,14 +77,14 @@ export class AnimekaiService {
 
     animekai.anilistId = id;
 
-    return await this.saveAnimekai(animekai);
+    return await this.save(animekai);
   }
 
-  async findAnimekai(id: number): Promise<IAnimeInfo> {
+  async findByAnilist(id: number): Promise<IAnimeInfo> {
     const anilist = await this.anilist.getMappingAnilist(id);
     if (!anilist) throw new NotFoundException('Anilist not found');
 
-    const searchResult = await animekaiFetch.searchAnimekai(
+    const searchResult = await animekaiFetch.search(
       deepCleanTitle(anilist.title?.romaji ?? ''),
     );
 
@@ -106,7 +109,7 @@ export class AnimekaiService {
     const bestMatch = findBestMatch(searchCriteria, results);
 
     if (bestMatch) {
-      const data = await animekaiFetch.fetchAnimekai(bestMatch.result.id);
+      const data = await animekaiFetch.fetchInfo(bestMatch.result.id);
       data.anilistId = id;
       return data;
     }

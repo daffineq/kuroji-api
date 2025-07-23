@@ -20,7 +20,7 @@ describe('AnimepaheService', () => {
   it('fetch info', async () => {
     try {
       const id = 21;
-      const data = await service.getAnimepaheByAnilist(id, animepaheSelect);
+      const data = await service.getInfoByAnilist(id, animepaheSelect);
       expect(data).toBeDefined();
     } catch (err) {
       throw new Error(`Animepahe API failed info test: ${err.message}`);
@@ -30,7 +30,7 @@ describe('AnimepaheService', () => {
   it('fetch watch', async () => {
     try {
       const id = 21;
-      const data = await service.getAnimepaheByAnilist(id, animepaheSelect);
+      const data = await service.getInfoByAnilist(id, animepaheSelect);
       const watchId = data?.episodes[0].id ?? '';
       const watch = await animepaheFetch.getSources(watchId);
       expect(watch).toBeDefined();

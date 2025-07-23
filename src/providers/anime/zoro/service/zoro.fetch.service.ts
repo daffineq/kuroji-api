@@ -72,7 +72,7 @@ export class ZoroFetchService extends Client {
     });
   }
 
-  async fetchZoro(id: string): Promise<IAnimeInfo> {
+  async fetchInfo(id: string): Promise<IAnimeInfo> {
     // return await zoro.fetchAnimeInfo(id);
     const { data, error } = await this.client.get<IAnimeInfo>(
       `${UrlConfig.ZORO}info?id=${id}`,
@@ -89,7 +89,7 @@ export class ZoroFetchService extends Client {
     return data;
   }
 
-  async searchZoro(q: string): Promise<ISearch<IAnimeResult>> {
+  async search(q: string): Promise<ISearch<IAnimeResult>> {
     // return (await zoro.search(q)).results;
     const { data, error } = await this.client.get<ISearch<IAnimeResult>>(
       `${UrlConfig.ZORO}${q}`,

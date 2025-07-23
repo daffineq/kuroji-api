@@ -15,6 +15,7 @@ import { ZoroService } from '../anime/zoro/service/zoro.service.js';
 import { AppLockService } from '../../shared/app.lock.service.js';
 import { UpdateRequestsService } from './update.requests.service.js';
 import { MappingsService } from '../anime/mappings/service/mappings.service.js';
+import { AnilibriaService } from '../anime/anilibria/service/anilibria.service.js';
 
 export interface IProvider {
   update: (id: string | number) => Promise<any>;
@@ -30,6 +31,7 @@ export interface QueueItem {
     | 'recent'
     | 'today'
     | 'two_days_ago'
+    | 'three_days_ago'
     | 'week_ago'
     | 'missed'
     | 'finished_monthly'
@@ -54,6 +56,7 @@ export class UpdateService {
 
   constructor(
     private readonly anilistService: AnilistService,
+    private readonly anilibriaService: AnilibriaService,
     private readonly animekaiService: AnimekaiService,
     private readonly zoroService: ZoroService,
     private readonly animepaheService: AnimepaheService,
@@ -70,6 +73,10 @@ export class UpdateService {
       {
         update: (id: any) => this.anilistService.update(Number(id)),
         type: UpdateType.ANILIST,
+      },
+      {
+        update: (id: any) => this.anilibriaService.update(Number(id)),
+        type: UpdateType.ANILIBRIA,
       },
       {
         update: (id: any) => this.animekaiService.update(Number(id)),
@@ -299,13 +306,24 @@ export class UpdateService {
   }
 
   async queueTwoDaysAgoAnime() {
-    const twoDaysAgoAnime = await this.requests.getTwoDaysAgoAiredAnime();
+    const twoDaysAgoAnime = await this.requests.getDaysAgoAiredAnime(2);
     console.log(
       `[UpdateService] Adding ${twoDaysAgoAnime.length} two days ago aired anime to queue`,
     );
 
     for (const anime of twoDaysAgoAnime) {
       await this.addToQueue(anime, 'medium', 'two_days_ago');
+    }
+  }
+
+  async queueThreeDaysAgoAnime() {
+    const threeDaysAgoAnime = await this.requests.getDaysAgoAiredAnime(3);
+    console.log(
+      `[UpdateService] Adding ${threeDaysAgoAnime.length} three days ago aired anime to queue`,
+    );
+
+    for (const anime of threeDaysAgoAnime) {
+      await this.addToQueue(anime, 'medium', 'three_days_ago');
     }
   }
 
@@ -718,6 +736,15 @@ export class UpdateService {
       '[UpdateService] Every 8 hours - queueing two days ago aired anime',
     );
     await this.queueTwoDaysAgoAnime();
+  }
+
+  // Every 20 hours
+  @Cron('0 */20 * * *', { timeZone: 'Europe/London' })
+  async scheduleThreeDaysAgoAnime() {
+    console.log(
+      '[UpdateService] Every 20 hours - queueing three days ago aired anime',
+    );
+    await this.queueThreeDaysAgoAnime();
   }
 
   // Every 3 days at 1 AM London time

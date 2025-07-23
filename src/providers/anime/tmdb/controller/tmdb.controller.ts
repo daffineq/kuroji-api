@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiParam, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { TmdbService } from '../service/tmdb.service.js';
-import e from 'express'; // TODO: Remove this as it's not used.
 import { TmdbSeasonService } from '../service/tmdb.season.service.js';
 import { TmdbEpisodeService } from '../service/tmdb.episode.service.js';
 import { Prisma } from '@prisma/client';
@@ -31,7 +30,7 @@ export class TmdbController {
   })
   @ApiParam({ name: 'id', type: Number, description: 'Anilist ID' })
   async getTmdbByAnilist(@Param('id', ParseIntPipe) id: number) {
-    return this.service.getTmdbByAnilist(id, tmdbSelect);
+    return this.service.getInfoByAnilist(id, tmdbSelect);
   }
 
   @Post('info/:id/tmdb')
@@ -44,7 +43,7 @@ export class TmdbController {
     @Param('id', ParseIntPipe) id: number,
     @Body('select') select: Prisma.TmdbSelect = tmdbSelect,
   ) {
-    return this.service.getTmdbByAnilist(id, select);
+    return this.service.getInfoByAnilist(id, select);
   }
 
   @Get('info/:id/tmdb/season')

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TvdbService } from './tvdb.service';
-import { SharedModule } from '../../../../shared/shared.module';
+import { TvdbService } from './tvdb.service.js';
+import { SharedModule } from '../../../../shared/shared.module.js';
 
 describe('TvdbService', () => {
   let service: TvdbService;
@@ -16,7 +16,7 @@ describe('TvdbService', () => {
   it('fetch info', async () => {
     try {
       const id = 21;
-      const data = await service.getTvdbByAnilist(id);
+      const data = await service.getInfoByAnilist(id);
       expect(data).toBeDefined();
     } catch (err) {
       throw new Error(`TVDB API failed info test: ${err.message}`);

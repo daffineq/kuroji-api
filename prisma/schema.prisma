@@ -7,265 +7,175 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Tmdb.prisma
-model Tmdb {
-  id                 Int      @id
-  adult              Boolean
-  backdrop_path      String?
-  episode_run_time   Int[]
-  media_type         String?
-  first_air_date     String?
-  homepage           String?
-  in_production      Boolean?
-  last_air_date      String?
-  name               String?
-  number_of_episodes Int?
-  number_of_seasons  Int?
-  original_language  String?
-  original_name      String?
-  origin_country     String[]
-  overview           String?
-  popularity         Float?
-  poster_path        String?
-  tagline            String?
-  status             String?
-  type               String?
-  vote_average       Float?
-  vote_count         Int?
+// AniZip.prisma
+model AniZip {
+  id Int @id
 
-  next_episode_to_air TmdbNextEpisodeToAir? @relation("NextEpisode")
-  last_episode_to_air TmdbLastEpisodeToAir? @relation("LastEpisode")
-  seasons             TmdbReleaseSeason[]   @relation("TmdbReleaseSeason")
-  episodeSeasons      TmdbSeason[]
-  episodes            TmdbSeasonEpisode[]
+  // Basic info
+  episodeCount Int @map("episode_count")
+  specialCount Int @map("special_count")
+
+  // Relationships
+  titles   AniZipTitle[]
+  images   AniZipImage[]
+  episodes AniZipEpisode[]
+  mappings AniZipMapping?
+
+  anilist Anilist? @relation(fields: [id], references: [id])
+
+  @@map("anizip")
 }
 
-// Add new model for episode info
-model TmdbNextEpisodeToAir {
-  id              Int     @id
-  name            String?
-  overview        String?
-  vote_average    Float?
-  vote_count      Int?
-  air_date        String?
-  episode_number  Int?
-  episode_type    String?
-  production_code String?
-  runtime         Int?
-  season_number   Int?
-  show_id         Int     @unique
-  still_path      String?
+model AniZipTitle {
+  id   String  @id @default(cuid())
+  key  String // "x-jat", "ja", "en", etc.
+  name String?
 
-  tmdb_next Tmdb? @relation("NextEpisode", fields: [show_id], references: [id])
+  // Foreign key to AniZip
+  aniZipId Int    @map("anizip_id")
+  aniZip   AniZip @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
+
+  @@unique([aniZipId, key]) // Prevent duplicate keys for same anime
+  @@map("anizip_titles")
 }
 
-model TmdbLastEpisodeToAir {
-  id              Int     @id
-  name            String?
-  overview        String?
-  vote_average    Float?
-  vote_count      Int?
-  air_date        String?
-  episode_number  Int?
-  episode_type    String?
-  production_code String?
-  runtime         Int?
-  season_number   Int?
-  show_id         Int     @unique
-  still_path      String?
+model AniZipImage {
+  id        String  @id @default(cuid())
+  coverType String? @map("cover_type")
+  url       String?
 
-  tmdb_last Tmdb? @relation("LastEpisode", fields: [show_id], references: [id])
+  // Foreign key to AniZip
+  aniZipId Int    @map("anizip_id")
+  aniZip   AniZip @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
+
+  @@map("anizip_images")
 }
 
-model TmdbReleaseSeason {
-  id            Int     @id
-  air_date      String?
-  episode_count Int?
-  name          String?
-  overview      String? // @Lob
-  poster_path   String? // handle URL concatenation in your app logic
-  season_number Int
-  vote_average  Float?
+model AniZipEpisode {
+  id String @id @default(cuid())
 
-  tmdb Tmdb[] @relation("TmdbReleaseSeason")
-}
+  // Episode identification
+  episodeKey            String? @map("episode_key") // The JSON key like "1", "2", etc
+  episodeNumber         Int?    @map("episode_number")
+  seasonNumber          Int?    @map("season_number")
+  absoluteEpisodeNumber Int?    @map("absolute_episode_number")
 
-model TmdbSeason {
-  id            Int     @id
-  air_date      String?
-  show_id       Int
-  name          String?
-  overview      String?
-  poster_path   String?
-  season_number Int
-  vote_average  Float?
+  // TVDB info
+  tvdbShowId Int? @map("tvdb_show_id")
+  tvdbId     Int? @map("tvdb_id")
 
-  show     Tmdb                @relation(fields: [show_id], references: [id])
-  episodes TmdbSeasonEpisode[] @relation("TmdbSeasonEpisode")
-}
+  // Dates and times
+  airDate    String? @map("air_date")
+  airDateUtc String? @map("air_date_utc")
 
-model TmdbSeasonEpisode {
-  id              Int     @id
-  air_date        String?
-  episode_number  Int
-  episode_type    String?
-  name            String?
-  overview        String?
-  production_code String?
-  runtime         Int?
-  season_number   Int
-  show_id         Int
-  season_id       Int?
-  still_path      String?
-  vote_average    Float?
-  vote_count      Int?
-
-  show       Tmdb                     @relation(map: "TmdbSeasonEpisode_show_fkey", fields: [show_id], references: [id])
-  tmdbSeason TmdbSeason?              @relation("TmdbSeasonEpisode", fields: [season_id], references: [id])
-  images     TmdbSeasonEpisodeImages?
-}
-
-model TmdbSeasonEpisodeImages {
-  id        Int @id
-  episodeId Int @unique
-
-  stills  TmdbSeasonStillImage[] @relation("TmdbSeasonEpisodeStills")
-  episode TmdbSeasonEpisode      @relation(fields: [episodeId], references: [id])
-}
-
-model TmdbSeasonStillImage {
-  id           Int     @id @default(autoincrement())
-  aspect_ratio Float?
-  height       Int?
-  width        Int?
-  iso_639_1    String?
-  file_path    String?
-  vote_average Float?
-  vote_count   Int?
-
-  tmdbEpisodeImages TmdbSeasonEpisodeImages @relation("TmdbSeasonEpisodeStills", fields: [episodeImagesId], references: [id])
-  episodeImagesId   Int
-}
-
-
-// Animepahe.prisma
-model Animepahe {
-  id            String                  @id
-  alId          Int?                    @unique
-  title         String?
-  image         String?
-  cover         String?
-  updatedAt     Int?
-  hasSub        Boolean?
-  externalLinks AnimepaheExternalLink[] @relation("AnimepaheExLink")
-  status        String?
-  type          String?
-  releaseDate   String?
-  totalEpisodes Int?
-  episodePages  Int?
-
-  episodes AnimepaheEpisode[] @relation("AnimepaheEpisode")
-
-  anilist Anilist? @relation(fields: [alId], references: [id])
-}
-
-model AnimepaheEpisode {
-  id       String  @id
-  number   Int?
-  title    String?
+  // Media info
+  runtime  Int?
+  length   Int?
+  overview String?
   image    String?
-  duration String?
-  url      String?
+  rating   String?
 
-  animepahe Animepahe[] @relation("AnimepaheEpisode")
+  // IDs
+  episode  String? // string representation of episode number
+  anidbEid Int?    @map("anidb_eid")
+
+  // Relationships
+  titles   AniZipEpisodeTitle[]
+  aniZipId Int                  @map("anizip_id")
+  aniZip   AniZip               @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
+
+  @@unique([aniZipId, episodeKey])
+  @@map("anizip_episodes")
 }
 
-model AnimepaheExternalLink {
-  id         String @id
-  url        String
-  sourceName String
+model AniZipEpisodeTitle {
+  id   String  @id @default(cuid())
+  key  String // "ja", "en", "x-jat", etc.
+  name String?
 
-  animepahe Animepahe[] @relation("AnimepaheExLink")
+  episodeId String        @map("episode_id")
+  episode   AniZipEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@unique([episodeId, key])
+  @@map("anizip_episode_titles")
 }
 
+model AniZipMapping {
+  id String @id @default(cuid())
 
-// Zoro.prisma
-model Zoro {
-  id            String        @id
-  title         String?
-  malID         Int?
-  alID          Int?          @unique
-  japaneseTitle String?
-  image         String?
-  description   String?
+  animePlanetId String? @map("animeplanet_id")
+  kitsuId       String? @map("kitsu_id")
+  malId         Int?    @map("mal_id")
   type          String?
-  url           String?
-  updatedAt     Int?
-  subOrDub      String?
-  hasSub        Boolean?
-  hasDub        Boolean?
-  status        String?
-  season        String?
-  totalEpisodes Int?
-  episodes      EpisodeZoro[] @relation("EpisodeZoro")
+  anilistId     Int?    @map("anilist_id")
+  anisearchId   Int?    @map("anisearch_id")
+  anidbId       Int?    @map("anidb_id")
+  notifymoeId   String? @map("notifymoe_id")
+  livechartId   Int?    @map("livechart_id")
+  thetvdbId     Int?    @map("thetvdb_id")
+  imdbId        String? @map("imdb_id")
+  themoviedbId  Int?    @map("themoviedb_id")
+  anilibriaId   Int?    @map("anilibria_id")
+  zoroId        String? @map("zoro_id")
+  animepaheId   String? @map("animepahe_id")
+  animekaiId    String? @map("animekai_id")
 
-  anilist Anilist? @relation(fields: [alID], references: [id])
-}
+  // One-to-one relationship
+  aniZipId Int    @unique @map("anizip_id")
+  aniZip   AniZip @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
 
-model EpisodeZoro {
-  id       String   @id
-  number   Int?
-  title    String?
-  isFiller Boolean?
-  isSubbed Boolean?
-  isDubbed Boolean?
-  url      String?
-
-  zoro Zoro[] @relation("EpisodeZoro")
+  @@map("anizip_mappings")
 }
 
 
 // Anilibria.prisma
 model Anilibria {
-  id                         Int      @id
-  anilistId                  Int?     @unique
-  year                       Int?
-  alias                      String?  @unique
-  freshAt                    String?
-  createdAt                  String?
-  updatedAt                  String?
-  isOngoing                  Boolean?
-  publishDay                 Int?
-  description                String?
-  notification               String?
-  episodesTotal              Int?
-  externalPlayer             String?
-  isInProduction             Boolean?
-  isBlockedByGeo             Boolean?
-  isBlockedByCopyrights      Boolean?
-  addedInUsersFavorites      Int?
-  averageDurationOfEpisode   Int?
-  addedInPlannedCollection   Int?
-  addedInWatchedCollection   Int?
-  addedInWatchingCollection  Int?
-  addedInPostponedCollection Int?
-  addedInAbandonedCollection Int?
+  id                            Int      @id
+  anilist_id                    Int?     @unique
+  year                          Int?
+  alias                         String?  @unique
+  fresh_at                      String?
+  created_at                    String?
+  updated_at                    String?
+  is_ongoing                    Boolean?
+  description                   String?
+  notification                  String?
+  episodes_total                Int?
+  external_player               String?
+  is_in_production              Boolean?
+  is_blocked_by_copyrights      Boolean?
+  added_in_users_favorites      Int?
+  average_duration_of_episode   Int?
+  added_in_planned_collection   Int?
+  added_in_watched_collection   Int?
+  added_in_watching_collection  Int?
+  added_in_postponed_collection Int?
+  added_in_abandoned_collection Int?
 
   // Normalized relations
-  type      AnilibriaType?      @relation("AnilibriaType")
-  name      AnilibriaName?      @relation("AnilibriaName")
-  season    AnilibriaSeason?    @relation("AnilibriaSeason")
-  poster    AnilibriaPoster?    @relation("AnilibriaPoster")
-  ageRating AnilibriaAgeRating? @relation("AnilibriaAgeRating")
-  sponsor   AnilibriaSponsor?   @relation("AnilibriaSponsor")
+  type        AnilibriaType?       @relation("AnilibriaType")
+  name        AnilibriaName?       @relation("AnilibriaName")
+  season      AnilibriaSeason?     @relation("AnilibriaSeason")
+  poster      AnilibriaPoster?     @relation("AnilibriaPoster")
+  age_rating  AnilibriaAgeRating?  @relation("AnilibriaAgeRating")
+  sponsor     AnilibriaSponsor?    @relation("AnilibriaSponsor")
+  publish_day AnilibriaPublishDay? @relation("AnilibriaPublishDay")
 
   // Collections
-  genres   AnilibriaGenreEdge[]  @relation("AnilibriaGenres")
-  members  AnilibriaMemberEdge[] @relation("AnilibriaMembers")
-  episodes AnilibriaEpisode[]    @relation("AnilibriaEpisodes")
-  torrents AnilibriaTorrent[]    @relation("AnilibriaTorrents")
+  genres   AnilibriaGenreEdge[] @relation("AnilibriaGenres")
+  episodes AnilibriaEpisode[]   @relation("AnilibriaEpisodes")
+  torrents AnilibriaTorrent[]   @relation("AnilibriaTorrents")
 
-  anilist Anilist? @relation(fields: [anilistId], references: [id])
+  anilist Anilist? @relation(fields: [anilist_id], references: [id])
+}
+
+model AnilibriaPublishDay {
+  id          Int     @id @default(autoincrement())
+  anilibriaId Int     @unique
+  value       Int?
+  description String?
+
+  anilibria Anilibria @relation("AnilibriaPublishDay", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaType {
@@ -297,12 +207,12 @@ model AnilibriaSeason {
 }
 
 model AnilibriaPoster {
-  id                 Int     @id @default(autoincrement())
-  anilibriaId        Int     @unique
-  preview            String?
-  thumbnail          String?
-  optimizedPreview   String?
-  optimizedThumbnail String?
+  id                  Int     @id @default(autoincrement())
+  anilibriaId         Int     @unique
+  preview             String?
+  thumbnail           String?
+  optimized_preview   String?
+  optimized_thumbnail String?
 
   anilibria Anilibria @relation("AnilibriaPoster", fields: [anilibriaId], references: [id])
 }
@@ -312,100 +222,59 @@ model AnilibriaAgeRating {
   anilibriaId Int      @unique
   value       String?
   label       String?
-  isAdult     Boolean?
+  is_adult    Boolean?
   description String?
 
   anilibria Anilibria @relation("AnilibriaAgeRating", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaSponsor {
-  id          Int     @id @default(autoincrement())
+  id          String  @id
   anilibriaId Int     @unique
-  sponsorId   String?
   title       String?
   description String?
-  urlTitle    String?
+  url_title   String?
   url         String?
 
   anilibria Anilibria @relation("AnilibriaSponsor", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaGenreEdge {
-  id            Int  @id @default(autoincrement())
-  anilibriaId   Int
-  genreId       Int
-  totalReleases Int?
+  id             Int  @id @default(autoincrement())
+  anilibriaId    Int
+  genreId        Int
+  total_releases Int?
 
   anilibria Anilibria      @relation("AnilibriaGenres", fields: [anilibriaId], references: [id])
   genre     AnilibriaGenre @relation(fields: [genreId], references: [id])
 }
 
 model AnilibriaGenre {
-  id                 Int     @id
-  name               String?
-  preview            String?
-  thumbnail          String?
-  optimizedPreview   String?
-  optimizedThumbnail String?
+  id                  Int     @id
+  name                String?
+  preview             String?
+  thumbnail           String?
+  optimized_preview   String?
+  optimized_thumbnail String?
 
   genreEdges AnilibriaGenreEdge[]
 }
 
-model AnilibriaMemberEdge {
-  id          Int     @id @default(autoincrement())
-  anilibriaId Int
-  memberId    String
-  nickname    String?
-
-  anilibria Anilibria       @relation("AnilibriaMembers", fields: [anilibriaId], references: [id])
-  member    AnilibriaMember @relation(fields: [memberId], references: [id])
-}
-
-model AnilibriaMember {
-  id String @id
-
-  role AnilibriaMemberRole? @relation("AnilibriaMemberRole")
-  user AnilibriaMemberUser? @relation("AnilibriaMemberUser")
-
-  memberEdges AnilibriaMemberEdge[]
-}
-
-model AnilibriaMemberRole {
-  id          Int     @id @default(autoincrement())
-  memberId    String  @unique
-  value       String?
-  description String?
-
-  member AnilibriaMember @relation("AnilibriaMemberRole", fields: [memberId], references: [id])
-}
-
-model AnilibriaMemberUser {
-  id                 Int     @id @default(autoincrement())
-  memberId           String  @unique
-  userId             Int?
-  preview            String?
-  thumbnail          String?
-  optimizedPreview   String?
-  optimizedThumbnail String?
-
-  member AnilibriaMember @relation("AnilibriaMemberUser", fields: [memberId], references: [id])
-}
-
 model AnilibriaEpisode {
-  id          String  @id
-  anilibriaId Int
-  name        String?
-  nameEnglish String?
-  ordinal     Float?
-  duration    Int?
-  rutubeId    String?
-  youtubeId   String?
-  updatedAt   String?
-  sortOrder   Int?
-  releaseId   Int?
-  hls480      String?
-  hls720      String?
-  hls1080     String?
+  id           String  @id
+  anilibriaId  Int
+  name         String?
+  name_english String?
+  ordinal      Float?
+  duration     Int?
+  rutube_id    String?
+  youtube_id   String?
+  updated_at   String?
+  sort_order   Int?
+  release_id   Int?
+  hls_480      String?
+  hls_720      String?
+  hls_1080     String?
 
   anilibria Anilibria                @relation("AnilibriaEpisodes", fields: [anilibriaId], references: [id])
   ending    AnilibriaEpisodeEnding?  @relation("AnilibriaEpisodeEnding")
@@ -432,33 +301,33 @@ model AnilibriaEpisodeOpening {
 }
 
 model AnilibriaEpisodePreview {
-  id                 Int     @id @default(autoincrement())
-  episodeId          String  @unique
-  preview            String?
-  thumbnail          String?
-  optimizedPreview   String?
-  optimizedThumbnail String?
+  id                  Int     @id @default(autoincrement())
+  episodeId           String  @unique
+  preview             String?
+  thumbnail           String?
+  optimized_preview   String?
+  optimized_thumbnail String?
 
   episode AnilibriaEpisode @relation("AnilibriaEpisodePreview", fields: [episodeId], references: [id])
 }
 
 model AnilibriaTorrent {
-  id             Int      @id
-  anilibriaId    Int
-  hash           String?
-  size           BigInt?
-  label          String?
-  magnet         String?
-  filename       String?
-  seeders        Int?
-  bitrate        Int?
-  leechers       Int?
-  sortOrder      Int?
-  updatedAt      String?
-  isHardsub      Boolean?
-  description    String?
-  createdAt      String?
-  completedTimes Int?
+  id              Int      @id
+  anilibriaId     Int
+  hash            String?
+  size            BigInt?
+  label           String?
+  magnet          String?
+  filename        String?
+  seeders         Int?
+  bitrate         Int?
+  leechers        Int?
+  sort_order      Int?
+  updated_at      String?
+  is_hardsub      Boolean?
+  description     String?
+  created_at      String?
+  completed_times Int?
 
   anilibria Anilibria                @relation("AnilibriaTorrents", fields: [anilibriaId], references: [id])
   type      AnilibriaTorrentType?    @relation("AnilibriaTorrentType")
@@ -486,13 +355,13 @@ model AnilibriaTorrentColor {
 }
 
 model AnilibriaTorrentCodec {
-  id             Int      @id @default(autoincrement())
-  torrentId      Int      @unique
-  value          String?
-  label          String?
-  description    String?
-  labelColor     String?
-  labelIsVisible Boolean?
+  id               Int      @id @default(autoincrement())
+  torrentId        Int      @unique
+  value            String?
+  label            String?
+  description      String?
+  label_color      String?
+  label_is_visible Boolean?
 
   torrent AnilibriaTorrent @relation("AnilibriaTorrentCodec", fields: [torrentId], references: [id])
 }
@@ -504,529 +373,6 @@ model AnilibriaTorrentQuality {
   description String?
 
   torrent AnilibriaTorrent @relation("AnilibriaTorrentQuality", fields: [torrentId], references: [id])
-}
-
-
-// Update.prisma
-model UpdateQueue {
-  id        String   @id @default(uuid())
-  animeId   Int      @unique // Ensures no duplicate anime in queue
-  malId     Int?
-  priority  String // 'high', 'medium', 'low'
-  reason    String // 'today', 'week_ago', 'missed'
-  addedAt   DateTime @default(now())
-  retries   Int      @default(0)
-  lastError String? // Store last error message for debugging
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([priority, addedAt]) // For efficient queue processing
-  @@index([animeId]) // For quick lookups
-}
-
-// Optional: Add this if you want to track update history
-model UpdateHistory {
-  id          String   @id @default(uuid())
-  animeId     Int
-  malId       Int?
-  providers   String[] // Which providers were updated
-  success     Boolean
-  duration    Int? // How long it took in seconds
-  errorCount  Int      @default(0)
-  errors      String[] // Any errors that occurred
-  triggeredBy String // 'today', 'week_ago', 'manual', etc.
-  createdAt   DateTime @default(now())
-
-  @@index([animeId, createdAt])
-  @@index([success, createdAt])
-}
-
-
-// Kitsu.prisma
-model Kitsu {
-  // Base Fields
-  id                  String      @id
-  anilistId           Int?        @unique
-  type                String?
-  selfLink            String?     @map("self_link")
-
-  // Attributes
-  createdAt           DateTime?   @map("created_at")
-  updatedAt           DateTime?   @map("updated_at")
-  slug                String?     @map("slug")
-  synopsis            String?     @map("synopsis")
-  coverImageTopOffset Int?        @map("cover_image_top_offset")
-  canonicalTitle      String?     @map("canonical_title")
-  abbreviatedTitles   String[]    @map("abbreviated_titles")
-  averageRating       String?     @map("average_rating")
-  ratingFrequencies   Json?       @map("rating_frequencies")
-  userCount           Int?        @map("user_count")
-  favoritesCount      Int?        @map("favorites_count")
-  startDate           DateTime?   @map("start_date")
-  endDate             DateTime?   @map("end_date")
-  popularityRank      Int?        @map("popularity_rank")
-  ratingRank          Int?        @map("rating_rank")
-  ageRating           String?     @map("age_rating")
-  ageRatingGuide      String?     @map("age_rating_guide")
-  subtype             String?
-  status              String?
-  tba                 String?
-  episodeCount        Int?        @map("episode_count")
-  episodeLength       Int?        @map("episode_length")
-  youtubeVideoId      String?     @map("youtube_video_id")
-  showType            String?     @map("show_type")
-  nsfw                Boolean     @default(false)
-
-  // One-to-One Relations
-  titles              KitsuTitle?
-  posterImage         KitsuPosterImage?  @relation("PosterImage")
-  coverImage          KitsuCoverImage?   @relation("CoverImage")
-  genres              KitsuGenres?
-  categories          KitsuCategories?
-  castings            KitsuCastings?
-  installments        KitsuInstallments?
-  mappings            KitsuMappings?
-  reviews             KitsuReviews?
-  mediaRelationships  KitsuMediaRelationships?
-  episodes            KitsuEpisodes?
-  streamingLinks      KitsuStreamingLinks?
-  animeProductions    KitsuAnimeProductions?
-  animeCharacters     KitsuAnimeCharacters?
-  animeStaff          KitsuAnimeStaff?
-
-  anilist             Anilist?    @relation(fields: [anilistId], references: [id])
-}
-
-model KitsuTitle {
-  id                  String    @id @default(cuid())
-  en                  String?
-  en_jp               String?
-  ja_jp               String?
-
-  kitsuId             String    @unique
-  kitsu               Kitsu     @relation(fields: [kitsuId], references: [id])
-}
-
-model KitsuPosterImage {
-  id                  String    @id @default(cuid())
-  tiny                String?
-  small               String?
-  medium              String?
-  large               String?
-  original            String?
-  dimensions          KitsuImageDimensions?
-
-  kitsuId             String    @unique
-  kitsu               Kitsu     @relation("PosterImage", fields: [kitsuId], references: [id])
-}
-
-model KitsuCoverImage {
-  id                  String    @id @default(cuid())
-  tiny                String?
-  small               String?
-  large               String?
-  original            String?
-  dimensions          KitsuImageDimensions?
-
-  kitsuId             String    @unique
-  kitsu               Kitsu     @relation("CoverImage", fields: [kitsuId], references: [id])
-}
-
-model KitsuImageDimensions {
-  id                  String    @id @default(cuid())
-  tiny                KitsuDimension? @relation("TinyDimension")
-  small               KitsuDimension? @relation("SmallDimension")
-  medium              KitsuDimension? @relation("MediumDimension")
-  large               KitsuDimension? @relation("LargeDimension")
-
-  posterImageId       String?   @unique
-  coverImageId        String?   @unique
-  posterImage         KitsuPosterImage? @relation(fields: [posterImageId], references: [id])
-  coverImage          KitsuCoverImage?  @relation(fields: [coverImageId], references: [id])
-}
-
-model KitsuDimension {
-  id                  String    @id @default(cuid())
-  width               Int?
-  height              Int?
-
-  tinyDimensionId     String?   @unique
-  smallDimensionId    String?   @unique
-  mediumDimensionId   String?   @unique
-  largeDimensionId    String?   @unique
-
-  tinyDimension       KitsuImageDimensions?  @relation("TinyDimension", fields: [tinyDimensionId], references: [id])
-  smallDimension      KitsuImageDimensions?  @relation("SmallDimension", fields: [smallDimensionId], references: [id])
-  mediumDimension     KitsuImageDimensions?  @relation("MediumDimension", fields: [mediumDimensionId], references: [id])
-  largeDimension      KitsuImageDimensions?  @relation("LargeDimension", fields: [largeDimensionId], references: [id])
-}
-
-model KitsuGenres {
-  id        String  @id @default(cuid())
-  selfLink  String
-  related   String
-  
-  kitsuId   String  @unique
-  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
-}
-
-model KitsuCategories {
-  id        String  @id @default(cuid())
-  selfLink  String
-  related   String
-  
-  kitsuId   String  @unique
-  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
-}
-
-model KitsuCastings {
-  id        String  @id @default(cuid())
-  selfLink  String
-  related   String
-  
-  kitsuId   String  @unique
-  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
-}
-
-model KitsuInstallments {
-  id        String  @id @default(cuid())
-  selfLink  String
-  related   String
-  
-  kitsuId   String  @unique
-  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
-}
-
-model KitsuMappings {
-  id        String  @id @default(cuid())
-  selfLink  String
-  related   String
-  
-  kitsuId   String  @unique
-  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
-}
-
-model KitsuReviews {
-  id        String  @id @default(cuid())
-  selfLink  String
-  related   String
-  
-  kitsuId   String  @unique
-  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
-}
-
-model KitsuMediaRelationships {
-  id        String  @id @default(cuid())
-  selfLink  String
-  related   String
-  
-  kitsuId   String  @unique
-  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
-}
-
-model KitsuEpisodes {
-  id        String  @id @default(cuid())
-  selfLink  String
-  related   String
-  
-  kitsuId   String  @unique
-  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
-}
-
-model KitsuStreamingLinks {
-  id        String  @id @default(cuid())
-  selfLink  String
-  related   String
-  
-  kitsuId   String  @unique
-  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
-}
-
-model KitsuAnimeProductions {
-  id        String  @id @default(cuid())
-  selfLink  String
-  related   String
-  
-  kitsuId   String  @unique
-  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
-}
-
-model KitsuAnimeCharacters {
-  id        String  @id @default(cuid())
-  selfLink  String
-  related   String
-  
-  kitsuId   String  @unique
-  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
-}
-
-model KitsuAnimeStaff {
-  id        String  @id @default(cuid())
-  selfLink  String
-  related   String
-  
-  kitsuId   String  @unique
-  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
-}
-
-// Indexer.prisma
-model AnilistIndexerState {
-  id               String   @id @default("anime")
-  lastFetchedPage  Int
-  updatedAt        DateTime @updatedAt
-}
-
-// Shikimori.prisma
-model Shikimori {
-  id                String                @id
-  malId             Int?                  @unique
-  name              String?
-  russian           String?
-  licenseNameRu     String?
-  english           String?
-  japanese          String?
-  poster            ShikimoriPoster?      @relation("ShikimoriPoster")
-  synonyms          String[]
-  kind              String?
-  rating            String?
-  score             Float?
-  status            String?
-  episodes          Int?
-  episodesAired     Int?
-  duration          Int?
-  airedOn           AiredOn?              @relation("ShikimoriAiredOn")
-  releasedOn        ReleasedOn?           @relation("ShikimoriReleasedOn")
-  franchise         String?
-  url               String?
-  season            String?
-  createdAt         DateTime?
-  updatedAt         DateTime?
-  nextEpisodeAt     DateTime?
-  description       String?
-  descriptionHtml   String?
-  descriptionSource String?
-  chronology        BasicIdShik[]         @relation("ShikimoriChronology")
-  videos            ShikimoriVideo[]      @relation("ShikimoriVideo")
-  screenshots       ShikimoriScreenshot[] @relation("ShikimoriScreenshot")
-  anilist           Anilist?              @relation(fields: [malId], references: [idMal])
-}
-
-model AiredOn {
-  id          Int    @id @default(autoincrement())
-  shikimoriId String @unique
-
-  year  Int?
-  month Int?
-  day   Int?
-  date  String?
-
-  shikimori Shikimori @relation("ShikimoriAiredOn", fields: [shikimoriId], references: [id])
-}
-
-model ReleasedOn {
-  id          Int    @id @default(autoincrement())
-  shikimoriId String @unique
-
-  year  Int?
-  month Int?
-  day   Int?
-  date  String?
-
-  shikimori Shikimori @relation("ShikimoriReleasedOn", fields: [shikimoriId], references: [id])
-}
-
-model BasicIdShik {
-  id    String  @id
-  malId String?
-
-  shikimori Shikimori[] @relation("ShikimoriChronology")
-}
-
-model ShikimoriVideo {
-  id        String  @id
-  url       String?
-  name      String?
-  kind      String?
-  playerUrl String?
-  imageUrl  String?
-
-  shikimori Shikimori[] @relation("ShikimoriVideo")
-}
-
-model ShikimoriScreenshot {
-  id          String  @id
-  originalUrl String?
-  x166Url     String?
-  x332Url     String?
-
-  shikimori Shikimori[] @relation("ShikimoriScreenshot")
-}
-
-model Title {
-  id      Int     @id @default(autoincrement())
-  romaji  String?
-  english String?
-  native  String?
-}
-
-model DateDetails {
-  id    Int  @id @default(autoincrement())
-  year  Int?
-  month Int?
-  day   Int?
-}
-
-model ShikimoriPoster {
-  id          String @id
-  shikimoriId String @unique
-
-  originalUrl String?
-  mainUrl     String?
-
-  shikimori Shikimori @relation("ShikimoriPoster", fields: [shikimoriId], references: [id])
-}
-
-model ReleaseIndex {
-  id        String   @id
-  addedAt   DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-
-// Tvdb.prisma
-model Tvdb {
-  id                   Int                @id
-  type                 String?
-  name                 String?
-  slug                 String?
-  image                String?
-  score                Int?
-  runtime              Int?
-  lastUpdated          String?
-  year                 String?
-  nameTranslations     String[]
-  overviewTranslations String[]
-  status               TvdbStatus? @relation("TvdbStatus")
-
-  aliases              TvdbAlias[] @relation("TvdbAliases")
-  artworks             TvdbArtwork[] @relation("TvdbArtworks")
-  remoteIds            TvdbRemoteId[] @relation("TvdbRemote")
-  trailers             TvdbTrailer[] @relation("TvdbTrailers")
-}
-
-model TvdbStatus {
-  id    Int @id
-  tvdbId Int @unique
-
-  name  String?
-  recordType String?
-  keepUpdated Boolean?
-
-  tvdb Tvdb @relation("TvdbStatus", fields: [tvdbId], references: [id])
-}
-
-model TvdbAlias {
-  id            Int         @id @default(autoincrement())
-  name          String?
-  language      String?
-  
-  tvdb Tvdb[] @relation("TvdbAliases")
-  @@map("tvdb_aliases")
-}
-
-model TvdbArtwork {
-  id            Int         @id
-  height        Int?
-  image         String?
-  includesText  Boolean?
-  language      String?
-  score         Int?
-  thumbnail     String?
-  type          Int?
-  width         Int?
-
-  tvdb Tvdb[] @relation("TvdbArtworks")
-  @@map("tvdb_artworks")
-}
-
-model TvdbRemoteId {
-  id            String      @id
-  type          Int?
-  sourceName    String?
- 
-  tvdb Tvdb[] @relation("TvdbRemote")
-  @@map("tvdb_remote")
-}
-
-model TvdbTrailer {
-  id  Int @id
-  url String?
-  name String?
-  runtime Int?
-  language String?
-
-  tvdb Tvdb[] @relation("TvdbTrailers")
-}
-
-model TvdbLogin {
-  id         Int      @id @default(autoincrement())
-  token      String   
-  createDate DateTime @default(now())
-  expired    Boolean  @default(false)
-}
-
-model TvdbLanguageTranslation {
-  id         Int      @id @default(autoincrement())
-  tvdbId     Int
-  name       String?
-  overview   String?
-  isAlias    Boolean?
-  isPrimary  Boolean?
-  language   String?
-  tagline    String?
-  aliases    String[]
-}
-
-model TvdbLanguage {
-  id         String      @id
-  name       String?
-  nativeName String?
-  shortCode  String?
-}
-
-// Animekai.prisma
-model AnimeKai {
-  id            String   @id
-  anilistId     Int?     @unique
-  title         String?
-  japaneseTitle String?
-  image         String?
-  description   String?
-  type          String?
-  url           String?
-  updatedAt     Int?
-  subOrDub      String?
-  hasSub        Boolean?
-  hasDub        Boolean?
-  status        String?
-  season        String?
-  totalEpisodes Int?
-
-  episodes AnimekaiEpisode[] @relation("AnimekaiEpisode")
-
-  anilist Anilist? @relation(fields: [anilistId], references: [id])
-}
-
-model AnimekaiEpisode {
-  id       String   @id
-  number   Int?
-  title    String?
-  isFiller Boolean?
-  isSubbed Boolean?
-  isDubbed Boolean?
-  url      String?
-
-  animekai AnimeKai[] @relation("AnimekaiEpisode")
 }
 
 
@@ -1380,120 +726,742 @@ model BasicIdAni {
 }
 
 
-// AniZip.prisma
-// AniZip model - properly structured to match the JSON fr 🔥
+// Animekai.prisma
+model AnimeKai {
+  id            String   @id
+  anilistId     Int?     @unique
+  title         String?
+  japaneseTitle String?
+  image         String?
+  description   String?
+  type          String?
+  url           String?
+  updatedAt     Int?
+  subOrDub      String?
+  hasSub        Boolean?
+  hasDub        Boolean?
+  status        String?
+  season        String?
+  totalEpisodes Int?
 
-model AniZip {
-  id            Int   @id
-  
-  // Basic info
-  episodeCount  Int      @map("episode_count")
-  specialCount  Int      @map("special_count")
-  
-  // Relationships
-  titles        AniZipTitle[]
-  images        AniZipImage[]
-  episodes      AniZipEpisode[]
-  mappings      AniZipMapping?
+  episodes AnimekaiEpisode[] @relation("AnimekaiEpisode")
 
-  anilist Anilist? @relation(fields: [id], references: [id])
-  
-  @@map("anizip")
+  anilist Anilist? @relation(fields: [anilistId], references: [id])
 }
 
-model AniZipTitle {
-  id        String  @id @default(cuid())
-  key       String  // "x-jat", "ja", "en", etc.
-  name      String?
-  
-  // Foreign key to AniZip
-  aniZipId  Int  @map("anizip_id")
-  aniZip    AniZip  @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
-  
-  @@unique([aniZipId, key]) // Prevent duplicate keys for same anime
-  @@map("anizip_titles")
+model AnimekaiEpisode {
+  id       String   @id
+  number   Int?
+  title    String?
+  isFiller Boolean?
+  isSubbed Boolean?
+  isDubbed Boolean?
+  url      String?
+
+  animekai AnimeKai[] @relation("AnimekaiEpisode")
 }
 
-model AniZipImage {
+
+// Animepahe.prisma
+model Animepahe {
+  id            String                  @id
+  alId          Int?                    @unique
+  title         String?
+  image         String?
+  cover         String?
+  updatedAt     Int?
+  hasSub        Boolean?
+  externalLinks AnimepaheExternalLink[] @relation("AnimepaheExLink")
+  status        String?
+  type          String?
+  releaseDate   String?
+  totalEpisodes Int?
+  episodePages  Int?
+
+  episodes AnimepaheEpisode[] @relation("AnimepaheEpisode")
+
+  anilist Anilist? @relation(fields: [alId], references: [id])
+}
+
+model AnimepaheEpisode {
+  id       String  @id
+  number   Int?
+  title    String?
+  image    String?
+  duration String?
+  url      String?
+
+  animepahe Animepahe[] @relation("AnimepaheEpisode")
+}
+
+model AnimepaheExternalLink {
+  id         String @id
+  url        String
+  sourceName String
+
+  animepahe Animepahe[] @relation("AnimepaheExLink")
+}
+
+
+// Indexer.prisma
+model AnilistIndexerState {
+  id               String   @id @default("anime")
+  lastFetchedPage  Int
+  updatedAt        DateTime @updatedAt
+}
+
+// Kitsu.prisma
+model Kitsu {
+  // Base Fields
+  id                  String      @id
+  anilistId           Int?        @unique
+  type                String?
+  selfLink            String?     @map("self_link")
+
+  // Attributes
+  createdAt           DateTime?   @map("created_at")
+  updatedAt           DateTime?   @map("updated_at")
+  slug                String?     @map("slug")
+  synopsis            String?     @map("synopsis")
+  coverImageTopOffset Int?        @map("cover_image_top_offset")
+  canonicalTitle      String?     @map("canonical_title")
+  abbreviatedTitles   String[]    @map("abbreviated_titles")
+  averageRating       String?     @map("average_rating")
+  ratingFrequencies   Json?       @map("rating_frequencies")
+  userCount           Int?        @map("user_count")
+  favoritesCount      Int?        @map("favorites_count")
+  startDate           DateTime?   @map("start_date")
+  endDate             DateTime?   @map("end_date")
+  popularityRank      Int?        @map("popularity_rank")
+  ratingRank          Int?        @map("rating_rank")
+  ageRating           String?     @map("age_rating")
+  ageRatingGuide      String?     @map("age_rating_guide")
+  subtype             String?
+  status              String?
+  tba                 String?
+  episodeCount        Int?        @map("episode_count")
+  episodeLength       Int?        @map("episode_length")
+  youtubeVideoId      String?     @map("youtube_video_id")
+  showType            String?     @map("show_type")
+  nsfw                Boolean     @default(false)
+
+  // One-to-One Relations
+  titles              KitsuTitle?
+  posterImage         KitsuPosterImage?  @relation("PosterImage")
+  coverImage          KitsuCoverImage?   @relation("CoverImage")
+  genres              KitsuGenres?
+  categories          KitsuCategories?
+  castings            KitsuCastings?
+  installments        KitsuInstallments?
+  mappings            KitsuMappings?
+  reviews             KitsuReviews?
+  mediaRelationships  KitsuMediaRelationships?
+  episodes            KitsuEpisodes?
+  streamingLinks      KitsuStreamingLinks?
+  animeProductions    KitsuAnimeProductions?
+  animeCharacters     KitsuAnimeCharacters?
+  animeStaff          KitsuAnimeStaff?
+
+  anilist             Anilist?    @relation(fields: [anilistId], references: [id])
+}
+
+model KitsuTitle {
+  id                  String    @id @default(cuid())
+  en                  String?
+  en_jp               String?
+  ja_jp               String?
+
+  kitsuId             String    @unique
+  kitsu               Kitsu     @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuPosterImage {
+  id                  String    @id @default(cuid())
+  tiny                String?
+  small               String?
+  medium              String?
+  large               String?
+  original            String?
+  dimensions          KitsuImageDimensions?
+
+  kitsuId             String    @unique
+  kitsu               Kitsu     @relation("PosterImage", fields: [kitsuId], references: [id])
+}
+
+model KitsuCoverImage {
+  id                  String    @id @default(cuid())
+  tiny                String?
+  small               String?
+  large               String?
+  original            String?
+  dimensions          KitsuImageDimensions?
+
+  kitsuId             String    @unique
+  kitsu               Kitsu     @relation("CoverImage", fields: [kitsuId], references: [id])
+}
+
+model KitsuImageDimensions {
+  id                  String    @id @default(cuid())
+  tiny                KitsuDimension? @relation("TinyDimension")
+  small               KitsuDimension? @relation("SmallDimension")
+  medium              KitsuDimension? @relation("MediumDimension")
+  large               KitsuDimension? @relation("LargeDimension")
+
+  posterImageId       String?   @unique
+  coverImageId        String?   @unique
+  posterImage         KitsuPosterImage? @relation(fields: [posterImageId], references: [id])
+  coverImage          KitsuCoverImage?  @relation(fields: [coverImageId], references: [id])
+}
+
+model KitsuDimension {
+  id                  String    @id @default(cuid())
+  width               Int?
+  height              Int?
+
+  tinyDimensionId     String?   @unique
+  smallDimensionId    String?   @unique
+  mediumDimensionId   String?   @unique
+  largeDimensionId    String?   @unique
+
+  tinyDimension       KitsuImageDimensions?  @relation("TinyDimension", fields: [tinyDimensionId], references: [id])
+  smallDimension      KitsuImageDimensions?  @relation("SmallDimension", fields: [smallDimensionId], references: [id])
+  mediumDimension     KitsuImageDimensions?  @relation("MediumDimension", fields: [mediumDimensionId], references: [id])
+  largeDimension      KitsuImageDimensions?  @relation("LargeDimension", fields: [largeDimensionId], references: [id])
+}
+
+model KitsuGenres {
   id        String  @id @default(cuid())
-  coverType String?  @map("cover_type")
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuCategories {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuCastings {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuInstallments {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuMappings {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuReviews {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuMediaRelationships {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuEpisodes {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuStreamingLinks {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuAnimeProductions {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuAnimeCharacters {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+model KitsuAnimeStaff {
+  id        String  @id @default(cuid())
+  selfLink  String
+  related   String
+  
+  kitsuId   String  @unique
+  kitsu     Kitsu   @relation(fields: [kitsuId], references: [id])
+}
+
+// Shikimori.prisma
+model Shikimori {
+  id                String                @id
+  malId             Int?                  @unique
+  name              String?
+  russian           String?
+  licenseNameRu     String?
+  english           String?
+  japanese          String?
+  poster            ShikimoriPoster?      @relation("ShikimoriPoster")
+  synonyms          String[]
+  kind              String?
+  rating            String?
+  score             Float?
+  status            String?
+  episodes          Int?
+  episodesAired     Int?
+  duration          Int?
+  airedOn           AiredOn?              @relation("ShikimoriAiredOn")
+  releasedOn        ReleasedOn?           @relation("ShikimoriReleasedOn")
+  franchise         String?
+  url               String?
+  season            String?
+  createdAt         DateTime?
+  updatedAt         DateTime?
+  nextEpisodeAt     DateTime?
+  description       String?
+  descriptionHtml   String?
+  descriptionSource String?
+  chronology        BasicIdShik[]         @relation("ShikimoriChronology")
+  videos            ShikimoriVideo[]      @relation("ShikimoriVideo")
+  screenshots       ShikimoriScreenshot[] @relation("ShikimoriScreenshot")
+  anilist           Anilist?              @relation(fields: [malId], references: [idMal])
+}
+
+model AiredOn {
+  id          Int    @id @default(autoincrement())
+  shikimoriId String @unique
+
+  year  Int?
+  month Int?
+  day   Int?
+  date  String?
+
+  shikimori Shikimori @relation("ShikimoriAiredOn", fields: [shikimoriId], references: [id])
+}
+
+model ReleasedOn {
+  id          Int    @id @default(autoincrement())
+  shikimoriId String @unique
+
+  year  Int?
+  month Int?
+  day   Int?
+  date  String?
+
+  shikimori Shikimori @relation("ShikimoriReleasedOn", fields: [shikimoriId], references: [id])
+}
+
+model BasicIdShik {
+  id    String  @id
+  malId String?
+
+  shikimori Shikimori[] @relation("ShikimoriChronology")
+}
+
+model ShikimoriVideo {
+  id        String  @id
   url       String?
-  
-  // Foreign key to AniZip
-  aniZipId  Int  @map("anizip_id")
-  aniZip    AniZip  @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
-  
-  @@map("anizip_images")
-}
-
-model AniZipEpisode {
-  id                      String   @id @default(cuid())
-  
-  // Episode identification
-  episodeKey              String?   @map("episode_key") // The JSON key like "1", "2", etc
-  episodeNumber           Int?      @map("episode_number")
-  seasonNumber            Int?     @map("season_number")
-  absoluteEpisodeNumber   Int?     @map("absolute_episode_number")
-  
-  // TVDB info
-  tvdbShowId              Int?     @map("tvdb_show_id")
-  tvdbId                  Int?     @map("tvdb_id")
-  
-  // Dates and times
-  airDate                 String?  @map("air_date")
-  airDateUtc              String?  @map("air_date_utc")
-  
-  // Media info
-  runtime                 Int?
-  length                  Int?
-  overview                String?
-  image                   String?
-  rating                  String?
-  
-  // IDs
-  episode                 String?  // string representation of episode number
-  anidbEid                Int?     @map("anidb_eid")
-  
-  // Relationships
-  titles                  AniZipEpisodeTitle[]
-  aniZipId                Int   @map("anizip_id")
-  aniZip                  AniZip   @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
-  
-  @@unique([aniZipId, episodeKey])
-  @@map("anizip_episodes")
-}
-
-model AniZipEpisodeTitle {
-  id        String  @id @default(cuid())
-  key       String  // "ja", "en", "x-jat", etc.
   name      String?
-  
-  episodeId String  @map("episode_id")
-  episode   AniZipEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
-  
-  @@unique([episodeId, key])
-  @@map("anizip_episode_titles")
+  kind      String?
+  playerUrl String?
+  imageUrl  String?
+
+  shikimori Shikimori[] @relation("ShikimoriVideo")
 }
 
-model AniZipMapping {
-  id              String  @id @default(cuid())
+model ShikimoriScreenshot {
+  id          String  @id
+  originalUrl String?
+  x166Url     String?
+  x332Url     String?
+
+  shikimori Shikimori[] @relation("ShikimoriScreenshot")
+}
+
+model Title {
+  id      Int     @id @default(autoincrement())
+  romaji  String?
+  english String?
+  native  String?
+}
+
+model DateDetails {
+  id    Int  @id @default(autoincrement())
+  year  Int?
+  month Int?
+  day   Int?
+}
+
+model ShikimoriPoster {
+  id          String @id
+  shikimoriId String @unique
+
+  originalUrl String?
+  mainUrl     String?
+
+  shikimori Shikimori @relation("ShikimoriPoster", fields: [shikimoriId], references: [id])
+}
+
+model ReleaseIndex {
+  id        String   @id
+  addedAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+// Tmdb.prisma
+model Tmdb {
+  id                 Int      @id
+  adult              Boolean
+  backdrop_path      String?
+  episode_run_time   Int[]
+  media_type         String?
+  first_air_date     String?
+  homepage           String?
+  in_production      Boolean?
+  last_air_date      String?
+  name               String?
+  number_of_episodes Int?
+  number_of_seasons  Int?
+  original_language  String?
+  original_name      String?
+  origin_country     String[]
+  overview           String?
+  popularity         Float?
+  poster_path        String?
+  tagline            String?
+  status             String?
+  type               String?
+  vote_average       Float?
+  vote_count         Int?
+
+  next_episode_to_air TmdbNextEpisodeToAir? @relation("NextEpisode")
+  last_episode_to_air TmdbLastEpisodeToAir? @relation("LastEpisode")
+  seasons             TmdbReleaseSeason[]   @relation("TmdbReleaseSeason")
+  episodeSeasons      TmdbSeason[]
+  episodes            TmdbSeasonEpisode[]
+}
+
+// Add new model for episode info
+model TmdbNextEpisodeToAir {
+  id              Int     @id
+  name            String?
+  overview        String?
+  vote_average    Float?
+  vote_count      Int?
+  air_date        String?
+  episode_number  Int?
+  episode_type    String?
+  production_code String?
+  runtime         Int?
+  season_number   Int?
+  show_id         Int     @unique
+  still_path      String?
+
+  tmdb_next Tmdb? @relation("NextEpisode", fields: [show_id], references: [id])
+}
+
+model TmdbLastEpisodeToAir {
+  id              Int     @id
+  name            String?
+  overview        String?
+  vote_average    Float?
+  vote_count      Int?
+  air_date        String?
+  episode_number  Int?
+  episode_type    String?
+  production_code String?
+  runtime         Int?
+  season_number   Int?
+  show_id         Int     @unique
+  still_path      String?
+
+  tmdb_last Tmdb? @relation("LastEpisode", fields: [show_id], references: [id])
+}
+
+model TmdbReleaseSeason {
+  id            Int     @id
+  air_date      String?
+  episode_count Int?
+  name          String?
+  overview      String? // @Lob
+  poster_path   String? // handle URL concatenation in your app logic
+  season_number Int
+  vote_average  Float?
+
+  tmdb Tmdb[] @relation("TmdbReleaseSeason")
+}
+
+model TmdbSeason {
+  id            Int     @id
+  air_date      String?
+  show_id       Int
+  name          String?
+  overview      String?
+  poster_path   String?
+  season_number Int
+  vote_average  Float?
+
+  show     Tmdb                @relation(fields: [show_id], references: [id])
+  episodes TmdbSeasonEpisode[] @relation("TmdbSeasonEpisode")
+}
+
+model TmdbSeasonEpisode {
+  id              Int     @id
+  air_date        String?
+  episode_number  Int
+  episode_type    String?
+  name            String?
+  overview        String?
+  production_code String?
+  runtime         Int?
+  season_number   Int
+  show_id         Int
+  season_id       Int?
+  still_path      String?
+  vote_average    Float?
+  vote_count      Int?
+
+  show       Tmdb                     @relation(map: "TmdbSeasonEpisode_show_fkey", fields: [show_id], references: [id])
+  tmdbSeason TmdbSeason?              @relation("TmdbSeasonEpisode", fields: [season_id], references: [id])
+  images     TmdbSeasonEpisodeImages?
+}
+
+model TmdbSeasonEpisodeImages {
+  id        Int @id
+  episodeId Int @unique
+
+  stills  TmdbSeasonStillImage[] @relation("TmdbSeasonEpisodeStills")
+  episode TmdbSeasonEpisode      @relation(fields: [episodeId], references: [id])
+}
+
+model TmdbSeasonStillImage {
+  id           Int     @id @default(autoincrement())
+  aspect_ratio Float?
+  height       Int?
+  width        Int?
+  iso_639_1    String?
+  file_path    String?
+  vote_average Float?
+  vote_count   Int?
+
+  tmdbEpisodeImages TmdbSeasonEpisodeImages @relation("TmdbSeasonEpisodeStills", fields: [episodeImagesId], references: [id])
+  episodeImagesId   Int
+}
+
+
+// Tvdb.prisma
+model Tvdb {
+  id                   Int                @id
+  type                 String?
+  name                 String?
+  slug                 String?
+  image                String?
+  score                Int?
+  runtime              Int?
+  lastUpdated          String?
+  year                 String?
+  nameTranslations     String[]
+  overviewTranslations String[]
+  status               TvdbStatus? @relation("TvdbStatus")
+
+  aliases              TvdbAlias[] @relation("TvdbAliases")
+  artworks             TvdbArtwork[] @relation("TvdbArtworks")
+  remoteIds            TvdbRemoteId[] @relation("TvdbRemote")
+  trailers             TvdbTrailer[] @relation("TvdbTrailers")
+}
+
+model TvdbStatus {
+  id    Int @id
+  tvdbId Int @unique
+
+  name  String?
+  recordType String?
+  keepUpdated Boolean?
+
+  tvdb Tvdb @relation("TvdbStatus", fields: [tvdbId], references: [id])
+}
+
+model TvdbAlias {
+  id            Int         @id @default(autoincrement())
+  name          String?
+  language      String?
   
-  animePlanetId   String? @map("animeplanet_id")
-  kitsuId         String?    @map("kitsu_id")
-  malId           Int?    @map("mal_id")
-  type            String?
-  anilistId       Int?    @map("anilist_id")
-  anisearchId     Int?    @map("anisearch_id")
-  anidbId         Int?    @map("anidb_id")
-  notifymoeId     String? @map("notifymoe_id")
-  livechartId     Int?    @map("livechart_id")
-  thetvdbId       Int?    @map("thetvdb_id")
-  imdbId          String? @map("imdb_id")
-  themoviedbId    Int? @map("themoviedb_id")
-  
-  // One-to-one relationship
-  aniZipId        Int  @unique @map("anizip_id")
-  aniZip          AniZip  @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
-  
-  @@map("anizip_mappings")
+  tvdb Tvdb[] @relation("TvdbAliases")
+  @@map("tvdb_aliases")
+}
+
+model TvdbArtwork {
+  id            Int         @id
+  height        Int?
+  image         String?
+  includesText  Boolean?
+  language      String?
+  score         Int?
+  thumbnail     String?
+  type          Int?
+  width         Int?
+
+  tvdb Tvdb[] @relation("TvdbArtworks")
+  @@map("tvdb_artworks")
+}
+
+model TvdbRemoteId {
+  id            String      @id
+  type          Int?
+  sourceName    String?
+ 
+  tvdb Tvdb[] @relation("TvdbRemote")
+  @@map("tvdb_remote")
+}
+
+model TvdbTrailer {
+  id  Int @id
+  url String?
+  name String?
+  runtime Int?
+  language String?
+
+  tvdb Tvdb[] @relation("TvdbTrailers")
+}
+
+model TvdbLogin {
+  id         Int      @id @default(autoincrement())
+  token      String   
+  createDate DateTime @default(now())
+  expired    Boolean  @default(false)
+}
+
+model TvdbLanguageTranslation {
+  id         Int      @id @default(autoincrement())
+  tvdbId     Int
+  name       String?
+  overview   String?
+  isAlias    Boolean?
+  isPrimary  Boolean?
+  language   String?
+  tagline    String?
+  aliases    String[]
+}
+
+model TvdbLanguage {
+  id         String      @id
+  name       String?
+  nativeName String?
+  shortCode  String?
+}
+
+// Update.prisma
+model UpdateQueue {
+  id        String   @id @default(uuid())
+  animeId   Int      @unique // Ensures no duplicate anime in queue
+  malId     Int?
+  priority  String // 'high', 'medium', 'low'
+  reason    String // 'today', 'week_ago', 'missed'
+  addedAt   DateTime @default(now())
+  retries   Int      @default(0)
+  lastError String? // Store last error message for debugging
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([priority, addedAt]) // For efficient queue processing
+  @@index([animeId]) // For quick lookups
+}
+
+// Optional: Add this if you want to track update history
+model UpdateHistory {
+  id          String   @id @default(uuid())
+  animeId     Int
+  malId       Int?
+  providers   String[] // Which providers were updated
+  success     Boolean
+  duration    Int? // How long it took in seconds
+  errorCount  Int      @default(0)
+  errors      String[] // Any errors that occurred
+  triggeredBy String // 'today', 'week_ago', 'manual', etc.
+  createdAt   DateTime @default(now())
+
+  @@index([animeId, createdAt])
+  @@index([success, createdAt])
+}
+
+
+// Zoro.prisma
+model Zoro {
+  id            String        @id
+  title         String?
+  malID         Int?
+  alID          Int?          @unique
+  japaneseTitle String?
+  image         String?
+  description   String?
+  type          String?
+  url           String?
+  updatedAt     Int?
+  subOrDub      String?
+  hasSub        Boolean?
+  hasDub        Boolean?
+  status        String?
+  season        String?
+  totalEpisodes Int?
+  episodes      EpisodeZoro[] @relation("EpisodeZoro")
+
+  anilist Anilist? @relation(fields: [alID], references: [id])
+}
+
+model EpisodeZoro {
+  id       String   @id
+  number   Int?
+  title    String?
+  isFiller Boolean?
+  isSubbed Boolean?
+  isDubbed Boolean?
+  url      String?
+
+  zoro Zoro[] @relation("EpisodeZoro")
 }

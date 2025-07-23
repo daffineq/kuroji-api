@@ -20,7 +20,7 @@ describe('ZoroService', () => {
   it('fetch info', async () => {
     try {
       const id = 21;
-      const data = await service.getZoroByAnilist(id, zoroSelect);
+      const data = await service.getInfoByAnilist(id, zoroSelect);
       expect(data).toBeDefined();
     } catch (err) {
       throw new Error(`Zoro API failed info test: ${err.message}`);
@@ -30,7 +30,7 @@ describe('ZoroService', () => {
   it('fetch watch', async () => {
     try {
       const id = 21;
-      const data = await service.getZoroByAnilist(id, zoroSelect);
+      const data = await service.getInfoByAnilist(id, zoroSelect);
       const watch = await zoroFetch.getSources(data.episodes[0].id, false);
       expect(watch).toBeDefined();
     } catch (err) {

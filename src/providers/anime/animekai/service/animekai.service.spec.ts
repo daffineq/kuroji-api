@@ -20,7 +20,7 @@ describe('AnimekaiService', () => {
   it('fetch info', async () => {
     try {
       const id = 21;
-      const data = await service.getAnimekaiByAnilist(id, animeKaiSelect);
+      const data = await service.getInfoByAnilist(id, animeKaiSelect);
       expect(data).toBeDefined();
     } catch (err) {
       throw new Error(`Animekai API failed info test: ${err.message}`);
@@ -30,7 +30,7 @@ describe('AnimekaiService', () => {
   it('fetch watch', async () => {
     try {
       const id = 21;
-      const data = await service.getAnimekaiByAnilist(id, animeKaiSelect);
+      const data = await service.getInfoByAnilist(id, animeKaiSelect);
       const watch = await animekaiFetch.getSources(data.episodes[0].id, false);
       expect(watch).toBeDefined();
     } catch (err) {

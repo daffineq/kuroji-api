@@ -15,6 +15,7 @@ import { animepaheSelect } from '../../animepahe/types/types.js';
 import { kitsuSelect } from '../../kitsu/types/types.js';
 import { shikimoriSelect } from '../../shikimori/types/types.js';
 import { animeKaiSelect } from '../../animekai/types/types.js';
+import { anilibriaSelect } from '../../anilibria/types/types.js';
 
 export interface MapperAnilist {
   id: number;
@@ -200,6 +201,37 @@ export const basicSelect: Prisma.AnilistSelect = {
         },
       },
       description: true,
+    },
+  },
+  anilibria: {
+    select: {
+      id: true,
+      anilist_id: true,
+      description: true,
+      alias: true,
+      name: {
+        select: {
+          main: true,
+          english: true,
+          alternative: true,
+        },
+      },
+      age_rating: {
+        select: {
+          value: true,
+          label: true,
+          is_adult: true,
+          description: true,
+        },
+      },
+      poster: {
+        select: {
+          preview: true,
+          thumbnail: true,
+          optimized_preview: true,
+          optimized_thumbnail: true,
+        },
+      },
     },
   },
   kitsu: {
@@ -394,6 +426,9 @@ export const fullSelect: Prisma.AnilistSelect = {
   },
   anizip: {
     select: aniZipSelect,
+  },
+  anilibria: {
+    select: anilibriaSelect,
   },
   zoro: {
     select: zoroSelect,

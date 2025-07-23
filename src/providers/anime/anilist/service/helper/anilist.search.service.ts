@@ -248,7 +248,7 @@ export class AnilistSearchService {
 
     let franchise: Franchise | null = null;
     try {
-      const tmdbFirst = await this.tmdbService.getTmdbByAnilist(
+      const tmdbFirst = await this.tmdbService.getInfoByAnilist(
         firstFranchise.id,
       );
 

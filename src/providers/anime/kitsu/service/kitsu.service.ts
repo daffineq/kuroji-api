@@ -19,7 +19,7 @@ export class KitsuService {
     private readonly helper: KitsuHelper,
   ) {}
 
-  async getKitsu<T extends Prisma.KitsuSelect>(
+  async getInfo<T extends Prisma.KitsuSelect>(
     id: string,
     select?: T,
   ): Promise<Prisma.KitsuGetPayload<{ select: T }>> {
@@ -34,12 +34,12 @@ export class KitsuService {
       return existingKitsu as Prisma.KitsuGetPayload<{ select: T }>;
     }
 
-    const rawKitsu = await kitsuFetch.fetchKitsu(id);
+    const rawKitsu = await kitsuFetch.fetchInfo(id);
 
-    return await this.saveKitsu(rawKitsu, select);
+    return await this.save(rawKitsu, select);
   }
 
-  async getKitsuByAnilist<T extends Prisma.KitsuSelect>(
+  async getInfoByAnilist<T extends Prisma.KitsuSelect>(
     id: number,
     select?: T,
   ): Promise<Prisma.KitsuGetPayload<{ select: T }>> {
@@ -63,19 +63,19 @@ export class KitsuService {
     const kitsuId = mapping.mappings?.kitsuId;
 
     if (!kitsuId) {
-      const rawKitsu = await this.findKitsuByAnilist(id);
+      const rawKitsu = await this.findByAnilist(id);
       await this.mappings.updateAniZipMappings(mapping.id, {
         kitsuId: rawKitsu.id,
       });
-      return await this.saveKitsu(rawKitsu, select);
+      return await this.save(rawKitsu, select);
     }
 
-    const rawKitsu = await kitsuFetch.fetchKitsu(kitsuId);
+    const rawKitsu = await kitsuFetch.fetchInfo(kitsuId);
     rawKitsu.anilistId = id;
-    return await this.saveKitsu(rawKitsu, select);
+    return await this.save(rawKitsu, select);
   }
 
-  async saveKitsu<T extends Prisma.KitsuSelect>(
+  async save<T extends Prisma.KitsuSelect>(
     kitsu: KitsuAnime,
     select?: T,
   ): Promise<Prisma.KitsuGetPayload<{ select: T }>> {
@@ -91,20 +91,20 @@ export class KitsuService {
     id: number,
     select?: T,
   ): Promise<Prisma.KitsuGetPayload<{ select: T }>> {
-    const existingKitsu = await this.getKitsuByAnilist(id, kitsuSelect);
+    const existingKitsu = await this.getInfoByAnilist(id, kitsuSelect);
     if (!existingKitsu) throw new NotFoundException('Not found');
 
-    const rawKitsu = await kitsuFetch.fetchKitsu(existingKitsu.id);
+    const rawKitsu = await kitsuFetch.fetchInfo(existingKitsu.id);
     rawKitsu.anilistId = existingKitsu.anilistId ?? 0;
 
-    return await this.saveKitsu(rawKitsu, select);
+    return await this.save(rawKitsu, select);
   }
 
-  async findKitsuByAnilist(id: number): Promise<KitsuAnime> {
+  async findByAnilist(id: number): Promise<KitsuAnime> {
     const anilist = await this.anilist.getMappingAnilist(id);
     if (!anilist) throw new NotFoundException('Anilist not found');
 
-    const searchResult = await kitsuFetch.searchKitsu(
+    const searchResult = await kitsuFetch.search(
       deepCleanTitle(anilist.title?.romaji ?? ''),
     );
 
@@ -138,7 +138,7 @@ export class KitsuService {
     const bestMatch = findBestMatch(searchCriteria, results);
 
     if (bestMatch) {
-      const data = await kitsuFetch.fetchKitsu(bestMatch.result.id);
+      const data = await kitsuFetch.fetchInfo(bestMatch.result.id);
       data.anilistId = id;
       return data;
     }

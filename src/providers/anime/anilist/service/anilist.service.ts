@@ -12,6 +12,7 @@ import { AnimepaheService } from '../../animepahe/service/animepahe.service.js';
 import { ZoroService } from '../../zoro/service/zoro.service.js';
 import { FullMediaResponse } from '../types/response.js';
 import { Prisma } from '@prisma/client';
+import { AnilibriaService } from '../../anilibria/service/anilibria.service.js';
 
 @Injectable()
 export class AnilistService {
@@ -20,6 +21,7 @@ export class AnilistService {
     private readonly mappings: MappingsService,
     private readonly save: AnilistSaveService,
     private readonly zoro: ZoroService,
+    private readonly anilibria: AnilibriaService,
     private readonly animekai: AnimekaiService,
     private readonly animepahe: AnimepaheService,
     private readonly shikimori: ShikimoriService,
@@ -65,32 +67,35 @@ export class AnilistService {
     if (Config.ZORO_ENABLED) {
       providers.push({
         name: 'Zoro',
-        fn: () => this.zoro.getZoroByAnilist(anilist.id),
+        fn: () => this.zoro.getInfoByAnilist(anilist.id),
       });
     }
 
     if (Config.ANIMEKAI_ENABLED) {
       providers.push({
         name: 'Animekai',
-        fn: () => this.animekai.getAnimekaiByAnilist(anilist.id),
+        fn: () => this.animekai.getInfoByAnilist(anilist.id),
       });
     }
 
     if (Config.ANIMEPAHE_ENABLED) {
       providers.push({
         name: 'Animepahe',
-        fn: () => this.animepahe.getAnimepaheByAnilist(anilist.id),
+        fn: () => this.animepahe.getInfoByAnilist(anilist.id),
       });
     }
 
     providers.push({
       name: 'Shikimori',
-      fn: () =>
-        this.shikimori.getShikimori(String(anilist.idMal)).catch(() => null),
+      fn: () => this.shikimori.getInfo(String(anilist.idMal)).catch(() => null),
     });
     providers.push({
       name: 'Kitsu',
-      fn: () => this.kitsu.getKitsuByAnilist(anilist.id).catch(() => null),
+      fn: () => this.kitsu.getInfoByAnilist(anilist.id).catch(() => null),
+    });
+    providers.push({
+      name: 'Anilibria',
+      fn: () => this.anilibria.getInfoByAnilist(anilist.id).catch(() => null),
     });
 
     await Promise.allSettled(

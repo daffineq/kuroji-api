@@ -31,6 +31,23 @@ export enum MediaSeason {
   FALL = 'FALL',
 }
 
+export function normalizeMediaSeason(
+  season?: string | null,
+): string | null | undefined {
+  if (season == null) return season;
+
+  switch (season.toUpperCase()) {
+    case 'FALL':
+      return 'autumn';
+    case 'WINTER':
+    case 'SPRING':
+    case 'SUMMER':
+      return season.toLowerCase();
+    default:
+      return season;
+  }
+}
+
 export enum MediaSource {
   ORIGINAL = 'ORIGINAL',
   MANGA = 'MANGA',
