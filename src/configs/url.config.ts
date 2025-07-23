@@ -17,9 +17,7 @@ export class UrlConfig {
   public static readonly CONSUMET_BASE = withTrailingSlash(
     Config.CONSUMET || '',
   );
-  public static readonly ANIWATCH_BASE = withTrailingSlash(
-    Config.ANIWATCH || '',
-  );
+  public static readonly HIANIME_BASE = withTrailingSlash(Config.HIANIME || '');
   public static readonly ANI_ZIP_BASE = withTrailingSlash(
     Config.ANI_ZIP || 'https://api.ani.zip',
   );
@@ -53,5 +51,5 @@ export class UrlConfig {
   public static readonly ZORO = `${UrlConfig.CONSUMET_BASE}anime/zoro/`;
   public static readonly ANIMEKAI = `${UrlConfig.CONSUMET_BASE}anime/animekai/`;
   public static readonly ANIMEPAHE = `${UrlConfig.CONSUMET_BASE}anime/animepahe/`;
-  public static readonly HIANIME = `${UrlConfig.ANIWATCH_BASE}api/v2/hianime/`;
+  public static readonly HIANIME = `${UrlConfig.HIANIME_BASE}api/`;
 }

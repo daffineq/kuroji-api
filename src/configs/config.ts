@@ -21,7 +21,7 @@ export default class Config {
   public static readonly ANILIBRIA = process.env.ANILIBRIA;
   public static readonly SHIKIMORI = process.env.SHIKIMORI;
   public static readonly CONSUMET = process.env.CONSUMET;
-  public static readonly ANIWATCH = process.env.ANIWATCH;
+  public static readonly HIANIME = process.env.HIANIME;
   public static readonly ANI_ZIP = process.env.ANI_ZIP;
   public static readonly TMDB = process.env.TMDB;
   public static readonly TVDB = process.env.TVDB;

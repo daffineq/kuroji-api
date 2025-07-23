@@ -4,7 +4,11 @@ import {
   ISearch,
   IAnimeResult,
 } from '@consumet/extensions';
-import { ZoroSource, convertZoroSource } from '../types/types.js';
+import {
+  convertZoroSource,
+  ZoroServer,
+  ZoroStreamResults,
+} from '../types/types.js';
 import { UrlConfig } from '../../../../configs/url.config.js';
 import { Client } from '../../../model/client.js';
 
@@ -23,24 +27,49 @@ export class ZoroFetchService extends Client {
     //   `watch/${episodeId}?dub=${dub}`,
     // );
 
-    const category = dub ? 'dub' : 'sub';
+    const type = dub ? 'dub' : 'sub';
 
-    const { data, error } = await this.client.get<ZoroSource>(
-      `${UrlConfig.HIANIME}episode/sources?animeEpisodeId=${convertId(episodeId)}&category=${category}`,
-      {
-        jsonPath: 'data',
-      },
+    const { data: serversData, error: serversError } = await this.client.get<{
+      success: boolean;
+      results: ZoroServer[];
+    }>(`${UrlConfig.HIANIME}servers/${convertId(episodeId)}`);
+
+    if (serversError) throw serversError;
+    if (!serversData?.results?.length) throw new Error('No servers found');
+
+    const server = serversData.results.find((s) => s.type === type);
+    if (!server) throw new Error(`No server found for type: ${type}`);
+
+    const { data: streamData, error: streamError } = await this.client.get<{
+      success: boolean;
+      results: ZoroStreamResults;
+    }>(
+      `${UrlConfig.HIANIME}stream?id=${convertId(episodeId)}&server=${server.serverName}&type=${type}`,
     );
-
-    if (error) {
-      throw error;
+    if (streamError) throw streamError;
+    if (!streamData?.results?.streamingLink) {
+      throw new Error('No streaming link found');
     }
 
-    if (!data) {
-      throw new Error('Data is null');
-    }
-
-    return convertZoroSource(data);
+    const streamingLink = streamData.results.streamingLink;
+    return convertZoroSource({
+      headers: {},
+      tracks: streamingLink.tracks
+        ?.filter((t) => !!t.label)
+        .map((t) => ({
+          url: t.file,
+          lang: t.label || '',
+        })),
+      intro: streamingLink.intro,
+      outro: streamingLink.outro,
+      sources: [
+        {
+          url: streamingLink.link.file,
+          isM3U8: streamingLink.link.type === 'hls',
+          type: streamingLink.link.type,
+        },
+      ],
+    });
   }
 
   async fetchZoro(id: string): Promise<IAnimeInfo> {
