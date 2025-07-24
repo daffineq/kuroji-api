@@ -20,9 +20,10 @@ import {
 import { ZoroService } from '../service/zoro.service.js';
 import { zoroFetch } from '../service/zoro.fetch.service.js';
 import { Prisma } from '@prisma/client';
+import { fetchProxiedStream } from '../utils/hls.proxy.helper.js';
+import { Readable } from 'stream';
 import { zoroSelect } from '../types/types.js';
 import { ZoroSelectDto } from '../types/swagger-types.js';
-import { fetchProxiedStream } from '../utils/hls.proxy.helper.js';
 
 @ApiTags('Zoro')
 @Controller('anime')
@@ -77,20 +78,27 @@ export class ZoroController {
     }
 
     try {
-      const { content, contentType } = await fetchProxiedStream(url);
+      const { content, contentType, isStream } = await fetchProxiedStream(url);
       res.set({
         'Content-Type': contentType,
         'Access-Control-Allow-Origin': '*',
         'Cache-Control': 'no-store',
       });
-      res.send(content);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error('Proxy failed:', err.message);
+      if (isStream && content instanceof Readable) {
+        res.flushHeaders();
+        content.on('error', (err) => {
+          console.error('Stream error:', err);
+          if (!res.headersSent && !res.writableEnded) {
+            res.status(500).send('Stream error');
+          }
+        });
+        content.pipe(res);
       } else {
-        console.error('Proxy failed:', err);
+        res.send(content);
       }
-      if (!res.headersSent) {
+    } catch (err: unknown) {
+      console.error('Proxy failed:', err instanceof Error ? err.message : err);
+      if (!res.headersSent && !res.writableEnded) {
         res.status(500).send('Failed to fetch resource');
       }
     }
