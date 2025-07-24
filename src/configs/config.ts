@@ -44,10 +44,22 @@ export default class Config {
     ? parseInt(process.env.REDIS_TIME)
     : 3600;
 
-  public static readonly CORS: string[] = (process.env.CORS ?? '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
+  public static readonly CORS = (() => {
+    const corsEnv = process.env.CORS ?? '';
+
+    if (corsEnv === '*') {
+      return true;
+    }
+
+    if (corsEnv === '') {
+      return false;
+    }
+
+    return corsEnv
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  })();
 
   public static readonly RATE_LIMIT: number =
     process.env.RATE_LIMIT && parseInt(process.env.RATE_LIMIT) != 0

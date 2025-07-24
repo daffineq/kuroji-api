@@ -22,10 +22,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalInterceptors(new Interceptor());
   app.useGlobalFilters(new AllExceptionsFilter());
+
   app.enableCors({
     origin: Config.CORS,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
   });
+
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true, // Optionally, transforms payloads to DTOs
