@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { URL } from 'url';
+import { UrlConfig } from '../../../../configs/url.config.js';
 
 const HEADERS = {
   Origin: 'https://megaplay.buzz',
@@ -34,7 +35,7 @@ export async function fetchProxiedStream(
       .map((line) => {
         if (line.trim().startsWith('#') || line.trim() === '') return line;
         const full = new URL(line.trim(), baseUrl).toString();
-        return `/api/anime/watch/_/zoro/proxy?url=${encodeURIComponent(full)}`;
+        return `${UrlConfig.BASE}api/anime/watch/0/zoro/proxy?url=${encodeURIComponent(full)}`;
       })
       .join('\n');
 

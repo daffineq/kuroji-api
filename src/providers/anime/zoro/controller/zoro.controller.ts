@@ -72,14 +72,17 @@ export class ZoroController {
   @ApiQuery({ name: 'url', required: true, description: 'CDN resource URL' })
   async proxyStream(@Query('url') url: string, @Res() res: Response) {
     if (!url || !url.startsWith('http')) {
-      return res.status(400).send('Invalid URL');
+      res.status(400).send('Invalid URL');
+      return;
     }
 
     try {
       const { content, contentType } = await fetchProxiedStream(url);
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Cache-Control', 'no-store');
+      res.set({
+        'Content-Type': contentType,
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'no-store',
+      });
       res.send(content);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -87,7 +90,9 @@ export class ZoroController {
       } else {
         console.error('Proxy failed:', err);
       }
-      res.status(500).send('Failed to fetch resource');
+      if (!res.headersSent) {
+        res.status(500).send('Failed to fetch resource');
+      }
     }
   }
 
