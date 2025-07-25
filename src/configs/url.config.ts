@@ -52,4 +52,7 @@ export class UrlConfig {
   public static readonly ANIMEKAI = `${UrlConfig.CONSUMET_BASE}anime/animekai/`;
   public static readonly ANIMEPAHE = `${UrlConfig.CONSUMET_BASE}anime/animepahe/`;
   public static readonly HIANIME = `${UrlConfig.HIANIME_BASE}api/`;
+
+  // Proxy URL
+  public static readonly PROXY_URL = `${this.BASE}api/proxy?url=`;
 }
