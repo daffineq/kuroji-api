@@ -35,6 +35,7 @@ import { TvdbFetchService } from '../providers/anime/tvdb/service/tvdb.fetch.ser
 import { MalService } from '../providers/anime/mal/service/mal.service.js';
 import { ToolsService } from '../providers/tools/service/tools.service.js';
 import { AnilibriaService } from '../providers/anime/anilibria/service/anilibria.service.js';
+import { ProxyService } from '../providers/proxy/service/proxy.service.js';
 
 @Module({
   imports: [Redis],
@@ -74,6 +75,7 @@ import { AnilibriaService } from '../providers/anime/anilibria/service/anilibria
     MappingsService,
     ToolsService,
     AppLockService,
+    ProxyService,
   ],
   exports: [
     PrismaService,
@@ -109,6 +111,7 @@ import { AnilibriaService } from '../providers/anime/anilibria/service/anilibria
     StreamService,
     MappingsService,
     ToolsService,
+    ProxyService,
     AppLockService,
   ],
 })
