@@ -4,10 +4,16 @@ import { UrlConfig } from '../../../configs/url.config.js';
 import { Readable } from 'stream';
 import { Provider } from '../../anime/stream/types/types.js';
 
+import * as http from 'http';
+import * as https from 'https';
+
+const httpAgent = new http.Agent({ keepAlive: true });
+const httpsAgent = new https.Agent({ keepAlive: true });
+
 export class ProxyService {
   async fetchProxiedStream(url: string): Promise<{
     content: Buffer | Readable;
-    contentType: string;
+    headers: Record<string, string | undefined>;
     isStream: boolean;
   }> {
     const response = await axios.get<Readable>(url, {
@@ -16,10 +22,25 @@ export class ProxyService {
       decompress: false,
       timeout: 10000,
       validateStatus: () => true, // we don't throw
+      httpAgent,
+      httpsAgent,
     });
 
     const headers = response.headers as Record<string, string | undefined>;
     const contentType = headers['content-type'] || '';
+
+    const proxyHeaders = {
+      'Content-Type': contentType,
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'no-store',
+    };
+
+    ['content-length', 'content-disposition'].forEach((header) => {
+      if (headers[header]) {
+        proxyHeaders[header.charAt(0).toUpperCase() + header.slice(1)] =
+          headers[header];
+      }
+    });
 
     if (
       contentType.includes('application/vnd.apple.mpegurl') ||
@@ -33,20 +54,22 @@ export class ProxyService {
         .map((line) => {
           if (line.trim().startsWith('#') || line.trim() === '') return line;
           const full = new URL(line.trim(), baseUrl).toString();
-          return `${UrlConfig.BASE}api/proxy?url=${encodeURIComponent(full)}`;
+          return `${UrlConfig.PROXY_URL}${encodeURIComponent(full)}`;
         })
         .join('\n');
 
+      proxyHeaders['Content-Type'] = 'application/vnd.apple.mpegurl';
+
       return {
         content: Buffer.from(rewritten, 'utf-8'),
-        contentType: 'application/vnd.apple.mpegurl',
+        headers: proxyHeaders,
         isStream: false,
       };
     }
 
     return {
       content: response.data,
-      contentType,
+      headers: proxyHeaders,
       isStream: true,
     };
   }
