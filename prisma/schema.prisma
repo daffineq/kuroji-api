@@ -1465,3 +1465,72 @@ model EpisodeZoro {
 
   zoro Zoro[] @relation("EpisodeZoro")
 }
+
+
+// User.prisma
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  apiKeys        ApiKey[]
+  apiKeyRequests ApiKeyRequest[]
+}
+
+model ApiKey {
+  id        String     @id @default(uuid())
+  userId    String
+  key       String     @unique
+  type      ApiKeyType @default(LIMITED)
+  whatFor   String
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  usage ApiKeyUsage[]
+  user  User          @relation(fields: [userId], references: [id])
+}
+
+model ApiKeyUsage {
+  id       String   @id @default(uuid())
+  apiKeyId String
+  endpoint String
+  method   String
+  ip       String?
+  usedAt   DateTime @default(now())
+
+  apiKey ApiKey @relation(fields: [apiKeyId], references: [id])
+}
+
+model ApiKeyRequest {
+  id        String              @id @default(uuid())
+  userId    String
+  type      ApiKeyType          @default(LIMITED)
+  whatFor   String
+  status    ApiKeyRequestStatus @default(PENDING)
+  reason    String? // for decline or approval notes
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum ApiKeyType {
+  FULL
+  LIMITED
+}
+
+enum ApiKeyRequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+}

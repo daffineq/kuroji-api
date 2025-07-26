@@ -7,7 +7,7 @@ import { AnizipDto, AnizipSort } from '../types/AnizipDto.js';
 import { getPageInfo } from '../../../../utils/utils.js';
 import { mappingsFetch } from './mappings.fetch.service.js';
 import { Prisma } from '@prisma/client';
-import { ApiResponse } from '../../../../shared/ApiResponse.js';
+import { ApiResponse } from '../../../../shared/responses.js';
 
 @Injectable()
 export class MappingsService {

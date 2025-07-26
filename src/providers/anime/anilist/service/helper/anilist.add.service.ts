@@ -4,7 +4,7 @@ import { FilterDto } from '../../filter/FilterDto.js';
 import { PrismaService } from '../../../../../prisma.service.js';
 import { ShikimoriService } from '../../../shikimori/service/shikimori.service.js';
 import { AnilistSearchService } from './anilist.search.service.js';
-import { ApiResponse } from '../../../../../shared/ApiResponse.js';
+import { ApiResponse } from '../../../../../shared/responses.js';
 
 @Injectable()
 export class AnilistAddService {

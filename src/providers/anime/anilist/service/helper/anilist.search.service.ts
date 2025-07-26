@@ -21,8 +21,8 @@ import { undefinedToNull } from '../../../../../shared/interceptor.js';
 import { getImage } from '../../../tmdb/types/types.js';
 import { TmdbService } from '../../../tmdb/service/tmdb.service.js';
 import { Prisma } from '@prisma/client';
-import { ApiResponse } from '../../../../../shared/ApiResponse.js';
 import { TagFilterDto } from '../../filter/TagFilterDto.js';
+import { ApiResponse } from '../../../../../shared/responses.js';
 
 @Injectable()
 export class AnilistSearchService {

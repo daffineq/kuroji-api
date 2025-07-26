@@ -10,3 +10,10 @@ export interface PageInfo {
   lastPage: number;
   hasNextPage: boolean;
 }
+
+export function createSuccessResponse(message: string) {
+  return {
+    success: true,
+    message,
+  };
+}

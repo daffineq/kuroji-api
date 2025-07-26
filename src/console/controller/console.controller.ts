@@ -2,7 +2,7 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiQuery, ApiSecurity, ApiOperation } from '@nestjs/swagger';
 import { ConsoleInterceptor } from '../ConsoleInterceptor.js';
 import Config from '../../configs/config.js';
-import { SecretKeyGuard } from '../../shared/secret-key.guard.js';
+import { ApiKeyGuard } from '../../shared/api-key.guard.js';
 
 @ApiSecurity('x-api-key')
 @ApiTags('Console')
@@ -11,7 +11,7 @@ export class ConsoleController {
   constructor(private readonly logger: ConsoleInterceptor) {}
 
   @Get('all')
-  @UseGuards(SecretKeyGuard)
+  @UseGuards(ApiKeyGuard)
   @ApiOperation({
     summary: 'Get all console logs',
     description: 'Get all kind of console logs like logs, warns and errors.',
@@ -28,7 +28,7 @@ export class ConsoleController {
   }
 
   @Get('logs')
-  @UseGuards(SecretKeyGuard)
+  @UseGuards(ApiKeyGuard)
   @ApiOperation({ summary: 'Get logs from console' })
   @ApiQuery({ name: 'order', enum: ['asc', 'desc'], required: false })
   @ApiQuery({ name: 'perPage', type: Number, required: false })
@@ -42,7 +42,7 @@ export class ConsoleController {
   }
 
   @Get('warns')
-  @UseGuards(SecretKeyGuard)
+  @UseGuards(ApiKeyGuard)
   @ApiOperation({ summary: 'Get warnings from console' })
   @ApiQuery({ name: 'order', enum: ['asc', 'desc'], required: false })
   @ApiQuery({ name: 'perPage', type: Number, required: false })
@@ -56,7 +56,7 @@ export class ConsoleController {
   }
 
   @Get('errors')
-  @UseGuards(SecretKeyGuard)
+  @UseGuards(ApiKeyGuard)
   @ApiOperation({ summary: 'Get errors from console' })
   @ApiQuery({ name: 'order', enum: ['asc', 'desc'], required: false })
   @ApiQuery({ name: 'perPage', type: Number, required: false })

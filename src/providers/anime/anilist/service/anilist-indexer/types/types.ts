@@ -1,4 +1,4 @@
-import { PageInfo } from '../../../../../../shared/ApiResponse.js';
+import { PageInfo } from '../../../../../../shared/responses.js';
 
 export interface Ids {
   sfw: number[];

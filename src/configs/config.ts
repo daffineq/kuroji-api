@@ -104,4 +104,7 @@ export default class Config {
     process.env.QUEUE_LOCK_KEY ?? 'UPDATE_QUEUE_LOCK';
 
   public static readonly SECURITY_PASSWORD = process.env.SECURITY_PASSWORD;
+
+  public static readonly JWT_SECRET = process.env.JWT_SECRET ?? 'secretkey';
+  public static readonly JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? '1h';
 }

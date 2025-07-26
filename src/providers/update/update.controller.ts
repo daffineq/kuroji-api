@@ -1,7 +1,7 @@
 import { Controller, Put, UseGuards } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { UpdateService } from './update.service.js';
-import { SecretKeyGuard } from '../../shared/secret-key.guard.js';
+import { ApiKeyGuard } from '../../shared/api-key.guard.js';
 
 @ApiExcludeController()
 @Controller('Anime')
@@ -9,7 +9,7 @@ export class UpdateController {
   constructor(private readonly update: UpdateService) {}
 
   @Put('update/recent')
-  @UseGuards(SecretKeyGuard)
+  @UseGuards(ApiKeyGuard)
   updateRecent() {
     this.update
       .queueRecentAnime()
@@ -21,7 +21,7 @@ export class UpdateController {
   }
 
   @Put('update/today')
-  @UseGuards(SecretKeyGuard)
+  @UseGuards(ApiKeyGuard)
   updateToday() {
     this.update
       .queueTodayAnime()
@@ -33,7 +33,7 @@ export class UpdateController {
   }
 
   @Put('update/week')
-  @UseGuards(SecretKeyGuard)
+  @UseGuards(ApiKeyGuard)
   updateWeek() {
     this.update
       .queueWeekAgoAnime()

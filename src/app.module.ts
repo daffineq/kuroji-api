@@ -21,6 +21,8 @@ import { ToolsModule } from './providers/tools/module/tools.module.js';
 import { CustomThrottlerGuard } from './shared/throttler.guard.js';
 import { MappingsModule } from './providers/anime/mappings/module/mappings.module.js';
 import { AnilibriaModule } from './providers/anime/anilibria/module/anilibria.module.js';
+import { AuthModule } from './auth/module/auth.module.js';
+import { PrismaService } from './prisma.service.js';
 
 @Module({
   imports: [
@@ -38,6 +40,7 @@ import { AnilibriaModule } from './providers/anime/anilibria/module/anilibria.mo
     ToolsModule,
     ConsoleModule,
     MappingsModule,
+    AuthModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
@@ -55,6 +58,7 @@ import { AnilibriaModule } from './providers/anime/anilibria/module/anilibria.mo
   controllers: [AppController],
   providers: [
     AppService,
+    PrismaService,
     {
       provide: APP_GUARD,
       useClass: CustomThrottlerGuard,

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { AnilistTag, Prisma } from '@prisma/client';
-import { ApiResponse } from '../../../../../shared/ApiResponse.js';
 import { FilterDto } from '../../filter/FilterDto.js';
 import { PrismaService } from '../../../../../prisma.service.js';
 import { firstUpperList, getPageInfo } from '../../../../../utils/utils.js';
 import { Language, MediaSort } from '../../filter/Filter.js';
 import { NestedSort, SortDirection } from '../../types/types.js';
 import { TagFilterDto } from '../../filter/TagFilterDto.js';
+import { ApiResponse } from '../../../../../shared/responses.js';
 
 @Injectable()
 export class AnilistFilterService {
