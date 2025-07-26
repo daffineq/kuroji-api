@@ -71,6 +71,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       stack: cleanedStack,
     };
 
-    response.status(status).json(errorResponse);
+    if (!response.headersSent && !response.writableEnded) {
+      response.status(status).json(errorResponse);
+    }
   }
 }

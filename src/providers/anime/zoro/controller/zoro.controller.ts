@@ -7,9 +7,7 @@ import {
   Post,
   Put,
   Query,
-  Res,
 } from '@nestjs/common';
-import { Response } from 'express';
 import {
   ApiTags,
   ApiQuery,
@@ -22,7 +20,6 @@ import { zoroFetch } from '../service/zoro.fetch.service.js';
 import { Prisma } from '@prisma/client';
 import { zoroSelect } from '../types/types.js';
 import { ZoroSelectDto } from '../types/swagger-types.js';
-import { fetchProxiedStream } from '../utils/hls.proxy.helper.js';
 
 @ApiTags('Zoro')
 @Controller('anime')
@@ -62,33 +59,6 @@ export class ZoroController {
     @Query('dub') dub: boolean = false,
   ) {
     return zoroFetch.getSources(id, dub);
-  }
-
-  @Get('watch/:id/zoro/proxy')
-  @ApiOperation({
-    summary:
-      "Proxy stream requests (e.g., .m3u8, .ts) (the id doesn't matter at all)",
-  })
-  @ApiQuery({ name: 'url', required: true, description: 'CDN resource URL' })
-  async proxyStream(@Query('url') url: string, @Res() res: Response) {
-    if (!url || !url.startsWith('http')) {
-      return res.status(400).send('Invalid URL');
-    }
-
-    try {
-      const { content, contentType } = await fetchProxiedStream(url);
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Cache-Control', 'no-store');
-      res.send(content);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error('Proxy failed:', err.message);
-      } else {
-        console.error('Proxy failed:', err);
-      }
-      res.status(500).send('Failed to fetch resource');
-    }
   }
 
   @Put('info/:id/zoro/update')

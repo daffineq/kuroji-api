@@ -23,6 +23,7 @@ import { MappingsModule } from './providers/anime/mappings/module/mappings.modul
 import { AnilibriaModule } from './providers/anime/anilibria/module/anilibria.module.js';
 import { AuthModule } from './auth/module/auth.module.js';
 import { PrismaService } from './prisma.service.js';
+import { ProxyModule } from './providers/proxy/module/proxy.module.js';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { PrismaService } from './prisma.service.js';
     ConsoleModule,
     MappingsModule,
     AuthModule,
+    ProxyModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
