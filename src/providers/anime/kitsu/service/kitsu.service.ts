@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
 import { KitsuHelper } from '../util/kitsu-helper.js';
-import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
+import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.js';
 import { findEpisodeCount } from '../../anilist/utils/utils.js';
 import { AnilistUtilService } from '../../anilist/service/helper/anilist.util.service.js';
 import { MappingsService } from '../../mappings/service/mappings.service.js';

@@ -18,6 +18,11 @@ import { RolesGuard } from '../../decorators/auth/roles.guard.js';
 export class ApiKeyController {
   constructor(private readonly apiKeyService: ApiKeyService) {}
 
+  @Get('info/:id')
+  getApiKey(@Param('id') id: string) {
+    return this.apiKeyService.getApiKey(id);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post('request')
   createRequest(

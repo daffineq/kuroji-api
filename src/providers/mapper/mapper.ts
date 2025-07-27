@@ -41,7 +41,9 @@ export interface ExpectAnime {
  * @returns Array of all available title variations
  */
 function getAllTitles<T extends ExpectAnime>(candidate: T): string[] {
-  return (candidate.titles || []).filter((t): t is string => !!t);
+  return (candidate.titles || [])
+    .map(sanitizeTitle)
+    .filter((t): t is string => !!t);
 }
 
 /**
@@ -89,12 +91,6 @@ export const findBestMatch = <T extends ExpectAnime>(
     };
   };
 
-  // Normalize search titles
-  const normalizedSearchTitles = searchTitles
-    .map(sanitizeTitle)
-    .filter((t): t is string => !!t);
-  if (normalizedSearchTitles.length === 0) return null;
-
   // 1. Exact Match with year, episodes, and type
   if (searchYear && searchEpisodes && searchType) {
     for (const candidate of sortedResults) {
@@ -123,23 +119,20 @@ export const findBestMatch = <T extends ExpectAnime>(
   if (searchYear && searchEpisodes && searchType) {
     for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(candidate);
-      const normalizedCandidateTitles = candidateTitles
-        .map(sanitizeTitle)
-        .filter((t): t is string => !!t);
 
       if (
         candidate.year === searchYear &&
         candidate.episodes === searchEpisodes &&
         areTypesCompatible(searchType, candidate.type)
       ) {
-        for (const normalizedSearchTitle of normalizedSearchTitles) {
-          if (normalizedCandidateTitles.includes(normalizedSearchTitle)) {
+        for (const searchTitle of searchTitles) {
+          if (candidateTitles.includes(searchTitle)) {
             return createMatchResult(
               1,
               'exact-year-episode-type-normalized',
               candidate,
               undefined,
-              normalizedSearchTitle,
+              searchTitle,
             );
           }
         }
@@ -174,22 +167,19 @@ export const findBestMatch = <T extends ExpectAnime>(
   if (searchYear && searchType) {
     for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(candidate);
-      const normalizedCandidateTitles = candidateTitles
-        .map(sanitizeTitle)
-        .filter((t): t is string => !!t);
 
       if (
         candidate.year === searchYear &&
         areTypesCompatible(searchType, candidate.type)
       ) {
-        for (const normalizedSearchTitle of normalizedSearchTitles) {
-          if (normalizedCandidateTitles.includes(normalizedSearchTitle)) {
+        for (const searchTitle of searchTitles) {
+          if (candidateTitles.includes(searchTitle)) {
             return createMatchResult(
               1,
               'exact-year-type-normalized',
               candidate,
               undefined,
-              normalizedSearchTitle,
+              searchTitle,
             );
           }
         }
@@ -222,19 +212,15 @@ export const findBestMatch = <T extends ExpectAnime>(
     for (const candidate of sortedResults) {
       const candidateTitles = getAllTitles(candidate);
 
-      const normalizedCandidateTitles = candidateTitles
-        .map(sanitizeTitle)
-        .filter((t): t is string => !!t);
-
       if (areTypesCompatible(searchType, candidate.type)) {
-        for (const normalizedSearchTitle of normalizedSearchTitles) {
-          if (normalizedCandidateTitles.includes(normalizedSearchTitle)) {
+        for (const searchTitle of searchTitles) {
+          if (candidateTitles.includes(searchTitle)) {
             return createMatchResult(
               1,
               'exact-type-normalized',
               candidate,
               undefined,
-              normalizedSearchTitle,
+              searchTitle,
             );
           }
         }
@@ -248,16 +234,9 @@ export const findBestMatch = <T extends ExpectAnime>(
   for (const candidate of sortedResults) {
     const candidateTitles = getAllTitles(candidate);
 
-    const normalizedCandidateTitles = candidateTitles
-      .map(sanitizeTitle)
-      .filter((t): t is string => !!t);
-
-    for (const normalizedSearchTitle of normalizedSearchTitles) {
-      for (const normalizedCandidateTitle of normalizedCandidateTitles) {
-        const similarity = getSimiliarity(
-          normalizedSearchTitle,
-          normalizedCandidateTitle,
-        );
+    for (const searchTitle of searchTitles) {
+      for (const candidateTitle of candidateTitles) {
+        const similarity = getSimiliarity(searchTitle, candidateTitle);
 
         if (similarity >= 0.7) {
           const adjustedSimilarity =
@@ -276,7 +255,7 @@ export const findBestMatch = <T extends ExpectAnime>(
               similarity: adjustedSimilarity,
               method: 'loose',
               result: candidate,
-              normalized: normalizedSearchTitle,
+              normalized: searchTitle,
             };
           }
         }
@@ -292,16 +271,9 @@ export const findBestMatch = <T extends ExpectAnime>(
   for (const candidate of sortedResults) {
     const candidateTitles = getAllTitles(candidate);
 
-    const normalizedCandidateTitles = candidateTitles
-      .map(sanitizeTitle)
-      .filter((t): t is string => !!t);
-
-    for (const normalizedSearchTitle of normalizedSearchTitles) {
-      for (const normalizedCandidateTitle of normalizedCandidateTitles) {
-        const similarity = getSimiliarity(
-          normalizedSearchTitle,
-          normalizedCandidateTitle,
-        );
+    for (const searchTitle of searchTitles) {
+      for (const candidateTitle of candidateTitles) {
+        const similarity = getSimiliarity(searchTitle, candidateTitle);
 
         if (similarity >= 0.65) {
           const adjustedSimilarity =
@@ -320,7 +292,7 @@ export const findBestMatch = <T extends ExpectAnime>(
               similarity: adjustedSimilarity,
               method: 'last-resort',
               result: candidate,
-              normalized: normalizedSearchTitle,
+              normalized: searchTitle,
             };
           }
         }
@@ -337,16 +309,9 @@ export const findBestMatch = <T extends ExpectAnime>(
   for (const candidate of sortedResults) {
     const candidateTitles = getAllTitles(candidate);
 
-    const normalizedCandidateTitles = candidateTitles
-      .map(sanitizeTitle)
-      .filter((t): t is string => !!t);
-
-    for (const normalizedSearchTitle of normalizedSearchTitles) {
-      for (const normalizedCandidateTitle of normalizedCandidateTitles) {
-        const similarity = getSimiliarity(
-          normalizedSearchTitle,
-          normalizedCandidateTitle,
-        );
+    for (const searchTitle of searchTitles) {
+      for (const candidateTitle of candidateTitles) {
+        const similarity = getSimiliarity(searchTitle, candidateTitle);
 
         const adjustedSimilarity =
           searchType && areTypesCompatible(searchType, candidate.type)
@@ -364,7 +329,7 @@ export const findBestMatch = <T extends ExpectAnime>(
             similarity: adjustedSimilarity,
             method: 'null-method',
             result: candidate,
-            normalized: normalizedSearchTitle,
+            normalized: searchTitle,
           };
         }
       }

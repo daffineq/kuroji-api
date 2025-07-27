@@ -27,6 +27,18 @@ export const apiKeySelect = {
   active: true,
 } satisfies Prisma.ApiKeySelect;
 
+export const fullApiKeySelect = {
+  id: true,
+  key: true,
+  type: true,
+  whatFor: true,
+  active: true,
+  usage: {
+    select: apiKeyUsageSelect,
+    orderBy: { usedAt: 'desc' },
+  },
+} satisfies Prisma.ApiKeySelect;
+
 export const apiKeyRequestSelect = {
   id: true,
   type: true,

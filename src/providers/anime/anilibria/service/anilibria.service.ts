@@ -6,7 +6,7 @@ import { anilibriaFetch } from './anilibria.fetch.service.js';
 import { normalizeMediaSeason } from '../../anilist/filter/Filter.js';
 import { AnilibriaEntry } from '../types/types.js';
 import { deepCleanTitle } from '../../../mapper/mapper.cleaning.js';
-import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
+import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.js';
 import { findEpisodeCount } from '../../anilist/utils/utils.js';
 import { getAnilibriaData } from '../utils/anilibria-helper.js';
 import { MappingsService } from '../../mappings/service/mappings.service.js';

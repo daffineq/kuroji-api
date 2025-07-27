@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
 import {
-  AnilibriaEpisode,
   AnimekaiEpisode,
   AnimepaheEpisode,
   EpisodeZoro,
@@ -310,7 +309,7 @@ export class StreamService {
             anizipEpisode?.runtime ??
             (anilibriaEpisode?.duration !== undefined &&
             anilibriaEpisode?.duration !== null
-              ? anilibriaEpisode.duration / 60
+              ? Math.round(anilibriaEpisode.duration / 60)
               : anilist?.duration);
 
           const filler = zoroEp?.isFiller ?? false;

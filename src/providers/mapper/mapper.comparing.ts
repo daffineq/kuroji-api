@@ -116,14 +116,8 @@ export function getSimiliarity(
   if (target === candidate) return 1;
   if (!target.length || !candidate.length) return 0;
 
-  const normalize = (str: string): string =>
-    str.toLowerCase().trim().replace(/\s+/g, ' ');
-
-  const normTarget = normalize(target);
-  const normCandidate = normalize(candidate);
-
-  const targetWords = normTarget.split(/\s+/).filter((word) => word.length > 0);
-  const candidateWords = normCandidate
+  const targetWords = target.split(/\s+/).filter((word) => word.length > 0);
+  const candidateWords = candidate
     .split(/\s+/)
     .filter((word) => word.length > 0);
 
@@ -142,8 +136,8 @@ export function getSimiliarity(
   const targetContainment = targetMatches / targetWords.length;
   const candidateContainment = candidateMatches / candidateWords.length;
 
-  const jaro = jaroWinklerDistance(normTarget, normCandidate);
-  const levenshtein = levenshteinSimilarity(normTarget, normCandidate);
+  const jaro = jaroWinklerDistance(target, candidate);
+  const levenshtein = levenshteinSimilarity(target, candidate);
   const baseSimilarity = jaro * 0.4 + levenshtein * 0.6;
 
   if (candidateContainment === 1.0) {
@@ -216,7 +210,7 @@ export function areTypesCompatible(
 
   // Compatible type groups
   const compatibleGroups = [
-    ['TV', 'TELEVISION', 'TV SERIES'],
+    ['TV', 'TELEVISION', 'TV SERIES', 'ONA'],
     ['MOVIE', 'FILM', 'THEATRICAL'],
     ['OVA', 'OAD'],
     ['SPECIAL', 'SPECIALS', 'SP'],

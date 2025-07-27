@@ -1,4 +1,4 @@
-import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
+import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.js';
 import { BasicTmdb } from '../types/types.js';
 
 const ALLOWED_COUNTRIES = ['JP', 'KR', 'CN'];

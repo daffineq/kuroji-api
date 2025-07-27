@@ -155,53 +155,56 @@ export function getAnilibriaData(
 
     episodes: anime.episodes?.length
       ? {
-          create: anime.episodes
+          connectOrCreate: anime.episodes
             .filter((e) => e?.id)
             .map((e) => ({
-              id: e.id,
-              updated_at: e.updated_at ?? undefined,
-              name: e.name ?? undefined,
-              name_english: e.name_english ?? undefined,
-              ordinal: e.ordinal ?? undefined,
-              duration: e.duration ?? undefined,
-              rutube_id: e.rutube_id ?? undefined,
-              youtube_id: e.youtube_id ?? undefined,
-              sort_order: e.sort_order ?? undefined,
-              release_id: e.release_id ?? undefined,
-              hls_480: e.hls_480 ?? undefined,
-              hls_720: e.hls_720 ?? undefined,
-              hls_1080: e.hls_1080 ?? undefined,
-              ending:
-                e.ending?.start && e.ending?.stop
-                  ? {
-                      create: {
-                        start: e.ending.start,
-                        stop: e.ending.stop,
-                      },
-                    }
-                  : undefined,
-              opening:
-                e.opening?.start && e.opening?.stop
-                  ? {
-                      create: {
-                        start: e.opening.start,
-                        stop: e.opening.stop,
-                      },
-                    }
-                  : undefined,
-              preview:
-                e.preview?.preview || e.preview?.thumbnail
-                  ? {
-                      create: {
-                        preview: e.preview.preview ?? undefined,
-                        thumbnail: e.preview.thumbnail ?? undefined,
-                        optimized_preview:
-                          e.preview.optimized?.preview ?? undefined,
-                        optimized_thumbnail:
-                          e.preview.optimized?.thumbnail ?? undefined,
-                      },
-                    }
-                  : undefined,
+              where: { id: e.id },
+              create: {
+                id: e.id,
+                updated_at: e.updated_at ?? undefined,
+                name: e.name ?? undefined,
+                name_english: e.name_english ?? undefined,
+                ordinal: e.ordinal ?? undefined,
+                duration: e.duration ?? undefined,
+                rutube_id: e.rutube_id ?? undefined,
+                youtube_id: e.youtube_id ?? undefined,
+                sort_order: e.sort_order ?? undefined,
+                release_id: e.release_id ?? undefined,
+                hls_480: e.hls_480 ?? undefined,
+                hls_720: e.hls_720 ?? undefined,
+                hls_1080: e.hls_1080 ?? undefined,
+                ending:
+                  e.ending?.start && e.ending?.stop
+                    ? {
+                        create: {
+                          start: e.ending.start,
+                          stop: e.ending.stop,
+                        },
+                      }
+                    : undefined,
+                opening:
+                  e.opening?.start && e.opening?.stop
+                    ? {
+                        create: {
+                          start: e.opening.start,
+                          stop: e.opening.stop,
+                        },
+                      }
+                    : undefined,
+                preview:
+                  e.preview?.preview || e.preview?.thumbnail
+                    ? {
+                        create: {
+                          preview: e.preview.preview ?? undefined,
+                          thumbnail: e.preview.thumbnail ?? undefined,
+                          optimized_preview:
+                            e.preview.optimized?.preview ?? undefined,
+                          optimized_thumbnail:
+                            e.preview.optimized?.thumbnail ?? undefined,
+                        },
+                      }
+                    : undefined,
+              },
             })),
         }
       : undefined,

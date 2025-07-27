@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, TmdbSeason } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../prisma.service.js';
-import { findBestMatch, ExpectAnime } from '../../../mapper/mapper.helper.js';
+import { findBestMatch, ExpectAnime } from '../../../mapper/mapper.js';
 import { AnilistService } from '../../anilist/service/anilist.service.js';
 import { TmdbHelper } from '../utils/tmdb-helper.js';
 import { sleep } from '../../../../utils/utils.js';

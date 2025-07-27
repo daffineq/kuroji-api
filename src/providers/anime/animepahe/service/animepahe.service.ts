@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
-import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.helper.js';
+import { ExpectAnime, findBestMatch } from '../../../mapper/mapper.js';
 import { IAnimeInfo } from '@consumet/extensions';
 import { getAnimePaheData } from '../utils/animepahe-helper.js';
 import { findEpisodeCount } from '../../anilist/utils/utils.js';

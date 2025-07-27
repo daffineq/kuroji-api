@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma.service.js';
 import {
   apiKeyRequestSelect,
   CreateApiKeyRequestPayload,
+  fullApiKeySelect,
 } from '../types/types.js';
 import { getRequestData } from '../utils/auth-helper.js';
 import { generateApiKey } from '../utils/utils.js';
@@ -12,6 +13,13 @@ import { createSuccessResponse } from '../../shared/responses.js';
 @Injectable()
 export class ApiKeyService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async getApiKey(id: string) {
+    return this.prisma.apiKey.findUnique({
+      where: { id },
+      select: fullApiKeySelect,
+    });
+  }
 
   async createRequest(request: CreateApiKeyRequestPayload, userId: string) {
     return this.prisma.apiKeyRequest.create({
