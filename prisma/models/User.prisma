@@ -26,12 +26,14 @@ model ApiKey {
 }
 
 model ApiKeyUsage {
-  id       String   @id @default(uuid())
-  apiKeyId String
-  endpoint String
-  method   String
-  ip       String?
-  usedAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  apiKeyId  String
+  endpoint  String
+  method    String
+  origin    String?
+  userAgent String?
+  ip        String?
+  usedAt    DateTime @default(now())
 
   apiKey ApiKey @relation(fields: [apiKeyId], references: [id])
 }

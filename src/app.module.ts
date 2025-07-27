@@ -18,7 +18,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { KitsuModule } from './providers/anime/kitsu/module/kitsu.module.js';
 import { ToolsModule } from './providers/tools/module/tools.module.js';
-import { CustomThrottlerGuard } from './shared/throttler.guard.js';
+import { CustomThrottlerGuard } from './decorators/throttler/throttler.guard.js';
 import { MappingsModule } from './providers/anime/mappings/module/mappings.module.js';
 import { AnilibriaModule } from './providers/anime/anilibria/module/anilibria.module.js';
 import { AuthModule } from './auth/module/auth.module.js';

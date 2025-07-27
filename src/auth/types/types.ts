@@ -10,20 +10,21 @@ export interface AuthRequest {
   user: { userId: string; email: string; role: string };
 }
 
+export const apiKeyUsageSelect = {
+  id: true,
+  endpoint: true,
+  method: true,
+  origin: true,
+  userAgent: true,
+  ip: true,
+} satisfies Prisma.ApiKeyUsageSelect;
+
 export const apiKeySelect = {
   id: true,
   key: true,
   type: true,
   whatFor: true,
   active: true,
-  usage: {
-    select: {
-      id: true,
-      endpoint: true,
-      method: true,
-      ip: true,
-    },
-  },
 } satisfies Prisma.ApiKeySelect;
 
 export const apiKeyRequestSelect = {

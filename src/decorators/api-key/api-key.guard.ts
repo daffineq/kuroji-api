@@ -4,14 +4,9 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PrismaService } from '../prisma.service.js';
-import { ApiKeyType } from '@prisma/client';
-
-export const API_KEY_TYPE = ApiKeyType.FULL;
-export const RequireApiKeyType = (type: ApiKeyType) =>
-  SetMetadata(API_KEY_TYPE, type);
+import { PrismaService } from '../../prisma.service.js';
+import { API_KEY_TYPE } from './api-key.decorator.js';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {

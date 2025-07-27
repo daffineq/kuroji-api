@@ -8,10 +8,11 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiKeyService } from '../service/api.key.service.js';
-import { JwtAuthGuard } from '../utils/jwt-auth.guard.js';
-import { Roles, RolesGuard } from '../utils/roles.guard.js';
 import { UserRole } from '@prisma/client';
 import { AuthRequest, CreateApiKeyRequestPayload } from '../types/types.js';
+import { JwtAuthGuard } from '../../decorators/auth/jwt-auth.guards.js';
+import { Roles } from '../../decorators/auth/roles.decorator.js';
+import { RolesGuard } from '../../decorators/auth/roles.guard.js';
 
 @Controller('api-key')
 export class ApiKeyController {

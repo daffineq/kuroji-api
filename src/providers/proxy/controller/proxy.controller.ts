@@ -4,6 +4,7 @@ import { ApiTags, ApiQuery, ApiOperation } from '@nestjs/swagger';
 import { ProxyService } from '../service/proxy.service.js';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
+import { IgnoreThrottler } from '../../../decorators/throttler/ignore-throttler.decorator.js';
 
 @ApiTags('Proxy')
 @Controller('proxy')
@@ -16,6 +17,7 @@ export class ProxyController {
       "Proxy stream requests (e.g., .m3u8, .ts) (the id doesn't matter at all)",
   })
   @ApiQuery({ name: 'url', required: true, description: 'CDN resource URL' })
+  @IgnoreThrottler()
   async proxyStream(@Query('url') url: string, @Res() res: Response) {
     if (!url || !url.startsWith('http')) {
       res.status(400).json({ message: 'Invalid URL' });

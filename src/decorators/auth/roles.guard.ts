@@ -5,11 +5,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { AuthRequest } from '../types/types.js';
-import { SetMetadata } from '@nestjs/common';
-
-export const ROLES_KEY = 'roles';
-export const Roles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles);
+import { AuthRequest } from '../../auth/types/types.js';
+import { ROLES_KEY } from './roles.decorator.js';
 
 @Injectable()
 export class RolesGuard implements CanActivate {

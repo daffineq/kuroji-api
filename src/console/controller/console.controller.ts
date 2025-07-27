@@ -2,7 +2,7 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiQuery, ApiSecurity, ApiOperation } from '@nestjs/swagger';
 import { ConsoleInterceptor } from '../ConsoleInterceptor.js';
 import Config from '../../configs/config.js';
-import { ApiKeyGuard } from '../../shared/api-key.guard.js';
+import { ApiKeyGuard } from '../../decorators/api-key/api-key.guard.js';
 
 @ApiSecurity('x-api-key')
 @ApiTags('Console')

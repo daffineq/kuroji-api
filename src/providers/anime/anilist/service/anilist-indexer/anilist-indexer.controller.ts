@@ -1,7 +1,7 @@
 import { Controller, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiQuery, ApiSecurity, ApiOperation } from '@nestjs/swagger';
 import { AnilistIndexerService } from './anilist-indexer.service.js';
-import { ApiKeyGuard } from '../../../../../shared/api-key.guard.js';
+import { ApiKeyGuard } from '../../../../../decorators/api-key/api-key.guard.js';
 
 @ApiSecurity('x-api-key')
 @ApiTags('Indexer')

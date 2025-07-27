@@ -1,7 +1,7 @@
 import { Controller, Put, UseGuards } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { UpdateService } from './update.service.js';
-import { ApiKeyGuard } from '../../shared/api-key.guard.js';
+import { ApiKeyGuard } from '../../decorators/api-key/api-key.guard.js';
 
 @ApiExcludeController()
 @Controller('Anime')
