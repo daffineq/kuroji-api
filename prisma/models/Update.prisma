@@ -1,4 +1,7 @@
 model UpdateQueue {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id        String   @id @default(uuid())
   animeId   Int      @unique // Ensures no duplicate anime in queue
   malId     Int?
@@ -14,7 +17,9 @@ model UpdateQueue {
   @@index([animeId]) // For quick lookups
 }
 
-// Optional: Add this if you want to track update history
+/// @DtoReadOnly
+/// @DtoCreateOptional
+/// @DtoUpdateOptional
 model UpdateHistory {
   id          String   @id @default(uuid())
   animeId     Int

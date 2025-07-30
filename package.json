@@ -23,7 +23,7 @@
     "prisma:reset": "bun run prisma migrate reset --force --schema=./prisma/schema.prisma",
     "prisma:migrate": "bun run prisma migrate deploy --schema=./prisma/schema.prisma",
     "prisma:migrate:dev": "bun run prisma migrate dev --schema=./prisma/schema.prisma",
-    "prisma:generate": "bun run prisma generate --schema=./prisma/schema.prisma"
+    "prisma:generate": "bun run prisma generate --schema=./prisma/schema.prisma && node scripts/fix-dto-imports.mjs && node scripts/fix-circular-api-properties.mjs"
   },
   "dependencies": {
     "@consumet/extensions": "https://github.com/consumet/consumet.ts",
@@ -55,6 +55,7 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@brakebein/prisma-generator-nestjs-dto": "^1.28.1",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.7",

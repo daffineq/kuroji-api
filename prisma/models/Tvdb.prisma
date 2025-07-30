@@ -1,37 +1,71 @@
 model Tvdb {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id                   Int                @id
+  /// @DtoProperty
   type                 String?
+  /// @DtoProperty
   name                 String?
+  /// @DtoProperty
   slug                 String?
+  /// @DtoProperty
   image                String?
+  /// @DtoProperty
   score                Int?
+  /// @DtoProperty
   runtime              Int?
+  /// @DtoProperty
   lastUpdated          String?
+  /// @DtoProperty
   year                 String?
+  /// @DtoProperty
   nameTranslations     String[]
+  /// @DtoProperty
   overviewTranslations String[]
+  /// @DtoRelationCanConnectOnCreate
   status               TvdbStatus? @relation("TvdbStatus")
 
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   aliases              TvdbAlias[] @relation("TvdbAliases")
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   artworks             TvdbArtwork[] @relation("TvdbArtworks")
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   remoteIds            TvdbRemoteId[] @relation("TvdbRemote")
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   trailers             TvdbTrailer[] @relation("TvdbTrailers")
 }
 
 model TvdbStatus {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id    Int @id
+  /// @DtoProperty
   tvdbId Int @unique
 
+  /// @DtoProperty
   name  String?
+  /// @DtoProperty
   recordType String?
+  /// @DtoProperty
   keepUpdated Boolean?
 
   tvdb Tvdb @relation("TvdbStatus", fields: [tvdbId], references: [id])
 }
 
 model TvdbAlias {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id            Int         @id @default(autoincrement())
+  /// @DtoProperty
   name          String?
+  /// @DtoProperty
   language      String?
   
   tvdb Tvdb[] @relation("TvdbAliases")
@@ -39,14 +73,25 @@ model TvdbAlias {
 }
 
 model TvdbArtwork {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id            Int         @id
+  /// @DtoProperty
   height        Int?
+  /// @DtoProperty
   image         String?
+  /// @DtoProperty
   includesText  Boolean?
+  /// @DtoProperty
   language      String?
+  /// @DtoProperty
   score         Int?
+  /// @DtoProperty
   thumbnail     String?
+  /// @DtoProperty
   type          Int?
+  /// @DtoProperty
   width         Int?
 
   tvdb Tvdb[] @relation("TvdbArtworks")
@@ -54,8 +99,13 @@ model TvdbArtwork {
 }
 
 model TvdbRemoteId {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id            String      @id
+  /// @DtoProperty
   type          Int?
+  /// @DtoProperty
   sourceName    String?
  
   tvdb Tvdb[] @relation("TvdbRemote")
@@ -63,37 +113,67 @@ model TvdbRemoteId {
 }
 
 model TvdbTrailer {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id  Int @id
+  /// @DtoProperty
   url String?
+  /// @DtoProperty
   name String?
+  /// @DtoProperty
   runtime Int?
+  /// @DtoProperty
   language String?
 
   tvdb Tvdb[] @relation("TvdbTrailers")
 }
 
 model TvdbLogin {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id         Int      @id @default(autoincrement())
+  /// @DtoProperty
   token      String   
+  /// @DtoProperty
   createDate DateTime @default(now())
+  /// @DtoProperty
   expired    Boolean  @default(false)
 }
 
 model TvdbLanguageTranslation {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id         Int      @id @default(autoincrement())
+  /// @DtoProperty
   tvdbId     Int
+  /// @DtoProperty
   name       String?
+  /// @DtoProperty
   overview   String?
+  /// @DtoProperty
   isAlias    Boolean?
+  /// @DtoProperty
   isPrimary  Boolean?
+  /// @DtoProperty
   language   String?
+  /// @DtoProperty
   tagline    String?
+  /// @DtoProperty
   aliases    String[]
 }
 
 model TvdbLanguage {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id         String      @id
+  /// @DtoProperty
   name       String?
+  /// @DtoProperty
   nativeName String?
+  /// @DtoProperty
   shortCode  String?
 }

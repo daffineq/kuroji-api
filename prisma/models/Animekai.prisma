@@ -1,4 +1,7 @@
 model AnimeKai {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id            String   @id
   anilistId     Int?     @unique
   title         String?
@@ -15,12 +18,18 @@ model AnimeKai {
   season        String?
   totalEpisodes Int?
 
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   episodes AnimekaiEpisode[] @relation("AnimekaiEpisode")
 
+  /// @DtoRelationCanConnectOnCreate
   anilist Anilist? @relation(fields: [anilistId], references: [id])
 }
 
 model AnimekaiEpisode {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id       String   @id
   number   Int?
   title    String?
@@ -29,5 +38,6 @@ model AnimekaiEpisode {
   isDubbed Boolean?
   url      String?
 
+  /// @DtoRelationCanConnectOnCreate
   animekai AnimeKai[] @relation("AnimekaiEpisode")
 }
