@@ -1,4 +1,7 @@
 model AniZip {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id Int @id
 
   // Basic info
@@ -6,23 +9,36 @@ model AniZip {
   specialCount Int @map("special_count")
 
   // Relationships
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   titles   AniZipTitle[]
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   images   AniZipImage[]
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   episodes AniZipEpisode[]
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   mappings AniZipMapping?
 
+  /// @DtoRelationCanConnectOnCreate
   anilist Anilist? @relation(fields: [id], references: [id])
 
   @@map("anizip")
 }
 
 model AniZipTitle {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id   String  @id @default(cuid())
   key  String // "x-jat", "ja", "en", etc.
   name String?
 
   // Foreign key to AniZip
   aniZipId Int    @map("anizip_id")
+  /// @DtoRelationCanConnectOnCreate
   aniZip   AniZip @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
 
   @@unique([aniZipId, key]) // Prevent duplicate keys for same anime
@@ -30,18 +46,25 @@ model AniZipTitle {
 }
 
 model AniZipImage {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id        String  @id @default(cuid())
   coverType String? @map("cover_type")
   url       String?
 
   // Foreign key to AniZip
   aniZipId Int    @map("anizip_id")
+  /// @DtoRelationCanConnectOnCreate
   aniZip   AniZip @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
 
   @@map("anizip_images")
 }
 
 model AniZipEpisode {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id String @id @default(cuid())
 
   // Episode identification
@@ -70,8 +93,11 @@ model AniZipEpisode {
   anidbEid Int?    @map("anidb_eid")
 
   // Relationships
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   titles   AniZipEpisodeTitle[]
   aniZipId Int                  @map("anizip_id")
+  /// @DtoRelationCanConnectOnCreate
   aniZip   AniZip               @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
 
   @@unique([aniZipId, episodeKey])
@@ -79,11 +105,15 @@ model AniZipEpisode {
 }
 
 model AniZipEpisodeTitle {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id   String  @id @default(cuid())
   key  String // "ja", "en", "x-jat", etc.
   name String?
 
   episodeId String        @map("episode_id")
+  /// @DtoRelationCanConnectOnCreate
   episode   AniZipEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
 
   @@unique([episodeId, key])
@@ -91,6 +121,9 @@ model AniZipEpisodeTitle {
 }
 
 model AniZipMapping {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id String @id @default(cuid())
 
   animePlanetId String? @map("animeplanet_id")
@@ -112,6 +145,7 @@ model AniZipMapping {
 
   // One-to-one relationship
   aniZipId Int    @unique @map("anizip_id")
+  /// @DtoRelationCanConnectOnCreate
   aniZip   AniZip @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
 
   @@map("anizip_mappings")

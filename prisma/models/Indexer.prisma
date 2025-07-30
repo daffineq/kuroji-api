@@ -1,4 +1,7 @@
 model AnilistIndexerState {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id               String   @id @default("anime")
   lastFetchedPage  Int
   updatedAt        DateTime @updatedAt

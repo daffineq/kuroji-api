@@ -1,4 +1,7 @@
 model Zoro {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id            String        @id
   title         String?
   malID         Int?
@@ -15,12 +18,17 @@ model Zoro {
   status        String?
   season        String?
   totalEpisodes Int?
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   episodes      EpisodeZoro[] @relation("EpisodeZoro")
-
+  /// @DtoRelationCanConnectOnCreate
   anilist Anilist? @relation(fields: [alID], references: [id])
 }
 
 model EpisodeZoro {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id       String   @id
   number   Int?
   title    String?
@@ -28,6 +36,6 @@ model EpisodeZoro {
   isSubbed Boolean?
   isDubbed Boolean?
   url      String?
-
+  /// @DtoRelationCanConnectOnCreate
   zoro Zoro[] @relation("EpisodeZoro")
 }
