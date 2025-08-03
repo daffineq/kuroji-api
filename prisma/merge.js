@@ -15,6 +15,15 @@ let schemaContent = `generator client {
   provider = "prisma-client-js"
 }
 
+generator nestjsDto {
+  provider                        = "prisma-generator-nestjs-dto"
+  output                          = "../src/generated/nestjs-dto"
+  outputToNestJsResourceStructure = "true"
+  exportRelationModifierClasses   = "true"
+  reExport                        = "false"
+  fileNamingStyle                 = "camel"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")

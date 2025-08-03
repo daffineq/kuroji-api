@@ -1,4 +1,7 @@
 model Anilibria {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id                            Int      @id
   anilist_id                    Int?     @unique
   year                          Int?
@@ -22,60 +25,93 @@ model Anilibria {
   added_in_abandoned_collection Int?
 
   // Normalized relations
+  /// @DtoRelationCanConnectOnCreate
   type        AnilibriaType?       @relation("AnilibriaType")
+  /// @DtoRelationCanConnectOnCreate
   name        AnilibriaName?       @relation("AnilibriaName")
+  /// @DtoRelationCanConnectOnCreate
   season      AnilibriaSeason?     @relation("AnilibriaSeason")
+  /// @DtoRelationCanConnectOnCreate
   poster      AnilibriaPoster?     @relation("AnilibriaPoster")
+  /// @DtoRelationCanConnectOnCreate
   age_rating  AnilibriaAgeRating?  @relation("AnilibriaAgeRating")
+  /// @DtoRelationCanConnectOnCreate
   sponsor     AnilibriaSponsor?    @relation("AnilibriaSponsor")
+  /// @DtoRelationCanConnectOnCreate
   publish_day AnilibriaPublishDay? @relation("AnilibriaPublishDay")
 
   // Collections
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   genres   AnilibriaGenreEdge[] @relation("AnilibriaGenres")
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   episodes AnilibriaEpisode[]   @relation("AnilibriaEpisodes")
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   torrents AnilibriaTorrent[]   @relation("AnilibriaTorrents")
 
+  /// @DtoRelationCanConnectOnCreate
   anilist Anilist? @relation(fields: [anilist_id], references: [id])
 }
 
 model AnilibriaPublishDay {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          Int     @id @default(autoincrement())
   anilibriaId Int     @unique
   value       Int?
   description String?
 
+  /// @DtoRelationCanConnectOnCreate
   anilibria Anilibria @relation("AnilibriaPublishDay", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaType {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          Int     @id @default(autoincrement())
   anilibriaId Int     @unique
   value       String?
   description String?
 
+  /// @DtoRelationCanConnectOnCreate
   anilibria Anilibria @relation("AnilibriaType", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaName {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          Int     @id @default(autoincrement())
   anilibriaId Int     @unique
   main        String?
   english     String?
   alternative String?
 
+  /// @DtoRelationCanConnectOnCreate
   anilibria Anilibria @relation("AnilibriaName", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaSeason {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          Int     @id @default(autoincrement())
   anilibriaId Int     @unique
   value       String?
   description String?
 
+  /// @DtoRelationCanConnectOnCreate
   anilibria Anilibria @relation("AnilibriaSeason", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaPoster {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id                  Int     @id @default(autoincrement())
   anilibriaId         Int     @unique
   preview             String?
@@ -83,10 +119,14 @@ model AnilibriaPoster {
   optimized_preview   String?
   optimized_thumbnail String?
 
+  /// @DtoRelationCanConnectOnCreate
   anilibria Anilibria @relation("AnilibriaPoster", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaAgeRating {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          Int      @id @default(autoincrement())
   anilibriaId Int      @unique
   value       String?
@@ -94,10 +134,14 @@ model AnilibriaAgeRating {
   is_adult    Boolean?
   description String?
 
+  /// @DtoRelationCanConnectOnCreate
   anilibria Anilibria @relation("AnilibriaAgeRating", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaSponsor {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          String  @id
   anilibriaId Int     @unique
   title       String?
@@ -105,20 +149,29 @@ model AnilibriaSponsor {
   url_title   String?
   url         String?
 
+  /// @DtoRelationCanConnectOnCreate
   anilibria Anilibria @relation("AnilibriaSponsor", fields: [anilibriaId], references: [id])
 }
 
 model AnilibriaGenreEdge {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id             Int  @id @default(autoincrement())
   anilibriaId    Int
   genreId        Int
   total_releases Int?
 
+  /// @DtoRelationCanConnectOnCreate
   anilibria Anilibria      @relation("AnilibriaGenres", fields: [anilibriaId], references: [id])
+  /// @DtoRelationCanConnectOnCreate
   genre     AnilibriaGenre @relation(fields: [genreId], references: [id])
 }
 
 model AnilibriaGenre {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id                  Int     @id
   name                String?
   preview             String?
@@ -126,10 +179,15 @@ model AnilibriaGenre {
   optimized_preview   String?
   optimized_thumbnail String?
 
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   genreEdges AnilibriaGenreEdge[]
 }
 
 model AnilibriaEpisode {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id           String  @id
   anilibriaId  Int
   name         String?
@@ -145,31 +203,46 @@ model AnilibriaEpisode {
   hls_720      String?
   hls_1080     String?
 
+  /// @DtoRelationCanConnectOnCreate
   anilibria Anilibria                @relation("AnilibriaEpisodes", fields: [anilibriaId], references: [id])
+  /// @DtoRelationCanConnectOnCreate
   ending    AnilibriaEpisodeEnding?  @relation("AnilibriaEpisodeEnding")
+  /// @DtoRelationCanConnectOnCreate
   opening   AnilibriaEpisodeOpening? @relation("AnilibriaEpisodeOpening")
+  /// @DtoRelationCanConnectOnCreate
   preview   AnilibriaEpisodePreview? @relation("AnilibriaEpisodePreview")
 }
 
 model AnilibriaEpisodeEnding {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id        Int    @id @default(autoincrement())
   episodeId String @unique
   start     Int?
   stop      Int?
 
+  /// @DtoRelationCanConnectOnCreate
   episode AnilibriaEpisode @relation("AnilibriaEpisodeEnding", fields: [episodeId], references: [id])
 }
 
 model AnilibriaEpisodeOpening {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id        Int    @id @default(autoincrement())
   episodeId String @unique
   start     Int?
   stop      Int?
 
+  /// @DtoRelationCanConnectOnCreate
   episode AnilibriaEpisode @relation("AnilibriaEpisodeOpening", fields: [episodeId], references: [id])
 }
 
 model AnilibriaEpisodePreview {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id                  Int     @id @default(autoincrement())
   episodeId           String  @unique
   preview             String?
@@ -177,10 +250,14 @@ model AnilibriaEpisodePreview {
   optimized_preview   String?
   optimized_thumbnail String?
 
+  /// @DtoRelationCanConnectOnCreate
   episode AnilibriaEpisode @relation("AnilibriaEpisodePreview", fields: [episodeId], references: [id])
 }
 
 model AnilibriaTorrent {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id              Int      @id
   anilibriaId     Int
   hash            String?
@@ -198,32 +275,48 @@ model AnilibriaTorrent {
   created_at      String?
   completed_times Int?
 
+  /// @DtoRelationCanConnectOnCreate
   anilibria Anilibria                @relation("AnilibriaTorrents", fields: [anilibriaId], references: [id])
+  /// @DtoRelationCanConnectOnCreate
   type      AnilibriaTorrentType?    @relation("AnilibriaTorrentType")
+  /// @DtoRelationCanConnectOnCreate
   color     AnilibriaTorrentColor?   @relation("AnilibriaTorrentColor")
+  /// @DtoRelationCanConnectOnCreate
   codec     AnilibriaTorrentCodec?   @relation("AnilibriaTorrentCodec")
+  /// @DtoRelationCanConnectOnCreate
   quality   AnilibriaTorrentQuality? @relation("AnilibriaTorrentQuality")
 }
 
 model AnilibriaTorrentType {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          Int     @id @default(autoincrement())
   torrentId   Int     @unique
   value       String?
   description String?
 
+  /// @DtoRelationCanConnectOnCreate
   torrent AnilibriaTorrent @relation("AnilibriaTorrentType", fields: [torrentId], references: [id])
 }
 
 model AnilibriaTorrentColor {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          Int     @id @default(autoincrement())
   torrentId   Int     @unique
   value       String?
   description String?
 
+  /// @DtoRelationCanConnectOnCreate
   torrent AnilibriaTorrent @relation("AnilibriaTorrentColor", fields: [torrentId], references: [id])
 }
 
 model AnilibriaTorrentCodec {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id               Int      @id @default(autoincrement())
   torrentId        Int      @unique
   value            String?
@@ -232,14 +325,19 @@ model AnilibriaTorrentCodec {
   label_color      String?
   label_is_visible Boolean?
 
+  /// @DtoRelationCanConnectOnCreate
   torrent AnilibriaTorrent @relation("AnilibriaTorrentCodec", fields: [torrentId], references: [id])
 }
 
 model AnilibriaTorrentQuality {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          Int     @id @default(autoincrement())
   torrentId   Int     @unique
   value       String?
   description String?
 
+  /// @DtoRelationCanConnectOnCreate
   torrent AnilibriaTorrent @relation("AnilibriaTorrentQuality", fields: [torrentId], references: [id])
 }

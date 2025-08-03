@@ -1,4 +1,7 @@
 model Tmdb {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id                 Int      @id
   adult              Boolean
   backdrop_path      String?
@@ -23,15 +26,26 @@ model Tmdb {
   vote_average       Float?
   vote_count         Int?
 
+  /// @DtoRelationCanConnectOnCreate
   next_episode_to_air TmdbNextEpisodeToAir? @relation("NextEpisode")
+  /// @DtoRelationCanConnectOnCreate
   last_episode_to_air TmdbLastEpisodeToAir? @relation("LastEpisode")
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   seasons             TmdbReleaseSeason[]   @relation("TmdbReleaseSeason")
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   episodeSeasons      TmdbSeason[]
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   episodes            TmdbSeasonEpisode[]
 }
 
-// Add new model for episode info
+/// Add new model for episode info
 model TmdbNextEpisodeToAir {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id              Int     @id
   name            String?
   overview        String?
@@ -46,10 +60,14 @@ model TmdbNextEpisodeToAir {
   show_id         Int     @unique
   still_path      String?
 
+  /// @DtoRelationCanConnectOnCreate
   tmdb_next Tmdb? @relation("NextEpisode", fields: [show_id], references: [id])
 }
 
 model TmdbLastEpisodeToAir {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id              Int     @id
   name            String?
   overview        String?
@@ -64,10 +82,14 @@ model TmdbLastEpisodeToAir {
   show_id         Int     @unique
   still_path      String?
 
+  /// @DtoRelationCanConnectOnCreate
   tmdb_last Tmdb? @relation("LastEpisode", fields: [show_id], references: [id])
 }
 
 model TmdbReleaseSeason {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id            Int     @id
   air_date      String?
   episode_count Int?
@@ -77,10 +99,15 @@ model TmdbReleaseSeason {
   season_number Int
   vote_average  Float?
 
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   tmdb Tmdb[] @relation("TmdbReleaseSeason")
 }
 
 model TmdbSeason {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id            Int     @id
   air_date      String?
   show_id       Int
@@ -90,11 +117,17 @@ model TmdbSeason {
   season_number Int
   vote_average  Float?
 
+  /// @DtoRelationCanConnectOnCreate
   show     Tmdb                @relation(fields: [show_id], references: [id])
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   episodes TmdbSeasonEpisode[] @relation("TmdbSeasonEpisode")
 }
 
 model TmdbSeasonEpisode {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id              Int     @id
   air_date        String?
   episode_number  Int
@@ -110,20 +143,31 @@ model TmdbSeasonEpisode {
   vote_average    Float?
   vote_count      Int?
 
+  /// @DtoRelationCanConnectOnCreate
   show       Tmdb                     @relation(map: "TmdbSeasonEpisode_show_fkey", fields: [show_id], references: [id])
+  /// @DtoRelationCanConnectOnCreate
   tmdbSeason TmdbSeason?              @relation("TmdbSeasonEpisode", fields: [season_id], references: [id])
+  /// @DtoRelationCanConnectOnCreate
   images     TmdbSeasonEpisodeImages?
 }
 
 model TmdbSeasonEpisodeImages {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id        Int @id
   episodeId Int @unique
-
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   stills  TmdbSeasonStillImage[] @relation("TmdbSeasonEpisodeStills")
+  /// @DtoRelationCanConnectOnCreate
   episode TmdbSeasonEpisode      @relation(fields: [episodeId], references: [id])
 }
 
 model TmdbSeasonStillImage {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id           Int     @id @default(autoincrement())
   aspect_ratio Float?
   height       Int?
@@ -133,6 +177,7 @@ model TmdbSeasonStillImage {
   vote_average Float?
   vote_count   Int?
 
+  /// @DtoRelationCanConnectOnCreate
   tmdbEpisodeImages TmdbSeasonEpisodeImages @relation("TmdbSeasonEpisodeStills", fields: [episodeImagesId], references: [id])
   episodeImagesId   Int
 }

@@ -1,4 +1,7 @@
 model Shikimori {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id                String                @id
   malId             Int?                  @unique
   name              String?
@@ -6,6 +9,7 @@ model Shikimori {
   licenseNameRu     String?
   english           String?
   japanese          String?
+  /// @DtoRelationCanConnectOnCreate
   poster            ShikimoriPoster?      @relation("ShikimoriPoster")
   synonyms          String[]
   kind              String?
@@ -15,7 +19,9 @@ model Shikimori {
   episodes          Int?
   episodesAired     Int?
   duration          Int?
+  /// @DtoRelationCanConnectOnCreate
   airedOn           AiredOn?              @relation("ShikimoriAiredOn")
+  /// @DtoRelationCanConnectOnCreate
   releasedOn        ReleasedOn?           @relation("ShikimoriReleasedOn")
   franchise         String?
   url               String?
@@ -26,13 +32,23 @@ model Shikimori {
   description       String?
   descriptionHtml   String?
   descriptionSource String?
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   chronology        BasicIdShik[]         @relation("ShikimoriChronology")
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   videos            ShikimoriVideo[]      @relation("ShikimoriVideo")
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   screenshots       ShikimoriScreenshot[] @relation("ShikimoriScreenshot")
+  /// @DtoRelationCanConnectOnCreate
   anilist           Anilist?              @relation(fields: [malId], references: [idMal])
 }
 
 model AiredOn {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          Int    @id @default(autoincrement())
   shikimoriId String @unique
 
@@ -41,10 +57,14 @@ model AiredOn {
   day   Int?
   date  String?
 
+  /// @DtoRelationCanConnectOnCreate
   shikimori Shikimori @relation("ShikimoriAiredOn", fields: [shikimoriId], references: [id])
 }
 
 model ReleasedOn {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          Int    @id @default(autoincrement())
   shikimoriId String @unique
 
@@ -53,17 +73,26 @@ model ReleasedOn {
   day   Int?
   date  String?
 
+  /// @DtoRelationCanConnectOnCreate
   shikimori Shikimori @relation("ShikimoriReleasedOn", fields: [shikimoriId], references: [id])
 }
 
 model BasicIdShik {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id    String  @id
   malId String?
 
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   shikimori Shikimori[] @relation("ShikimoriChronology")
 }
 
 model ShikimoriVideo {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id        String  @id
   url       String?
   name      String?
@@ -71,19 +100,29 @@ model ShikimoriVideo {
   playerUrl String?
   imageUrl  String?
 
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   shikimori Shikimori[] @relation("ShikimoriVideo")
 }
 
 model ShikimoriScreenshot {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          String  @id
   originalUrl String?
   x166Url     String?
   x332Url     String?
 
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   shikimori Shikimori[] @relation("ShikimoriScreenshot")
 }
 
 model Title {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id      Int     @id @default(autoincrement())
   romaji  String?
   english String?
@@ -91,6 +130,9 @@ model Title {
 }
 
 model DateDetails {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id    Int  @id @default(autoincrement())
   year  Int?
   month Int?
@@ -98,16 +140,23 @@ model DateDetails {
 }
 
 model ShikimoriPoster {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id          String @id
   shikimoriId String @unique
 
   originalUrl String?
   mainUrl     String?
 
+  /// @DtoRelationCanConnectOnCreate
   shikimori Shikimori @relation("ShikimoriPoster", fields: [shikimoriId], references: [id])
 }
 
 model ReleaseIndex {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id        String   @id
   addedAt   DateTime @default(now())
   updatedAt DateTime @updatedAt

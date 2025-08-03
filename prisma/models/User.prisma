@@ -1,4 +1,7 @@
 model User {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
@@ -7,11 +10,18 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   apiKeys        ApiKey[]
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   apiKeyRequests ApiKeyRequest[]
 }
 
 model ApiKey {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id        String     @id @default(uuid())
   userId    String
   key       String     @unique
@@ -21,11 +31,17 @@ model ApiKey {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   usage ApiKeyUsage[]
+  /// @DtoRelationCanConnectOnCreate
   user  User          @relation(fields: [userId], references: [id])
 }
 
 model ApiKeyUsage {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id        String   @id @default(uuid())
   apiKeyId  String
   endpoint  String
@@ -35,10 +51,14 @@ model ApiKeyUsage {
   ip        String?
   usedAt    DateTime @default(now())
 
+  /// @DtoRelationCanConnectOnCreate
   apiKey ApiKey @relation(fields: [apiKeyId], references: [id])
 }
 
 model ApiKeyRequest {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id        String              @id @default(uuid())
   userId    String
   type      ApiKeyType          @default(LIMITED)
@@ -48,6 +68,7 @@ model ApiKeyRequest {
   createdAt DateTime            @default(now())
   updatedAt DateTime            @updatedAt
 
+  /// @DtoRelationCanConnectOnCreate
   user User @relation(fields: [userId], references: [id])
 }
 

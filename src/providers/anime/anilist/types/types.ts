@@ -4,6 +4,7 @@ import {
   Prisma,
   StartDate,
 } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
 import { FullMediaResponse } from './response.js';
 import { PageInfo } from '../graphql/types/PageInfo.js';
 import { Type } from 'class-transformer';
@@ -105,26 +106,31 @@ export enum RandomType {
 }
 
 export class RandomDto {
+  @ApiProperty()
   @IsOptional()
   @IsEnum(RandomType)
   type?: RandomType = RandomType.ANY;
 
+  @ApiProperty()
   @IsOptional()
   @IsString()
   genre?: string;
 
+  @ApiProperty()
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(0)
   minPopularity?: number;
 
+  @ApiProperty()
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(0)
   minScore?: number;
 
+  @ApiProperty()
   @IsOptional()
   @Type(() => Number)
   @IsInt()

@@ -1,4 +1,7 @@
 model Animepahe {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id            String                  @id
   alId          Int?                    @unique
   title         String?
@@ -6,6 +9,8 @@ model Animepahe {
   cover         String?
   updatedAt     Int?
   hasSub        Boolean?
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   externalLinks AnimepaheExternalLink[] @relation("AnimepaheExLink")
   status        String?
   type          String?
@@ -13,12 +18,18 @@ model Animepahe {
   totalEpisodes Int?
   episodePages  Int?
 
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
   episodes AnimepaheEpisode[] @relation("AnimepaheEpisode")
 
+  /// @DtoRelationCanConnectOnCreate
   anilist Anilist? @relation(fields: [alId], references: [id])
 }
 
 model AnimepaheEpisode {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id       String  @id
   number   Int?
   title    String?
@@ -26,13 +37,18 @@ model AnimepaheEpisode {
   duration String?
   url      String?
 
+  /// @DtoRelationCanConnectOnCreate
   animepahe Animepahe[] @relation("AnimepaheEpisode")
 }
 
 model AnimepaheExternalLink {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
   id         String @id
   url        String
   sourceName String
 
+  /// @DtoRelationCanConnectOnCreate
   animepahe Animepahe[] @relation("AnimepaheExLink")
 }
