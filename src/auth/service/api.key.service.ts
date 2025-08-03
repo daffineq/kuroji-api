@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service.js';
 import {
+  ApiKeyRequestPayload,
   apiKeyRequestSelect,
   CreateApiKeyRequestPayload,
   fullApiKeySelect,
@@ -8,7 +9,12 @@ import {
 import { getRequestData } from '../utils/auth-helper.js';
 import { generateApiKey } from '../utils/utils.js';
 import { ApiKeyRequestStatus } from '@prisma/client';
-import { createSuccessResponse } from '../../shared/responses.js';
+import {
+  ApiResponse,
+  createResponse,
+  createSuccessResponse,
+} from '../../shared/responses.js';
+import { getPageInfo } from '../../utils/utils.js';
 
 @Injectable()
 export class ApiKeyService {
@@ -28,10 +34,23 @@ export class ApiKeyService {
     });
   }
 
-  async listRequests() {
-    return this.prisma.apiKeyRequest.findMany({
-      orderBy: { createdAt: 'desc' },
-      select: apiKeyRequestSelect,
+  async listRequests(
+    page: number,
+    perPage: number,
+  ): Promise<ApiResponse<Array<ApiKeyRequestPayload>>> {
+    const [requests, total] = await Promise.all([
+      this.prisma.apiKeyRequest.findMany({
+        orderBy: { createdAt: 'desc' },
+        select: apiKeyRequestSelect,
+        skip: (page - 1) * perPage,
+        take: perPage,
+      }),
+      this.prisma.apiKeyRequest.count(),
+    ]);
+
+    return createResponse({
+      data: requests,
+      pageInfo: getPageInfo(total, perPage, page),
     });
   }
 

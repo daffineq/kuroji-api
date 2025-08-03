@@ -7,6 +7,7 @@ import { Reflector } from '@nestjs/core';
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service.js';
 import { IGNORE_THROTTLER_KEY } from './ignore-throttler.decorator.js';
+import Config from '../../configs/config.js';
 
 @Injectable()
 export class CustomThrottlerGuard extends ThrottlerGuard {
@@ -29,6 +30,10 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     const apiKey = request.headers['x-api-key'];
 
     if (apiKey && typeof apiKey === 'string') {
+      if (apiKey === Config.ADMIN_KEY) {
+        return true;
+      }
+
       const existing = await this.prisma.apiKey.findUnique({
         where: { key: apiKey },
       });

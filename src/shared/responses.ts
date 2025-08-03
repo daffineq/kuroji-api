@@ -17,3 +17,10 @@ export function createSuccessResponse(message: string) {
     message,
   };
 }
+
+export function createResponse<T>(data: ApiResponse<T>): ApiResponse<T> {
+  return {
+    pageInfo: data.pageInfo,
+    data: data.data,
+  };
+}

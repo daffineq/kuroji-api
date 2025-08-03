@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 
 export interface JwtPayload {
   sub: string;
@@ -8,6 +8,16 @@ export interface JwtPayload {
 
 export interface AuthRequest {
   user: { userId: string; email: string; role: string };
+}
+
+export interface Login {
+  email: string;
+  password: string;
+}
+
+export interface GiveRole {
+  userId: string;
+  role: UserRole;
 }
 
 export const apiKeyUsageSelect = {
@@ -86,6 +96,10 @@ export const createUserSelect = {
 } satisfies Prisma.UserSelect;
 
 export type UserPayload = Prisma.UserGetPayload<{ select: typeof userSelect }>;
+
+export type ApiKeyRequestPayload = Prisma.ApiKeyRequestGetPayload<{
+  select: typeof apiKeyRequestSelect;
+}>;
 
 export type CreateUserPayload = Prisma.UserGetPayload<{
   select: typeof createUserSelect;

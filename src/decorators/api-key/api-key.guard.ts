@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../prisma.service.js';
 import { API_KEY_TYPE } from './api-key.decorator.js';
+import Config from '../../configs/config.js';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -21,6 +22,10 @@ export class ApiKeyGuard implements CanActivate {
 
     if (!apiKey || typeof apiKey !== 'string') {
       throw new UnauthorizedException('Missing or invalid API key');
+    }
+
+    if (apiKey === Config.ADMIN_KEY) {
+      return true;
     }
 
     const key = await this.prisma.apiKey.findUnique({

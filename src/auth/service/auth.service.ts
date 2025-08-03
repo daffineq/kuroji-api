@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma.service.js';
 import { CreateUserPayload, JwtPayload, userSelect } from '../types/types.js';
 import { getUserData, comparePasswords } from '../utils/auth-helper.js';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -47,6 +48,14 @@ export class AuthService {
   async getProfile(userId: string) {
     return this.prisma.user.findUnique({
       where: { id: userId },
+      select: userSelect,
+    });
+  }
+
+  async giveRole(userId: string, role: UserRole) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { role },
       select: userSelect,
     });
   }
