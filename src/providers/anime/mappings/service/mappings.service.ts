@@ -7,7 +7,10 @@ import { AnizipDto, AnizipSort } from '../types/AnizipDto.js';
 import { getPageInfo } from '../../../../utils/utils.js';
 import { mappingsFetch } from './mappings.fetch.service.js';
 import { Prisma } from '@prisma/client';
-import { ApiResponse } from '../../../../shared/responses.js';
+import {
+  PaginatedResponse,
+  createPaginatedResponse,
+} from '../../../../shared/responses.js';
 
 @Injectable()
 export class MappingsService {
@@ -41,7 +44,7 @@ export class MappingsService {
   async getMappings<T extends Prisma.AniZipSelect>(
     dto: AnizipDto,
     select?: T,
-  ): Promise<ApiResponse<Prisma.AniZipGetPayload<{ select: T }>[]>> {
+  ): Promise<PaginatedResponse<Prisma.AniZipGetPayload<{ select: T }>>> {
     const where: any = {};
 
     if (dto.anilistId) where.mappings = { anilistId: dto.anilistId };
@@ -162,7 +165,10 @@ export class MappingsService {
 
     const pageInfo = getPageInfo(total, dto.perPage, dto.page);
 
-    return { pageInfo, data: data as Prisma.AniZipGetPayload<{ select: T }>[] };
+    return createPaginatedResponse({
+      pageInfo,
+      data: data as Prisma.AniZipGetPayload<{ select: T }>[],
+    });
   }
 
   async save<T extends Prisma.AniZipSelect>(

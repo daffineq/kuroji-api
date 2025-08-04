@@ -97,13 +97,33 @@ export class DateUtils {
   /**
    * Get date range spanning from N days ago to today in configured timezone
    */
-  static getWeekSpanRange(daysAgo: number): {
+  static getSpanRange(daysAgo: number): {
     start: number;
     end: number;
   } {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysAgo);
     const endDate = new Date();
+
+    const startRange = this.getDayRange(startDate);
+    const endRange = this.getDayRange(endDate);
+
+    return {
+      start: startRange.start,
+      end: endRange.end,
+    };
+  }
+
+  /**
+   * Get date range spanning from N days in future to today in configured timezone
+   */
+  static getRange(days: number): {
+    start: number;
+    end: number;
+  } {
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + days);
 
     const startRange = this.getDayRange(startDate);
     const endRange = this.getDayRange(endDate);
@@ -305,7 +325,7 @@ export class DateUtils {
     start: number;
     end: number;
   } {
-    return this.getWeekSpanRange(daysAgo);
+    return this.getSpanRange(daysAgo);
   }
 
   /**

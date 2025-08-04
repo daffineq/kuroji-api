@@ -4,7 +4,7 @@ import { FilterDto } from '../../filter/FilterDto.js';
 import { PrismaService } from '../../../../../prisma.service.js';
 import { ShikimoriService } from '../../../shikimori/service/shikimori.service.js';
 import { AnilistSearchService } from './anilist.search.service.js';
-import { ApiResponse } from '../../../../../shared/responses.js';
+import { PaginatedResponse } from '../../../../../shared/responses.js';
 
 @Injectable()
 export class AnilistAddService {
@@ -18,7 +18,7 @@ export class AnilistAddService {
     id: number,
     filter: FilterDto,
     select?: T,
-  ): Promise<ApiResponse<Prisma.AnilistGetPayload<{ select: T }>[]>> {
+  ): Promise<PaginatedResponse<Prisma.AnilistGetPayload<{ select: T }>>> {
     const existingAnilist = await this.prisma.anilist.findUnique({
       where: { id },
       select: {
@@ -41,7 +41,7 @@ export class AnilistAddService {
     id: number,
     filter: FilterDto,
     select?: T,
-  ): Promise<ApiResponse<Prisma.AnilistGetPayload<{ select: T }>[]>> {
+  ): Promise<PaginatedResponse<Prisma.AnilistGetPayload<{ select: T }>>> {
     const existingAnilist = (await this.prisma.anilist.findUnique({
       where: { id },
       select: {
@@ -61,7 +61,7 @@ export class AnilistAddService {
     return await this.search.getAnilists(filter, select);
   }
 
-  async getCharacters(id: number): Promise<AnilistCharacter[]> {
+  async getCharacters(id: number): Promise<Array<AnilistCharacter>> {
     const existingAnilist = await this.prisma.anilist.findUnique({
       where: { id },
       include: {

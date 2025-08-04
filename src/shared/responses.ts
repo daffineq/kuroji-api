@@ -1,6 +1,6 @@
-export interface ApiResponse<T> {
+export interface PaginatedResponse<T> {
   pageInfo: PageInfo;
-  data: T;
+  data: T[];
 }
 
 export interface PageInfo {
@@ -18,7 +18,9 @@ export function createSuccessResponse(message: string) {
   };
 }
 
-export function createResponse<T>(data: ApiResponse<T>): ApiResponse<T> {
+export function createPaginatedResponse<T>(
+  data: PaginatedResponse<T>,
+): PaginatedResponse<T> {
   return {
     pageInfo: data.pageInfo,
     data: data.data,

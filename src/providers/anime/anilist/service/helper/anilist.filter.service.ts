@@ -6,7 +6,10 @@ import { firstUpperList, getPageInfo } from '../../../../../utils/utils.js';
 import { Language, MediaSort } from '../../filter/Filter.js';
 import { NestedSort, SortDirection } from '../../types/types.js';
 import { TagFilterDto } from '../../filter/TagFilterDto.js';
-import { ApiResponse } from '../../../../../shared/responses.js';
+import {
+  PaginatedResponse,
+  createPaginatedResponse,
+} from '../../../../../shared/responses.js';
 
 @Injectable()
 export class AnilistFilterService {
@@ -15,7 +18,8 @@ export class AnilistFilterService {
   async getAnilistByFilter<T extends Prisma.AnilistSelect>(
     filter: FilterDto,
     select?: T,
-  ): Promise<ApiResponse<Prisma.AnilistGetPayload<{ select: T }>[]>> {
+    noPagination: boolean = false,
+  ): Promise<PaginatedResponse<Prisma.AnilistGetPayload<{ select: T }>>> {
     const conditions: any[] = [];
 
     // ========== Basic Filters ==========
@@ -419,8 +423,8 @@ export class AnilistFilterService {
       this.prisma.anilist.findMany({
         where: whereCondition,
         select,
-        take: perPage,
-        skip,
+        take: noPagination ? undefined : perPage,
+        skip: noPagination ? 0 : skip,
         orderBy,
       }),
       this.prisma.anilist.count({ where: whereCondition }),
@@ -429,15 +433,15 @@ export class AnilistFilterService {
     // ========== Pagination Info ==========
     const pageInfo = getPageInfo(total, perPage, currentPage);
 
-    return {
+    return createPaginatedResponse({
       pageInfo,
       data: data as Prisma.AnilistGetPayload<{ select: T }>[],
-    };
+    });
   }
 
   async getAnilistTagByFilter(
     filter: TagFilterDto,
-  ): Promise<ApiResponse<AnilistTag[]>> {
+  ): Promise<PaginatedResponse<AnilistTag>> {
     const conditions: any[] = [];
 
     // ======= Basic Filters =======
@@ -527,7 +531,10 @@ export class AnilistFilterService {
 
     const pageInfo = getPageInfo(total, perPage, currentPage);
 
-    return { pageInfo, data };
+    return createPaginatedResponse({
+      pageInfo,
+      data,
+    });
   }
 
   private getSortOrderAndConditions(sort?: string[]): {

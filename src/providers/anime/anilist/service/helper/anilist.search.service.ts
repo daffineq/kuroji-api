@@ -22,7 +22,7 @@ import { getImage } from '../../../tmdb/types/types.js';
 import { TmdbService } from '../../../tmdb/service/tmdb.service.js';
 import { Prisma } from '@prisma/client';
 import { TagFilterDto } from '../../filter/TagFilterDto.js';
-import { ApiResponse } from '../../../../../shared/responses.js';
+import { PaginatedResponse } from '../../../../../shared/responses.js';
 
 @Injectable()
 export class AnilistSearchService {
@@ -35,15 +35,16 @@ export class AnilistSearchService {
   async getAnilists<T extends Prisma.AnilistSelect>(
     filter: FilterDto,
     select?: T,
-  ): Promise<ApiResponse<Prisma.AnilistGetPayload<{ select: T }>[]>> {
-    return await this.filter.getAnilistByFilter(filter, select);
+    noPagination: boolean = false,
+  ): Promise<PaginatedResponse<Prisma.AnilistGetPayload<{ select: T }>>> {
+    return await this.filter.getAnilistByFilter(filter, select, noPagination);
   }
 
   async getAnilistsBatched<T extends Prisma.AnilistSelect>(
     filters: Record<string, any>,
     select?: T,
   ): Promise<
-    Record<string, ApiResponse<Prisma.AnilistGetPayload<{ select: T }>[]>>
+    Record<string, PaginatedResponse<Prisma.AnilistGetPayload<{ select: T }>>>
   > {
     const key = `filter:batched:${hashFilters(filters)}:${hashSelect(select)}`;
 
@@ -52,7 +53,7 @@ export class AnilistSearchService {
       if (cached) {
         return JSON.parse(cached) as Record<
           string,
-          ApiResponse<Prisma.AnilistGetPayload<{ select: T }>[]>
+          PaginatedResponse<Prisma.AnilistGetPayload<{ select: T }>>
         >;
       }
     }
@@ -101,14 +102,14 @@ export class AnilistSearchService {
     page: number,
     perPage: number,
     select?: T,
-  ): Promise<SearchResponse<Prisma.AnilistGetPayload<{ select: T }>[]>> {
+  ): Promise<SearchResponse<Prisma.AnilistGetPayload<{ select: T }>>> {
     const searchKey = `search:${q}:${page}:${perPage}:${franchises}:${hashSelect(select)}`;
 
     if (Config.REDIS) {
       const cached = await this.redis.get(searchKey);
       if (cached) {
         return JSON.parse(cached) as SearchResponse<
-          Prisma.AnilistGetPayload<{ select: T }>[]
+          Prisma.AnilistGetPayload<{ select: T }>
         >;
       }
     }
@@ -155,7 +156,7 @@ export class AnilistSearchService {
     );
 
     let franchise: FranchiseResponse<
-      Prisma.AnilistGetPayload<{ select: T }>[]
+      Prisma.AnilistGetPayload<{ select: T }>
     > | null = null;
     if (firstBasicFranchise?.shikimori?.franchise) {
       try {
@@ -173,7 +174,7 @@ export class AnilistSearchService {
       }
     }
 
-    const result: SearchResponse<Prisma.AnilistGetPayload<{ select: T }>[]> = {
+    const result: SearchResponse<Prisma.AnilistGetPayload<{ select: T }>> = {
       pageInfo: response.pageInfo,
       franchise,
       data: response.data,
@@ -195,7 +196,7 @@ export class AnilistSearchService {
     franchiseName: string,
     filter: FilterDto,
     select?: T,
-  ): Promise<FranchiseResponse<Prisma.AnilistGetPayload<{ select: T }>[]>> {
+  ): Promise<FranchiseResponse<Prisma.AnilistGetPayload<{ select: T }>>> {
     if (franchiseName.trim().length === 0) {
       throw new Error('Franchise name cannot be empty');
     }
@@ -206,7 +207,7 @@ export class AnilistSearchService {
       const cached = await this.redis.get(franchiseKey);
       if (cached) {
         return JSON.parse(cached) as FranchiseResponse<
-          Prisma.AnilistGetPayload<{ select: T }>[]
+          Prisma.AnilistGetPayload<{ select: T }>
         >;
       }
     }
@@ -268,13 +269,12 @@ export class AnilistSearchService {
       );
     }
 
-    const response: FranchiseResponse<
-      Prisma.AnilistGetPayload<{ select: T }>[]
-    > = {
-      pageInfo: franchises.pageInfo,
-      franchise,
-      data: franchises.data,
-    };
+    const response: FranchiseResponse<Prisma.AnilistGetPayload<{ select: T }>> =
+      {
+        pageInfo: franchises.pageInfo,
+        franchise,
+        data: franchises.data,
+      };
 
     if (Config.REDIS) {
       await this.redis.set(

@@ -13,8 +13,6 @@ import { TmdbImage } from '../../tmdb/types/types.js';
 import { aniZipSelect } from '../../mappings/types/types.js';
 import { zoroSelect } from '../../zoro/types/types.js';
 import { animepaheSelect } from '../../animepahe/types/types.js';
-import { kitsuSelect } from '../../kitsu/types/types.js';
-import { shikimoriSelect } from '../../shikimori/types/types.js';
 import { animeKaiSelect } from '../../animekai/types/types.js';
 import { anilibriaSelect } from '../../anilibria/types/types.js';
 
@@ -51,12 +49,12 @@ export interface AnilistResponse {
 export interface FranchiseResponse<T> {
   pageInfo: PageInfo;
   franchise: Franchise | null;
-  data: T;
+  data: T[];
 }
 
 export interface SearchResponse<T> {
   franchise: any;
-  data: T;
+  data: T[];
   pageInfo: PageInfo;
 }
 
@@ -66,24 +64,6 @@ export interface Franchise {
   title?: string | null;
   franchise?: string | null;
   description?: string | null;
-}
-
-export type Weekday =
-  | 'monday'
-  | 'tuesday'
-  | 'wednesday'
-  | 'thursday'
-  | 'friday'
-  | 'saturday'
-  | 'sunday';
-
-export type Schedule = {
-  [key in Weekday]: ScheduleData;
-};
-
-export interface ScheduleData {
-  current: boolean;
-  data: any[];
 }
 
 export type SortDirection = 'asc' | 'desc';
@@ -186,76 +166,6 @@ export const basicSelect: Prisma.AnilistSelect = {
       id: true,
       episode: true,
       airingAt: true,
-    },
-  },
-  shikimori: {
-    select: {
-      id: true,
-      malId: true,
-      russian: true,
-      licenseNameRu: true,
-      episodes: true,
-      episodesAired: true,
-      rating: true,
-      url: true,
-      franchise: true,
-      poster: {
-        select: {
-          id: true,
-          originalUrl: true,
-          mainUrl: true,
-        },
-      },
-      description: true,
-    },
-  },
-  anilibria: {
-    select: {
-      id: true,
-      anilist_id: true,
-      description: true,
-      alias: true,
-      name: {
-        select: {
-          main: true,
-          english: true,
-          alternative: true,
-        },
-      },
-      age_rating: {
-        select: {
-          value: true,
-          label: true,
-          is_adult: true,
-          description: true,
-        },
-      },
-      poster: {
-        select: {
-          preview: true,
-          thumbnail: true,
-          optimized_preview: true,
-          optimized_thumbnail: true,
-        },
-      },
-    },
-  },
-  kitsu: {
-    select: {
-      id: true,
-      anilistId: true,
-      titles: true,
-      slug: true,
-      synopsis: true,
-      episodeCount: true,
-      episodeLength: true,
-      canonicalTitle: true,
-      averageRating: true,
-      ageRating: true,
-      ageRatingGuide: true,
-      posterImage: true,
-      coverImage: true,
-      showType: true,
     },
   },
 };
@@ -424,27 +334,6 @@ export const fullSelect: Prisma.AnilistSelect = {
       amount: true,
     },
   },
-  shikimori: {
-    select: shikimoriSelect,
-  },
-  kitsu: {
-    select: kitsuSelect,
-  },
-  anizip: {
-    select: aniZipSelect,
-  },
-  anilibria: {
-    select: anilibriaSelect,
-  },
-  zoro: {
-    select: zoroSelect,
-  },
-  animepahe: {
-    select: animepaheSelect,
-  },
-  animekai: {
-    select: animeKaiSelect,
-  },
 };
 
 export const mappingSelect: Prisma.AnilistSelect = {
@@ -490,10 +379,19 @@ export const mappingSelect: Prisma.AnilistSelect = {
       episodeCount: true,
     },
   },
+  anizip: {
+    select: aniZipSelect,
+  },
+  anilibria: {
+    select: anilibriaSelect,
+  },
   zoro: {
     select: zoroSelect,
   },
   animepahe: {
     select: animepaheSelect,
+  },
+  animekai: {
+    select: animeKaiSelect,
   },
 };

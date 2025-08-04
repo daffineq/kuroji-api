@@ -34,7 +34,7 @@ import {
 import { animepaheFetch } from '../../animepahe/service/animepahe.fetch.service.js';
 import { animekaiFetch } from '../../animekai/service/animekai.fetch.service.js';
 import { zoroFetch } from '../../zoro/service/zoro.fetch.service.js';
-import { fullSelect } from '../../anilist/types/types.js';
+import { fullSelect, mappingSelect } from '../../anilist/types/types.js';
 import { ZoroPayload } from '../../zoro/types/types.js';
 import { AnimepahePayload } from '../../animepahe/types/types.js';
 import { AnimeKaiPayload } from '../../animekai/types/types.js';
@@ -67,7 +67,7 @@ export class StreamService {
       }
 
       const anilist = await this.anilist
-        .getAnilist(id, fullSelect)
+        .getAnilist(id, mappingSelect)
         .catch(() => null);
       if (!anilist) throw new NotFoundException('Anilist not found');
 

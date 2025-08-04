@@ -31,11 +31,7 @@ import { Prisma } from '@prisma/client';
 import { AnilistSelectDto, BatchFilterDto } from '../types/swagger-types.js';
 import { Anilist } from '../../../../generated/nestjs-dto/anilist/entities/anilist.entity.js';
 import { AnilistCharacter } from '../../../../generated/nestjs-dto/anilistCharacter/entities/anilistCharacter.entity.js';
-import {
-  SearchResponseDto,
-  ScheduleDto,
-  FranchiseResponseDto,
-} from '../types/types-dto.js';
+import { SearchResponseDto, FranchiseResponseDto } from '../types/types-dto.js';
 import { SourceDto } from '../../../../generated/consumet-dto/SourceDto.js';
 import {
   EpisodeDto,
@@ -47,7 +43,6 @@ import {
   ApiResponseAnilisArraytDto,
   ApiResponseAnilistTagDto,
 } from '../../../../shared/responses-dto.js';
-import { AnilistTag } from '../../../../generated/nestjs-dto/anilistTag/entities/anilistTag.entity.js';
 
 @ApiTags('Anilist')
 @Controller('anime')
@@ -318,9 +313,20 @@ export class AnilistController {
     summary: 'Get currently airing anime schedule',
     operationId: 'getAnimeSchedule',
   })
-  @ApiResponse({ status: 200, type: ScheduleDto })
   async getSchedule() {
-    return this.schedule.getSchedule();
+    return this.schedule.getSchedule(basicSelect);
+  }
+
+  @Post('schedule')
+  @ApiOperation({
+    summary: 'Get currently airing anime schedule with custom field selection',
+    operationId: 'getAnimeScheduleWithSelect',
+  })
+  @ApiBody({ type: AnilistSelectDto, required: false })
+  async postSchedule(
+    @Body('select') select: Prisma.AnilistSelect = basicSelect,
+  ) {
+    return this.schedule.getSchedule(select);
   }
 
   @Get('random')

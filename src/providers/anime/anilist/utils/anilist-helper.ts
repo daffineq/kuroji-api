@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma.service.js';
-import { ScheduleData } from '../types/types.js';
 import { FullMediaResponse } from '../types/response.js';
 import { Prisma } from '@prisma/client';
 import { DateUtils } from '../../../../shared/date.utils.js';
@@ -257,16 +256,14 @@ export class AnilistHelper {
       },
       airingSchedule: {
         connectOrCreate:
-          anime.airingSchedule?.edges
-            ?.filter((edge) => edge?.node?.id)
-            .map((edge) => ({
-              where: { id: edge.node.id },
-              create: {
-                id: edge.node.id,
-                episode: edge.node.episode ?? null,
-                airingAt: edge.node.airingAt ?? null,
-              },
-            })) ?? [],
+          anime.airingSchedule?.edges.map((edge) => ({
+            where: { id: edge.node.id },
+            create: {
+              id: edge.node.id,
+              episode: edge.node.episode ?? null,
+              airingAt: edge.node.airingAt ?? null,
+            },
+          })) ?? [],
       },
       tags: {
         connectOrCreate:
@@ -366,14 +363,4 @@ export class AnilistHelper {
       },
     };
   }
-}
-
-export function createScheduleData(
-  data: any[] = [],
-  current: boolean,
-): ScheduleData {
-  return {
-    current,
-    data,
-  };
 }

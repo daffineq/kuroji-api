@@ -1,37 +1,6 @@
-import { AnilistAiringSchedule, DateDetails, Prisma } from '@prisma/client';
-import { basicSelect } from '../types/types.js';
+import { AnilistAiringSchedule, DateDetails } from '@prisma/client';
 import { MediaStatus } from '../filter/Filter.js';
 import { DateUtils } from '../../../../shared/date.utils.js';
-import {
-  createParamDecorator,
-  ExecutionContext,
-  BadRequestException,
-} from '@nestjs/common';
-
-export function findNextAiringInSchedule(
-  data: AnilistAiringSchedule[] | null,
-): AnilistAiringSchedule | undefined {
-  if (!data) {
-    throw new Error('No airing schedule');
-  }
-
-  const now = new Date().getTime();
-  const nowUnix = Math.floor(now / 1000);
-
-  let nextAiring: AnilistAiringSchedule | undefined = undefined;
-  let smallestFutureAiringTime = Infinity;
-
-  for (const schedule of data) {
-    if (schedule.airingAt && schedule.airingAt > nowUnix) {
-      if (schedule.airingAt < smallestFutureAiringTime) {
-        smallestFutureAiringTime = schedule.airingAt;
-        nextAiring = schedule;
-      }
-    }
-  }
-
-  return nextAiring;
-}
 
 export function getDateStringFromAnilist(date: DateDetails): string | null {
   const { year, month, day } = date;

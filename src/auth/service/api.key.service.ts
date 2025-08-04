@@ -10,8 +10,8 @@ import { getRequestData } from '../utils/auth-helper.js';
 import { generateApiKey } from '../utils/utils.js';
 import { ApiKeyRequestStatus } from '@prisma/client';
 import {
-  ApiResponse,
-  createResponse,
+  PaginatedResponse,
+  createPaginatedResponse,
   createSuccessResponse,
 } from '../../shared/responses.js';
 import { getPageInfo } from '../../utils/utils.js';
@@ -37,7 +37,7 @@ export class ApiKeyService {
   async listRequests(
     page: number,
     perPage: number,
-  ): Promise<ApiResponse<Array<ApiKeyRequestPayload>>> {
+  ): Promise<PaginatedResponse<ApiKeyRequestPayload>> {
     const [requests, total] = await Promise.all([
       this.prisma.apiKeyRequest.findMany({
         orderBy: { createdAt: 'desc' },
@@ -48,7 +48,7 @@ export class ApiKeyService {
       this.prisma.apiKeyRequest.count(),
     ]);
 
-    return createResponse({
+    return createPaginatedResponse({
       data: requests,
       pageInfo: getPageInfo(total, perPage, page),
     });
