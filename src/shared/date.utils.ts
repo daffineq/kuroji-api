@@ -95,33 +95,20 @@ export class DateUtils {
   }
 
   /**
-   * Get date range spanning from N days ago to today in configured timezone
-   */
-  static getSpanRange(daysAgo: number): {
-    start: number;
-    end: number;
-  } {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - daysAgo);
-    const endDate = new Date();
-
-    const startRange = this.getDayRange(startDate);
-    const endRange = this.getDayRange(endDate);
-
-    return {
-      start: startRange.start,
-      end: endRange.end,
-    };
-  }
-
-  /**
    * Get date range spanning from N days in future to today in configured timezone
    */
-  static getRange(days: number): {
+  static getSpanRange(range: {
+    days?: number | null;
+    daysAgo?: number | null;
+  }): {
     start: number;
     end: number;
   } {
+    const days = range.days || 0;
+    const daysAgo = range.daysAgo || 0;
+
     const startDate = new Date();
+    startDate.setDate(startDate.getDate() - daysAgo);
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + days);
 

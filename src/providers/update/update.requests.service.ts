@@ -187,7 +187,7 @@ export class UpdateRequestsService {
   async getLastWeekAiredAnime() {
     try {
       const { start: startTimestamp, end: endTimestamp } =
-        DateUtils.getSpanRange(7);
+        DateUtils.getSpanRange({ daysAgo: 7 });
 
       const { start: bufferedStart, end: bufferedEnd } =
         DateUtils.getBufferedTimeRange(startTimestamp, endTimestamp, 2);

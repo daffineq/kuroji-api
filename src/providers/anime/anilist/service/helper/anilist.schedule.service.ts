@@ -13,7 +13,9 @@ export class AnilistScheduleService {
   async getSchedule<T extends Prisma.AnilistSelect>(
     select: T,
   ): Promise<Array<Prisma.AnilistGetPayload<{ select: T }>>> {
-    const { start, end } = DateUtils.getRange(14);
+    const { start, end } = DateUtils.getSpanRange({
+      days: 14,
+    });
 
     const releases = await this.search.getAnilists(
       new FilterDto({

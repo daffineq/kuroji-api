@@ -418,7 +418,7 @@ export class StreamService {
       const providers: ProviderInfo[] = [];
 
       const anilist = await this.anilist
-        .getAnilist(id, fullSelect)
+        .getAnilist(id, mappingSelect)
         .catch(() => null);
       if (!anilist) throw new NotFoundException('Anilist not found');
 
