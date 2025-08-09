@@ -1,10 +1,10 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectAnilibriaDto} from '../../anilibria/dto/connect-anilibria.dto.js'
-import {ConnectAnilibriaTorrentTypeDto} from '../../anilibriaTorrentType/dto/connect-anilibriaTorrentType.dto.js'
-import {ConnectAnilibriaTorrentColorDto} from '../../anilibriaTorrentColor/dto/connect-anilibriaTorrentColor.dto.js'
-import {ConnectAnilibriaTorrentCodecDto} from '../../anilibriaTorrentCodec/dto/connect-anilibriaTorrentCodec.dto.js'
-import {ConnectAnilibriaTorrentQualityDto} from '../../anilibriaTorrentQuality/dto/connect-anilibriaTorrentQuality.dto.js'
+import {ConnectAnilibriaDto} from '../../anilibria/dto/connect-anilibria.dto'
+import {ConnectAnilibriaTorrentTypeDto} from '../../anilibriaTorrentType/dto/connect-anilibriaTorrentType.dto'
+import {ConnectAnilibriaTorrentColorDto} from '../../anilibriaTorrentColor/dto/connect-anilibriaTorrentColor.dto'
+import {ConnectAnilibriaTorrentCodecDto} from '../../anilibriaTorrentCodec/dto/connect-anilibriaTorrentCodec.dto'
+import {ConnectAnilibriaTorrentQualityDto} from '../../anilibriaTorrentQuality/dto/connect-anilibriaTorrentQuality.dto'
 
 export class CreateAnilibriaTorrentAnilibriaRelationInputDto {
     @ApiProperty({

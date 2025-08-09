@@ -1,9 +1,9 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectAnilistDto} from '../../anilist/dto/connect-anilist.dto.js'
-import {ConnectAnilistCharacterDto} from '../../anilistCharacter/dto/connect-anilistCharacter.dto.js'
-import {CreateVoiceActorDto} from '../../voiceActor/dto/create-voiceActor.dto.js'
-import {ConnectVoiceActorDto} from '../../voiceActor/dto/connect-voiceActor.dto.js'
+import {ConnectAnilistDto} from '../../anilist/dto/connect-anilist.dto'
+import {ConnectAnilistCharacterDto} from '../../anilistCharacter/dto/connect-anilistCharacter.dto'
+import {CreateVoiceActorDto} from '../../voiceActor/dto/create-voiceActor.dto'
+import {ConnectVoiceActorDto} from '../../voiceActor/dto/connect-voiceActor.dto'
 
 export class CreateAnilistCharacterEdgeAnilistRelationInputDto {
     @ApiProperty({

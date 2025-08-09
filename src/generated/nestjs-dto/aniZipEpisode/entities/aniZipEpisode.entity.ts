@@ -1,7 +1,7 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AniZipEpisodeTitle} from '../../aniZipEpisodeTitle/entities/aniZipEpisodeTitle.entity.js'
-import {AniZip} from '../../aniZip/entities/aniZip.entity.js'
+import {AniZipEpisodeTitle} from '../../aniZipEpisodeTitle/entities/aniZipEpisodeTitle.entity'
+import {AniZip} from '../../aniZip/entities/aniZip.entity'
 
 
 export class AniZipEpisode {
@@ -93,7 +93,7 @@ episode: string  | null;
 })
 anidbEid: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AniZipEpisodeTitle,
   isArray: true,
   required: false,
 })
@@ -104,7 +104,7 @@ titles?: AniZipEpisodeTitle[] ;
 })
 aniZipId: number ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AniZip,
   required: false,
 })
 aniZip?: AniZip ;

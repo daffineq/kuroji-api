@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Shikimori} from '../../shikimori/entities/shikimori.entity.js'
+import {Shikimori} from '../../shikimori/entities/shikimori.entity'
 
 
 export class ShikimoriPoster {
@@ -23,7 +23,7 @@ originalUrl: string  | null;
 })
 mainUrl: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Shikimori,
   required: false,
 })
 shikimori?: Shikimori ;

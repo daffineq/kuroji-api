@@ -1,16 +1,16 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnilibriaType} from '../../anilibriaType/entities/anilibriaType.entity.js'
-import {AnilibriaName} from '../../anilibriaName/entities/anilibriaName.entity.js'
-import {AnilibriaSeason} from '../../anilibriaSeason/entities/anilibriaSeason.entity.js'
-import {AnilibriaPoster} from '../../anilibriaPoster/entities/anilibriaPoster.entity.js'
-import {AnilibriaAgeRating} from '../../anilibriaAgeRating/entities/anilibriaAgeRating.entity.js'
-import {AnilibriaSponsor} from '../../anilibriaSponsor/entities/anilibriaSponsor.entity.js'
-import {AnilibriaPublishDay} from '../../anilibriaPublishDay/entities/anilibriaPublishDay.entity.js'
-import {AnilibriaGenreEdge} from '../../anilibriaGenreEdge/entities/anilibriaGenreEdge.entity.js'
-import {AnilibriaEpisode} from '../../anilibriaEpisode/entities/anilibriaEpisode.entity.js'
-import {AnilibriaTorrent} from '../../anilibriaTorrent/entities/anilibriaTorrent.entity.js'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
+import {AnilibriaType} from '../../anilibriaType/entities/anilibriaType.entity'
+import {AnilibriaName} from '../../anilibriaName/entities/anilibriaName.entity'
+import {AnilibriaSeason} from '../../anilibriaSeason/entities/anilibriaSeason.entity'
+import {AnilibriaPoster} from '../../anilibriaPoster/entities/anilibriaPoster.entity'
+import {AnilibriaAgeRating} from '../../anilibriaAgeRating/entities/anilibriaAgeRating.entity'
+import {AnilibriaSponsor} from '../../anilibriaSponsor/entities/anilibriaSponsor.entity'
+import {AnilibriaPublishDay} from '../../anilibriaPublishDay/entities/anilibriaPublishDay.entity'
+import {AnilibriaGenreEdge} from '../../anilibriaGenreEdge/entities/anilibriaGenreEdge.entity'
+import {AnilibriaEpisode} from '../../anilibriaEpisode/entities/anilibriaEpisode.entity'
+import {AnilibriaTorrent} from '../../anilibriaTorrent/entities/anilibriaTorrent.entity'
+import {Anilist} from '../../anilist/entities/anilist.entity'
 
 
 export class Anilibria {
@@ -130,67 +130,67 @@ added_in_postponed_collection: number  | null;
 })
 added_in_abandoned_collection: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaType,
   required: false,
   nullable: true,
 })
 type?: AnilibriaType  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaName,
   required: false,
   nullable: true,
 })
 name?: AnilibriaName  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaSeason,
   required: false,
   nullable: true,
 })
 season?: AnilibriaSeason  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaPoster,
   required: false,
   nullable: true,
 })
 poster?: AnilibriaPoster  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaAgeRating,
   required: false,
   nullable: true,
 })
 age_rating?: AnilibriaAgeRating  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaSponsor,
   required: false,
   nullable: true,
 })
 sponsor?: AnilibriaSponsor  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaPublishDay,
   required: false,
   nullable: true,
 })
 publish_day?: AnilibriaPublishDay  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaGenreEdge,
   isArray: true,
   required: false,
 })
 genres?: AnilibriaGenreEdge[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaEpisode,
   isArray: true,
   required: false,
 })
 episodes?: AnilibriaEpisode[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaTorrent,
   isArray: true,
   required: false,
 })
 torrents?: AnilibriaTorrent[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
   nullable: true,
 })

@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Animepahe} from '../../animepahe/entities/animepahe.entity.js'
+import {Animepahe} from '../../animepahe/entities/animepahe.entity'
 
 
 export class AnimepaheExternalLink {
@@ -17,7 +17,7 @@ url: string ;
 })
 sourceName: string ;
 @ApiProperty({
-  type: () => Object,
+  type: () => Animepahe,
   isArray: true,
   required: false,
 })

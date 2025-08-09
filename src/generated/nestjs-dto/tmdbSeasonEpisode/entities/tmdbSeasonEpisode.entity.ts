@@ -1,8 +1,8 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Tmdb} from '../../tmdb/entities/tmdb.entity.js'
-import {TmdbSeason} from '../../tmdbSeason/entities/tmdbSeason.entity.js'
-import {TmdbSeasonEpisodeImages} from '../../tmdbSeasonEpisodeImages/entities/tmdbSeasonEpisodeImages.entity.js'
+import {Tmdb} from '../../tmdb/entities/tmdb.entity'
+import {TmdbSeason} from '../../tmdbSeason/entities/tmdbSeason.entity'
+import {TmdbSeasonEpisodeImages} from '../../tmdbSeasonEpisodeImages/entities/tmdbSeasonEpisodeImages.entity'
 
 
 export class TmdbSeasonEpisode {
@@ -81,18 +81,18 @@ vote_average: number  | null;
 })
 vote_count: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Tmdb,
   required: false,
 })
 show?: Tmdb ;
 @ApiProperty({
-  type: () => Object,
+  type: () => TmdbSeason,
   required: false,
   nullable: true,
 })
 tmdbSeason?: TmdbSeason  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => TmdbSeasonEpisodeImages,
   required: false,
   nullable: true,
 })

@@ -1,8 +1,8 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {CreateEpisodeZoroDto} from '../../episodeZoro/dto/create-episodeZoro.dto.js'
-import {ConnectEpisodeZoroDto} from '../../episodeZoro/dto/connect-episodeZoro.dto.js'
-import {ConnectAnilistDto} from '../../anilist/dto/connect-anilist.dto.js'
+import {CreateEpisodeZoroDto} from '../../episodeZoro/dto/create-episodeZoro.dto'
+import {ConnectEpisodeZoroDto} from '../../episodeZoro/dto/connect-episodeZoro.dto'
+import {ConnectAnilistDto} from '../../anilist/dto/connect-anilist.dto'
 
 export class CreateZoroEpisodesRelationInputDto {
     @ApiProperty({

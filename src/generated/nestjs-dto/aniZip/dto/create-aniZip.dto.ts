@@ -1,14 +1,14 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {CreateAniZipTitleDto} from '../../aniZipTitle/dto/create-aniZipTitle.dto.js'
-import {ConnectAniZipTitleDto} from '../../aniZipTitle/dto/connect-aniZipTitle.dto.js'
-import {CreateAniZipImageDto} from '../../aniZipImage/dto/create-aniZipImage.dto.js'
-import {ConnectAniZipImageDto} from '../../aniZipImage/dto/connect-aniZipImage.dto.js'
-import {CreateAniZipEpisodeDto} from '../../aniZipEpisode/dto/create-aniZipEpisode.dto.js'
-import {ConnectAniZipEpisodeDto} from '../../aniZipEpisode/dto/connect-aniZipEpisode.dto.js'
-import {CreateAniZipMappingDto} from '../../aniZipMapping/dto/create-aniZipMapping.dto.js'
-import {ConnectAniZipMappingDto} from '../../aniZipMapping/dto/connect-aniZipMapping.dto.js'
-import {ConnectAnilistDto} from '../../anilist/dto/connect-anilist.dto.js'
+import {CreateAniZipTitleDto} from '../../aniZipTitle/dto/create-aniZipTitle.dto'
+import {ConnectAniZipTitleDto} from '../../aniZipTitle/dto/connect-aniZipTitle.dto'
+import {CreateAniZipImageDto} from '../../aniZipImage/dto/create-aniZipImage.dto'
+import {ConnectAniZipImageDto} from '../../aniZipImage/dto/connect-aniZipImage.dto'
+import {CreateAniZipEpisodeDto} from '../../aniZipEpisode/dto/create-aniZipEpisode.dto'
+import {ConnectAniZipEpisodeDto} from '../../aniZipEpisode/dto/connect-aniZipEpisode.dto'
+import {CreateAniZipMappingDto} from '../../aniZipMapping/dto/create-aniZipMapping.dto'
+import {ConnectAniZipMappingDto} from '../../aniZipMapping/dto/connect-aniZipMapping.dto'
+import {ConnectAnilistDto} from '../../anilist/dto/connect-anilist.dto'
 
 export class CreateAniZipTitlesRelationInputDto {
     @ApiProperty({

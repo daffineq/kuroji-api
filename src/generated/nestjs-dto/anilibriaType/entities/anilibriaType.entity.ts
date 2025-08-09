@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Anilibria} from '../../anilibria/entities/anilibria.entity.js'
+import {Anilibria} from '../../anilibria/entities/anilibria.entity'
 
 
 export class AnilibriaType {
@@ -25,7 +25,7 @@ value: string  | null;
 })
 description: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilibria,
   required: false,
 })
 anilibria?: Anilibria ;

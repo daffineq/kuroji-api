@@ -1,8 +1,8 @@
 
 import {UserRole} from '@prisma/client'
 import {ApiProperty} from '@nestjs/swagger'
-import {ApiKey} from '../../apiKey/entities/apiKey.entity.js'
-import {ApiKeyRequest} from '../../apiKeyRequest/entities/apiKeyRequest.entity.js'
+import {ApiKey} from '../../apiKey/entities/apiKey.entity'
+import {ApiKeyRequest} from '../../apiKeyRequest/entities/apiKeyRequest.entity'
 
 
 export class User {
@@ -38,13 +38,13 @@ createdAt: Date ;
 })
 updatedAt: Date ;
 @ApiProperty({
-  type: () => Object,
+  type: () => ApiKey,
   isArray: true,
   required: false,
 })
 apiKeys?: ApiKey[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => ApiKeyRequest,
   isArray: true,
   required: false,
 })

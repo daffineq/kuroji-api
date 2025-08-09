@@ -1,7 +1,7 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {CreateAnilistStudioEdgeDto} from '../../anilistStudioEdge/dto/create-anilistStudioEdge.dto.js'
-import {ConnectAnilistStudioEdgeDto} from '../../anilistStudioEdge/dto/connect-anilistStudioEdge.dto.js'
+import {CreateAnilistStudioEdgeDto} from '../../anilistStudioEdge/dto/create-anilistStudioEdge.dto'
+import {ConnectAnilistStudioEdgeDto} from '../../anilistStudioEdge/dto/connect-anilistStudioEdge.dto'
 
 export class CreateAnilistStudioAnimeLinksRelationInputDto {
     @ApiProperty({

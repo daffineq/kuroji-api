@@ -1,6 +1,6 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectVoiceActorDto} from '../../voiceActor/dto/connect-voiceActor.dto.js'
+import {ConnectVoiceActorDto} from '../../voiceActor/dto/connect-voiceActor.dto'
 
 export class CreateAnilistVoiceImageVoiceActorRelationInputDto {
     @ApiProperty({

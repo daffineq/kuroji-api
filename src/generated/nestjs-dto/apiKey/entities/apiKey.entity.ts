@@ -1,8 +1,8 @@
 
 import {ApiKeyType} from '@prisma/client'
 import {ApiProperty} from '@nestjs/swagger'
-import {ApiKeyUsage} from '../../apiKeyUsage/entities/apiKeyUsage.entity.js'
-import {User} from '../../user/entities/user.entity.js'
+import {ApiKeyUsage} from '../../apiKeyUsage/entities/apiKeyUsage.entity'
+import {User} from '../../user/entities/user.entity'
 
 
 export class ApiKey {
@@ -42,13 +42,13 @@ createdAt: Date ;
 })
 updatedAt: Date ;
 @ApiProperty({
-  type: () => Object,
+  type: () => ApiKeyUsage,
   isArray: true,
   required: false,
 })
 usage?: ApiKeyUsage[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => User,
   required: false,
 })
 user?: User ;

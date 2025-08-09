@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnilistCharacter} from '../../anilistCharacter/entities/anilistCharacter.entity.js'
+import {AnilistCharacter} from '../../anilistCharacter/entities/anilistCharacter.entity'
 
 
 export class AnilistCharacterName {
@@ -25,7 +25,7 @@ native: string  | null;
 })
 alternative: string[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistCharacter,
   required: false,
   nullable: true,
 })

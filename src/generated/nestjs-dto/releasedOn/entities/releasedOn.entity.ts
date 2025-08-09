@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Shikimori} from '../../shikimori/entities/shikimori.entity.js'
+import {Shikimori} from '../../shikimori/entities/shikimori.entity'
 
 
 export class ReleasedOn {
@@ -37,7 +37,7 @@ day: number  | null;
 })
 date: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Shikimori,
   required: false,
 })
 shikimori?: Shikimori ;

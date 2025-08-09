@@ -1,6 +1,6 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectAnilibriaEpisodeDto} from '../../anilibriaEpisode/dto/connect-anilibriaEpisode.dto.js'
+import {ConnectAnilibriaEpisodeDto} from '../../anilibriaEpisode/dto/connect-anilibriaEpisode.dto'
 
 export class CreateAnilibriaEpisodePreviewEpisodeRelationInputDto {
     @ApiProperty({

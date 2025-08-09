@@ -1,7 +1,7 @@
 
 import {ApiKeyRequestStatus,ApiKeyType} from '@prisma/client'
 import {ApiProperty} from '@nestjs/swagger'
-import {User} from '../../user/entities/user.entity.js'
+import {User} from '../../user/entities/user.entity'
 
 
 export class ApiKeyRequest {
@@ -43,7 +43,7 @@ createdAt: Date ;
 })
 updatedAt: Date ;
 @ApiProperty({
-  type: () => Object,
+  type: () => User,
   required: false,
 })
 user?: User ;

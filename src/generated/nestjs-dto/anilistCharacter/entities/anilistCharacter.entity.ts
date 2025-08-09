@@ -1,8 +1,8 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnilistCharacterName} from '../../anilistCharacterName/entities/anilistCharacterName.entity.js'
-import {AnilistCharacterImage} from '../../anilistCharacterImage/entities/anilistCharacterImage.entity.js'
-import {AnilistCharacterEdge} from '../../anilistCharacterEdge/entities/anilistCharacterEdge.entity.js'
+import {AnilistCharacterName} from '../../anilistCharacterName/entities/anilistCharacterName.entity'
+import {AnilistCharacterImage} from '../../anilistCharacterImage/entities/anilistCharacterImage.entity'
+import {AnilistCharacterEdge} from '../../anilistCharacterEdge/entities/anilistCharacterEdge.entity'
 
 
 export class AnilistCharacter {
@@ -12,19 +12,19 @@ export class AnilistCharacter {
 })
 id: number ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistCharacterName,
   required: false,
   nullable: true,
 })
 name?: AnilistCharacterName  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistCharacterImage,
   required: false,
   nullable: true,
 })
 image?: AnilistCharacterImage  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistCharacterEdge,
   isArray: true,
   required: false,
 })

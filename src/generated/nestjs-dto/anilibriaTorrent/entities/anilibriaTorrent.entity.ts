@@ -1,10 +1,10 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Anilibria} from '../../anilibria/entities/anilibria.entity.js'
-import {AnilibriaTorrentType} from '../../anilibriaTorrentType/entities/anilibriaTorrentType.entity.js'
-import {AnilibriaTorrentColor} from '../../anilibriaTorrentColor/entities/anilibriaTorrentColor.entity.js'
-import {AnilibriaTorrentCodec} from '../../anilibriaTorrentCodec/entities/anilibriaTorrentCodec.entity.js'
-import {AnilibriaTorrentQuality} from '../../anilibriaTorrentQuality/entities/anilibriaTorrentQuality.entity.js'
+import {Anilibria} from '../../anilibria/entities/anilibria.entity'
+import {AnilibriaTorrentType} from '../../anilibriaTorrentType/entities/anilibriaTorrentType.entity'
+import {AnilibriaTorrentColor} from '../../anilibriaTorrentColor/entities/anilibriaTorrentColor.entity'
+import {AnilibriaTorrentCodec} from '../../anilibriaTorrentCodec/entities/anilibriaTorrentCodec.entity'
+import {AnilibriaTorrentQuality} from '../../anilibriaTorrentQuality/entities/anilibriaTorrentQuality.entity'
 
 
 export class AnilibriaTorrent {
@@ -95,30 +95,30 @@ created_at: string  | null;
 })
 completed_times: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilibria,
   required: false,
 })
 anilibria?: Anilibria ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaTorrentType,
   required: false,
   nullable: true,
 })
 type?: AnilibriaTorrentType  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaTorrentColor,
   required: false,
   nullable: true,
 })
 color?: AnilibriaTorrentColor  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaTorrentCodec,
   required: false,
   nullable: true,
 })
 codec?: AnilibriaTorrentCodec  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaTorrentQuality,
   required: false,
   nullable: true,
 })

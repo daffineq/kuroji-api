@@ -1,8 +1,8 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectTmdbDto} from '../../tmdb/dto/connect-tmdb.dto.js'
-import {ConnectTmdbSeasonDto} from '../../tmdbSeason/dto/connect-tmdbSeason.dto.js'
-import {ConnectTmdbSeasonEpisodeImagesDto} from '../../tmdbSeasonEpisodeImages/dto/connect-tmdbSeasonEpisodeImages.dto.js'
+import {ConnectTmdbDto} from '../../tmdb/dto/connect-tmdb.dto'
+import {ConnectTmdbSeasonDto} from '../../tmdbSeason/dto/connect-tmdbSeason.dto'
+import {ConnectTmdbSeasonEpisodeImagesDto} from '../../tmdbSeasonEpisodeImages/dto/connect-tmdbSeasonEpisodeImages.dto'
 
 export class CreateTmdbSeasonEpisodeShowRelationInputDto {
     @ApiProperty({

@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnimeKai} from '../../animeKai/entities/animeKai.entity.js'
+import {AnimeKai} from '../../animeKai/entities/animeKai.entity'
 
 
 export class AnimekaiEpisode {
@@ -40,7 +40,7 @@ isDubbed: boolean  | null;
 })
 url: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnimeKai,
   isArray: true,
   required: false,
 })

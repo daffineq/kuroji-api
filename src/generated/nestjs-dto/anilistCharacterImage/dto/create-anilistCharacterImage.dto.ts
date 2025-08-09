@@ -1,6 +1,6 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectAnilistCharacterDto} from '../../anilistCharacter/dto/connect-anilistCharacter.dto.js'
+import {ConnectAnilistCharacterDto} from '../../anilistCharacter/dto/connect-anilistCharacter.dto'
 
 export class CreateAnilistCharacterImageCharacterRelationInputDto {
     @ApiProperty({

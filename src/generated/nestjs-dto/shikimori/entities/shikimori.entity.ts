@@ -1,12 +1,12 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {ShikimoriPoster} from '../../shikimoriPoster/entities/shikimoriPoster.entity.js'
-import {AiredOn} from '../../airedOn/entities/airedOn.entity.js'
-import {ReleasedOn} from '../../releasedOn/entities/releasedOn.entity.js'
-import {BasicIdShik} from '../../basicIdShik/entities/basicIdShik.entity.js'
-import {ShikimoriVideo} from '../../shikimoriVideo/entities/shikimoriVideo.entity.js'
-import {ShikimoriScreenshot} from '../../shikimoriScreenshot/entities/shikimoriScreenshot.entity.js'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
+import {ShikimoriPoster} from '../../shikimoriPoster/entities/shikimoriPoster.entity'
+import {AiredOn} from '../../airedOn/entities/airedOn.entity'
+import {ReleasedOn} from '../../releasedOn/entities/releasedOn.entity'
+import {BasicIdShik} from '../../basicIdShik/entities/basicIdShik.entity'
+import {ShikimoriVideo} from '../../shikimoriVideo/entities/shikimoriVideo.entity'
+import {ShikimoriScreenshot} from '../../shikimoriScreenshot/entities/shikimoriScreenshot.entity'
+import {Anilist} from '../../anilist/entities/anilist.entity'
 
 
 export class Shikimori {
@@ -46,7 +46,7 @@ english: string  | null;
 })
 japanese: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => ShikimoriPoster,
   required: false,
   nullable: true,
 })
@@ -96,13 +96,13 @@ episodesAired: number  | null;
 })
 duration: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AiredOn,
   required: false,
   nullable: true,
 })
 airedOn?: AiredOn  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => ReleasedOn,
   required: false,
   nullable: true,
 })
@@ -156,25 +156,25 @@ descriptionHtml: string  | null;
 })
 descriptionSource: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => BasicIdShik,
   isArray: true,
   required: false,
 })
 chronology?: BasicIdShik[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => ShikimoriVideo,
   isArray: true,
   required: false,
 })
 videos?: ShikimoriVideo[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => ShikimoriScreenshot,
   isArray: true,
   required: false,
 })
 screenshots?: ShikimoriScreenshot[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
   nullable: true,
 })

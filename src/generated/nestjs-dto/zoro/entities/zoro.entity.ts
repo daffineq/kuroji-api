@@ -1,7 +1,7 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {EpisodeZoro} from '../../episodeZoro/entities/episodeZoro.entity.js'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
+import {EpisodeZoro} from '../../episodeZoro/entities/episodeZoro.entity'
+import {Anilist} from '../../anilist/entities/anilist.entity'
 
 
 export class Zoro {
@@ -89,13 +89,13 @@ season: string  | null;
 })
 totalEpisodes: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => EpisodeZoro,
   isArray: true,
   required: false,
 })
 episodes?: EpisodeZoro[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
   nullable: true,
 })

@@ -1,6 +1,6 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectZoroDto} from '../../zoro/dto/connect-zoro.dto.js'
+import {ConnectZoroDto} from '../../zoro/dto/connect-zoro.dto'
 
 export class CreateEpisodeZoroZoroRelationInputDto {
     @ApiProperty({

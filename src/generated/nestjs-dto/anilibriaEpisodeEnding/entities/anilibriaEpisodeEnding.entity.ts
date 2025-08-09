@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnilibriaEpisode} from '../../anilibriaEpisode/entities/anilibriaEpisode.entity.js'
+import {AnilibriaEpisode} from '../../anilibriaEpisode/entities/anilibriaEpisode.entity'
 
 
 export class AnilibriaEpisodeEnding {
@@ -26,7 +26,7 @@ start: number  | null;
 })
 stop: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaEpisode,
   required: false,
 })
 episode?: AnilibriaEpisode ;

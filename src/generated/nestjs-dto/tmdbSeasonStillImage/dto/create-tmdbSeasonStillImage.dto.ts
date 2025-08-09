@@ -1,6 +1,6 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectTmdbSeasonEpisodeImagesDto} from '../../tmdbSeasonEpisodeImages/dto/connect-tmdbSeasonEpisodeImages.dto.js'
+import {ConnectTmdbSeasonEpisodeImagesDto} from '../../tmdbSeasonEpisodeImages/dto/connect-tmdbSeasonEpisodeImages.dto'
 
 export class CreateTmdbSeasonStillImageTmdbEpisodeImagesRelationInputDto {
     @ApiProperty({

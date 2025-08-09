@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnilibriaGenreEdge} from '../../anilibriaGenreEdge/entities/anilibriaGenreEdge.entity.js'
+import {AnilibriaGenreEdge} from '../../anilibriaGenreEdge/entities/anilibriaGenreEdge.entity'
 
 
 export class AnilibriaGenre {
@@ -35,7 +35,7 @@ optimized_preview: string  | null;
 })
 optimized_thumbnail: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaGenreEdge,
   isArray: true,
   required: false,
 })

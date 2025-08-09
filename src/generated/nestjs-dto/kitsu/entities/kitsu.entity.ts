@@ -1,22 +1,22 @@
 
 import {Prisma} from '@prisma/client'
 import {ApiProperty} from '@nestjs/swagger'
-import {KitsuTitle} from '../../kitsuTitle/entities/kitsuTitle.entity.js'
-import {KitsuPosterImage} from '../../kitsuPosterImage/entities/kitsuPosterImage.entity.js'
-import {KitsuCoverImage} from '../../kitsuCoverImage/entities/kitsuCoverImage.entity.js'
-import {KitsuGenres} from '../../kitsuGenres/entities/kitsuGenres.entity.js'
-import {KitsuCategories} from '../../kitsuCategories/entities/kitsuCategories.entity.js'
-import {KitsuCastings} from '../../kitsuCastings/entities/kitsuCastings.entity.js'
-import {KitsuInstallments} from '../../kitsuInstallments/entities/kitsuInstallments.entity.js'
-import {KitsuMappings} from '../../kitsuMappings/entities/kitsuMappings.entity.js'
-import {KitsuReviews} from '../../kitsuReviews/entities/kitsuReviews.entity.js'
-import {KitsuMediaRelationships} from '../../kitsuMediaRelationships/entities/kitsuMediaRelationships.entity.js'
-import {KitsuEpisodes} from '../../kitsuEpisodes/entities/kitsuEpisodes.entity.js'
-import {KitsuStreamingLinks} from '../../kitsuStreamingLinks/entities/kitsuStreamingLinks.entity.js'
-import {KitsuAnimeProductions} from '../../kitsuAnimeProductions/entities/kitsuAnimeProductions.entity.js'
-import {KitsuAnimeCharacters} from '../../kitsuAnimeCharacters/entities/kitsuAnimeCharacters.entity.js'
-import {KitsuAnimeStaff} from '../../kitsuAnimeStaff/entities/kitsuAnimeStaff.entity.js'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
+import {KitsuTitle} from '../../kitsuTitle/entities/kitsuTitle.entity'
+import {KitsuPosterImage} from '../../kitsuPosterImage/entities/kitsuPosterImage.entity'
+import {KitsuCoverImage} from '../../kitsuCoverImage/entities/kitsuCoverImage.entity'
+import {KitsuGenres} from '../../kitsuGenres/entities/kitsuGenres.entity'
+import {KitsuCategories} from '../../kitsuCategories/entities/kitsuCategories.entity'
+import {KitsuCastings} from '../../kitsuCastings/entities/kitsuCastings.entity'
+import {KitsuInstallments} from '../../kitsuInstallments/entities/kitsuInstallments.entity'
+import {KitsuMappings} from '../../kitsuMappings/entities/kitsuMappings.entity'
+import {KitsuReviews} from '../../kitsuReviews/entities/kitsuReviews.entity'
+import {KitsuMediaRelationships} from '../../kitsuMediaRelationships/entities/kitsuMediaRelationships.entity'
+import {KitsuEpisodes} from '../../kitsuEpisodes/entities/kitsuEpisodes.entity'
+import {KitsuStreamingLinks} from '../../kitsuStreamingLinks/entities/kitsuStreamingLinks.entity'
+import {KitsuAnimeProductions} from '../../kitsuAnimeProductions/entities/kitsuAnimeProductions.entity'
+import {KitsuAnimeCharacters} from '../../kitsuAnimeCharacters/entities/kitsuAnimeCharacters.entity'
+import {KitsuAnimeStaff} from '../../kitsuAnimeStaff/entities/kitsuAnimeStaff.entity'
+import {Anilist} from '../../anilist/entities/anilist.entity'
 
 
 export class Kitsu {
@@ -176,97 +176,97 @@ showType: string  | null;
 })
 nsfw: boolean ;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuTitle,
   required: false,
   nullable: true,
 })
 titles?: KitsuTitle  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuPosterImage,
   required: false,
   nullable: true,
 })
 posterImage?: KitsuPosterImage  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuCoverImage,
   required: false,
   nullable: true,
 })
 coverImage?: KitsuCoverImage  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuGenres,
   required: false,
   nullable: true,
 })
 genres?: KitsuGenres  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuCategories,
   required: false,
   nullable: true,
 })
 categories?: KitsuCategories  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuCastings,
   required: false,
   nullable: true,
 })
 castings?: KitsuCastings  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuInstallments,
   required: false,
   nullable: true,
 })
 installments?: KitsuInstallments  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuMappings,
   required: false,
   nullable: true,
 })
 mappings?: KitsuMappings  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuReviews,
   required: false,
   nullable: true,
 })
 reviews?: KitsuReviews  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuMediaRelationships,
   required: false,
   nullable: true,
 })
 mediaRelationships?: KitsuMediaRelationships  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuEpisodes,
   required: false,
   nullable: true,
 })
 episodes?: KitsuEpisodes  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuStreamingLinks,
   required: false,
   nullable: true,
 })
 streamingLinks?: KitsuStreamingLinks  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuAnimeProductions,
   required: false,
   nullable: true,
 })
 animeProductions?: KitsuAnimeProductions  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuAnimeCharacters,
   required: false,
   nullable: true,
 })
 animeCharacters?: KitsuAnimeCharacters  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuAnimeStaff,
   required: false,
   nullable: true,
 })
 animeStaff?: KitsuAnimeStaff  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
   nullable: true,
 })

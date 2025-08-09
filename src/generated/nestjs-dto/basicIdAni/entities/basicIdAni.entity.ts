@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
+import {Anilist} from '../../anilist/entities/anilist.entity'
 
 
 export class BasicIdAni {
@@ -16,7 +16,7 @@ id: number ;
 })
 idMal: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   isArray: true,
   required: false,
 })

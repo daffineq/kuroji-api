@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnilibriaTorrent} from '../../anilibriaTorrent/entities/anilibriaTorrent.entity.js'
+import {AnilibriaTorrent} from '../../anilibriaTorrent/entities/anilibriaTorrent.entity'
 
 
 export class AnilibriaTorrentCodec {
@@ -40,7 +40,7 @@ label_color: string  | null;
 })
 label_is_visible: boolean  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaTorrent,
   required: false,
 })
 torrent?: AnilibriaTorrent ;

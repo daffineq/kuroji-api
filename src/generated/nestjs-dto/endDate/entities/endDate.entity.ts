@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
+import {Anilist} from '../../anilist/entities/anilist.entity'
 
 
 export class EndDate {
@@ -33,7 +33,7 @@ month: number  | null;
 })
 year: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
 })
 anilist?: Anilist ;

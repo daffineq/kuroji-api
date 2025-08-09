@@ -1,7 +1,7 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {KitsuImageDimensions} from '../../kitsuImageDimensions/entities/kitsuImageDimensions.entity.js'
-import {Kitsu} from '../../kitsu/entities/kitsu.entity.js'
+import {KitsuImageDimensions} from '../../kitsuImageDimensions/entities/kitsuImageDimensions.entity'
+import {Kitsu} from '../../kitsu/entities/kitsu.entity'
 
 
 export class KitsuPosterImage {
@@ -35,7 +35,7 @@ large: string  | null;
 })
 original: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuImageDimensions,
   required: false,
   nullable: true,
 })
@@ -45,7 +45,7 @@ dimensions?: KitsuImageDimensions  | null;
 })
 kitsuId: string ;
 @ApiProperty({
-  type: () => Object,
+  type: () => Kitsu,
   required: false,
 })
 kitsu?: Kitsu ;

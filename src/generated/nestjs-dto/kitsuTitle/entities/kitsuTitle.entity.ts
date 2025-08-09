@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Kitsu} from '../../kitsu/entities/kitsu.entity.js'
+import {Kitsu} from '../../kitsu/entities/kitsu.entity'
 
 
 export class KitsuTitle {
@@ -28,7 +28,7 @@ ja_jp: string  | null;
 })
 kitsuId: string ;
 @ApiProperty({
-  type: () => Object,
+  type: () => Kitsu,
   required: false,
 })
 kitsu?: Kitsu ;

@@ -1,7 +1,7 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnimekaiEpisode} from '../../animekaiEpisode/entities/animekaiEpisode.entity.js'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
+import {AnimekaiEpisode} from '../../animekaiEpisode/entities/animekaiEpisode.entity'
+import {Anilist} from '../../anilist/entities/anilist.entity'
 
 
 export class AnimeKai {
@@ -83,13 +83,13 @@ season: string  | null;
 })
 totalEpisodes: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnimekaiEpisode,
   isArray: true,
   required: false,
 })
 episodes?: AnimekaiEpisode[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
   nullable: true,
 })

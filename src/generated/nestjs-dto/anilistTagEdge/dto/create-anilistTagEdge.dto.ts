@@ -1,7 +1,7 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectAnilistDto} from '../../anilist/dto/connect-anilist.dto.js'
-import {ConnectAnilistTagDto} from '../../anilistTag/dto/connect-anilistTag.dto.js'
+import {ConnectAnilistDto} from '../../anilist/dto/connect-anilist.dto'
+import {ConnectAnilistTagDto} from '../../anilistTag/dto/connect-anilistTag.dto'
 
 export class CreateAnilistTagEdgeAnilistRelationInputDto {
     @ApiProperty({

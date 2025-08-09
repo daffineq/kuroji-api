@@ -1,6 +1,6 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectAnimeKaiDto} from '../../animeKai/dto/connect-animeKai.dto.js'
+import {ConnectAnimeKaiDto} from '../../animeKai/dto/connect-animeKai.dto'
 
 export class CreateAnimekaiEpisodeAnimekaiRelationInputDto {
     @ApiProperty({

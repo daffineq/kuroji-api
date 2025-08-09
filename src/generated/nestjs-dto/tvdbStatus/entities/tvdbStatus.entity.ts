@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Tvdb} from '../../tvdb/entities/tvdb.entity.js'
+import {Tvdb} from '../../tvdb/entities/tvdb.entity'
 
 
 export class TvdbStatus {
@@ -30,7 +30,7 @@ recordType: string  | null;
 })
 keepUpdated: boolean  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Tvdb,
   required: false,
 })
 tvdb?: Tvdb ;

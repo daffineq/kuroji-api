@@ -1,10 +1,10 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AniZipTitle} from '../../aniZipTitle/entities/aniZipTitle.entity.js'
-import {AniZipImage} from '../../aniZipImage/entities/aniZipImage.entity.js'
-import {AniZipEpisode} from '../../aniZipEpisode/entities/aniZipEpisode.entity.js'
-import {AniZipMapping} from '../../aniZipMapping/entities/aniZipMapping.entity.js'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
+import {AniZipTitle} from '../../aniZipTitle/entities/aniZipTitle.entity'
+import {AniZipImage} from '../../aniZipImage/entities/aniZipImage.entity'
+import {AniZipEpisode} from '../../aniZipEpisode/entities/aniZipEpisode.entity'
+import {AniZipMapping} from '../../aniZipMapping/entities/aniZipMapping.entity'
+import {Anilist} from '../../anilist/entities/anilist.entity'
 
 
 export class AniZip {
@@ -25,31 +25,31 @@ episodeCount: number ;
 })
 specialCount: number ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AniZipTitle,
   isArray: true,
   required: false,
 })
 titles?: AniZipTitle[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AniZipImage,
   isArray: true,
   required: false,
 })
 images?: AniZipImage[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AniZipEpisode,
   isArray: true,
   required: false,
 })
 episodes?: AniZipEpisode[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AniZipMapping,
   required: false,
   nullable: true,
 })
 mappings?: AniZipMapping  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
   nullable: true,
 })

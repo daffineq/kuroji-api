@@ -1,7 +1,7 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectAnilibriaDto} from '../../anilibria/dto/connect-anilibria.dto.js'
-import {ConnectAnilibriaGenreDto} from '../../anilibriaGenre/dto/connect-anilibriaGenre.dto.js'
+import {ConnectAnilibriaDto} from '../../anilibria/dto/connect-anilibria.dto'
+import {ConnectAnilibriaGenreDto} from '../../anilibriaGenre/dto/connect-anilibriaGenre.dto'
 
 export class CreateAnilibriaGenreEdgeAnilibriaRelationInputDto {
     @ApiProperty({

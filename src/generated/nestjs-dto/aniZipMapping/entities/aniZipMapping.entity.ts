@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AniZip} from '../../aniZip/entities/aniZip.entity.js'
+import {AniZip} from '../../aniZip/entities/aniZip.entity'
 
 
 export class AniZipMapping {
@@ -102,7 +102,7 @@ animekaiId: string  | null;
 })
 aniZipId: number ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AniZip,
   required: false,
 })
 aniZip?: AniZip ;

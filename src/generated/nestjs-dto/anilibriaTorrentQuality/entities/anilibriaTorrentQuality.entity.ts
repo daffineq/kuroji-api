@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnilibriaTorrent} from '../../anilibriaTorrent/entities/anilibriaTorrent.entity.js'
+import {AnilibriaTorrent} from '../../anilibriaTorrent/entities/anilibriaTorrent.entity'
 
 
 export class AnilibriaTorrentQuality {
@@ -25,7 +25,7 @@ value: string  | null;
 })
 description: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaTorrent,
   required: false,
 })
 torrent?: AnilibriaTorrent ;

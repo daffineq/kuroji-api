@@ -1,7 +1,7 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Tmdb} from '../../tmdb/entities/tmdb.entity.js'
-import {TmdbSeasonEpisode} from '../../tmdbSeasonEpisode/entities/tmdbSeasonEpisode.entity.js'
+import {Tmdb} from '../../tmdb/entities/tmdb.entity'
+import {TmdbSeasonEpisode} from '../../tmdbSeasonEpisode/entities/tmdbSeasonEpisode.entity'
 
 
 export class TmdbSeason {
@@ -47,12 +47,12 @@ season_number: number ;
 })
 vote_average: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Tmdb,
   required: false,
 })
 show?: Tmdb ;
 @ApiProperty({
-  type: () => Object,
+  type: () => TmdbSeasonEpisode,
   isArray: true,
   required: false,
 })

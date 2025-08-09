@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Tvdb} from '../../tvdb/entities/tvdb.entity.js'
+import {Tvdb} from '../../tvdb/entities/tvdb.entity'
 
 
 export class TvdbRemoteId {
@@ -20,7 +20,7 @@ type: number  | null;
 })
 sourceName: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Tvdb,
   isArray: true,
   required: false,
 })

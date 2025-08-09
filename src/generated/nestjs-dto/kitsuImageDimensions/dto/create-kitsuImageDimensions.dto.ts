@@ -1,8 +1,8 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectKitsuDimensionDto} from '../../kitsuDimension/dto/connect-kitsuDimension.dto.js'
-import {ConnectKitsuPosterImageDto} from '../../kitsuPosterImage/dto/connect-kitsuPosterImage.dto.js'
-import {ConnectKitsuCoverImageDto} from '../../kitsuCoverImage/dto/connect-kitsuCoverImage.dto.js'
+import {ConnectKitsuDimensionDto} from '../../kitsuDimension/dto/connect-kitsuDimension.dto'
+import {ConnectKitsuPosterImageDto} from '../../kitsuPosterImage/dto/connect-kitsuPosterImage.dto'
+import {ConnectKitsuCoverImageDto} from '../../kitsuCoverImage/dto/connect-kitsuCoverImage.dto'
 
 export class CreateKitsuImageDimensionsTinyRelationInputDto {
     @ApiProperty({

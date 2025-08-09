@@ -1,6 +1,6 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectShikimoriDto} from '../../shikimori/dto/connect-shikimori.dto.js'
+import {ConnectShikimoriDto} from '../../shikimori/dto/connect-shikimori.dto'
 
 export class CreateReleasedOnShikimoriRelationInputDto {
     @ApiProperty({

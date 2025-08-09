@@ -1,7 +1,7 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
-import {AnilistStudio} from '../../anilistStudio/entities/anilistStudio.entity.js'
+import {Anilist} from '../../anilist/entities/anilist.entity'
+import {AnilistStudio} from '../../anilistStudio/entities/anilistStudio.entity'
 
 
 export class AnilistStudioEdge {
@@ -26,12 +26,12 @@ studioId: number ;
 })
 isMain: boolean  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
 })
 anilist?: Anilist ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistStudio,
   required: false,
 })
 studio?: AnilistStudio ;

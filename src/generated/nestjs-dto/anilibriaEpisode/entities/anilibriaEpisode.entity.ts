@@ -1,9 +1,9 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Anilibria} from '../../anilibria/entities/anilibria.entity.js'
-import {AnilibriaEpisodeEnding} from '../../anilibriaEpisodeEnding/entities/anilibriaEpisodeEnding.entity.js'
-import {AnilibriaEpisodeOpening} from '../../anilibriaEpisodeOpening/entities/anilibriaEpisodeOpening.entity.js'
-import {AnilibriaEpisodePreview} from '../../anilibriaEpisodePreview/entities/anilibriaEpisodePreview.entity.js'
+import {Anilibria} from '../../anilibria/entities/anilibria.entity'
+import {AnilibriaEpisodeEnding} from '../../anilibriaEpisodeEnding/entities/anilibriaEpisodeEnding.entity'
+import {AnilibriaEpisodeOpening} from '../../anilibriaEpisodeOpening/entities/anilibriaEpisodeOpening.entity'
+import {AnilibriaEpisodePreview} from '../../anilibriaEpisodePreview/entities/anilibriaEpisodePreview.entity'
 
 
 export class AnilibriaEpisode {
@@ -81,24 +81,24 @@ hls_720: string  | null;
 })
 hls_1080: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilibria,
   required: false,
 })
 anilibria?: Anilibria ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaEpisodeEnding,
   required: false,
   nullable: true,
 })
 ending?: AnilibriaEpisodeEnding  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaEpisodeOpening,
   required: false,
   nullable: true,
 })
 opening?: AnilibriaEpisodeOpening  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaEpisodePreview,
   required: false,
   nullable: true,
 })

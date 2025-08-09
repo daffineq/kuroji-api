@@ -1,14 +1,14 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectTvdbStatusDto} from '../../tvdbStatus/dto/connect-tvdbStatus.dto.js'
-import {CreateTvdbAliasDto} from '../../tvdbAlias/dto/create-tvdbAlias.dto.js'
-import {ConnectTvdbAliasDto} from '../../tvdbAlias/dto/connect-tvdbAlias.dto.js'
-import {CreateTvdbArtworkDto} from '../../tvdbArtwork/dto/create-tvdbArtwork.dto.js'
-import {ConnectTvdbArtworkDto} from '../../tvdbArtwork/dto/connect-tvdbArtwork.dto.js'
-import {CreateTvdbRemoteIdDto} from '../../tvdbRemoteId/dto/create-tvdbRemoteId.dto.js'
-import {ConnectTvdbRemoteIdDto} from '../../tvdbRemoteId/dto/connect-tvdbRemoteId.dto.js'
-import {CreateTvdbTrailerDto} from '../../tvdbTrailer/dto/create-tvdbTrailer.dto.js'
-import {ConnectTvdbTrailerDto} from '../../tvdbTrailer/dto/connect-tvdbTrailer.dto.js'
+import {ConnectTvdbStatusDto} from '../../tvdbStatus/dto/connect-tvdbStatus.dto'
+import {CreateTvdbAliasDto} from '../../tvdbAlias/dto/create-tvdbAlias.dto'
+import {ConnectTvdbAliasDto} from '../../tvdbAlias/dto/connect-tvdbAlias.dto'
+import {CreateTvdbArtworkDto} from '../../tvdbArtwork/dto/create-tvdbArtwork.dto'
+import {ConnectTvdbArtworkDto} from '../../tvdbArtwork/dto/connect-tvdbArtwork.dto'
+import {CreateTvdbRemoteIdDto} from '../../tvdbRemoteId/dto/create-tvdbRemoteId.dto'
+import {ConnectTvdbRemoteIdDto} from '../../tvdbRemoteId/dto/connect-tvdbRemoteId.dto'
+import {CreateTvdbTrailerDto} from '../../tvdbTrailer/dto/create-tvdbTrailer.dto'
+import {ConnectTvdbTrailerDto} from '../../tvdbTrailer/dto/connect-tvdbTrailer.dto'
 
 export class CreateTvdbStatusRelationInputDto {
     @ApiProperty({

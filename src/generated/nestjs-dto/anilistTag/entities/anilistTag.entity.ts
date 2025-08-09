@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnilistTagEdge} from '../../anilistTagEdge/entities/anilistTagEdge.entity.js'
+import {AnilistTagEdge} from '../../anilistTagEdge/entities/anilistTagEdge.entity'
 
 
 export class AnilistTag {
@@ -35,7 +35,7 @@ isGeneralSpoiler: boolean  | null;
 })
 isAdult: boolean  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistTagEdge,
   isArray: true,
   required: false,
 })

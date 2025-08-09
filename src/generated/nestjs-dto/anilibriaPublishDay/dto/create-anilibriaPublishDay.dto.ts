@@ -1,6 +1,6 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectAnilibriaDto} from '../../anilibria/dto/connect-anilibria.dto.js'
+import {ConnectAnilibriaDto} from '../../anilibria/dto/connect-anilibria.dto'
 
 export class CreateAnilibriaPublishDayAnilibriaRelationInputDto {
     @ApiProperty({

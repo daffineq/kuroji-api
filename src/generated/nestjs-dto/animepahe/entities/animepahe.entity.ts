@@ -1,8 +1,8 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnimepaheExternalLink} from '../../animepaheExternalLink/entities/animepaheExternalLink.entity.js'
-import {AnimepaheEpisode} from '../../animepaheEpisode/entities/animepaheEpisode.entity.js'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
+import {AnimepaheExternalLink} from '../../animepaheExternalLink/entities/animepaheExternalLink.entity'
+import {AnimepaheEpisode} from '../../animepaheEpisode/entities/animepaheEpisode.entity'
+import {Anilist} from '../../anilist/entities/anilist.entity'
 
 
 export class Animepahe {
@@ -43,7 +43,7 @@ updatedAt: number  | null;
 })
 hasSub: boolean  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnimepaheExternalLink,
   isArray: true,
   required: false,
 })
@@ -76,13 +76,13 @@ totalEpisodes: number  | null;
 })
 episodePages: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnimepaheEpisode,
   isArray: true,
   required: false,
 })
 episodes?: AnimepaheEpisode[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
   nullable: true,
 })

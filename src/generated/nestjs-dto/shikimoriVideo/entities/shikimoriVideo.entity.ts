@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Shikimori} from '../../shikimori/entities/shikimori.entity.js'
+import {Shikimori} from '../../shikimori/entities/shikimori.entity'
 
 
 export class ShikimoriVideo {
@@ -34,7 +34,7 @@ playerUrl: string  | null;
 })
 imageUrl: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Shikimori,
   isArray: true,
   required: false,
 })

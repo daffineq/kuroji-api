@@ -1,10 +1,10 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {TmdbNextEpisodeToAir} from '../../tmdbNextEpisodeToAir/entities/tmdbNextEpisodeToAir.entity.js'
-import {TmdbLastEpisodeToAir} from '../../tmdbLastEpisodeToAir/entities/tmdbLastEpisodeToAir.entity.js'
-import {TmdbReleaseSeason} from '../../tmdbReleaseSeason/entities/tmdbReleaseSeason.entity.js'
-import {TmdbSeason} from '../../tmdbSeason/entities/tmdbSeason.entity.js'
-import {TmdbSeasonEpisode} from '../../tmdbSeasonEpisode/entities/tmdbSeasonEpisode.entity.js'
+import {TmdbNextEpisodeToAir} from '../../tmdbNextEpisodeToAir/entities/tmdbNextEpisodeToAir.entity'
+import {TmdbLastEpisodeToAir} from '../../tmdbLastEpisodeToAir/entities/tmdbLastEpisodeToAir.entity'
+import {TmdbReleaseSeason} from '../../tmdbReleaseSeason/entities/tmdbReleaseSeason.entity'
+import {TmdbSeason} from '../../tmdbSeason/entities/tmdbSeason.entity'
+import {TmdbSeasonEpisode} from '../../tmdbSeasonEpisode/entities/tmdbSeasonEpisode.entity'
 
 
 export class Tmdb {
@@ -129,31 +129,31 @@ vote_average: number  | null;
 })
 vote_count: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => TmdbNextEpisodeToAir,
   required: false,
   nullable: true,
 })
 next_episode_to_air?: TmdbNextEpisodeToAir  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => TmdbLastEpisodeToAir,
   required: false,
   nullable: true,
 })
 last_episode_to_air?: TmdbLastEpisodeToAir  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => TmdbReleaseSeason,
   isArray: true,
   required: false,
 })
 seasons?: TmdbReleaseSeason[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => TmdbSeason,
   isArray: true,
   required: false,
 })
 episodeSeasons?: TmdbSeason[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => TmdbSeasonEpisode,
   isArray: true,
   required: false,
 })

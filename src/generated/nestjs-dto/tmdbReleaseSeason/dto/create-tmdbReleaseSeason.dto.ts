@@ -1,7 +1,7 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {CreateTmdbDto} from '../../tmdb/dto/create-tmdb.dto.js'
-import {ConnectTmdbDto} from '../../tmdb/dto/connect-tmdb.dto.js'
+import {CreateTmdbDto} from '../../tmdb/dto/create-tmdb.dto'
+import {ConnectTmdbDto} from '../../tmdb/dto/connect-tmdb.dto'
 
 export class CreateTmdbReleaseSeasonTmdbRelationInputDto {
     @ApiProperty({

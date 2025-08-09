@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
+import {Anilist} from '../../anilist/entities/anilist.entity'
 
 
 export class AnilistTitle {
@@ -30,7 +30,7 @@ english: string  | null;
 })
 native: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
 })
 anilist?: Anilist ;

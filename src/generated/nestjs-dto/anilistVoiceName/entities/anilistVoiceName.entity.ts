@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {VoiceActor} from '../../voiceActor/entities/voiceActor.entity.js'
+import {VoiceActor} from '../../voiceActor/entities/voiceActor.entity'
 
 
 export class AnilistVoiceName {
@@ -25,7 +25,7 @@ native: string  | null;
 })
 alternative: string[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => VoiceActor,
   required: false,
   nullable: true,
 })

@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AniZipEpisode} from '../../aniZipEpisode/entities/aniZipEpisode.entity.js'
+import {AniZipEpisode} from '../../aniZipEpisode/entities/aniZipEpisode.entity'
 
 
 export class AniZipEpisodeTitle {
@@ -22,7 +22,7 @@ name: string  | null;
 })
 episodeId: string ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AniZipEpisode,
   required: false,
 })
 episode?: AniZipEpisode ;

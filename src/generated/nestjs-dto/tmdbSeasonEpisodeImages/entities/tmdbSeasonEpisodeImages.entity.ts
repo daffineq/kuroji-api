@@ -1,7 +1,7 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {TmdbSeasonStillImage} from '../../tmdbSeasonStillImage/entities/tmdbSeasonStillImage.entity.js'
-import {TmdbSeasonEpisode} from '../../tmdbSeasonEpisode/entities/tmdbSeasonEpisode.entity.js'
+import {TmdbSeasonStillImage} from '../../tmdbSeasonStillImage/entities/tmdbSeasonStillImage.entity'
+import {TmdbSeasonEpisode} from '../../tmdbSeasonEpisode/entities/tmdbSeasonEpisode.entity'
 
 
 export class TmdbSeasonEpisodeImages {
@@ -16,13 +16,13 @@ id: number ;
 })
 episodeId: number ;
 @ApiProperty({
-  type: () => Object,
+  type: () => TmdbSeasonStillImage,
   isArray: true,
   required: false,
 })
 stills?: TmdbSeasonStillImage[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => TmdbSeasonEpisode,
   required: false,
 })
 episode?: TmdbSeasonEpisode ;

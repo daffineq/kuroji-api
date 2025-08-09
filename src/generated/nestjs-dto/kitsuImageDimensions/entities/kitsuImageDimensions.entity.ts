@@ -1,8 +1,8 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {KitsuDimension} from '../../kitsuDimension/entities/kitsuDimension.entity.js'
-import {KitsuPosterImage} from '../../kitsuPosterImage/entities/kitsuPosterImage.entity.js'
-import {KitsuCoverImage} from '../../kitsuCoverImage/entities/kitsuCoverImage.entity.js'
+import {KitsuDimension} from '../../kitsuDimension/entities/kitsuDimension.entity'
+import {KitsuPosterImage} from '../../kitsuPosterImage/entities/kitsuPosterImage.entity'
+import {KitsuCoverImage} from '../../kitsuCoverImage/entities/kitsuCoverImage.entity'
 
 
 export class KitsuImageDimensions {
@@ -11,25 +11,25 @@ export class KitsuImageDimensions {
 })
 id: string ;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuDimension,
   required: false,
   nullable: true,
 })
 tiny?: KitsuDimension  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuDimension,
   required: false,
   nullable: true,
 })
 small?: KitsuDimension  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuDimension,
   required: false,
   nullable: true,
 })
 medium?: KitsuDimension  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuDimension,
   required: false,
   nullable: true,
 })
@@ -45,13 +45,13 @@ posterImageId: string  | null;
 })
 coverImageId: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuPosterImage,
   required: false,
   nullable: true,
 })
 posterImage?: KitsuPosterImage  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => KitsuCoverImage,
   required: false,
   nullable: true,
 })

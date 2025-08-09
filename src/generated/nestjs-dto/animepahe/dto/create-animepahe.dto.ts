@@ -1,10 +1,10 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {CreateAnimepaheExternalLinkDto} from '../../animepaheExternalLink/dto/create-animepaheExternalLink.dto.js'
-import {ConnectAnimepaheExternalLinkDto} from '../../animepaheExternalLink/dto/connect-animepaheExternalLink.dto.js'
-import {CreateAnimepaheEpisodeDto} from '../../animepaheEpisode/dto/create-animepaheEpisode.dto.js'
-import {ConnectAnimepaheEpisodeDto} from '../../animepaheEpisode/dto/connect-animepaheEpisode.dto.js'
-import {ConnectAnilistDto} from '../../anilist/dto/connect-anilist.dto.js'
+import {CreateAnimepaheExternalLinkDto} from '../../animepaheExternalLink/dto/create-animepaheExternalLink.dto'
+import {ConnectAnimepaheExternalLinkDto} from '../../animepaheExternalLink/dto/connect-animepaheExternalLink.dto'
+import {CreateAnimepaheEpisodeDto} from '../../animepaheEpisode/dto/create-animepaheEpisode.dto'
+import {ConnectAnimepaheEpisodeDto} from '../../animepaheEpisode/dto/connect-animepaheEpisode.dto'
+import {ConnectAnilistDto} from '../../anilist/dto/connect-anilist.dto'
 
 export class CreateAnimepaheExternalLinksRelationInputDto {
     @ApiProperty({

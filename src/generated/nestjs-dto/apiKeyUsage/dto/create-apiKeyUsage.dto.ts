@@ -1,6 +1,6 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectApiKeyDto} from '../../apiKey/dto/connect-apiKey.dto.js'
+import {ConnectApiKeyDto} from '../../apiKey/dto/connect-apiKey.dto'
 
 export class CreateApiKeyUsageApiKeyRelationInputDto {
     @ApiProperty({

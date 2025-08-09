@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {TmdbSeasonEpisodeImages} from '../../tmdbSeasonEpisodeImages/entities/tmdbSeasonEpisodeImages.entity.js'
+import {TmdbSeasonEpisodeImages} from '../../tmdbSeasonEpisodeImages/entities/tmdbSeasonEpisodeImages.entity'
 
 
 export class TmdbSeasonStillImage {
@@ -50,7 +50,7 @@ vote_average: number  | null;
 })
 vote_count: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => TmdbSeasonEpisodeImages,
   required: false,
 })
 tmdbEpisodeImages?: TmdbSeasonEpisodeImages ;

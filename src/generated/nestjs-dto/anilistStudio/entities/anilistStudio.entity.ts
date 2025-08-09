@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnilistStudioEdge} from '../../anilistStudioEdge/entities/anilistStudioEdge.entity.js'
+import {AnilistStudioEdge} from '../../anilistStudioEdge/entities/anilistStudioEdge.entity'
 
 
 export class AnilistStudio {
@@ -15,7 +15,7 @@ id: number ;
 })
 name: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistStudioEdge,
   isArray: true,
   required: false,
 })

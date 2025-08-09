@@ -438,9 +438,16 @@ export class StreamService {
       };
 
       if (Config.ZORO_ENABLED && zoro) {
-        const zoroEp = zoro.episodes?.find(
-          (e: EpisodeZoro, idx: number) => e.number === ep || idx + 1 === ep,
-        );
+        const zoroEp = zoro.episodes
+          ?.sort((a, b) => {
+            if (a.number === null && b.number === null) return 0;
+            if (a.number === null) return 1;
+            if (b.number === null) return -1;
+            return a.number - b.number;
+          })
+          ?.find(
+            (e: EpisodeZoro, idx: number) => e.number === ep || idx + 1 === ep,
+          );
         if (zoroEp) {
           const { id, isFiller, isSubbed, isDubbed } = zoroEp;
           if (isSubbed)
@@ -463,10 +470,17 @@ export class StreamService {
       }
 
       if (Config.ANIMEPAHE_ENABLED && animepahe) {
-        const paheEp = animepahe.episodes?.find(
-          (e: AnimepaheEpisode, idx: number) =>
-            e.number === ep || idx + 1 === ep,
-        );
+        const paheEp = animepahe.episodes
+          ?.sort((a, b) => {
+            if (a.number === null && b.number === null) return 0;
+            if (a.number === null) return 1;
+            if (b.number === null) return -1;
+            return a.number - b.number;
+          })
+          ?.find(
+            (e: AnimepaheEpisode, idx: number) =>
+              e.number === ep || idx + 1 === ep,
+          );
         if (paheEp) {
           pushProvider(
             paheEp.id,
@@ -479,10 +493,17 @@ export class StreamService {
       }
 
       if (Config.ANIMEKAI_ENABLED && animekai) {
-        const kaiEp = animekai.episodes?.find(
-          (e: AnimekaiEpisode, idx: number) =>
-            e.number === ep || idx + 1 === ep,
-        );
+        const kaiEp = animekai.episodes
+          ?.sort((a, b) => {
+            if (a.number === null && b.number === null) return 0;
+            if (a.number === null) return 1;
+            if (b.number === null) return -1;
+            return a.number - b.number;
+          })
+          ?.find(
+            (e: AnimekaiEpisode, idx: number) =>
+              e.number === ep || idx + 1 === ep,
+          );
         if (kaiEp) {
           const { id, isFiller, isSubbed, isDubbed } = kaiEp;
           if (isSubbed)
@@ -505,10 +526,17 @@ export class StreamService {
       }
 
       if (anilibria) {
-        const anilibriaEp = anilibria.episodes?.find(
-          (e: EpisodePayload, idx: number) =>
-            e.ordinal === ep || idx + 1 === ep,
-        );
+        const anilibriaEp = anilibria.episodes
+          ?.sort((a, b) => {
+            if (a.ordinal === null && b.ordinal === null) return 0;
+            if (a.ordinal === null) return 1;
+            if (b.ordinal === null) return -1;
+            return a.ordinal - b.ordinal;
+          })
+          ?.find(
+            (e: EpisodePayload, idx: number) =>
+              e.ordinal === ep || idx + 1 === ep,
+          );
         if (anilibriaEp) {
           pushProvider(
             anilibriaEp.id,

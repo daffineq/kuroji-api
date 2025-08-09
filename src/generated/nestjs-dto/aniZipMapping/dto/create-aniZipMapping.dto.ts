@@ -1,6 +1,6 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectAniZipDto} from '../../aniZip/dto/connect-aniZip.dto.js'
+import {ConnectAniZipDto} from '../../aniZip/dto/connect-aniZip.dto'
 
 export class CreateAniZipMappingAniZipRelationInputDto {
     @ApiProperty({

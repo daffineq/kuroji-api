@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
+import {Anilist} from '../../anilist/entities/anilist.entity'
 
 
 export class AnilistTrailer {
@@ -24,7 +24,7 @@ site: string  | null;
 })
 thumbnail: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
 })
 anilist?: Anilist ;

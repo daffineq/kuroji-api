@@ -1,30 +1,30 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnilistTitle} from '../../anilistTitle/entities/anilistTitle.entity.js'
-import {AnilistCover} from '../../anilistCover/entities/anilistCover.entity.js'
-import {StartDate} from '../../startDate/entities/startDate.entity.js'
-import {EndDate} from '../../endDate/entities/endDate.entity.js'
-import {AnilistTrailer} from '../../anilistTrailer/entities/anilistTrailer.entity.js'
-import {AnilistLatestEpisode} from '../../anilistLatestEpisode/entities/anilistLatestEpisode.entity.js'
-import {AnilistNextEpisode} from '../../anilistNextEpisode/entities/anilistNextEpisode.entity.js'
-import {AnilistLastEpisode} from '../../anilistLastEpisode/entities/anilistLastEpisode.entity.js'
-import {BasicIdAni} from '../../basicIdAni/entities/basicIdAni.entity.js'
-import {AnilistCharacterEdge} from '../../anilistCharacterEdge/entities/anilistCharacterEdge.entity.js'
-import {AnilistStudioEdge} from '../../anilistStudioEdge/entities/anilistStudioEdge.entity.js'
-import {AnilistAiringSchedule} from '../../anilistAiringSchedule/entities/anilistAiringSchedule.entity.js'
-import {AnilistTagEdge} from '../../anilistTagEdge/entities/anilistTagEdge.entity.js'
-import {AnilistRanking} from '../../anilistRanking/entities/anilistRanking.entity.js'
-import {AnilistExternalLink} from '../../anilistExternalLink/entities/anilistExternalLink.entity.js'
-import {AnilistStreamingEpisode} from '../../anilistStreamingEpisode/entities/anilistStreamingEpisode.entity.js'
-import {AnilistScoreDistribution} from '../../anilistScoreDistribution/entities/anilistScoreDistribution.entity.js'
-import {AnilistStatusDistribution} from '../../anilistStatusDistribution/entities/anilistStatusDistribution.entity.js'
-import {Anilibria} from '../../anilibria/entities/anilibria.entity.js'
-import {Animepahe} from '../../animepahe/entities/animepahe.entity.js'
-import {AnimeKai} from '../../animeKai/entities/animeKai.entity.js'
-import {Zoro} from '../../zoro/entities/zoro.entity.js'
-import {Shikimori} from '../../shikimori/entities/shikimori.entity.js'
-import {Kitsu} from '../../kitsu/entities/kitsu.entity.js'
-import {AniZip} from '../../aniZip/entities/aniZip.entity.js'
+import {AnilistTitle} from '../../anilistTitle/entities/anilistTitle.entity'
+import {AnilistCover} from '../../anilistCover/entities/anilistCover.entity'
+import {StartDate} from '../../startDate/entities/startDate.entity'
+import {EndDate} from '../../endDate/entities/endDate.entity'
+import {AnilistTrailer} from '../../anilistTrailer/entities/anilistTrailer.entity'
+import {AnilistLatestEpisode} from '../../anilistLatestEpisode/entities/anilistLatestEpisode.entity'
+import {AnilistNextEpisode} from '../../anilistNextEpisode/entities/anilistNextEpisode.entity'
+import {AnilistLastEpisode} from '../../anilistLastEpisode/entities/anilistLastEpisode.entity'
+import {BasicIdAni} from '../../basicIdAni/entities/basicIdAni.entity'
+import {AnilistCharacterEdge} from '../../anilistCharacterEdge/entities/anilistCharacterEdge.entity'
+import {AnilistStudioEdge} from '../../anilistStudioEdge/entities/anilistStudioEdge.entity'
+import {AnilistAiringSchedule} from '../../anilistAiringSchedule/entities/anilistAiringSchedule.entity'
+import {AnilistTagEdge} from '../../anilistTagEdge/entities/anilistTagEdge.entity'
+import {AnilistRanking} from '../../anilistRanking/entities/anilistRanking.entity'
+import {AnilistExternalLink} from '../../anilistExternalLink/entities/anilistExternalLink.entity'
+import {AnilistStreamingEpisode} from '../../anilistStreamingEpisode/entities/anilistStreamingEpisode.entity'
+import {AnilistScoreDistribution} from '../../anilistScoreDistribution/entities/anilistScoreDistribution.entity'
+import {AnilistStatusDistribution} from '../../anilistStatusDistribution/entities/anilistStatusDistribution.entity'
+import {Anilibria} from '../../anilibria/entities/anilibria.entity'
+import {Animepahe} from '../../animepahe/entities/animepahe.entity'
+import {AnimeKai} from '../../animeKai/entities/animeKai.entity'
+import {Zoro} from '../../zoro/entities/zoro.entity'
+import {Shikimori} from '../../shikimori/entities/shikimori.entity'
+import {Kitsu} from '../../kitsu/entities/kitsu.entity'
+import {AniZip} from '../../aniZip/entities/aniZip.entity'
 
 
 export class Anilist {
@@ -40,7 +40,7 @@ id: number ;
 })
 idMal: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistTitle,
   required: false,
   nullable: true,
 })
@@ -66,7 +66,7 @@ type: string  | null;
 })
 format: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistCover,
   required: false,
   nullable: true,
 })
@@ -83,13 +83,13 @@ updatedAt: number  | null;
 })
 description: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => StartDate,
   required: false,
   nullable: true,
 })
 startDate?: StartDate  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => EndDate,
   required: false,
   nullable: true,
 })
@@ -194,127 +194,127 @@ genres: string[] ;
 })
 synonyms: string[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistTrailer,
   required: false,
   nullable: true,
 })
 trailer?: AnilistTrailer  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistLatestEpisode,
   required: false,
   nullable: true,
 })
 latestAiringEpisode?: AnilistLatestEpisode  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistNextEpisode,
   required: false,
   nullable: true,
 })
 nextAiringEpisode?: AnilistNextEpisode  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistLastEpisode,
   required: false,
   nullable: true,
 })
 lastAiringEpisode?: AnilistLastEpisode  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => BasicIdAni,
   isArray: true,
   required: false,
 })
 recommendations?: BasicIdAni[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistCharacterEdge,
   isArray: true,
   required: false,
 })
 characters?: AnilistCharacterEdge[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistStudioEdge,
   isArray: true,
   required: false,
 })
 studios?: AnilistStudioEdge[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistAiringSchedule,
   isArray: true,
   required: false,
 })
 airingSchedule?: AnilistAiringSchedule[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistTagEdge,
   isArray: true,
   required: false,
 })
 tags?: AnilistTagEdge[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistRanking,
   isArray: true,
   required: false,
 })
 rankings?: AnilistRanking[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistExternalLink,
   isArray: true,
   required: false,
 })
 externalLinks?: AnilistExternalLink[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistStreamingEpisode,
   isArray: true,
   required: false,
 })
 streamingEpisodes?: AnilistStreamingEpisode[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistScoreDistribution,
   isArray: true,
   required: false,
 })
 scoreDistribution?: AnilistScoreDistribution[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistStatusDistribution,
   isArray: true,
   required: false,
 })
 statusDistribution?: AnilistStatusDistribution[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilibria,
   required: false,
   nullable: true,
 })
 anilibria?: Anilibria  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Animepahe,
   required: false,
   nullable: true,
 })
 animepahe?: Animepahe  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnimeKai,
   required: false,
   nullable: true,
 })
 animekai?: AnimeKai  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Zoro,
   required: false,
   nullable: true,
 })
 zoro?: Zoro  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Shikimori,
   required: false,
   nullable: true,
 })
 shikimori?: Shikimori  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Kitsu,
   required: false,
   nullable: true,
 })
 kitsu?: Kitsu  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AniZip,
   required: false,
   nullable: true,
 })

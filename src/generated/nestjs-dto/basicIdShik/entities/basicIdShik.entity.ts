@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Shikimori} from '../../shikimori/entities/shikimori.entity.js'
+import {Shikimori} from '../../shikimori/entities/shikimori.entity'
 
 
 export class BasicIdShik {
@@ -14,7 +14,7 @@ id: string ;
 })
 malId: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Shikimori,
   isArray: true,
   required: false,
 })

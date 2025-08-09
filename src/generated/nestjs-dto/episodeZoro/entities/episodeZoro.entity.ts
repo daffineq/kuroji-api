@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Zoro} from '../../zoro/entities/zoro.entity.js'
+import {Zoro} from '../../zoro/entities/zoro.entity'
 
 
 export class EpisodeZoro {
@@ -40,7 +40,7 @@ isDubbed: boolean  | null;
 })
 url: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Zoro,
   isArray: true,
   required: false,
 })

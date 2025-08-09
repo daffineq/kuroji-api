@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {ApiKey} from '../../apiKey/entities/apiKey.entity.js'
+import {ApiKey} from '../../apiKey/entities/apiKey.entity'
 
 
 export class ApiKeyUsage {
@@ -41,7 +41,7 @@ ip: string  | null;
 })
 usedAt: Date ;
 @ApiProperty({
-  type: () => Object,
+  type: () => ApiKey,
   required: false,
 })
 apiKey?: ApiKey ;

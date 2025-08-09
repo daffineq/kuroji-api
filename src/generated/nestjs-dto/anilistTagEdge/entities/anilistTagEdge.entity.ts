@@ -1,7 +1,7 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
-import {AnilistTag} from '../../anilistTag/entities/anilistTag.entity.js'
+import {Anilist} from '../../anilist/entities/anilist.entity'
+import {AnilistTag} from '../../anilistTag/entities/anilistTag.entity'
 
 
 export class AnilistTagEdge {
@@ -32,12 +32,12 @@ rank: number  | null;
 })
 isMediaSpoiler: boolean  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
 })
 anilist?: Anilist ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistTag,
   required: false,
 })
 tag?: AnilistTag ;

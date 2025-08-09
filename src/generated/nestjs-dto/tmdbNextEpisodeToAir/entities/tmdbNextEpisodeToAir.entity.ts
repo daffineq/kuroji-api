@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Tmdb} from '../../tmdb/entities/tmdb.entity.js'
+import {Tmdb} from '../../tmdb/entities/tmdb.entity'
 
 
 export class TmdbNextEpisodeToAir {
@@ -76,7 +76,7 @@ show_id: number  | null;
 })
 still_path: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Tmdb,
   required: false,
   nullable: true,
 })

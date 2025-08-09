@@ -1,15 +1,15 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectShikimoriPosterDto} from '../../shikimoriPoster/dto/connect-shikimoriPoster.dto.js'
-import {ConnectAiredOnDto} from '../../airedOn/dto/connect-airedOn.dto.js'
-import {ConnectReleasedOnDto} from '../../releasedOn/dto/connect-releasedOn.dto.js'
-import {CreateBasicIdShikDto} from '../../basicIdShik/dto/create-basicIdShik.dto.js'
-import {ConnectBasicIdShikDto} from '../../basicIdShik/dto/connect-basicIdShik.dto.js'
-import {CreateShikimoriVideoDto} from '../../shikimoriVideo/dto/create-shikimoriVideo.dto.js'
-import {ConnectShikimoriVideoDto} from '../../shikimoriVideo/dto/connect-shikimoriVideo.dto.js'
-import {CreateShikimoriScreenshotDto} from '../../shikimoriScreenshot/dto/create-shikimoriScreenshot.dto.js'
-import {ConnectShikimoriScreenshotDto} from '../../shikimoriScreenshot/dto/connect-shikimoriScreenshot.dto.js'
-import {ConnectAnilistDto} from '../../anilist/dto/connect-anilist.dto.js'
+import {ConnectShikimoriPosterDto} from '../../shikimoriPoster/dto/connect-shikimoriPoster.dto'
+import {ConnectAiredOnDto} from '../../airedOn/dto/connect-airedOn.dto'
+import {ConnectReleasedOnDto} from '../../releasedOn/dto/connect-releasedOn.dto'
+import {CreateBasicIdShikDto} from '../../basicIdShik/dto/create-basicIdShik.dto'
+import {ConnectBasicIdShikDto} from '../../basicIdShik/dto/connect-basicIdShik.dto'
+import {CreateShikimoriVideoDto} from '../../shikimoriVideo/dto/create-shikimoriVideo.dto'
+import {ConnectShikimoriVideoDto} from '../../shikimoriVideo/dto/connect-shikimoriVideo.dto'
+import {CreateShikimoriScreenshotDto} from '../../shikimoriScreenshot/dto/create-shikimoriScreenshot.dto'
+import {ConnectShikimoriScreenshotDto} from '../../shikimoriScreenshot/dto/connect-shikimoriScreenshot.dto'
+import {ConnectAnilistDto} from '../../anilist/dto/connect-anilist.dto'
 
 export class CreateShikimoriPosterRelationInputDto {
     @ApiProperty({

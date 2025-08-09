@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
+import {Anilist} from '../../anilist/entities/anilist.entity'
 
 
 export class AnilistStatusDistribution {
@@ -24,7 +24,7 @@ amount: number ;
 })
 anilistId: number ;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
 })
 anilist?: Anilist ;

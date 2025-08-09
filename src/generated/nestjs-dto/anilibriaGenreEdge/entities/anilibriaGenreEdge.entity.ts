@@ -1,7 +1,7 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Anilibria} from '../../anilibria/entities/anilibria.entity.js'
-import {AnilibriaGenre} from '../../anilibriaGenre/entities/anilibriaGenre.entity.js'
+import {Anilibria} from '../../anilibria/entities/anilibria.entity'
+import {AnilibriaGenre} from '../../anilibriaGenre/entities/anilibriaGenre.entity'
 
 
 export class AnilibriaGenreEdge {
@@ -27,12 +27,12 @@ genreId: number ;
 })
 total_releases: number  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilibria,
   required: false,
 })
 anilibria?: Anilibria ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilibriaGenre,
   required: false,
 })
 genre?: AnilibriaGenre ;

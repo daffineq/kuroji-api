@@ -1,6 +1,6 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectKitsuDto} from '../../kitsu/dto/connect-kitsu.dto.js'
+import {ConnectKitsuDto} from '../../kitsu/dto/connect-kitsu.dto'
 
 export class CreateKitsuAnimeProductionsKitsuRelationInputDto {
     @ApiProperty({

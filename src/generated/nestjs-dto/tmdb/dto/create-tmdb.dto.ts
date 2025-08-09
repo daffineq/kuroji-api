@@ -1,13 +1,13 @@
 
 import {ApiExtraModels,ApiProperty} from '@nestjs/swagger'
-import {ConnectTmdbNextEpisodeToAirDto} from '../../tmdbNextEpisodeToAir/dto/connect-tmdbNextEpisodeToAir.dto.js'
-import {ConnectTmdbLastEpisodeToAirDto} from '../../tmdbLastEpisodeToAir/dto/connect-tmdbLastEpisodeToAir.dto.js'
-import {CreateTmdbReleaseSeasonDto} from '../../tmdbReleaseSeason/dto/create-tmdbReleaseSeason.dto.js'
-import {ConnectTmdbReleaseSeasonDto} from '../../tmdbReleaseSeason/dto/connect-tmdbReleaseSeason.dto.js'
-import {CreateTmdbSeasonDto} from '../../tmdbSeason/dto/create-tmdbSeason.dto.js'
-import {ConnectTmdbSeasonDto} from '../../tmdbSeason/dto/connect-tmdbSeason.dto.js'
-import {CreateTmdbSeasonEpisodeDto} from '../../tmdbSeasonEpisode/dto/create-tmdbSeasonEpisode.dto.js'
-import {ConnectTmdbSeasonEpisodeDto} from '../../tmdbSeasonEpisode/dto/connect-tmdbSeasonEpisode.dto.js'
+import {ConnectTmdbNextEpisodeToAirDto} from '../../tmdbNextEpisodeToAir/dto/connect-tmdbNextEpisodeToAir.dto'
+import {ConnectTmdbLastEpisodeToAirDto} from '../../tmdbLastEpisodeToAir/dto/connect-tmdbLastEpisodeToAir.dto'
+import {CreateTmdbReleaseSeasonDto} from '../../tmdbReleaseSeason/dto/create-tmdbReleaseSeason.dto'
+import {ConnectTmdbReleaseSeasonDto} from '../../tmdbReleaseSeason/dto/connect-tmdbReleaseSeason.dto'
+import {CreateTmdbSeasonDto} from '../../tmdbSeason/dto/create-tmdbSeason.dto'
+import {ConnectTmdbSeasonDto} from '../../tmdbSeason/dto/connect-tmdbSeason.dto'
+import {CreateTmdbSeasonEpisodeDto} from '../../tmdbSeasonEpisode/dto/create-tmdbSeasonEpisode.dto'
+import {ConnectTmdbSeasonEpisodeDto} from '../../tmdbSeasonEpisode/dto/connect-tmdbSeasonEpisode.dto'
 
 export class CreateTmdbNextEpisodeToAirRelationInputDto {
     @ApiProperty({

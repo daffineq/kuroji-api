@@ -1,6 +1,6 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {AnilistCharacter} from '../../anilistCharacter/entities/anilistCharacter.entity.js'
+import {AnilistCharacter} from '../../anilistCharacter/entities/anilistCharacter.entity'
 
 
 export class AnilistCharacterImage {
@@ -20,7 +20,7 @@ large: string  | null;
 })
 medium: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistCharacter,
   required: false,
   nullable: true,
 })

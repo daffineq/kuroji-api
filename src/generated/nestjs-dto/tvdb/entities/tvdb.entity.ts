@@ -1,10 +1,10 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {TvdbStatus} from '../../tvdbStatus/entities/tvdbStatus.entity.js'
-import {TvdbAlias} from '../../tvdbAlias/entities/tvdbAlias.entity.js'
-import {TvdbArtwork} from '../../tvdbArtwork/entities/tvdbArtwork.entity.js'
-import {TvdbRemoteId} from '../../tvdbRemoteId/entities/tvdbRemoteId.entity.js'
-import {TvdbTrailer} from '../../tvdbTrailer/entities/tvdbTrailer.entity.js'
+import {TvdbStatus} from '../../tvdbStatus/entities/tvdbStatus.entity'
+import {TvdbAlias} from '../../tvdbAlias/entities/tvdbAlias.entity'
+import {TvdbArtwork} from '../../tvdbArtwork/entities/tvdbArtwork.entity'
+import {TvdbRemoteId} from '../../tvdbRemoteId/entities/tvdbRemoteId.entity'
+import {TvdbTrailer} from '../../tvdbTrailer/entities/tvdbTrailer.entity'
 
 
 export class Tvdb {
@@ -66,31 +66,31 @@ nameTranslations: string[] ;
 })
 overviewTranslations: string[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => TvdbStatus,
   required: false,
   nullable: true,
 })
 status?: TvdbStatus  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => TvdbAlias,
   isArray: true,
   required: false,
 })
 aliases?: TvdbAlias[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => TvdbArtwork,
   isArray: true,
   required: false,
 })
 artworks?: TvdbArtwork[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => TvdbRemoteId,
   isArray: true,
   required: false,
 })
 remoteIds?: TvdbRemoteId[] ;
 @ApiProperty({
-  type: () => Object,
+  type: () => TvdbTrailer,
   isArray: true,
   required: false,
 })

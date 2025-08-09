@@ -1,8 +1,8 @@
 
 import {ApiProperty} from '@nestjs/swagger'
-import {Anilist} from '../../anilist/entities/anilist.entity.js'
-import {AnilistCharacter} from '../../anilistCharacter/entities/anilistCharacter.entity.js'
-import {VoiceActor} from '../../voiceActor/entities/voiceActor.entity.js'
+import {Anilist} from '../../anilist/entities/anilist.entity'
+import {AnilistCharacter} from '../../anilistCharacter/entities/anilistCharacter.entity'
+import {VoiceActor} from '../../voiceActor/entities/voiceActor.entity'
 
 
 export class AnilistCharacterEdge {
@@ -27,17 +27,17 @@ characterId: number ;
 })
 role: string  | null;
 @ApiProperty({
-  type: () => Object,
+  type: () => Anilist,
   required: false,
 })
 anilist?: Anilist ;
 @ApiProperty({
-  type: () => Object,
+  type: () => AnilistCharacter,
   required: false,
 })
 character?: AnilistCharacter ;
 @ApiProperty({
-  type: () => Object,
+  type: () => VoiceActor,
   isArray: true,
   required: false,
 })
