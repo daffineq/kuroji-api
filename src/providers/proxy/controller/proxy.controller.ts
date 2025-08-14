@@ -13,22 +13,58 @@ export class ProxyController {
 
   @Get()
   @ApiOperation({
-    summary:
-      "Proxy stream requests (e.g., .m3u8, .ts) (the id doesn't matter at all)",
+    summary: 'Proxy stream requests (e.g., .m3u8, .ts)',
   })
   @ApiQuery({ name: 'url', required: true, description: 'CDN resource URL' })
+  @ApiQuery({
+    name: 'headers',
+    required: false,
+    description: 'JSON string of custom headers',
+  })
+  @ApiQuery({
+    name: 'origin',
+    required: false,
+    description: 'Origin header value',
+  })
   @IgnoreThrottler()
-  async proxyStream(@Query('url') url: string, @Res() res: Response) {
+  async proxyStream(
+    @Res() res: Response,
+    @Query('url') url: string,
+    @Query('headers') headers?: string,
+    @Query('origin') origin?: string,
+  ) {
     if (!url || !url.startsWith('http')) {
       res.status(400).json({ message: 'Invalid URL' });
       return;
     }
 
-    try {
-      const { content, headers, isStream } =
-        await this.proxyService.fetchProxiedStream(url);
+    let customHeaders: Record<string, string> = {};
+    if (headers) {
+      try {
+        customHeaders = JSON.parse(decodeURIComponent(headers)) as Record<
+          string,
+          string
+        >;
+      } catch {
+        res
+          .status(400)
+          .json({ message: 'Invalid headers format. Must be valid JSON.' });
+        return;
+      }
+    }
 
-      Object.entries(headers).forEach(([key, value]) => {
+    if (origin) {
+      customHeaders['Origin'] = origin;
+    }
+
+    try {
+      const {
+        content,
+        headers: responseHeaders,
+        isStream,
+      } = await this.proxyService.fetchProxiedStream(url, customHeaders);
+
+      Object.entries(responseHeaders).forEach(([key, value]) => {
         if (value !== undefined) {
           res.setHeader(key, value);
         }

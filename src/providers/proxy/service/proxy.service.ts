@@ -11,13 +11,20 @@ const httpAgent = new http.Agent({ keepAlive: true });
 const httpsAgent = new https.Agent({ keepAlive: true });
 
 export class ProxyService {
-  async fetchProxiedStream(url: string): Promise<{
+  async fetchProxiedStream(
+    url: string,
+    customHeaders: Record<string, string> = {},
+  ): Promise<{
     content: Buffer | Readable;
     headers: Record<string, string | undefined>;
     isStream: boolean;
   }> {
+    // Merging the headers, custom headers take priority
+    const providerHeaders = this.getHeaders(url);
+    const mergedHeaders = { ...providerHeaders, ...customHeaders };
+
     const response = await axios.get<Readable>(url, {
-      headers: this.getHeaders(url),
+      headers: mergedHeaders,
       responseType: 'stream',
       decompress: false,
       timeout: 10000,
@@ -26,6 +33,7 @@ export class ProxyService {
       httpsAgent,
     });
 
+    // Response headers
     const headers = response.headers as Record<string, string | undefined>;
     const contentType = headers['content-type'] || '';
 
