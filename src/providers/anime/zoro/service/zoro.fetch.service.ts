@@ -64,7 +64,7 @@ export class ZoroFetchService extends Client {
       outro: streamingLink.outro,
       sources: [
         {
-          url: `${UrlConfig.PROXY_URL}${streamingLink.link.file}`,
+          url: streamingLink.link.file,
           isM3U8: streamingLink.link.type === 'hls',
           type: streamingLink.link.type,
         },

@@ -26,11 +26,6 @@ export class AnimekaiFetchService extends Client {
       throw new Error('Data is null');
     }
 
-    data.sources = data.sources.map((s) => ({
-      ...s,
-      url: s.isM3U8 ? `${UrlConfig.PROXY_URL}${s.url}` : s.url,
-    }));
-
     return data;
   }
 
