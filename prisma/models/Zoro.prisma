@@ -2,40 +2,74 @@ model Zoro {
   /// @DtoReadOnly
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
-  id            String        @id
-  title         String?
-  malID         Int?
-  alID          Int?          @unique
-  japaneseTitle String?
-  image         String?
+  id    String @id
+  idMal Int? // Changed to match JSON
+  idAl  Int?   @unique // Changed to match JSON
+
+  // Title object fields
+  titleEnglish String? // title.english
+  titleRomaji  String? // title.romaji
+
+  synonyms      String[] // Array of synonyms
   description   String?
-  type          String?
-  url           String?
-  updatedAt     Int?
-  subOrDub      String?
-  hasSub        Boolean?
-  hasDub        Boolean?
-  status        String?
-  season        String?
-  totalEpisodes Int?
+  image         String?
+  airedEpisodes Int?
+
+  updatedAt Int @default(0)
+
+  // Metadata fields (merged from metadata object)
+  year      Int?
+  score     Float?
+  season    String? // metadata.season
+  rating    String?
+  type      String?
+  subCount  Int?
+  dubCount  Int?
+  adult     Boolean?
+  startDate String?
+  endDate   String?
+  duration  String?
+  genres    String[]
+  studios   String[]
+  producers String[]
+
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
-  episodes      EpisodeZoro[] @relation("EpisodeZoro")
+  episodes ZoroEpisode[] @relation("ZoroEpisode")
+  /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
-  anilist Anilist? @relation(fields: [alID], references: [id])
+  seasons  ZoroSeason[]  @relation("ZoroSeason")
+  /// @DtoRelationCanConnectOnCreate
+  anilist  Anilist?      @relation(fields: [idAl], references: [id])
 }
 
-model EpisodeZoro {
+model ZoroEpisode {
   /// @DtoReadOnly
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
-  id       String   @id
-  number   Int?
+  id       Int      @id
   title    String?
+  number   Int?
   isFiller Boolean?
-  isSubbed Boolean?
-  isDubbed Boolean?
-  url      String?
+
+  // Episode metadata (merged from metadata object)
+  titleJp String? // metadata.title_jp
+
   /// @DtoRelationCanConnectOnCreate
-  zoro Zoro[] @relation("EpisodeZoro")
+  zoro Zoro[] @relation("ZoroEpisode")
+}
+
+model ZoroSeason {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
+  id         String  @id
+  dataNumber Int? // data_number
+  dataId     Int? // data_id
+  season     String?
+  title      String?
+  image      String?
+
+  /// @DtoRelationCanConnectOnCreate
+  zoro Zoro[] @relation("ZoroSeason")
 }

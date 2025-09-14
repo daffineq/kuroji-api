@@ -22,9 +22,6 @@ model AniZip {
   /// @DtoRelationCanConnectOnCreate
   mappings AniZipMapping?
 
-  /// @DtoRelationCanConnectOnCreate
-  anilist Anilist? @relation(fields: [id], references: [id])
-
   @@map("anizip")
 }
 

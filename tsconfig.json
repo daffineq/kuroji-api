@@ -1,23 +1,38 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "ESNext",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2022",
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
+    "target": "ES2020",
     "sourceMap": true,
     "outDir": "./dist",
+    "baseUrl": "./",
     "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": true,
+
+    "strict": true, // enables all strict flags
+    "strictNullChecks": true, // catch nulls/undefined
+    "noImplicitAny": true, // no sneaky `any`s
+    "strictBindCallApply": true, // stricter function/method calls
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false,
-    "resolveJsonModule": true
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true, // safer array/object access
+    "noImplicitReturns": true, // ensure functions return something
+    "noImplicitThis": true,
+
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "isolatedModules": true, // for strict module isolation
+    "noEmitOnError": true, // stop emitting if errors exist
+
+    "lib": ["ES2020"],
+    "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
 }

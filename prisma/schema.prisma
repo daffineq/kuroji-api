@@ -2,19 +2,162 @@ generator client {
   provider = "prisma-client-js"
 }
 
-generator nestjsDto {
-  provider                        = "prisma-generator-nestjs-dto"
-  output                          = "../src/generated/nestjs-dto"
-  outputToNestJsResourceStructure = "true"
-  exportRelationModifierClasses   = "true"
-  reExport                        = "false"
-  fileNamingStyle                 = "camel"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// AniZip.prisma
+model AniZip {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
+  id Int @id
+
+  // Basic info
+  episodeCount Int @map("episode_count")
+  specialCount Int @map("special_count")
+
+  // Relationships
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
+  titles   AniZipTitle[]
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
+  images   AniZipImage[]
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
+  episodes AniZipEpisode[]
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
+  mappings AniZipMapping?
+
+  @@map("anizip")
+}
+
+model AniZipTitle {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
+  id   String  @id @default(cuid())
+  key  String // "x-jat", "ja", "en", etc.
+  name String?
+
+  // Foreign key to AniZip
+  aniZipId Int    @map("anizip_id")
+  /// @DtoRelationCanConnectOnCreate
+  aniZip   AniZip @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
+
+  @@unique([aniZipId, key]) // Prevent duplicate keys for same anime
+  @@map("anizip_titles")
+}
+
+model AniZipImage {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
+  id        String  @id @default(cuid())
+  coverType String? @map("cover_type")
+  url       String?
+
+  // Foreign key to AniZip
+  aniZipId Int    @map("anizip_id")
+  /// @DtoRelationCanConnectOnCreate
+  aniZip   AniZip @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
+
+  @@map("anizip_images")
+}
+
+model AniZipEpisode {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
+  id String @id @default(cuid())
+
+  // Episode identification
+  episodeKey            String? @map("episode_key") // The JSON key like "1", "2", etc
+  episodeNumber         Int?    @map("episode_number")
+  seasonNumber          Int?    @map("season_number")
+  absoluteEpisodeNumber Int?    @map("absolute_episode_number")
+
+  // TVDB info
+  tvdbShowId Int? @map("tvdb_show_id")
+  tvdbId     Int? @map("tvdb_id")
+
+  // Dates and times
+  airDate    String? @map("air_date")
+  airDateUtc String? @map("air_date_utc")
+
+  // Media info
+  runtime  Int?
+  length   Int?
+  overview String?
+  image    String?
+  rating   String?
+
+  // IDs
+  episode  String? // string representation of episode number
+  anidbEid Int?    @map("anidb_eid")
+
+  // Relationships
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
+  titles   AniZipEpisodeTitle[]
+  aniZipId Int                  @map("anizip_id")
+  /// @DtoRelationCanConnectOnCreate
+  aniZip   AniZip               @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
+
+  @@unique([aniZipId, episodeKey])
+  @@map("anizip_episodes")
+}
+
+model AniZipEpisodeTitle {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
+  id   String  @id @default(cuid())
+  key  String // "ja", "en", "x-jat", etc.
+  name String?
+
+  episodeId String        @map("episode_id")
+  /// @DtoRelationCanConnectOnCreate
+  episode   AniZipEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@unique([episodeId, key])
+  @@map("anizip_episode_titles")
+}
+
+model AniZipMapping {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
+  id String @id @default(cuid())
+
+  animePlanetId String? @map("animeplanet_id")
+  kitsuId       String? @map("kitsu_id")
+  malId         Int?    @map("mal_id")
+  type          String?
+  anilistId     Int?    @map("anilist_id")
+  anisearchId   Int?    @map("anisearch_id")
+  anidbId       Int?    @map("anidb_id")
+  notifymoeId   String? @map("notifymoe_id")
+  livechartId   Int?    @map("livechart_id")
+  thetvdbId     Int?    @map("thetvdb_id")
+  imdbId        String? @map("imdb_id")
+  themoviedbId  Int?    @map("themoviedb_id")
+  anilibriaId   Int?    @map("anilibria_id")
+  zoroId        String? @map("zoro_id")
+  animepaheId   String? @map("animepahe_id")
+  animekaiId    String? @map("animekai_id")
+
+  // One-to-one relationship
+  aniZipId Int    @unique @map("anizip_id")
+  /// @DtoRelationCanConnectOnCreate
+  aniZip   AniZip @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
+
+  @@map("anizip_mappings")
+}
+
 
 // Anilibria.prisma
 model Anilibria {
@@ -403,7 +546,7 @@ model Anilist {
   synonyms        String[]
 
   /// @DtoRelationCanConnectOnCreate
-  trailer AnilistTrailer? @relation("AnilistTrailer")
+  trailer             AnilistTrailer?       @relation("AnilistTrailer")
   /// @DtoRelationCanConnectOnCreate
   latestAiringEpisode AnilistLatestEpisode? @relation("AnilistLatestEpisode")
   /// @DtoRelationCanConnectOnCreate
@@ -412,9 +555,6 @@ model Anilist {
   lastAiringEpisode   AnilistLastEpisode?   @relation("AnilistLastEpisode")
 
   // Normalized collections
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  recommendations    BasicIdAni[]                @relation("AnilistRecs")
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
   characters         AnilistCharacterEdge[]      @relation("AnilistCharacters")
@@ -456,7 +596,7 @@ model Anilist {
   /// @DtoRelationCanConnectOnCreate
   kitsu     Kitsu?
   /// @DtoRelationCanConnectOnCreate
-  anizip    AniZip?
+  mappings  Mappings?
 }
 
 model AnilistTitle {
@@ -574,9 +714,9 @@ model AnilistCharacter {
   id Int @id
 
   /// @DtoRelationCanConnectOnCreate
-  name  AnilistCharacterName?  @relation("CharacterName")
+  name       AnilistCharacterName?  @relation("CharacterName")
   /// @DtoRelationCanConnectOnCreate
-  image AnilistCharacterImage? @relation("CharacterImage")
+  image      AnilistCharacterImage? @relation("CharacterImage")
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
   animeLinks AnilistCharacterEdge[]
@@ -590,9 +730,9 @@ model VoiceActor {
   language String?
 
   /// @DtoRelationCanConnectOnCreate
-  name  AnilistVoiceName?  @relation("VoiceActorName")
+  name       AnilistVoiceName?      @relation("VoiceActorName")
   /// @DtoRelationCanConnectOnCreate
-  image AnilistVoiceImage? @relation("VoiceActorImage")
+  image      AnilistVoiceImage?     @relation("VoiceActorImage")
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
   characters AnilistCharacterEdge[] @relation("CharacterVoiceActors")
@@ -855,17 +995,17 @@ model AnilistStatusDistribution {
   anilist   Anilist @relation("AnilistStatusDistribution", fields: [anilistId], references: [id])
 }
 
-model BasicIdAni {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id    Int  @id
-  idMal Int?
+// model BasicIdAni {
+//   /// @DtoReadOnly
+//   /// @DtoCreateOptional
+//   /// @DtoUpdateOptional
+//   id    Int  @id
+//   idMal Int?
 
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  Anilist Anilist[] @relation("AnilistRecs")
-}
+//   /// @DtoRelationCanCreateOnCreate
+//   /// @DtoRelationCanConnectOnCreate
+//   Anilist Anilist[] @relation("AnilistRecs")
+// }
 
 
 // Animekai.prisma
@@ -919,40 +1059,60 @@ model Animepahe {
   /// @DtoReadOnly
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
-  id            String                  @id
-  alId          Int?                    @unique
-  title         String?
+  id    String @id
+  idMal Int? // Changed to match JSON
+  idAl  Int?   @unique // Changed to match JSON
+
+  // Title object fields
+  titleEnglish  String? // title.english
+  titleRomaji   String? // title.romaji
+  titleJapanese String? // title.japanese
+
+  synonyms      String[] // Array of synonyms
+  description   String?
   image         String?
-  cover         String?
-  updatedAt     Int?
-  hasSub        Boolean?
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  externalLinks AnimepaheExternalLink[] @relation("AnimepaheExLink")
-  status        String?
-  type          String?
-  releaseDate   String?
-  totalEpisodes Int?
-  episodePages  Int?
+  banner        String? // New field from JSON
+  airedEpisodes Int?
+  totalEpisodes Int? // New field from JSON
+
+  updatedAt Int @default(0)
+
+  // Metadata fields (merged from metadata object)
+  year         Int?
+  season       String? // metadata.season
+  status       String? // metadata.status
+  type         String?
+  startDate    String?
+  endDate      String?
+  duration     String?
+  genres       String[]
+  studios      String[]
+  themes       String[] // New field from metadata.themes
+  demographics String[] // New field from metadata.demographics
 
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
   episodes AnimepaheEpisode[] @relation("AnimepaheEpisode")
+  /// @DtoRelationCanCreateOnCreate
+  /// @DtoRelationCanConnectOnCreate
+  externalLinks AnimepaheExternalLink[] @relation("AnimepaheExLink")
 
   /// @DtoRelationCanConnectOnCreate
-  anilist Anilist? @relation(fields: [alId], references: [id])
+  anilist Anilist? @relation(fields: [idAl], references: [id])
 }
 
 model AnimepaheEpisode {
   /// @DtoReadOnly
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
-  id       String  @id
-  number   Int?
-  title    String?
-  image    String?
-  duration String?
-  url      String?
+  id     String  @id
+  number Int?
+  title  String?
+  image  String?
+
+  // Episode metadata (merged from metadata object)
+  duration String? // metadata.duration
+  url      String? // metadata.url
 
   /// @DtoRelationCanConnectOnCreate
   animepahe Animepahe[] @relation("AnimepaheEpisode")
@@ -968,161 +1128,6 @@ model AnimepaheExternalLink {
 
   /// @DtoRelationCanConnectOnCreate
   animepahe Animepahe[] @relation("AnimepaheExLink")
-}
-
-
-// AniZip.prisma
-model AniZip {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id Int @id
-
-  // Basic info
-  episodeCount Int @map("episode_count")
-  specialCount Int @map("special_count")
-
-  // Relationships
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  titles   AniZipTitle[]
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  images   AniZipImage[]
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  episodes AniZipEpisode[]
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  mappings AniZipMapping?
-
-  /// @DtoRelationCanConnectOnCreate
-  anilist Anilist? @relation(fields: [id], references: [id])
-
-  @@map("anizip")
-}
-
-model AniZipTitle {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id   String  @id @default(cuid())
-  key  String // "x-jat", "ja", "en", etc.
-  name String?
-
-  // Foreign key to AniZip
-  aniZipId Int    @map("anizip_id")
-  /// @DtoRelationCanConnectOnCreate
-  aniZip   AniZip @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
-
-  @@unique([aniZipId, key]) // Prevent duplicate keys for same anime
-  @@map("anizip_titles")
-}
-
-model AniZipImage {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id        String  @id @default(cuid())
-  coverType String? @map("cover_type")
-  url       String?
-
-  // Foreign key to AniZip
-  aniZipId Int    @map("anizip_id")
-  /// @DtoRelationCanConnectOnCreate
-  aniZip   AniZip @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
-
-  @@map("anizip_images")
-}
-
-model AniZipEpisode {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id String @id @default(cuid())
-
-  // Episode identification
-  episodeKey            String? @map("episode_key") // The JSON key like "1", "2", etc
-  episodeNumber         Int?    @map("episode_number")
-  seasonNumber          Int?    @map("season_number")
-  absoluteEpisodeNumber Int?    @map("absolute_episode_number")
-
-  // TVDB info
-  tvdbShowId Int? @map("tvdb_show_id")
-  tvdbId     Int? @map("tvdb_id")
-
-  // Dates and times
-  airDate    String? @map("air_date")
-  airDateUtc String? @map("air_date_utc")
-
-  // Media info
-  runtime  Int?
-  length   Int?
-  overview String?
-  image    String?
-  rating   String?
-
-  // IDs
-  episode  String? // string representation of episode number
-  anidbEid Int?    @map("anidb_eid")
-
-  // Relationships
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  titles   AniZipEpisodeTitle[]
-  aniZipId Int                  @map("anizip_id")
-  /// @DtoRelationCanConnectOnCreate
-  aniZip   AniZip               @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
-
-  @@unique([aniZipId, episodeKey])
-  @@map("anizip_episodes")
-}
-
-model AniZipEpisodeTitle {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id   String  @id @default(cuid())
-  key  String // "ja", "en", "x-jat", etc.
-  name String?
-
-  episodeId String        @map("episode_id")
-  /// @DtoRelationCanConnectOnCreate
-  episode   AniZipEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
-
-  @@unique([episodeId, key])
-  @@map("anizip_episode_titles")
-}
-
-model AniZipMapping {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id String @id @default(cuid())
-
-  animePlanetId String? @map("animeplanet_id")
-  kitsuId       String? @map("kitsu_id")
-  malId         Int?    @map("mal_id")
-  type          String?
-  anilistId     Int?    @map("anilist_id")
-  anisearchId   Int?    @map("anisearch_id")
-  anidbId       Int?    @map("anidb_id")
-  notifymoeId   String? @map("notifymoe_id")
-  livechartId   Int?    @map("livechart_id")
-  thetvdbId     Int?    @map("thetvdb_id")
-  imdbId        String? @map("imdb_id")
-  themoviedbId  Int?    @map("themoviedb_id")
-  anilibriaId   Int?    @map("anilibria_id")
-  zoroId        String? @map("zoro_id")
-  animepaheId   String? @map("animepahe_id")
-  animekaiId    String? @map("animekai_id")
-
-  // One-to-one relationship
-  aniZipId Int    @unique @map("anizip_id")
-  /// @DtoRelationCanConnectOnCreate
-  aniZip   AniZip @relation(fields: [aniZipId], references: [id], onDelete: Cascade)
-
-  @@map("anizip_mappings")
 }
 
 
@@ -1485,15 +1490,9 @@ model Shikimori {
   franchise         String?
   url               String?
   season            String?
-  createdAt         DateTime?
-  updatedAt         DateTime?
-  nextEpisodeAt     DateTime?
   description       String?
   descriptionHtml   String?
   descriptionSource String?
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  chronology        BasicIdShik[]         @relation("ShikimoriChronology")
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
   videos            ShikimoriVideo[]      @relation("ShikimoriVideo")
@@ -1536,18 +1535,6 @@ model ReleasedOn {
   shikimori Shikimori @relation("ShikimoriReleasedOn", fields: [shikimoriId], references: [id])
 }
 
-model BasicIdShik {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id    String  @id
-  malId String?
-
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  shikimori Shikimori[] @relation("ShikimoriChronology")
-}
-
 model ShikimoriVideo {
   /// @DtoReadOnly
   /// @DtoCreateOptional
@@ -1586,16 +1573,6 @@ model Title {
   romaji  String?
   english String?
   native  String?
-}
-
-model DateDetails {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id    Int  @id @default(autoincrement())
-  year  Int?
-  month Int?
-  day   Int?
 }
 
 model ShikimoriPoster {
@@ -2126,40 +2103,96 @@ model Zoro {
   /// @DtoReadOnly
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
-  id            String        @id
-  title         String?
-  malID         Int?
-  alID          Int?          @unique
-  japaneseTitle String?
-  image         String?
+  id    String @id
+  idMal Int? // Changed to match JSON
+  idAl  Int?   @unique // Changed to match JSON
+
+  // Title object fields
+  titleEnglish String? // title.english
+  titleRomaji  String? // title.romaji
+
+  synonyms      String[] // Array of synonyms
   description   String?
-  type          String?
-  url           String?
-  updatedAt     Int?
-  subOrDub      String?
-  hasSub        Boolean?
-  hasDub        Boolean?
-  status        String?
-  season        String?
-  totalEpisodes Int?
+  image         String?
+  airedEpisodes Int?
+
+  updatedAt Int @default(0)
+
+  // Metadata fields (merged from metadata object)
+  year      Int?
+  score     Float?
+  season    String? // metadata.season
+  rating    String?
+  type      String?
+  subCount  Int?
+  dubCount  Int?
+  adult     Boolean?
+  startDate String?
+  endDate   String?
+  duration  String?
+  genres    String[]
+  studios   String[]
+  producers String[]
+
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
-  episodes      EpisodeZoro[] @relation("EpisodeZoro")
+  episodes ZoroEpisode[] @relation("ZoroEpisode")
+  /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
-  anilist Anilist? @relation(fields: [alID], references: [id])
+  seasons  ZoroSeason[]  @relation("ZoroSeason")
+  /// @DtoRelationCanConnectOnCreate
+  anilist  Anilist?      @relation(fields: [idAl], references: [id])
 }
 
-model EpisodeZoro {
+model ZoroEpisode {
   /// @DtoReadOnly
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
-  id       String   @id
-  number   Int?
+  id       Int      @id
   title    String?
+  number   Int?
   isFiller Boolean?
-  isSubbed Boolean?
-  isDubbed Boolean?
-  url      String?
+
+  // Episode metadata (merged from metadata object)
+  titleJp String? // metadata.title_jp
+
   /// @DtoRelationCanConnectOnCreate
-  zoro Zoro[] @relation("EpisodeZoro")
+  zoro Zoro[] @relation("ZoroEpisode")
+}
+
+model ZoroSeason {
+  /// @DtoReadOnly
+  /// @DtoCreateOptional
+  /// @DtoUpdateOptional
+  id         String  @id
+  dataNumber Int? // data_number
+  dataId     Int? // data_id
+  season     String?
+  title      String?
+  image      String?
+
+  /// @DtoRelationCanConnectOnCreate
+  zoro Zoro[] @relation("ZoroSeason")
+}
+
+
+// Mappings.prisma
+model Mappings {
+  id Int @id
+
+  mappings Mapping[] @relation("MappingsToMapping")
+
+  anilist Anilist? @relation(fields: [id], references: [id])
+}
+
+model Mapping {
+  id        String @id @default(cuid())
+  mappingId String
+  name      String
+
+  mappingsId Int
+
+  mappings Mappings @relation("MappingsToMapping", fields: [mappingsId], references: [id])
+
+  @@unique([mappingId, name])
 }

@@ -38,7 +38,7 @@ model Anilist {
   synonyms        String[]
 
   /// @DtoRelationCanConnectOnCreate
-  trailer AnilistTrailer? @relation("AnilistTrailer")
+  trailer             AnilistTrailer?       @relation("AnilistTrailer")
   /// @DtoRelationCanConnectOnCreate
   latestAiringEpisode AnilistLatestEpisode? @relation("AnilistLatestEpisode")
   /// @DtoRelationCanConnectOnCreate
@@ -47,9 +47,6 @@ model Anilist {
   lastAiringEpisode   AnilistLastEpisode?   @relation("AnilistLastEpisode")
 
   // Normalized collections
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  recommendations    BasicIdAni[]                @relation("AnilistRecs")
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
   characters         AnilistCharacterEdge[]      @relation("AnilistCharacters")
@@ -91,7 +88,7 @@ model Anilist {
   /// @DtoRelationCanConnectOnCreate
   kitsu     Kitsu?
   /// @DtoRelationCanConnectOnCreate
-  anizip    AniZip?
+  mappings  Mappings?
 }
 
 model AnilistTitle {
@@ -209,9 +206,9 @@ model AnilistCharacter {
   id Int @id
 
   /// @DtoRelationCanConnectOnCreate
-  name  AnilistCharacterName?  @relation("CharacterName")
+  name       AnilistCharacterName?  @relation("CharacterName")
   /// @DtoRelationCanConnectOnCreate
-  image AnilistCharacterImage? @relation("CharacterImage")
+  image      AnilistCharacterImage? @relation("CharacterImage")
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
   animeLinks AnilistCharacterEdge[]
@@ -225,9 +222,9 @@ model VoiceActor {
   language String?
 
   /// @DtoRelationCanConnectOnCreate
-  name  AnilistVoiceName?  @relation("VoiceActorName")
+  name       AnilistVoiceName?      @relation("VoiceActorName")
   /// @DtoRelationCanConnectOnCreate
-  image AnilistVoiceImage? @relation("VoiceActorImage")
+  image      AnilistVoiceImage?     @relation("VoiceActorImage")
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
   characters AnilistCharacterEdge[] @relation("CharacterVoiceActors")
@@ -490,14 +487,14 @@ model AnilistStatusDistribution {
   anilist   Anilist @relation("AnilistStatusDistribution", fields: [anilistId], references: [id])
 }
 
-model BasicIdAni {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id    Int  @id
-  idMal Int?
+// model BasicIdAni {
+//   /// @DtoReadOnly
+//   /// @DtoCreateOptional
+//   /// @DtoUpdateOptional
+//   id    Int  @id
+//   idMal Int?
 
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  Anilist Anilist[] @relation("AnilistRecs")
-}
+//   /// @DtoRelationCanCreateOnCreate
+//   /// @DtoRelationCanConnectOnCreate
+//   Anilist Anilist[] @relation("AnilistRecs")
+// }

@@ -1,0 +1,19 @@
+model Mappings {
+  id Int @id
+
+  mappings Mapping[] @relation("MappingsToMapping")
+
+  anilist Anilist? @relation(fields: [id], references: [id])
+}
+
+model Mapping {
+  id        String @id @default(cuid())
+  mappingId String
+  name      String
+
+  mappingsId Int
+
+  mappings Mappings @relation("MappingsToMapping", fields: [mappingsId], references: [id])
+
+  @@unique([mappingId, name])
+}

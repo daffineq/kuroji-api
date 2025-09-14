@@ -26,15 +26,9 @@ model Shikimori {
   franchise         String?
   url               String?
   season            String?
-  createdAt         DateTime?
-  updatedAt         DateTime?
-  nextEpisodeAt     DateTime?
   description       String?
   descriptionHtml   String?
   descriptionSource String?
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  chronology        BasicIdShik[]         @relation("ShikimoriChronology")
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
   videos            ShikimoriVideo[]      @relation("ShikimoriVideo")
@@ -77,18 +71,6 @@ model ReleasedOn {
   shikimori Shikimori @relation("ShikimoriReleasedOn", fields: [shikimoriId], references: [id])
 }
 
-model BasicIdShik {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id    String  @id
-  malId String?
-
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  shikimori Shikimori[] @relation("ShikimoriChronology")
-}
-
 model ShikimoriVideo {
   /// @DtoReadOnly
   /// @DtoCreateOptional
@@ -127,16 +109,6 @@ model Title {
   romaji  String?
   english String?
   native  String?
-}
-
-model DateDetails {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id    Int  @id @default(autoincrement())
-  year  Int?
-  month Int?
-  day   Int?
 }
 
 model ShikimoriPoster {
