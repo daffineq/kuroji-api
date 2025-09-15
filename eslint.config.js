@@ -21,14 +21,7 @@ export default [
       '.env*',
       '*.log',
       'tmp/**',
-      'temp/**',
-      '*.config.js',
-      // I can't fix this file frfr
-      'src/core/anime/nexus/fingerprint.ts',
-      'src/core/anime/miruro/decrypt.ts',
-      'src/core/anime/miruro/utils.ts',
-      // This is a tool, not a part of the codebase.
-      'inspection-tool.ts'
+      'temp/**'
     ]
   },
   {
