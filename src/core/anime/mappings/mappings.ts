@@ -1,7 +1,12 @@
 import { Prisma } from '@prisma/client';
 import prisma from 'src/lib/prisma';
 import { MappingEntry } from './types';
-import { addMappingsPrismaData, getMappingsPrismaData, removeMappingsPrismaData } from './helpers/mappings.prisma';
+import {
+  addMappingsPrismaData,
+  editMappingsPrismaData,
+  getMappingsPrismaData,
+  removeMappingsPrismaData
+} from './helpers/mappings.prisma';
 import mappingsFetch from './helpers/mappings.fetch';
 import { toMappingsArray } from './helpers/mappings.utils';
 
@@ -48,6 +53,21 @@ class Mappings {
     return prisma.mappings.update({
       where: { id },
       data: addMappingsPrismaData(entry),
+      select
+    }) as Prisma.MappingsGetPayload<{ select: T }>;
+  }
+
+  async edit<T extends Prisma.MappingsSelect>(
+    id: number,
+    old: MappingEntry,
+    updated: MappingEntry,
+    select?: T
+  ): Promise<Prisma.MappingsGetPayload<{ select: T }>> {
+    await this.getMappings(id);
+
+    return prisma.mappings.update({
+      where: { id },
+      data: editMappingsPrismaData(old, updated),
       select
     }) as Prisma.MappingsGetPayload<{ select: T }>;
   }

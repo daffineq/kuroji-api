@@ -19,7 +19,7 @@ export function toMappingsArray(mappings: AniZipMappings): MappingEntry[] {
 
   for (const [key, name] of entries) {
     const value = mappings[key];
-    if (value !== undefined && value !== null) {
+    if (value !== undefined && value !== null && value !== '') {
       result.push({ id: `${value}`, name });
     }
   }

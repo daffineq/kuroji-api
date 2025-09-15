@@ -7,13 +7,13 @@ model Mappings {
 }
 
 model Mapping {
-  id        String @id @default(cuid())
-  mappingId String
-  name      String
+  id String @id @default(cuid())
+
+  sourceId   String
+  sourceName String
 
   mappingsId Int
+  parent     Mappings @relation("MappingsToMapping", fields: [mappingsId], references: [id])
 
-  mappings Mappings @relation("MappingsToMapping", fields: [mappingsId], references: [id])
-
-  @@unique([mappingId, name])
+  @@unique([sourceId, sourceName])
 }

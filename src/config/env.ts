@@ -23,6 +23,7 @@ const env = {
   ANILIBRIA: process.env.ANILIBRIA ?? 'https://aniliberty.top/api/v1',
   ANI_ZIP: process.env.ANI_ZIP ?? 'https://api.ani.zip',
   SHIKIMORI: process.env.SHIKIMORI ?? 'https://shikimori.one',
+  KITSU: process.env.KITSU ?? 'https://kitsu.io/api/edge',
   TMDB: process.env.TMDB ?? 'https://api.themoviedb.org/3',
   TVDB: process.env.TVDB ?? 'https://api4.thetvdb.com/v4',
   JIKAN: process.env.JIKAN ?? 'https://api.jikan.moe/v4',

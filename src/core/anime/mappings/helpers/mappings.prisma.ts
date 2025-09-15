@@ -6,14 +6,14 @@ export const getMappingsPrismaData = (id: number, data: Array<MappingEntry>): Pr
     mappings: {
       connectOrCreate: data.map((m) => ({
         where: {
-          mappingId_name: {
-            mappingId: m.id,
-            name: m.name
+          sourceId_sourceName: {
+            sourceId: m.id,
+            sourceName: m.name
           }
         },
         create: {
-          mappingId: m.id,
-          name: m.name
+          sourceId: m.id,
+          sourceName: m.name
         }
       }))
     },
@@ -30,14 +30,33 @@ export const addMappingsPrismaData = (data: MappingEntry): Prisma.MappingsUpdate
     mappings: {
       connectOrCreate: {
         where: {
-          mappingId_name: {
-            mappingId: data.id,
-            name: data.name
+          sourceId_sourceName: {
+            sourceId: data.id,
+            sourceName: data.name
           }
         },
         create: {
-          mappingId: data.id,
-          name: data.name
+          sourceId: data.id,
+          sourceName: data.name
+        }
+      }
+    }
+  }
+}
+
+export const editMappingsPrismaData = (old: MappingEntry, updated: MappingEntry): Prisma.MappingsUpdateInput => {
+  return {
+    mappings: {
+      update: {
+        where: {
+          sourceId_sourceName: {
+            sourceId: old.id,
+            sourceName: old.name
+          }
+        },
+        data: {
+          sourceId: updated.id,
+          sourceName: updated.name
         }
       }
     }
@@ -48,9 +67,9 @@ export const removeMappingsPrismaData = (data: MappingEntry): Prisma.MappingsUpd
   return {
     mappings: {
       disconnect: {
-        mappingId_name: {
-          mappingId: data.id,
-          name: data.name
+        sourceId_sourceName: {
+          sourceId: data.id,
+          sourceName: data.name
         }
       }
     }

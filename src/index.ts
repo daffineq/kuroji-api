@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { createErrorResponse, createSuccessResponse } from './helpers/response';
-import { HttpError, NotFoundError } from './helpers/errors';
+import { HTTPError, NotFoundError } from './helpers/errors';
 import { prettyJSON } from 'hono/pretty-json';
 import env from './config/env';
 import { cors } from 'hono/cors';
@@ -23,7 +23,7 @@ app.use(
 app.use('/api', rateLimit(env.RATE_LIMIT, env.RATE_LIMIT_TTL));
 
 app.onError((err, c) => {
-  if (err instanceof HttpError) {
+  if (err instanceof HTTPError) {
     return c.json(createErrorResponse(err.status, err.message, err.details), err.status);
   }
 

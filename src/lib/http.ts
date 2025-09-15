@@ -92,10 +92,12 @@ export interface RequestResponse<T> {
  * Extended options for Kuroji requests.
  * @property {boolean} [manualParse] - If true, the response will not be automatically parsed and will be available in the response property.
  * @property {string} [jsonPath] - Dot notation path to extract specific data from the JSON response (e.g. 'data.items').
+ * @property {Record<string, string>} [headers] - Additional headers to include in the request.
  */
 export interface KurojiOptions extends KyOptions {
   manualParse?: boolean;
   jsonPath?: string;
+  headers?: Record<string, string>;
 }
 
 /**
