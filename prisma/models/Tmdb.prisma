@@ -6,7 +6,6 @@ model Tmdb {
   adult              Boolean
   backdrop_path      String?
   episode_run_time   Int[]
-  media_type         String?
   first_air_date     String?
   homepage           String?
   in_production      Boolean?
@@ -155,13 +154,13 @@ model TmdbSeasonEpisodeImages {
   /// @DtoReadOnly
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
-  id        Int @id
-  episodeId Int @unique
+  id        Int                    @id
+  episodeId Int                    @unique
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
-  stills  TmdbSeasonStillImage[] @relation("TmdbSeasonEpisodeStills")
+  stills    TmdbSeasonStillImage[] @relation("TmdbSeasonEpisodeStills")
   /// @DtoRelationCanConnectOnCreate
-  episode TmdbSeasonEpisode      @relation(fields: [episodeId], references: [id])
+  episode   TmdbSeasonEpisode      @relation(fields: [episodeId], references: [id])
 }
 
 model TmdbSeasonStillImage {

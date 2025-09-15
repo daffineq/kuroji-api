@@ -1,4 +1,5 @@
 import { AnilistAiringSchedule } from '@prisma/client';
+import { ReleaseDate } from 'src/core/types';
 import { DateUtils } from 'src/helpers/date';
 
 export function findEpisodeCount<
@@ -41,4 +42,18 @@ export function findEpisodeCount<
   if (aired) return aired;
 
   return undefined;
+}
+
+export function getDate(date: ReleaseDate): string | null {
+  const { year, month, day } = date;
+
+  let anilistStartDateString: string | null = null;
+
+  if (year && month && day) {
+    anilistStartDateString = `${year.toString().padStart(4, '0')}-${month
+      .toString()
+      .padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+  }
+
+  return anilistStartDateString;
 }

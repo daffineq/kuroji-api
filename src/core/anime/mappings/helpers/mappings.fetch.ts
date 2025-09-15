@@ -8,7 +8,7 @@ class MappingsFetch extends Client {
   }
 
   async fetchMappings(id: number): Promise<AniZipData> {
-    const { data, error } = await this.client.get<AniZipData>(`/mappings?anilist_id=${id}`);
+    const { data, error } = await this.client.get<AniZipData>(`mappings?anilist_id=${id}`);
 
     if (error) {
       throw error;

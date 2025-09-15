@@ -10,6 +10,7 @@ import { parseNumber } from 'src/helpers/parsers';
 import { findEpisodeCount } from '../anilist/helpers/anilist.utils';
 import { getKitsuPrismaData } from './helpers/kitsu.prisma';
 import mappings from '../mappings/mappings';
+import { mappingsSelect } from '../mappings/types';
 
 class Kitsu {
   async getInfo<T extends Prisma.KitsuSelect>(
@@ -25,7 +26,7 @@ class Kitsu {
       return existing as Prisma.KitsuGetPayload<{ select: T }>;
     }
 
-    const mapping = await mappings.getMappings(id);
+    const mapping = await mappings.getMappings(id, mappingsSelect);
 
     const kitsuId = mapping.mappings.find((m) => m.sourceName === 'kitsu')?.sourceId;
 

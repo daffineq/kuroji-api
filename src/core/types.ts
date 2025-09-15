@@ -128,12 +128,4 @@ export interface ReleaseDate {
   day: number | null;
 }
 
-export const toReleaseDate = (date: { year: number; month: number; day: number }): ReleaseDate => {
-  return {
-    year: date.year,
-    month: date.month,
-    day: date.day
-  };
-};
-
 export type AnimepaheInfo = AnimeInfo<AnimepaheInfoMetadata, Episode<AnimepaheEpisodeMetadata>>;

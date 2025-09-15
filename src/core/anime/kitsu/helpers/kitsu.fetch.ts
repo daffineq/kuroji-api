@@ -8,7 +8,7 @@ class KitsuFetch extends Client {
   }
 
   async fetchInfo(id: string): Promise<KitsuAnime> {
-    const { data, error } = await this.client.get<KitsuAnime>(`/anime/${id}`, {
+    const { data, error } = await this.client.get<KitsuAnime>(`anime/${id}`, {
       jsonPath: 'data',
       headers: {
         'Content-Type': 'application/vnd.api+json'
@@ -27,7 +27,7 @@ class KitsuFetch extends Client {
   }
 
   async search(q: string): Promise<Array<KitsuAnime>> {
-    const { data, error } = await this.client.get<Array<KitsuAnime>>(`/anime?filter[text]=${q}`, {
+    const { data, error } = await this.client.get<Array<KitsuAnime>>(`anime?filter[text]=${q}`, {
       jsonPath: 'data',
       headers: {
         'Content-Type': 'application/vnd.api+json'

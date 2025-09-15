@@ -1563,7 +1563,6 @@ model Tmdb {
   adult              Boolean
   backdrop_path      String?
   episode_run_time   Int[]
-  media_type         String?
   first_air_date     String?
   homepage           String?
   in_production      Boolean?
@@ -1712,13 +1711,13 @@ model TmdbSeasonEpisodeImages {
   /// @DtoReadOnly
   /// @DtoCreateOptional
   /// @DtoUpdateOptional
-  id        Int @id
-  episodeId Int @unique
+  id        Int                    @id
+  episodeId Int                    @unique
   /// @DtoRelationCanCreateOnCreate
   /// @DtoRelationCanConnectOnCreate
-  stills  TmdbSeasonStillImage[] @relation("TmdbSeasonEpisodeStills")
+  stills    TmdbSeasonStillImage[] @relation("TmdbSeasonEpisodeStills")
   /// @DtoRelationCanConnectOnCreate
-  episode TmdbSeasonEpisode      @relation(fields: [episodeId], references: [id])
+  episode   TmdbSeasonEpisode      @relation(fields: [episodeId], references: [id])
 }
 
 model TmdbSeasonStillImage {
@@ -2136,6 +2135,7 @@ model Mappings {
   id Int @id
 
   mappings Mapping[] @relation("MappingsToMapping")
+  episodes Episode[] @relation("MappingsToEpisode")
 
   anilist Anilist? @relation(fields: [id], references: [id])
 }
@@ -2150,4 +2150,18 @@ model Mapping {
   parent     Mappings @relation("MappingsToMapping", fields: [mappingsId], references: [id])
 
   @@unique([sourceId, sourceName])
+}
+
+model Episode {
+  id Int @id
+
+  number   Int
+  title    String?
+  overview String?
+  image    String?
+  runtime  Int?
+  date     String?
+
+  mappingsId Int
+  parent     Mappings @relation("MappingsToEpisode", fields: [mappingsId], references: [id])
 }

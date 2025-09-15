@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client';
+
 export interface AniZipMappings {
   animeplanet_id?: string;
   kitsu_id?: number;
@@ -23,3 +25,12 @@ export type MappingEntry = {
   id: string;
   name: string;
 };
+
+export const mappingsSelect = {
+  mappings: {
+    select: {
+      sourceId: true,
+      sourceName: true
+    }
+  }
+} satisfies Prisma.MappingsSelect;

@@ -226,6 +226,8 @@ export const mappingSelect = {
   status: true,
   synonyms: true,
   airingSchedule: true,
+  startDate: true,
+  endDate: true,
   shikimori: {
     select: {
       episodes: true,
@@ -236,5 +238,12 @@ export const mappingSelect = {
     select: {
       episodeCount: true
     }
+  },
+  animepahe: {
+    select: {
+      episodes: true
+    }
   }
 } satisfies Prisma.AnilistSelect;
+
+export type MapperAnilist = Prisma.AnilistGetPayload<{ select: typeof mappingSelect }>;

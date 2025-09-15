@@ -138,53 +138,6 @@ export function extractJson(data: unknown, jsonPath: string): unknown {
   return currentNode;
 }
 
-class RateLimiter {
-  private queue: (() => Promise<void>)[] = [];
-  private interval: number;
-  private isProcessing = false;
-  private nextAvailableTime = 0;
-
-  constructor(requestsPerSecond: number) {
-    this.interval = 1 / requestsPerSecond;
-  }
-
-  async schedule<T>(fn: () => Promise<T>): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      this.queue.push(async () => {
-        const now = Date.now() / 1000;
-
-        const waitTime = Math.max(0, this.nextAvailableTime - now);
-        if (waitTime > 0) {
-          await sleep(waitTime * 1000);
-        }
-
-        this.nextAvailableTime = Math.max(now, this.nextAvailableTime) + this.interval;
-
-        try {
-          const result = await fn();
-          resolve(result);
-        } catch (err) {
-          reject(err instanceof Error ? err : new Error(String(err)));
-        }
-      });
-
-      void this.processQueue();
-    });
-  }
-
-  private async processQueue(): Promise<void> {
-    if (this.isProcessing) return;
-    this.isProcessing = true;
-
-    while (this.queue.length > 0) {
-      const job = this.queue.shift();
-      if (job) await job();
-    }
-
-    this.isProcessing = false;
-  }
-}
-
 /**
  * Represents a client for making HTTP requests.
  */
@@ -201,7 +154,6 @@ export class KurojiClient {
   private currentProxyIndex = 0;
   private rotationInterval?: Timer;
   private validUrl = /^https?:\/\/.+/;
-  private limiter = new RateLimiter(3);
 
   /**
    * Creates a new instance of the KurojiClient.
@@ -374,15 +326,13 @@ export class KurojiClient {
         }
 
         try {
-          const apiResponse = await this.limiter.schedule(() =>
-            this.client(transformedUrl, {
-              method,
-              ...options,
-              headers: {
-                ...options?.headers
-              }
-            })
-          );
+          const apiResponse = await this.client(transformedUrl, {
+            method,
+            ...options,
+            headers: {
+              ...options?.headers
+            }
+          });
 
           if (options?.manualParse) {
             response.response = apiResponse;

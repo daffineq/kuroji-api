@@ -377,7 +377,7 @@ export function areTypesCompatible(searchType?: string, candidateType?: string):
 
   // Compatible type groups
   const compatibleGroups = [
-    ['TV', 'TELEVISION', 'TV SERIES', 'ONA'],
+    ['TV', 'TELEVISION', 'TV SERIES', 'ONA', 'SERIES'],
     ['MOVIE', 'FILM', 'THEATRICAL'],
     ['OVA', 'OAD'],
     ['SPECIAL', 'SPECIALS', 'SP'],

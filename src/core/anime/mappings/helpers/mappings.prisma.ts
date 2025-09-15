@@ -1,7 +1,7 @@
-import { Prisma } from "@prisma/client";
-import { MappingEntry } from "../types";
+import { Prisma, TmdbSeasonEpisode } from '@prisma/client';
+import { MappingEntry } from '../types';
 
-export const getMappingsPrismaData = (id: number, data: Array<MappingEntry>): Prisma.MappingsCreateInput {
+export const getMappingsPrismaData = (id: number, data: Array<MappingEntry>): Prisma.MappingsCreateInput => {
   return {
     mappings: {
       connectOrCreate: data.map((m) => ({
@@ -22,8 +22,8 @@ export const getMappingsPrismaData = (id: number, data: Array<MappingEntry>): Pr
         id: id
       }
     }
-  }
-}
+  };
+};
 
 export const addMappingsPrismaData = (data: MappingEntry): Prisma.MappingsUpdateInput => {
   return {
@@ -41,8 +41,8 @@ export const addMappingsPrismaData = (data: MappingEntry): Prisma.MappingsUpdate
         }
       }
     }
-  }
-}
+  };
+};
 
 export const editMappingsPrismaData = (old: MappingEntry, updated: MappingEntry): Prisma.MappingsUpdateInput => {
   return {
@@ -60,8 +60,8 @@ export const editMappingsPrismaData = (old: MappingEntry, updated: MappingEntry)
         }
       }
     }
-  }
-}
+  };
+};
 
 export const removeMappingsPrismaData = (data: MappingEntry): Prisma.MappingsUpdateInput => {
   return {
@@ -73,5 +73,32 @@ export const removeMappingsPrismaData = (data: MappingEntry): Prisma.MappingsUpd
         }
       }
     }
-  }
-}
+  };
+};
+
+export const addOrUpdateEpisodes = (episodes: Array<TmdbSeasonEpisode>): Prisma.MappingsUpdateInput => {
+  return {
+    episodes: {
+      upsert: episodes.map((e) => ({
+        where: { id: e.id },
+        update: {
+          number: e.episode_number,
+          title: e.name,
+          overview: e.overview,
+          image: e.still_path,
+          runtime: e.runtime,
+          date: e.air_date
+        },
+        create: {
+          id: e.id,
+          number: e.episode_number,
+          title: e.name,
+          overview: e.overview,
+          image: e.still_path,
+          runtime: e.runtime,
+          date: e.air_date
+        }
+      }))
+    }
+  };
+};
