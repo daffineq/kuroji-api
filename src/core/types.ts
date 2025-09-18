@@ -1,4 +1,5 @@
 import { AnimepaheEpisodeMetadata, AnimepaheInfoMetadata } from './anime/animepahe/types';
+import { MInfoMeta } from './anime/mal/types';
 
 export interface Title {
   english: string | null | undefined;
@@ -123,9 +124,10 @@ export interface CrysolineWrapper<T = unknown> {
 }
 
 export interface ReleaseDate {
-  year: number | null;
-  month: number | null;
-  day: number | null;
+  year: number | null | undefined;
+  month: number | null | undefined;
+  day: number | null | undefined;
 }
 
 export type AnimepaheInfo = AnimeInfo<AnimepaheInfoMetadata, Episode<AnimepaheEpisodeMetadata>>;
+export type MALInfo = AnimeInfo<MInfoMeta, Episode>;

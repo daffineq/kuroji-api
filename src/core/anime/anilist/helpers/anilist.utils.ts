@@ -1,33 +1,16 @@
-import { AnilistAiringSchedule } from '@prisma/client';
 import { ReleaseDate } from 'src/core/types';
 import { DateUtils } from 'src/helpers/date';
+import { AnilistMedia } from '../types';
 
-export function findEpisodeCount<
-  T extends {
-    episodes?: number | null;
-    airingSchedule?: AnilistAiringSchedule[] | null;
-    shikimori?: {
-      episodes?: number | null;
-      episodesAired?: number | null;
-    } | null;
-    kitsu?: {
-      episodeCount?: number | null;
-    } | null;
-    status?: string | null;
-  }
->(data: T, options?: { preferAired?: boolean }): number | undefined {
+export function findEpisodeCount(data: AnilistMedia, options?: { preferAired?: boolean }): number | undefined {
   const airedSchedule =
-    data.airingSchedule
-      ?.filter((schedule) => schedule.airingAt != null && DateUtils.isPast(schedule.airingAt))
-      .sort((a, b) => (b.airingAt ?? 0) - (a.airingAt ?? 0)) ?? [];
+    data.airingSchedule?.edges
+      ?.filter((schedule) => schedule.node.airingAt != null && DateUtils.isPast(schedule.node.airingAt))
+      .sort((a, b) => (b.node.airingAt ?? 0) - (a.node.airingAt ?? 0)) ?? [];
 
-  const totalEpisodes: (number | null | undefined)[] = [
-    data.episodes,
-    data.shikimori?.episodes,
-    data.kitsu?.episodeCount
-  ];
+  const totalEpisodes: (number | null | undefined)[] = [data.episodes];
 
-  const airedEpisodes: (number | null | undefined)[] = [data.shikimori?.episodesAired, airedSchedule?.length];
+  const airedEpisodes: (number | null | undefined)[] = [airedSchedule?.length];
 
   const total = totalEpisodes.find((v) => typeof v === 'number' && v > 0);
   const aired = airedEpisodes.find((v) => typeof v === 'number' && v > 0);

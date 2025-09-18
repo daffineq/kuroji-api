@@ -1,10 +1,16 @@
 model Mappings {
   id Int @id
 
-  mappings Mapping[] @relation("MappingsToMapping")
-  episodes Episode[] @relation("MappingsToEpisode")
+  titles      Title[]      @relation("MappingsToTitle")
+  posters     Poster[]     @relation("MappingsToPoster")
+  banners     Banner[]     @relation("MappingsToBanner")
+  mappings    Mapping[]    @relation("MappingsToMapping")
+  episodes    Episode[]    @relation("MappingsToEpisode")
+  videos      Video[]      @relation("MappingsToVideo")
+  screenshots Screenshot[] @relation("MappingsToScreenshot")
+  artworks    Artwork[]    @relation("MappingsToArtwork")
 
-  anilist Anilist? @relation(fields: [id], references: [id])
+  anime Anime @relation(fields: [id], references: [id])
 }
 
 model Mapping {
@@ -22,13 +28,98 @@ model Mapping {
 model Episode {
   id Int @id
 
-  number   Int
-  title    String?
-  overview String?
-  image    String?
-  runtime  Int?
-  date     String?
+  number    Int
+  title     String?
+  overview  String?
+  thumbnail EpisodeThumbnail? @relation("EpisodeToEpisodeThumbnail")
+  runtime   Int?
+  date      String?
 
-  mappingsId Int
-  parent     Mappings @relation("MappingsToEpisode", fields: [mappingsId], references: [id])
+  parent Mappings[] @relation("MappingsToEpisode")
+}
+
+model EpisodeThumbnail {
+  id String @id @default(cuid())
+
+  small  String?
+  medium String?
+  large  String?
+
+  episodeId Int     @unique
+  parent    Episode @relation("EpisodeToEpisodeThumbnail", fields: [episodeId], references: [id])
+}
+
+model Title {
+  id String @id @default(cuid())
+
+  title    String
+  source   String
+  language String
+
+  parent Mappings[] @relation("MappingsToTitle")
+
+  @@unique([title, source, language])
+}
+
+model Poster {
+  id String @id @default(cuid())
+
+  url    String
+  small  String?
+  medium String?
+  large  String?
+
+  source String
+
+  parent Mappings[] @relation("MappingsToPoster")
+
+  @@unique([url, source])
+}
+
+model Banner {
+  id String @id @default(cuid())
+
+  url    String
+  small  String?
+  medium String?
+  large  String?
+
+  source String
+
+  parent Mappings[] @relation("MappingsToBanner")
+
+  @@unique([url, source])
+}
+
+model Video {
+  url       String  @id
+  title     String?
+  thumbnail String?
+  artist    String?
+  type      String?
+
+  parent Mappings[] @relation("MappingsToVideo")
+}
+
+model Screenshot {
+  id          String  @id
+  originalUrl String?
+  x166Url     String?
+  x332Url     String?
+
+  parent Mappings[] @relation("MappingsToScreenshot")
+}
+
+model Artwork {
+  id           Int      @id
+  height       Int?
+  image        String?
+  includesText Boolean?
+  language     String?
+  score        Int?
+  thumbnail    String?
+  type         Int?
+  width        Int?
+
+  parent Mappings[] @relation("MappingsToArtwork")
 }

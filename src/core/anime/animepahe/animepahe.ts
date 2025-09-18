@@ -1,53 +1,49 @@
-import { Prisma } from '@prisma/client';
-import prisma from 'src/lib/prisma';
-import { mappingSelect } from '../anilist/types';
 import { NotFoundError } from 'src/helpers/errors';
 import animepaheFetch from './helpers/animepahe.fetch';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { findEpisodeCount } from '../anilist/helpers/anilist.utils';
 import { AnimepaheInfo } from 'src/core/types';
-import { getAnimepahePrismaData } from './helpers/animepahe.prisma';
 import anilist from '../anilist/anilist';
 import mappings from '../mappings/mappings';
+import { getKey, Redis } from 'src/helpers/redis.util';
+import { mappingsSelect } from '../mappings/types';
 
 class Animepahe {
-  async getInfo<T extends Prisma.AnimepaheSelect>(
-    id: number,
-    select?: T
-  ): Promise<Prisma.AnimepaheGetPayload<{ select: T }>> {
-    const existing = await prisma.animepahe.findUnique({
-      where: { idAl: id },
-      select
-    });
+  async getInfo(id: number): Promise<AnimepaheInfo> {
+    const key = getKey('animepahe', 'info', id);
 
-    if (existing) {
-      return existing as Prisma.AnimepaheGetPayload<{ select: T }>;
+    const cached = await Redis.get<AnimepaheInfo>(key);
+
+    if (cached) {
+      return cached;
     }
 
-    const animepahe = await this.find(id);
+    const mapping = await mappings.getMappings(id, mappingsSelect).catch(() => null);
 
-    await mappings.add(id, {
-      id: animepahe.id as string,
-      name: 'animepahe'
-    });
+    const paheId = mapping?.mappings.find((mapping) => mapping.sourceName === 'animepahe')?.sourceId;
 
-    return this.save(animepahe, select);
-  }
+    if (paheId) {
+      const animepahe = await animepaheFetch.fetchInfo(paheId);
 
-  async save<T extends Prisma.AnimepaheSelect>(
-    data: AnimepaheInfo,
-    select?: T
-  ): Promise<Prisma.AnimepaheGetPayload<{ select: T }>> {
-    return prisma.animepahe.upsert({
-      where: { id: data.id as string },
-      update: getAnimepahePrismaData(data),
-      create: getAnimepahePrismaData(data),
-      select
-    }) as Prisma.AnimepaheGetPayload<{ select: T }>;
+      await Redis.set(key, animepahe);
+
+      return animepahe;
+    } else {
+      const animepahe = await this.find(id);
+
+      await mappings.add(id, {
+        id: animepahe.id as string,
+        name: 'animepahe'
+      });
+
+      await Redis.set(key, animepahe);
+
+      return animepahe;
+    }
   }
 
   async find(id: number) {
-    const al = await anilist.getAndJustSave(id, mappingSelect);
+    const al = await anilist.getInfo(id);
 
     if (!al) throw new NotFoundError('Anilist not found');
 

@@ -25,6 +25,7 @@ const env = {
   SHIKIMORI: process.env.SHIKIMORI ?? 'https://shikimori.one',
   KITSU: process.env.KITSU ?? 'https://kitsu.io/api/edge',
   TMDB: process.env.TMDB ?? 'https://api.themoviedb.org/3',
+  TMDB_IMAGE: process.env.TMDB_IMAGE ?? 'https://image.tmdb.org/t/p/',
   TVDB: process.env.TVDB ?? 'https://api4.thetvdb.com/v4',
   JIKAN: process.env.JIKAN ?? 'https://api.jikan.moe/v4',
   CRYSOLINE: process.env.CRYSOLINE ?? 'https://api.crysoline.moe',
@@ -32,7 +33,7 @@ const env = {
 
   // API Keys
   TMDB_API: process.env.TMDB_API ?? '',
-  TVDB_API: process.env.TVDB_API ?? '',
+  TVDB_API: process.env.TVDB_API === '' ? null : process.env.TVDB_API,
 
   // Redis Config
   REDIS_ENABLED: process.env.REDIS !== 'false',

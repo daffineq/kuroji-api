@@ -1,7 +1,7 @@
 import env from 'src/config/env';
 import { Client } from 'src/helpers/client';
-import { TmdbInfoResult, TmdbSearchResult } from '../types';
-import { Prisma, TmdbSeason } from '@prisma/client';
+import { SeasonTmdb, TmdbInfoResult, TmdbSearchResult } from '../types';
+import { Prisma } from '@prisma/client';
 
 class TmdbFetch extends Client {
   constructor() {
@@ -22,13 +22,8 @@ class TmdbFetch extends Client {
     return data;
   }
 
-  async fetchSeason(
-    id: number,
-    season: number
-  ): Promise<Prisma.TmdbSeasonGetPayload<{ include: { episodes: true } }>> {
-    const { data, error } = await this.client.get<Prisma.TmdbSeasonGetPayload<{ include: { episodes: true } }>>(
-      `tv/${id}/season/${season}?api_key=${env.TMDB_API}`
-    );
+  async fetchSeason(id: number, season: number): Promise<SeasonTmdb> {
+    const { data, error } = await this.client.get<SeasonTmdb>(`tv/${id}/season/${season}?api_key=${env.TMDB_API}`);
 
     if (error) {
       throw error;

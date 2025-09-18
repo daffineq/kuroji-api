@@ -5,10 +5,13 @@ import { prettyJSON } from 'hono/pretty-json';
 import env from './config/env';
 import { cors } from 'hono/cors';
 import rateLimit from './helpers/rate.limit';
+import animeRoute from './core/anime/anime.routes';
 
 const app = new Hono().use(prettyJSON());
 
 const api = new Hono();
+
+api.route('/anime', animeRoute);
 
 app.use(
   '/api',

@@ -1,6 +1,5 @@
 export interface KitsuAnime {
   id: string;
-  idAl: number;
   type: string;
   links: KitsuLink;
   attributes: KitsuAnimeAttributes;

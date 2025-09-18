@@ -1,3 +1,5 @@
+import env from 'src/config/env';
+
 export function getTmdbTypeByAl(format: string | null | undefined): 'MOVIE' | 'SERIES' {
   switch (format) {
     case 'MOVIE':
@@ -11,4 +13,11 @@ export function getTmdbTypeByAl(format: string | null | undefined): 'MOVIE' | 'S
     default:
       return 'SERIES';
   }
+}
+
+export function getImage(
+  size: 'w300' | 'w500' | 'w780' | 'w1280' | 'original',
+  image: string | null
+): string | null {
+  return image ? `${env.TMDB_IMAGE}${size}${image}` : null;
 }

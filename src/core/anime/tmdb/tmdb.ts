@@ -1,68 +1,71 @@
-import { Prisma } from '@prisma/client';
 import mappings from '../mappings/mappings';
 import { mappingsSelect } from '../mappings/types';
-import prisma from 'src/lib/prisma';
 import { parseNumber, parseString } from 'src/helpers/parsers';
 import tmdbFetch from './helpers/tmdb.fetch';
 import anilist from '../anilist/anilist';
-import { getTmdbTypeByAl } from './helpers/tmdb.utils';
+import { getImage, getTmdbTypeByAl } from './helpers/tmdb.utils';
 import { TmdbInfoResult } from './types';
-import { getTmdbPrismaData } from './helpers/tmdb.prisma';
-import { mappingSelect } from '../anilist/types';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { NotFoundError } from 'src/helpers/errors';
+import { getKey, Redis } from 'src/helpers/redis.util';
 
 class Tmdb {
-  async getInfo<T extends Prisma.TmdbSelect>(
-    id: number,
-    select?: T
-  ): Promise<Prisma.TmdbGetPayload<{ select: T }>> {
-    const mapping = await mappings.getMappings(id, mappingsSelect);
+  async getInfo(id: number): Promise<TmdbInfoResult> {
+    const key = getKey('tmdb', 'info', id);
 
-    const tmdbId = parseNumber(mapping.mappings.find((m) => m.sourceName === 'tmdb')?.sourceId);
+    const cached = await Redis.get<TmdbInfoResult>(key);
+
+    if (cached) {
+      return cached;
+    }
+
+    const mapping = await mappings.getMappings(id, mappingsSelect).catch(() => null);
+
+    const tmdbId = parseNumber(mapping?.mappings.find((m) => m.sourceName === 'tmdb')?.sourceId);
+
+    var tmdb: TmdbInfoResult;
 
     if (tmdbId) {
-      const existing = await prisma.tmdb.findUnique({
-        where: { id: tmdbId },
-        select
-      });
-
-      if (existing) {
-        return existing as Prisma.TmdbGetPayload<{ select: T }>;
-      }
-
-      const al = await anilist.getAndJustSave(id, { format: true });
+      const al = await anilist.getInfo(id);
       const type = getTmdbTypeByAl(al.format);
 
-      const tmdb = type === 'MOVIE' ? await tmdbFetch.fetchMovie(tmdbId) : await tmdbFetch.fetchSeries(tmdbId);
-
-      return this.save(tmdb, select);
+      tmdb = type === 'MOVIE' ? await tmdbFetch.fetchMovie(tmdbId) : await tmdbFetch.fetchSeries(tmdbId);
     } else {
-      const tmdb = await this.find(id);
+      tmdb = await this.find(id);
 
       await mappings.add(id, {
         id: parseString(tmdb.id)!,
         name: 'tmdb'
       });
-
-      return this.save(tmdb, select);
     }
-  }
 
-  async save<T extends Prisma.TmdbSelect>(
-    data: TmdbInfoResult,
-    select?: T
-  ): Promise<Prisma.TmdbGetPayload<{ select: T }>> {
-    return prisma.tmdb.upsert({
-      where: { id: data.id },
-      create: getTmdbPrismaData(data),
-      update: getTmdbPrismaData(data),
-      select
-    }) as Prisma.TmdbGetPayload<{ select: T }>;
+    if (tmdb.poster_path) {
+      await mappings.addSinglePoster(id, {
+        url: tmdb.poster_path,
+        small: getImage('w300', tmdb.poster_path),
+        medium: getImage('w780', tmdb.poster_path),
+        large: getImage('original', tmdb.poster_path),
+        source: 'tmdb'
+      });
+    }
+
+    if (tmdb.backdrop_path) {
+      await mappings.addSingleBanner(id, {
+        url: tmdb.backdrop_path,
+        small: getImage('w300', tmdb.backdrop_path),
+        medium: getImage('w780', tmdb.backdrop_path),
+        large: getImage('original', tmdb.backdrop_path),
+        source: 'tmdb'
+      });
+    }
+
+    await Redis.set(key, tmdb);
+
+    return tmdb;
   }
 
   async find(id: number): Promise<TmdbInfoResult> {
-    const al = await anilist.getAndJustSave(id, mappingSelect);
+    const al = await anilist.getInfo(id);
 
     if (!al) {
       throw new Error('Anilist not found');

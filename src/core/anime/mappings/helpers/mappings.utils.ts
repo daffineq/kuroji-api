@@ -1,7 +1,11 @@
 import { AniZipMappings, MappingEntry } from '../types';
 
-export function toMappingsArray(mappings: AniZipMappings): MappingEntry[] {
+export function toMappingsArray(mappings: AniZipMappings | undefined): MappingEntry[] {
   const result: MappingEntry[] = [];
+
+  if (!mappings) {
+    return result;
+  }
 
   const entries: [keyof AniZipMappings, string][] = [
     ['animeplanet_id', 'animeplanet'],
@@ -12,7 +16,7 @@ export function toMappingsArray(mappings: AniZipMappings): MappingEntry[] {
     ['anidb_id', 'anidb'],
     ['notifymoe_id', 'notifymoe'],
     ['livechart_id', 'livechart'],
-    ['thetvdb_id', 'thetvdb'],
+    ['thetvdb_id', 'tvdb'],
     ['imdb_id', 'imdb'],
     ['themoviedb_id', 'tmdb']
   ];

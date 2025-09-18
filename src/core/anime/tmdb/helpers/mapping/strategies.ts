@@ -1,19 +1,19 @@
-import { Prisma, TmdbSeasonEpisode } from '@prisma/client';
-import anilist from 'src/core/anime/anilist/anilist';
 import { findEpisodeCount, getDate } from 'src/core/anime/anilist/helpers/anilist.utils';
-import animepahe from 'src/core/anime/animepahe/animepahe';
-import { MatchStrategy, EpisodeMatchCandidate, SeasonEpisodeGroup, MatchResult } from '../../types';
-import { MapperAnilist } from 'src/core/anime/anilist/types';
+import { MatchStrategy, EpisodeMatchCandidate, SeasonEpisodeGroup, MatchResult, SeasonEpisode } from '../../types';
+import { AnilistMedia, MapperAnilist } from 'src/core/anime/anilist/types';
+import { DateUtils } from 'src/helpers/date';
+import { AnimepaheInfo } from 'src/core/types';
 
 async function matchByDateRange(
-  anilist: MapperAnilist,
-  allEpisodes: TmdbSeasonEpisode[],
-  seasonGroups: SeasonEpisodeGroup[]
+  anilist: AnilistMedia,
+  allEpisodes: SeasonEpisode[],
+  seasonGroups: SeasonEpisodeGroup[],
+  episodeCount: number | undefined | null
 ): Promise<MatchResult> {
   const strategy = MatchStrategy.DATE_RANGE;
 
   const startDate = anilist.startDate ? getDate(anilist.startDate) : null;
-  const endDate = anilist.endDate ? getDate(anilist.endDate) : null;
+  const endDate = anilist.endDate ? getDate(anilist.endDate) : getDate(DateUtils.getCurrentReleaseDate());
 
   if (!startDate || !anilist.seasonYear) {
     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
@@ -40,29 +40,28 @@ async function matchByDateRange(
     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
   }
 
-  const expectedCount = findEpisodeCount(anilist);
-  if (!expectedCount) {
+  if (!episodeCount) {
     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
   }
 
-  const episodes = selectBestEpisodes(filteredEpisodes, expectedCount);
+  const episodes = selectBestEpisodes(filteredEpisodes, episodeCount);
   const primarySeason = getMostCommonSeason(episodes);
 
-  const countMatch = episodes.length / expectedCount;
+  const countMatch = episodes.length / episodeCount;
   const confidence = Math.min(0.9, countMatch * 0.85);
 
   return { episodes, primarySeason, confidence, strategy };
 }
 
 async function matchByEpisodeCount(
-  anilist: MapperAnilist,
-  allEpisodes: TmdbSeasonEpisode[],
-  seasonGroups: SeasonEpisodeGroup[]
+  anilist: AnilistMedia,
+  allEpisodes: SeasonEpisode[],
+  seasonGroups: SeasonEpisodeGroup[],
+  episodeCount: number | undefined | null
 ): Promise<MatchResult> {
   const strategy = MatchStrategy.EPISODE_COUNT;
 
-  const expectedCount = findEpisodeCount(anilist);
-  if (!expectedCount || !anilist.seasonYear) {
+  if (!episodeCount || !anilist.seasonYear) {
     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
   }
 
@@ -75,7 +74,7 @@ async function matchByEpisodeCount(
       return epYear === anilistYear || epYear === anilistYear + 1;
     });
 
-    if (seasonYearEpisodes.length === expectedCount) {
+    if (seasonYearEpisodes.length === episodeCount) {
       const episodes = seasonYearEpisodes
         .sort((a, b) => a.air_date!.localeCompare(b.air_date!))
         .map((ep, index) => ({
@@ -91,10 +90,10 @@ async function matchByEpisodeCount(
       };
     }
 
-    if (Math.abs(seasonYearEpisodes.length - expectedCount) <= 2) {
-      const episodes = selectBestEpisodes(seasonYearEpisodes, expectedCount);
+    if (Math.abs(seasonYearEpisodes.length - episodeCount) <= 2) {
+      const episodes = selectBestEpisodes(seasonYearEpisodes, episodeCount);
 
-      const confidence = Math.max(0.7, 1 - Math.abs(seasonYearEpisodes.length - expectedCount) / expectedCount);
+      const confidence = Math.max(0.7, 1 - Math.abs(seasonYearEpisodes.length - episodeCount) / episodeCount);
 
       return {
         episodes,
@@ -109,9 +108,10 @@ async function matchByEpisodeCount(
 }
 
 async function matchBySeasonYear(
-  anilist: MapperAnilist,
-  allEpisodes: TmdbSeasonEpisode[],
-  seasonGroups: SeasonEpisodeGroup[]
+  anilist: AnilistMedia,
+  allEpisodes: SeasonEpisode[],
+  seasonGroups: SeasonEpisodeGroup[],
+  episodeCount: number | undefined | null
 ): Promise<MatchResult> {
   const strategy = MatchStrategy.SEASON_YEAR;
 
@@ -120,9 +120,8 @@ async function matchBySeasonYear(
   }
 
   const anilistYear = anilist.seasonYear;
-  const expectedCount = findEpisodeCount(anilist);
 
-  if (!expectedCount) {
+  if (!episodeCount) {
     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
   }
 
@@ -145,11 +144,11 @@ async function matchBySeasonYear(
 
       if (seasonYearEpisodes.length === 0) continue;
 
-      const countRatio = seasonYearEpisodes.length / expectedCount;
+      const countRatio = seasonYearEpisodes.length / episodeCount;
 
       if (countRatio < 0.5) continue;
 
-      const episodes = selectBestEpisodes(seasonYearEpisodes, expectedCount);
+      const episodes = selectBestEpisodes(seasonYearEpisodes, episodeCount);
 
       let confidence = 0;
 
@@ -186,12 +185,13 @@ async function matchBySeasonYear(
 }
 
 async function matchByAiringSchedule(
-  anilist: MapperAnilist,
-  allEpisodes: TmdbSeasonEpisode[]
+  anilist: AnilistMedia,
+  allEpisodes: SeasonEpisode[],
+  episodeCount: number | undefined | null
 ): Promise<MatchResult> {
   const strategy = MatchStrategy.AIRING_SCHEDULE;
 
-  const airingSchedule = anilist.airingSchedule || [];
+  const airingSchedule = anilist.airingSchedule?.edges || [];
   if (airingSchedule.length === 0) {
     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
   }
@@ -200,12 +200,12 @@ async function matchByAiringSchedule(
 
   const airingMap = new Map<string, number>();
   airingSchedule.forEach((schedule) => {
-    if (schedule.airingAt && schedule.episode) {
-      const airDate = new Date(schedule.airingAt * 1000).toISOString().split('T')[0];
+    if (schedule.node.airingAt && schedule.node.episode) {
+      const airDate = new Date(schedule.node.airingAt * 1000).toISOString().split('T')[0];
 
       if (!airDate) return;
 
-      airingMap.set(airDate, schedule.episode);
+      airingMap.set(airDate, schedule.node.episode);
     }
   });
 
@@ -227,20 +227,18 @@ async function matchByAiringSchedule(
     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
   }
 
-  const expectedCount = findEpisodeCount(anilist);
-
   const episodes = selectBestEpisodes(
     matches.map((m) => m.episode),
-    expectedCount
+    episodeCount
   );
 
-  const matchRatio = expectedCount ? episodes.length / expectedCount : 0;
+  const matchRatio = episodeCount ? episodes.length / episodeCount : 0;
 
   if (matchRatio < 0.5) {
     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
   }
 
-  const episodesPenalty = episodes.length === expectedCount ? 1 : 0.75;
+  const episodesPenalty = episodes.length === episodeCount ? 1 : 0.75;
   const primarySeason = getMostCommonSeason(episodes);
   const confidence = Math.min(matchRatio, 0.95 * episodesPenalty);
 
@@ -309,9 +307,10 @@ async function matchByAiringSchedule(
 // }
 
 async function matchByAnimepahe(
-  anilist: MapperAnilist,
-  animepahe: Prisma.AnimepaheGetPayload<{ select: { episodes: true } }> | null,
-  allEpisodes: TmdbSeasonEpisode[]
+  anilist: AnilistMedia,
+  animepahe: AnimepaheInfo | null,
+  allEpisodes: SeasonEpisode[],
+  episodeCount: number | undefined | null
 ): Promise<MatchResult> {
   const strategy = MatchStrategy.ANIMEPAHE;
 
@@ -338,29 +337,28 @@ async function matchByAnimepahe(
     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
   }
 
-  const expectedCount = findEpisodeCount(anilist);
-  if (!expectedCount) {
+  if (!episodeCount) {
     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
   }
 
   const episodes = selectBestEpisodes(
     matches.map((m) => m.episode),
-    expectedCount
+    episodeCount
   );
 
-  const matchRatio = expectedCount ? episodes.length / expectedCount : 0;
+  const matchRatio = episodeCount ? episodes.length / episodeCount : 0;
   if (matchRatio < 0.5) {
     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
   }
 
-  const episodesPenalty = episodes.length === expectedCount ? 1 : 0.75;
+  const episodesPenalty = episodes.length === episodeCount ? 1 : 0.75;
   const primarySeason = getMostCommonSeason(episodes);
   const confidence = Math.min(matchRatio, 0.7 * episodesPenalty);
 
   return { episodes, primarySeason, confidence, strategy };
 }
 
-function getMostCommonSeason(episodes: TmdbSeasonEpisode[]): number {
+function getMostCommonSeason(episodes: SeasonEpisode[]): number {
   const seasonCounts = new Map<number, number>();
   episodes.forEach((ep) => {
     seasonCounts.set(ep.season_number, (seasonCounts.get(ep.season_number) || 0) + 1);
@@ -378,15 +376,15 @@ function getMostCommonSeason(episodes: TmdbSeasonEpisode[]): number {
   return mostCommonSeason;
 }
 
-function selectBestEpisodes(episodes: TmdbSeasonEpisode[], expectedCount?: number | null): TmdbSeasonEpisode[] {
+function selectBestEpisodes(episodes: SeasonEpisode[], expectedCount?: number | null): SeasonEpisode[] {
   if (episodes.length === 0) return [];
 
   const regularEpisodes = episodes.filter((ep) => ep.season_number !== 0);
   const specialEpisodes = episodes.filter((ep) => ep.season_number === 0);
 
-  const sortByAirDate = (a: TmdbSeasonEpisode, b: TmdbSeasonEpisode) => a.air_date!.localeCompare(b.air_date!);
+  const sortByAirDate = (a: SeasonEpisode, b: SeasonEpisode) => a.air_date!.localeCompare(b.air_date!);
 
-  let selected: TmdbSeasonEpisode[];
+  let selected: SeasonEpisode[];
 
   if (regularEpisodes.length > 0) {
     selected = [...regularEpisodes].sort(sortByAirDate);

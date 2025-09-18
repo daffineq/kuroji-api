@@ -21,16 +21,8 @@ export interface AniZipData {
   mappings: AniZipMappings;
 }
 
-export type MappingEntry = {
-  id: string;
-  name: string;
-};
-
 export const mappingsSelect = {
-  mappings: {
-    select: {
-      sourceId: true,
-      sourceName: true
-    }
+  include: {
+    mappings: true
   }
-} satisfies Prisma.MappingsSelect;
+} satisfies Prisma.MappingsDefaultArgs;

@@ -1,39 +1,34 @@
-import { Prisma } from '@prisma/client';
-import prisma from 'src/lib/prisma';
 import { KitsuAnime } from './types';
 import { NotFoundError } from 'src/helpers/errors';
-import { mappingSelect } from '../anilist/types';
 import anilist from '../anilist/anilist';
 import kitsuFetch from './helpers/kitsu.fetch';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { parseNumber } from 'src/helpers/parsers';
 import { findEpisodeCount } from '../anilist/helpers/anilist.utils';
-import { getKitsuPrismaData } from './helpers/kitsu.prisma';
 import mappings from '../mappings/mappings';
 import { mappingsSelect } from '../mappings/types';
+import { getKey, Redis } from 'src/helpers/redis.util';
 
 class Kitsu {
-  async getInfo<T extends Prisma.KitsuSelect>(
-    id: number,
-    select?: T
-  ): Promise<Prisma.KitsuGetPayload<{ select: T }>> {
-    const existing = await prisma.kitsu.findUnique({
-      where: { idAl: id },
-      select
-    });
+  async getInfo(id: number): Promise<KitsuAnime> {
+    const key = getKey('kitsu', 'info', id);
 
-    if (existing) {
-      return existing as Prisma.KitsuGetPayload<{ select: T }>;
+    const cached = await Redis.get<KitsuAnime>(key);
+
+    if (cached) {
+      return cached;
     }
 
-    const mapping = await mappings.getMappings(id, mappingsSelect);
+    const mapping = await mappings.getMappings(id, mappingsSelect).catch(() => null);
 
-    const kitsuId = mapping.mappings.find((m) => m.sourceName === 'kitsu')?.sourceId;
+    const kitsuId = mapping?.mappings.find((m) => m.sourceName === 'kitsu')?.sourceId;
 
     if (kitsuId) {
       const kitsu = await kitsuFetch.fetchInfo(kitsuId);
 
-      return this.save(kitsu, select);
+      await Redis.set(key, kitsu);
+
+      return kitsu;
     } else {
       const kitsu = await this.find(id);
 
@@ -42,24 +37,14 @@ class Kitsu {
         name: 'kitsu'
       });
 
-      return this.save(kitsu, select);
+      await Redis.set(key, kitsu);
+
+      return kitsu;
     }
   }
 
-  async save<T extends Prisma.KitsuSelect>(
-    data: KitsuAnime,
-    select?: T
-  ): Promise<Prisma.KitsuGetPayload<{ select: T }>> {
-    return prisma.kitsu.upsert({
-      where: { id: data.id },
-      create: getKitsuPrismaData(data),
-      update: getKitsuPrismaData(data),
-      select
-    }) as Prisma.KitsuGetPayload<{ select: T }>;
-  }
-
   async find(id: number): Promise<KitsuAnime> {
-    const al = await anilist.getAndJustSave(id, mappingSelect);
+    const al = await anilist.getInfo(id);
 
     if (!al) {
       throw new NotFoundError('Anilist not found');
@@ -89,7 +74,6 @@ class Kitsu {
 
     if (bestMatch) {
       const data = await kitsuFetch.fetchInfo(bestMatch.result.id);
-      data.idAl = id;
       return data;
     }
 

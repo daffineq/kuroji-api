@@ -11,7 +11,10 @@
     "mrgn": "bun run prisma/merge.js && bun run prisma generate --schema=./prisma/schema.prisma"
   },
   "dependencies": {
+    "@hono/eslint-config": "^2.0.3",
     "@prisma/client": "^6.16.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
     "hono": "^4.9.7",
     "ioredis": "^5.7.0",
     "ky": "^1.10.0"
@@ -19,6 +22,9 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^24.3.3",
+    "@typescript-eslint/eslint-plugin": "^8.44.0",
+    "@typescript-eslint/parser": "^8.44.0",
+    "prettier": "^3.6.2",
     "prisma": "^6.16.1",
     "typescript": "^5.9.2"
   }

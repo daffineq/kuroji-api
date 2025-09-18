@@ -53,7 +53,3 @@ export interface ShikimoriAnime {
     x332Url?: string;
   }[];
 }
-
-export interface ShikimoriAnimeResponse {
-  animes: ShikimoriAnime[];
-}

@@ -2,7 +2,6 @@ import baseConfig from '@hono/eslint-config';
 import tsParser from '@typescript-eslint/parser';
 import prettierConfig from 'eslint-config-prettier';
 import prettierPlugin from 'eslint-plugin-prettier';
-import unicornPlugin from 'eslint-plugin-unicorn';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -26,8 +25,7 @@ export default [
   },
   {
     plugins: {
-      prettier: prettierPlugin,
-      unicorn: unicornPlugin
+      prettier: prettierPlugin
     },
     rules: {
       ...prettierConfig.rules,

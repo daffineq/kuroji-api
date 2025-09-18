@@ -1,12 +1,10 @@
-import { Prisma, TmdbSeasonEpisode } from '@prisma/client';
 import anilist from '../../anilist/anilist';
 import { NotFoundError } from 'src/helpers/errors';
 import tmdb from '../tmdb';
-import prisma from 'src/lib/prisma';
 import { getTmdbTypeByAl } from './tmdb.utils';
 import tmdbFetch from './tmdb.fetch';
-import { MatchResult, MatchStrategy, SeasonEpisodeGroup } from '../types';
-import { MapperAnilist, mappingSelect } from '../../anilist/types';
+import { MatchResult, MatchStrategy, SeasonEpisode, SeasonEpisodeGroup, SeasonTmdb } from '../types';
+import { AnilistMedia } from '../../anilist/types';
 import {
   matchByDateRange,
   matchByEpisodeCount,
@@ -14,11 +12,25 @@ import {
   matchBySeasonYear,
   matchByAnimepahe
 } from './mapping/strategies';
-import { getTmdbSeasonPrismaData } from './tmdb.prisma';
+import { AnimepaheInfo } from 'src/core/types';
+import animepahe from '../../animepahe/animepahe';
+import shikimori from '../../shikimori/shikimori';
+import kitsu from '../../kitsu/kitsu';
+import { getEpisodesCount } from '../../helpers/get.episodes';
+import mappings from '../../mappings/mappings';
+import { getKey, Redis } from 'src/helpers/redis.util';
 
 class TmdbSeasons {
-  async getSeason(id: number): Promise<Prisma.TmdbSeasonGetPayload<{ include: { episodes: true } }>> {
-    const al = await anilist.getAndJustSave(id, mappingSelect);
+  async getSeason(id: number): Promise<SeasonTmdb> {
+    const key = getKey('tmdb', 'seasons', id);
+
+    const cached = await Redis.get<SeasonTmdb>(key);
+
+    if (cached) {
+      return cached;
+    }
+
+    const al = await anilist.getInfo(id);
 
     if (!al) {
       throw new NotFoundError('Anilist not found');
@@ -28,12 +40,20 @@ class TmdbSeasons {
       throw new Error("LMAO, movies can't have seasons, you baka!");
     }
 
-    const TMDB = await tmdb.getInfo(id, { id: true, seasons: true });
+    const TMDB = await tmdb.getInfo(id);
 
     const allEpisodes = await this.getAllEpisodes(id);
     const seasonGroups = this.groupEpisodesBySeasons(allEpisodes);
 
-    const matchResult = await this.findBestEpisodeSequence(al, al.animepahe, allEpisodes, seasonGroups);
+    const [pahe, shik, kit] = await Promise.all([
+      animepahe.getInfo(id).catch(() => null),
+      shikimori.getInfo(id).catch(() => null),
+      kitsu.getInfo(id).catch(() => null)
+    ]);
+
+    const episodeCount = getEpisodesCount(al, kit, shik);
+
+    const matchResult = await this.findBestEpisodeSequence(al, pahe, allEpisodes, seasonGroups, episodeCount);
 
     if (!matchResult.episodes || matchResult.episodes.length === 0) {
       throw new NotFoundError('Could not find matching episodes for AniList entry');
@@ -43,44 +63,33 @@ class TmdbSeasons {
       throw new Error(`Episode matching confidence too low (${matchResult.confidence.toFixed(2)})`);
     }
 
-    const season = TMDB.seasons.find((s) => s.season_number === matchResult.primarySeason);
+    const season = await tmdbFetch.fetchSeason(TMDB.id, matchResult.primarySeason);
     if (!season) {
       throw new NotFoundError('Primary season not found');
     }
 
-    const trimmedSeason: Prisma.TmdbSeasonGetPayload<{ include: { episodes: true } }> = {
+    const trimmedSeason: SeasonTmdb = {
       ...season,
-      episodes: matchResult.episodes,
-      show_id: TMDB.id
+      episodes: matchResult.episodes
     };
+
+    await mappings.addOrUpdateEpisodes(id, trimmedSeason.episodes);
+
+    await Redis.set(key, trimmedSeason);
 
     return trimmedSeason;
   }
 
-  private async getAllEpisodes(id: number): Promise<TmdbSeasonEpisode[]> {
-    const TMDB = await tmdb.getInfo(id, { id: true, seasons: true });
+  private async getAllEpisodes(id: number): Promise<SeasonEpisode[]> {
+    const TMDB = await tmdb.getInfo(id);
 
-    const allEpisodes: TmdbSeasonEpisode[] = [];
+    const allEpisodes: SeasonEpisode[] = [];
 
-    for (const season of TMDB.seasons) {
-      let tmdbSeason = await prisma.tmdbSeason.findFirst({
-        where: { show_id: TMDB.id, season_number: season.season_number },
-        include: { episodes: true }
-      });
+    for (const season of TMDB.seasons!) {
+      const tmdbSeason = await tmdbFetch.fetchSeason(TMDB.id, season.season_number);
 
       if (!tmdbSeason) {
-        try {
-          tmdbSeason = await tmdbFetch.fetchSeason(TMDB.id, season.season_number);
-
-          if (!tmdbSeason) {
-            continue;
-          }
-
-          tmdbSeason.show_id = TMDB.id;
-          await this.save(tmdbSeason);
-        } catch (error) {
-          continue;
-        }
+        continue;
       }
 
       if (tmdbSeason.episodes && tmdbSeason.episodes.length > 0) {
@@ -99,17 +108,18 @@ class TmdbSeasons {
   }
 
   private async findBestEpisodeSequence(
-    anilist: MapperAnilist,
-    animepahe: Prisma.AnimepaheGetPayload<{ select: { episodes: true } }> | null,
-    allEpisodes: TmdbSeasonEpisode[],
-    seasonGroups: SeasonEpisodeGroup[]
+    anilist: AnilistMedia,
+    animepahe: AnimepaheInfo | null,
+    allEpisodes: SeasonEpisode[],
+    seasonGroups: SeasonEpisodeGroup[],
+    episodeCount: number | undefined | null
   ): Promise<MatchResult> {
     const strategies = [
-      () => matchByDateRange(anilist, allEpisodes, seasonGroups),
-      () => matchByEpisodeCount(anilist, allEpisodes, seasonGroups),
-      () => matchByAiringSchedule(anilist, allEpisodes),
-      () => matchBySeasonYear(anilist, allEpisodes, seasonGroups),
-      () => matchByAnimepahe(anilist, animepahe, allEpisodes)
+      () => matchByDateRange(anilist, allEpisodes, seasonGroups, episodeCount),
+      () => matchByEpisodeCount(anilist, allEpisodes, seasonGroups, episodeCount),
+      () => matchByAiringSchedule(anilist, allEpisodes, episodeCount),
+      () => matchBySeasonYear(anilist, allEpisodes, seasonGroups, episodeCount),
+      () => matchByAnimepahe(anilist, animepahe, allEpisodes, episodeCount)
     ];
 
     let bestMatch: MatchResult = {
@@ -119,7 +129,7 @@ class TmdbSeasons {
       strategy: MatchStrategy.NONE
     };
 
-    // console.log(`Trying to match ${findEpisodeCount(anilist)} episodes for AniList ID ${anilist.id}`);
+    // console.log(`Trying to match ${episodeCount} episodes for AniList ID ${anilist.id}`);
 
     for (const [index, strategy] of strategies.entries()) {
       try {
@@ -146,20 +156,8 @@ class TmdbSeasons {
     return bestMatch;
   }
 
-  async save<T extends Prisma.TmdbSeasonSelect>(
-    season: Prisma.TmdbSeasonGetPayload<{ include: { episodes: true } }>,
-    select?: T
-  ): Promise<Prisma.TmdbSeasonGetPayload<{ select: T }>> {
-    return prisma.tmdbSeason.upsert({
-      where: { id: season.id },
-      create: getTmdbSeasonPrismaData(season),
-      update: getTmdbSeasonPrismaData(season),
-      select
-    }) as Prisma.TmdbSeasonGetPayload<{ select: T }>;
-  }
-
-  private groupEpisodesBySeasons(episodes: TmdbSeasonEpisode[]): SeasonEpisodeGroup[] {
-    const seasonMap = new Map<number, TmdbSeasonEpisode[]>();
+  private groupEpisodesBySeasons(episodes: SeasonEpisode[]): SeasonEpisodeGroup[] {
+    const seasonMap = new Map<number, SeasonEpisode[]>();
 
     episodes.forEach((episode) => {
       if (!seasonMap.has(episode.season_number)) {

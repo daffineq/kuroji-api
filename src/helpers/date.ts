@@ -1,3 +1,6 @@
+import { ReleaseDate } from 'src/core/types';
+import { parseReleaseDate } from './parsers';
+
 export class DateUtils {
   private static readonly TIMEZONE = 'Europe/London';
 
@@ -17,6 +20,13 @@ export class DateUtils {
         timeZone: this.TIMEZONE
       })
     );
+  }
+
+  static getCurrentReleaseDate(): ReleaseDate {
+    const year = this.getCurrentDate().getFullYear();
+    const month = this.getCurrentDate().getMonth();
+    const day = this.getCurrentDate().getDate();
+    return parseReleaseDate({ year, month, day });
   }
 
   /**

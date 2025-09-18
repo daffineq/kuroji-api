@@ -1,38 +1,68 @@
-import { Prisma } from '@prisma/client';
-import prisma from 'src/lib/prisma';
+import { parseString } from 'src/helpers/parsers';
+import anilist from '../anilist/anilist';
 import shikimoriFetch from './helpers/shikimori.fetch';
 import { ShikimoriAnime } from './types';
-import { getShikimoriPrismaData } from './helpers/shikimori.prisma';
+import { getKey, Redis } from 'src/helpers/redis.util';
+import mappings from '../mappings/mappings';
+import { mappingsSelect } from '../mappings/types';
 
 class Shikimori {
-  async getInfo<T extends Prisma.ShikimoriSelect>(
-    id: string,
-    select?: T
-  ): Promise<Prisma.ShikimoriGetPayload<{ select: T }>> {
-    const existing = await prisma.shikimori.findUnique({
-      where: { id: id },
-      select
-    });
+  async getInfo(id: number): Promise<ShikimoriAnime> {
+    const key = getKey('shikimori', 'info', id);
 
-    if (existing) {
-      return existing as Prisma.ShikimoriGetPayload<{ select: T }>;
+    const cached = await Redis.get<ShikimoriAnime>(key);
+
+    if (cached) {
+      return cached;
     }
 
-    const fetched = await shikimoriFetch.getInfo(id);
+    const mapping = await mappings.getMappings(id, mappingsSelect).catch(() => null);
 
-    return this.save(fetched, select);
-  }
+    const shikId = mapping?.mappings.find((m) => m.sourceName === 'shikimori')?.sourceId;
 
-  async save<T extends Prisma.ShikimoriSelect>(
-    data: ShikimoriAnime,
-    select?: T
-  ): Promise<Prisma.ShikimoriGetPayload<{ select: T }>> {
-    return prisma.shikimori.upsert({
-      where: { id: data.id },
-      create: getShikimoriPrismaData(data),
-      update: getShikimoriPrismaData(data),
-      select
-    }) as Promise<Prisma.ShikimoriGetPayload<{ select: T }>>;
+    var fetched: ShikimoriAnime;
+
+    if (shikId) {
+      fetched = await shikimoriFetch.fetchInfo(shikId);
+    } else {
+      const al = await anilist.getInfo(id);
+
+      if (!al.idMal) {
+        throw new Error('Anime not found');
+      }
+
+      fetched = await shikimoriFetch.fetchInfo(parseString(al.idMal)!);
+
+      await mappings.add(id, {
+        id: al.idMal,
+        name: 'shikimori'
+      });
+    }
+
+    if (fetched.screenshots) {
+      await mappings.addScreenshots(id, fetched.screenshots);
+    }
+
+    if (fetched.russian) {
+      await mappings.addSingleTitle(id, {
+        title: fetched.russian,
+        source: 'shikimori',
+        language: 'russian'
+      });
+    }
+
+    if (fetched.poster) {
+      await mappings.addSinglePoster(id, {
+        url: fetched.poster.originalUrl!,
+        medium: fetched.poster.mainUrl!,
+        large: fetched.poster.originalUrl!,
+        source: 'shikimori'
+      });
+    }
+
+    await Redis.set(key, fetched);
+
+    return fetched;
   }
 }
 
