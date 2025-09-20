@@ -31,7 +31,6 @@ app.onError((err, c) => {
   }
 
   if (err instanceof Error) {
-    console.log(err.stack);
     return c.json(createErrorResponse(500, err.message, err.stack), 500);
   }
 
