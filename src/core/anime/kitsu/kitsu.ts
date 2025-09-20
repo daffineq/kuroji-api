@@ -32,7 +32,7 @@ class Kitsu {
     } else {
       const kitsu = await this.find(id);
 
-      await mappings.add(id, {
+      await mappings.addMapping(id, {
         id: kitsu.id,
         name: 'kitsu'
       });

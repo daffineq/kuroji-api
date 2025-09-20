@@ -33,7 +33,7 @@ class MyAnimeList {
 
       fetched = await malFetch.fetchInfo(al.idMal);
 
-      await mappings.add(id, {
+      await mappings.addMapping(id, {
         id: al.idMal,
         name: 'mal'
       });

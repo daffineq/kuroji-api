@@ -44,7 +44,7 @@ class Tvdb {
 
       tvdb = type === 'movie' ? await tvdbFetch.fetchMovie(search.id) : await tvdbFetch.fetchSeries(search.id);
 
-      await mappings.add(id, {
+      await mappings.addMapping(id, {
         id: parseString(tvdb.id)!,
         name: 'tvdb'
       });

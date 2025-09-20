@@ -33,7 +33,7 @@ class Shikimori {
 
       fetched = await shikimoriFetch.fetchInfo(parseString(al.idMal)!);
 
-      await mappings.add(id, {
+      await mappings.addMapping(id, {
         id: al.idMal,
         name: 'shikimori'
       });

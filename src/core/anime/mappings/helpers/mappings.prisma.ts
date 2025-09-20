@@ -5,7 +5,15 @@ import { MappingEntry, TitleEntry, PosterEntry, BannerEntry, ScreenshotEntry, Ar
 import { MVideo } from '../../mal/types';
 import { getImage } from '../../tmdb/helpers/tmdb.utils';
 
-export const getMappingsPrismaData = (id: number, data: Array<MappingEntry>): Prisma.MappingsCreateInput => {
+export const getMappingsPrismaData = (id: number): Prisma.MappingsCreateInput => {
+  return {
+    anime: {
+      connect: { id }
+    }
+  };
+};
+
+export const addMappingsPrismaData = (data: Array<MappingEntry>): Prisma.MappingsUpdateInput => {
   return {
     mappings: {
       connectOrCreate: data.map((m) => ({
@@ -20,28 +28,6 @@ export const getMappingsPrismaData = (id: number, data: Array<MappingEntry>): Pr
           sourceName: m.name
         }
       }))
-    },
-    anime: {
-      connect: { id }
-    }
-  };
-};
-
-export const addMappingsPrismaData = (data: MappingEntry): Prisma.MappingsUpdateInput => {
-  return {
-    mappings: {
-      connectOrCreate: {
-        where: {
-          sourceId_sourceName: {
-            sourceId: parseString(data.id)!,
-            sourceName: data.name
-          }
-        },
-        create: {
-          sourceId: parseString(data.id)!,
-          sourceName: data.name
-        }
-      }
     }
   };
 };

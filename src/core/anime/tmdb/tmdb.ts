@@ -33,7 +33,7 @@ class Tmdb {
     } else {
       tmdb = await this.find(id);
 
-      await mappings.add(id, {
+      await mappings.addMapping(id, {
         id: parseString(tmdb.id)!,
         name: 'tmdb'
       });

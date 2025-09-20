@@ -56,7 +56,7 @@ class Anime {
   }
 
   private async initProviders(id: number) {
-    await mappings.initOrGet(id);
+    await mappings.initMappings(id);
 
     await Promise.all([
       mal.getInfo(id).catch(() => null),

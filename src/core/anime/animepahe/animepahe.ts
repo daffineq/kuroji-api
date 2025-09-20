@@ -31,7 +31,7 @@ class Animepahe {
     } else {
       const animepahe = await this.find(id);
 
-      await mappings.add(id, {
+      await mappings.addMapping(id, {
         id: animepahe.id as string,
         name: 'animepahe'
       });

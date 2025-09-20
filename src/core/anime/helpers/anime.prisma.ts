@@ -331,6 +331,13 @@ export const getAnimePrismaData = async (anilist: AnilistMedia): Promise<Prisma.
             amount: dist.amount
           }))
         }
-      : undefined
+      : undefined,
+
+    mappings: {
+      connectOrCreate: {
+        where: { id: anilist.id },
+        create: {}
+      }
+    }
   };
 };

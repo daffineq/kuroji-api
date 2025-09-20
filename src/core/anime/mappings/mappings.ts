@@ -51,10 +51,14 @@ class Mappings {
 
     await anilist.getInfo(id);
 
+    return this.save(id, args);
+  }
+
+  async initMappings(id: number) {
     const fetched = await mappingsFetch.fetchMappings(id).catch(() => null);
     const mappings = toMappingsArray(fetched?.mappings);
 
-    return this.save(id, mappings, args);
+    await this.addMappings(id, mappings);
   }
 
   async findMany<T extends Prisma.MappingsFindManyArgs>(find?: T) {
@@ -67,20 +71,33 @@ class Mappings {
 
   async save<T extends Prisma.MappingsDefaultArgs>(
     id: number,
-    data: Array<MappingEntry>,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
     return prisma.mappings.upsert({
       where: { id },
-      update: getMappingsPrismaData(id, data),
-      create: getMappingsPrismaData(id, data),
+      update: getMappingsPrismaData(id),
+      create: getMappingsPrismaData(id),
       ...(args as Prisma.MappingsDefaultArgs)
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
 
-  async add<T extends Prisma.MappingsDefaultArgs>(
+  async addMapping<T extends Prisma.MappingsDefaultArgs>(
     id: number,
     entry: MappingEntry,
+    args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
+  ): Promise<Prisma.MappingsGetPayload<T>> {
+    await this.initOrGet(id);
+
+    return prisma.mappings.update({
+      where: { id },
+      data: addMappingsPrismaData([entry]),
+      ...(args as Prisma.MappingsDefaultArgs)
+    }) as unknown as Prisma.MappingsGetPayload<T>;
+  }
+
+  async addMappings<T extends Prisma.MappingsDefaultArgs>(
+    id: number,
+    entry: Array<MappingEntry>,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
     await this.initOrGet(id);
