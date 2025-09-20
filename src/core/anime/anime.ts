@@ -8,9 +8,10 @@ import shikimori from './shikimori/shikimori';
 import tmdb from './tmdb/tmdb';
 import tvdb from './tvdb/tvdb';
 import tmdbSeasons from './tmdb/helpers/tmdb.seasons';
+import mappings from './mappings/mappings';
 
 class Anime {
-  async getInfo<T extends Prisma.AnimeDefaultArgs>(
+  async initOrGet<T extends Prisma.AnimeDefaultArgs>(
     id: number,
     args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
   ): Promise<Prisma.AnimeGetPayload<T>> {
@@ -46,14 +47,25 @@ class Anime {
       create: await getAnimePrismaData(al)
     });
 
-    await Promise.all([mal.getInfo(al.id), shikimori.getInfo(al.id), tmdb.getInfo(al.id), tvdb.getInfo(al.id)]);
-
-    await tmdbSeasons.getSeason(al.id);
+    await this.initProviders(al.id);
 
     return prisma.anime.findUnique({
       where: { id: al.id },
       ...(args as Prisma.AnimeDefaultArgs)
     }) as unknown as Promise<Prisma.AnimeGetPayload<T>>;
+  }
+
+  private async initProviders(id: number) {
+    await mappings.initOrGet(id);
+
+    await Promise.all([
+      mal.getInfo(id).catch(() => null),
+      shikimori.getInfo(id).catch(() => null),
+      tmdb.getInfo(id).catch(() => null),
+      tvdb.getInfo(id).catch(() => null)
+    ]);
+
+    await tmdbSeasons.getSeason(id).catch(() => null);
   }
 }
 

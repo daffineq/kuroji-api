@@ -31,7 +31,8 @@ app.onError((err, c) => {
   }
 
   if (err instanceof Error) {
-    return c.json(createErrorResponse(500, err.message), 500);
+    console.log(err.stack);
+    return c.json(createErrorResponse(500, err.message, err.stack), 500);
   }
 
   return c.json(createErrorResponse(500, 'Unknown error'), 500);

@@ -16,7 +16,7 @@ class Shikimori {
       return cached;
     }
 
-    const mapping = await mappings.getMappings(id, mappingsSelect).catch(() => null);
+    const mapping = await mappings.initOrGet(id, mappingsSelect).catch(() => null);
 
     const shikId = mapping?.mappings.find((m) => m.sourceName === 'shikimori')?.sourceId;
 

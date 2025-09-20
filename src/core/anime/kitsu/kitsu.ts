@@ -19,7 +19,7 @@ class Kitsu {
       return cached;
     }
 
-    const mapping = await mappings.getMappings(id, mappingsSelect).catch(() => null);
+    const mapping = await mappings.initOrGet(id, mappingsSelect).catch(() => null);
 
     const kitsuId = mapping?.mappings.find((m) => m.sourceName === 'kitsu')?.sourceId;
 

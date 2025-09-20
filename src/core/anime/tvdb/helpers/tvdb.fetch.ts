@@ -11,7 +11,7 @@ class TvdbFetch extends Client {
   async fetchSeries(id: string): Promise<TvdbInfoResult> {
     const token = await tvdbToken.getToken();
 
-    const { data, error } = await this.client.get<TvdbInfoResult>(`series/${id}`, {
+    const { data, error } = await this.client.get<TvdbInfoResult>(`series/${id}/extended`, {
       headers: {
         Authorization: `Bearer ${token}`
       },
@@ -32,7 +32,7 @@ class TvdbFetch extends Client {
   async fetchMovie(id: string): Promise<TvdbInfoResult> {
     const token = await tvdbToken.getToken();
 
-    const { data, error } = await this.client.get<TvdbInfoResult>(`movies/${id}`, {
+    const { data, error } = await this.client.get<TvdbInfoResult>(`movies/${id}/extended`, {
       headers: {
         Authorization: `Bearer ${token}`
       },

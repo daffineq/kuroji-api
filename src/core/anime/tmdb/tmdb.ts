@@ -19,7 +19,7 @@ class Tmdb {
       return cached;
     }
 
-    const mapping = await mappings.getMappings(id, mappingsSelect).catch(() => null);
+    const mapping = await mappings.initOrGet(id, mappingsSelect).catch(() => null);
 
     const tmdbId = parseNumber(mapping?.mappings.find((m) => m.sourceName === 'tmdb')?.sourceId);
 

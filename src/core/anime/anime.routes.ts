@@ -7,22 +7,14 @@ import mappings from './mappings/mappings';
 
 const animeRoute = new Hono();
 
-animeRoute.post('/info/:id', async (c) => {
-  try {
-    const { id } = c.req.param();
+animeRoute.post('/initOrGet/:id', async (c) => {
+  const { id } = c.req.param();
 
-    const json = await c.req.json();
+  const json = await c.req.json();
 
-    return c.json(
-      createSuccessResponse(await anime.getInfo(parseNumber(id)!, json as Prisma.AnimeSelect), 'Fetched info')
-    );
-  } catch (error) {
-    if (error instanceof Error) {
-      return c.json(createErrorResponse(400, error.message, error.stack), 400);
-    }
-
-    return c.json(createErrorResponse(400, 'Unknown error'), 400);
-  }
+  return c.json(
+    createSuccessResponse(await anime.initOrGet(parseNumber(id)!, json as Prisma.AnimeDefaultArgs), 'Fetched info')
+  );
 });
 
 animeRoute.post('/findMany', async (c) => {
@@ -37,14 +29,14 @@ animeRoute.post('/findFirst', async (c) => {
   return c.json(createSuccessResponse(await anime.findFirst(json as Prisma.AnimeFindFirstArgs), 'Fetched data'));
 });
 
-animeRoute.post('/mappings/info/:id', async (c) => {
+animeRoute.post('/mappings/initOrGet/:id', async (c) => {
   const { id } = c.req.param();
 
   const json = await c.req.json();
 
   return c.json(
     createSuccessResponse(
-      await mappings.getMappings(parseNumber(id)!, json as Prisma.MappingsSelect),
+      await mappings.initOrGet(parseNumber(id)!, json as Prisma.MappingsDefaultArgs),
       'Fetched mappings'
     )
   );

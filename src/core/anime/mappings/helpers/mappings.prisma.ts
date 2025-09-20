@@ -79,7 +79,7 @@ export const removeMappingsPrismaData = (data: MappingEntry): Prisma.MappingsUpd
 };
 
 // Enhanced episode functions
-export const addOrUpdateEpisodes = (episodes: Array<SeasonEpisode>): Prisma.MappingsUpdateInput => {
+export const addEpisodes = (episodes: Array<SeasonEpisode>): Prisma.MappingsUpdateInput => {
   return {
     episodes: {
       upsert: episodes.map((e) => ({
@@ -138,7 +138,7 @@ export const removeEpisodes = (episodeIds: number[]): Prisma.MappingsUpdateInput
 };
 
 // Title management
-export const addOrUpdateTitles = (titles: Array<TitleEntry>): Prisma.MappingsUpdateInput => {
+export const addTitles = (titles: Array<TitleEntry>): Prisma.MappingsUpdateInput => {
   return {
     titles: {
       connectOrCreate: titles.map((t) => ({
@@ -174,7 +174,7 @@ export const removeTitles = (titles: Array<TitleEntry>): Prisma.MappingsUpdateIn
 };
 
 // Poster management
-export const addOrUpdatePosters = (posters: Array<PosterEntry>): Prisma.MappingsUpdateInput => {
+export const addPosters = (posters: Array<PosterEntry>): Prisma.MappingsUpdateInput => {
   return {
     posters: {
       connectOrCreate: posters.map((p) => ({
@@ -210,7 +210,7 @@ export const removePosters = (posters: Array<Pick<PosterEntry, 'url' | 'source'>
 };
 
 // Banner management
-export const addOrUpdateBanners = (banners: Array<BannerEntry>): Prisma.MappingsUpdateInput => {
+export const addBanners = (banners: Array<BannerEntry>): Prisma.MappingsUpdateInput => {
   return {
     banners: {
       connectOrCreate: banners.map((b) => ({
@@ -246,7 +246,7 @@ export const removeBanners = (banners: Array<Pick<BannerEntry, 'url' | 'source'>
 };
 
 // Video management
-export const addOrUpdateVideos = (videos: Array<MVideo>): Prisma.MappingsUpdateInput => {
+export const addVideos = (videos: Array<MVideo>): Prisma.MappingsUpdateInput => {
   return {
     videos: {
       upsert: videos.map((v) => ({
@@ -278,7 +278,7 @@ export const removeVideos = (videoUrls: string[]): Prisma.MappingsUpdateInput =>
 };
 
 // Screenshot management
-export const addOrUpdateScreenshots = (screenshots: Array<ScreenshotEntry>): Prisma.MappingsUpdateInput => {
+export const addScreenshots = (screenshots: Array<ScreenshotEntry>): Prisma.MappingsUpdateInput => {
   return {
     screenshots: {
       upsert: screenshots.map((s) => ({
@@ -308,33 +308,35 @@ export const removeScreenshots = (screenshotIds: string[]): Prisma.MappingsUpdat
 };
 
 // Artwork management
-export const addOrUpdateArtworks = (artworks: Array<ArtworkEntry>): Prisma.MappingsUpdateInput => {
+export const addArtworks = (artworks: Array<ArtworkEntry>): Prisma.MappingsUpdateInput => {
   return {
     artworks: {
-      upsert: artworks.map((a) => ({
-        where: { id: a.id },
-        update: {
-          height: a.height,
-          image: a.image,
-          includesText: a.includesText,
-          language: a.language,
-          score: a.score,
-          thumbnail: a.thumbnail,
-          type: a.type,
-          width: a.width
-        },
-        create: {
-          id: a.id,
-          height: a.height,
-          image: a.image,
-          includesText: a.includesText,
-          language: a.language,
-          score: a.score,
-          thumbnail: a.thumbnail,
-          type: a.type,
-          width: a.width
-        }
-      }))
+      upsert: artworks
+        .filter((a) => a.id)
+        .map((a) => ({
+          where: { id: a.id },
+          update: {
+            height: a.height,
+            image: a.image,
+            includesText: a.includesText,
+            language: a.language,
+            score: a.score,
+            thumbnail: a.thumbnail,
+            type: a.type,
+            width: a.width
+          },
+          create: {
+            id: a.id,
+            height: a.height,
+            image: a.image,
+            includesText: a.includesText,
+            language: a.language,
+            score: a.score,
+            thumbnail: a.thumbnail,
+            type: a.type,
+            width: a.width
+          }
+        }))
     }
   };
 };
@@ -360,31 +362,31 @@ export const bulkUpdate = (data: {
   const update: Prisma.MappingsUpdateInput = {};
 
   if (data.titles?.length) {
-    update.titles = addOrUpdateTitles(data.titles).titles;
+    update.titles = addTitles(data.titles).titles;
   }
 
   if (data.posters?.length) {
-    update.posters = addOrUpdatePosters(data.posters).posters;
+    update.posters = addPosters(data.posters).posters;
   }
 
   if (data.banners?.length) {
-    update.banners = addOrUpdateBanners(data.banners).banners;
+    update.banners = addBanners(data.banners).banners;
   }
 
   if (data.videos?.length) {
-    update.videos = addOrUpdateVideos(data.videos).videos;
+    update.videos = addVideos(data.videos).videos;
   }
 
   if (data.screenshots?.length) {
-    update.screenshots = addOrUpdateScreenshots(data.screenshots).screenshots;
+    update.screenshots = addScreenshots(data.screenshots).screenshots;
   }
 
   if (data.artworks?.length) {
-    update.artworks = addOrUpdateArtworks(data.artworks).artworks;
+    update.artworks = addArtworks(data.artworks).artworks;
   }
 
   if (data.episodes?.length) {
-    update.episodes = addOrUpdateEpisodes(data.episodes).episodes;
+    update.episodes = addEpisodes(data.episodes).episodes;
   }
 
   if (data.mappings?.length) {

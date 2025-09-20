@@ -16,7 +16,7 @@ class MyAnimeList {
       return cached;
     }
 
-    const mapping = await mappings.getMappings(id, mappingsSelect).catch(() => null);
+    const mapping = await mappings.initOrGet(id, mappingsSelect).catch(() => null);
 
     const malId = parseNumber(mapping?.mappings.find((m) => m.sourceName === 'mal')?.sourceId);
 

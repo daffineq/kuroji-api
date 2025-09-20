@@ -26,7 +26,7 @@ class Tvdb {
 
     const type = getTvdbTypeByAl(al.format);
 
-    const mapping = await mappings.getMappings(id, mappingsSelect);
+    const mapping = await mappings.initOrGet(id, mappingsSelect);
 
     const tvdbId = mapping.mappings.find((m) => m.sourceName === 'tvdb')?.sourceId;
     const tmdbId = mapping.mappings.find((m) => m.sourceName === 'tmdb')?.sourceId;

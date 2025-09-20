@@ -18,7 +18,7 @@ class Animepahe {
       return cached;
     }
 
-    const mapping = await mappings.getMappings(id, mappingsSelect).catch(() => null);
+    const mapping = await mappings.initOrGet(id, mappingsSelect).catch(() => null);
 
     const paheId = mapping?.mappings.find((mapping) => mapping.sourceName === 'animepahe')?.sourceId;
 

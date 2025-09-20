@@ -70,10 +70,10 @@ class TmdbSeasons {
 
     const trimmedSeason: SeasonTmdb = {
       ...season,
-      episodes: matchResult.episodes
+      episodes: matchResult.episodes ?? []
     };
 
-    await mappings.addOrUpdateEpisodes(id, trimmedSeason.episodes);
+    await mappings.addEpisodes(id, trimmedSeason.episodes);
 
     await Redis.set(key, trimmedSeason);
 

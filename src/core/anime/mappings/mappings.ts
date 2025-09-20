@@ -16,18 +16,18 @@ import {
   addMappingsPrismaData,
   editMappingsPrismaData,
   removeMappingsPrismaData,
-  addOrUpdateEpisodes,
-  addOrUpdateTitles,
+  addEpisodes,
+  addTitles,
   removeTitles,
-  addOrUpdatePosters,
+  addPosters,
   removePosters,
-  addOrUpdateBanners,
+  addBanners,
   removeBanners,
-  addOrUpdateVideos,
+  addVideos,
   removeVideos,
-  addOrUpdateScreenshots,
+  addScreenshots,
   removeScreenshots,
-  addOrUpdateArtworks,
+  addArtworks,
   removeArtworks,
   removeEpisodes,
   bulkUpdate
@@ -36,7 +36,7 @@ import { MVideo } from '../mal/types';
 import anilist from '../anilist/anilist';
 
 class Mappings {
-  async getMappings<T extends Prisma.MappingsDefaultArgs>(
+  async initOrGet<T extends Prisma.MappingsDefaultArgs>(
     id: number,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
@@ -83,7 +83,7 @@ class Mappings {
     entry: MappingEntry,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.getMappings(id);
+    await this.initOrGet(id);
 
     return prisma.mappings.update({
       where: { id },
@@ -98,7 +98,7 @@ class Mappings {
     updated: MappingEntry,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.getMappings(id);
+    await this.initOrGet(id);
 
     return prisma.mappings.update({
       where: { id },
@@ -112,25 +112,11 @@ class Mappings {
     entry: MappingEntry,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.getMappings(id);
+    await this.initOrGet(id);
 
     return prisma.mappings.update({
       where: { id },
       data: removeMappingsPrismaData(entry),
-      ...(args as Prisma.MappingsDefaultArgs)
-    }) as unknown as Prisma.MappingsGetPayload<T>;
-  }
-
-  async addOrUpdateEpisodes<T extends Prisma.MappingsDefaultArgs>(
-    id: number,
-    episodes: Array<SeasonEpisode>,
-    args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
-  ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.getMappings(id);
-
-    return prisma.mappings.update({
-      where: { id },
-      data: addOrUpdateEpisodes(episodes),
       ...(args as Prisma.MappingsDefaultArgs)
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
@@ -141,11 +127,11 @@ class Mappings {
     titles: Array<TitleEntry>,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.getMappings(id);
+    await this.initOrGet(id);
 
     return prisma.mappings.update({
       where: { id },
-      data: addOrUpdateTitles(titles),
+      data: addTitles(titles),
       ...(args as Prisma.MappingsDefaultArgs)
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
@@ -168,11 +154,11 @@ class Mappings {
     posters: Array<PosterEntry>,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.getMappings(id);
+    await this.initOrGet(id);
 
     return prisma.mappings.update({
       where: { id },
-      data: addOrUpdatePosters(posters),
+      data: addPosters(posters),
       ...(args as Prisma.MappingsDefaultArgs)
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
@@ -195,11 +181,11 @@ class Mappings {
     banners: Array<BannerEntry>,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.getMappings(id);
+    await this.initOrGet(id);
 
     return prisma.mappings.update({
       where: { id },
-      data: addOrUpdateBanners(banners),
+      data: addBanners(banners),
       ...(args as Prisma.MappingsDefaultArgs)
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
@@ -222,11 +208,11 @@ class Mappings {
     videos: Array<MVideo>,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.getMappings(id);
+    await this.initOrGet(id);
 
     return prisma.mappings.update({
       where: { id },
-      data: addOrUpdateVideos(videos),
+      data: addVideos(videos),
       ...(args as Prisma.MappingsDefaultArgs)
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
@@ -249,11 +235,11 @@ class Mappings {
     screenshots: Array<ScreenshotEntry>,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.getMappings(id);
+    await this.initOrGet(id);
 
     return prisma.mappings.update({
       where: { id },
-      data: addOrUpdateScreenshots(screenshots),
+      data: addScreenshots(screenshots),
       ...(args as Prisma.MappingsDefaultArgs)
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
@@ -276,11 +262,11 @@ class Mappings {
     artworks: Array<ArtworkEntry>,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.getMappings(id);
+    await this.initOrGet(id);
 
     return prisma.mappings.update({
       where: { id },
-      data: addOrUpdateArtworks(artworks),
+      data: addArtworks(artworks),
       ...(args as Prisma.MappingsDefaultArgs)
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
@@ -303,11 +289,11 @@ class Mappings {
     episodes: Array<SeasonEpisode>,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.getMappings(id);
+    await this.initOrGet(id);
 
     return prisma.mappings.update({
       where: { id },
-      data: addOrUpdateEpisodes(episodes),
+      data: addEpisodes(episodes),
       ...(args as Prisma.MappingsDefaultArgs)
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
@@ -339,7 +325,7 @@ class Mappings {
     },
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.getMappings(id);
+    await this.initOrGet(id);
 
     return prisma.mappings.update({
       where: { id },
