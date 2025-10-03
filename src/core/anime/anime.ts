@@ -3,12 +3,9 @@ import { AnilistMedia } from './anilist/types';
 import prisma from 'src/lib/prisma';
 import { getAnimePrismaData } from './helpers/anime.prisma';
 import anilist from './anilist/anilist';
-import mal from './mal/mal';
-import shikimori from './shikimori/shikimori';
-import tmdb from './tmdb/tmdb';
-import tvdb from './tvdb/tvdb';
-import tmdbSeasons from './tmdb/helpers/tmdb.seasons';
 import mappings from './mappings/mappings';
+import { MetaInfo } from 'src/helpers/response';
+import { BadRequestError } from 'src/helpers/errors';
 
 class Anime {
   async initOrGet<T extends Prisma.AnimeDefaultArgs>(
@@ -29,11 +26,28 @@ class Anime {
     return this.save(al, args);
   }
 
-  async findMany<T extends Prisma.AnimeFindManyArgs>(find?: T) {
-    return prisma.anime.findMany(find);
+  async many<T extends Prisma.AnimeFindManyArgs>(
+    find?: T
+  ): Promise<{ meta: MetaInfo; data: Prisma.AnimeGetPayload<T>[] }> {
+    if (find?.take && find.take > 50) {
+      throw new BadRequestError('Nawwww, Maximum take is 50');
+    }
+
+    const [total, data] = await Promise.all([
+      prisma.anime.count({ where: find?.where }),
+      prisma.anime.findMany(find)
+    ]);
+
+    const page = find?.skip ? Math.floor(find.skip / (find.take ?? 1)) + 1 : 1;
+    const perPage = find?.take || 1;
+
+    return {
+      meta: { total, page, perPage, hasNextPage: total > page * perPage },
+      data: data as Prisma.AnimeGetPayload<T>[]
+    };
   }
 
-  async findFirst<T extends Prisma.AnimeFindFirstArgs>(find?: T) {
+  async first<T extends Prisma.AnimeFindFirstArgs>(find?: T) {
     return prisma.anime.findFirst(find);
   }
 
@@ -57,15 +71,6 @@ class Anime {
 
   private async initProviders(id: number) {
     await mappings.initMappings(id);
-
-    await Promise.all([
-      mal.getInfo(id).catch(() => null),
-      shikimori.getInfo(id).catch(() => null),
-      tmdb.getInfo(id).catch(() => null),
-      tvdb.getInfo(id).catch(() => null)
-    ]);
-
-    await tmdbSeasons.getSeason(id).catch(() => null);
   }
 }
 

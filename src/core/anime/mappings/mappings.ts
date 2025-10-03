@@ -34,6 +34,11 @@ import {
 } from './helpers/mappings.prisma';
 import { MVideo } from '../mal/types';
 import anilist from '../anilist/anilist';
+import mal from '../mal/mal';
+import shikimori from '../shikimori/shikimori';
+import tmdbSeasons from '../tmdb/helpers/tmdb.seasons';
+import tmdb from '../tmdb/tmdb';
+import tvdb from '../tvdb/tvdb';
 
 class Mappings {
   async initOrGet<T extends Prisma.MappingsDefaultArgs>(
@@ -59,13 +64,22 @@ class Mappings {
     const mappings = toMappingsArray(fetched?.mappings);
 
     await this.addMappings(id, mappings);
+
+    await Promise.all([
+      mal.getInfo(id).catch(() => null),
+      shikimori.getInfo(id).catch(() => null),
+      tmdb.getInfo(id).catch(() => null),
+      tvdb.getInfo(id).catch(() => null)
+    ]);
+
+    await tmdbSeasons.getSeason(id).catch(() => null);
   }
 
-  async findMany<T extends Prisma.MappingsFindManyArgs>(find?: T) {
+  async many<T extends Prisma.MappingsFindManyArgs>(find?: T) {
     return prisma.mappings.findMany(find);
   }
 
-  async findFirst<T extends Prisma.MappingsFindFirstArgs>(find?: T) {
+  async first<T extends Prisma.MappingsFindFirstArgs>(find?: T) {
     return prisma.mappings.findFirst(find);
   }
 

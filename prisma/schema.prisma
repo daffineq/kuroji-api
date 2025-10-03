@@ -8,14 +8,12 @@ datasource db {
 }
 
 // Indexer.prisma
-model AnilistIndexerState {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id               String   @id @default("anime")
-  lastFetchedPage  Int
-  updatedAt        DateTime @updatedAt
+model IndexerState {
+  id              String   @id @default("anime")
+  lastFetchedPage Int
+  updatedAt       DateTime @updatedAt
 }
+
 
 // Update.prisma
 model UpdateQueue {

@@ -27,14 +27,40 @@ app.use('/api', rateLimit(env.RATE_LIMIT, env.RATE_LIMIT_TTL));
 
 app.onError((err, c) => {
   if (err instanceof HttpError) {
-    return c.json(createErrorResponse(err.status, err.message, err.details), err.status);
+    return c.json(
+      createErrorResponse({
+        error: {
+          status: err.status,
+          message: err.message,
+          details: err.details
+        }
+      }),
+      err.status
+    );
   }
 
   if (err instanceof Error) {
-    return c.json(createErrorResponse(500, err.message, err.stack), 500);
+    return c.json(
+      createErrorResponse({
+        error: {
+          status: 500,
+          message: err.message,
+          details: err.stack
+        }
+      }),
+      500
+    );
   }
 
-  return c.json(createErrorResponse(500, 'Unknown error'), 500);
+  return c.json(
+    createErrorResponse({
+      error: {
+        status: 500,
+        message: 'Unknown error'
+      }
+    }),
+    500
+  );
 });
 
 app.notFound((c) => {
@@ -42,7 +68,12 @@ app.notFound((c) => {
 });
 
 app.get('/', (c) => {
-  return c.json(createSuccessResponse({}, 'Hello, world!'), 200);
+  return c.json(
+    createSuccessResponse({
+      message: 'Hello, world!'
+    }),
+    200
+  );
 });
 
 app.route('/api', api);

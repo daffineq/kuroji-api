@@ -1,9 +1,10 @@
 import { Hono } from 'hono';
 import anime from './anime';
 import { parseNumber } from 'src/helpers/parsers';
-import { createErrorResponse, createSuccessResponse } from 'src/helpers/response';
+import { createErrorResponse, createMetaResponse, createSuccessResponse } from 'src/helpers/response';
 import { Prisma } from '@prisma/client';
 import mappings from './mappings/mappings';
+import animeIndexer from './helpers/anime.indexer';
 
 const animeRoute = new Hono();
 
@@ -13,20 +14,58 @@ animeRoute.post('/initOrGet/:id', async (c) => {
   const json = await c.req.json();
 
   return c.json(
-    createSuccessResponse(await anime.initOrGet(parseNumber(id)!, json as Prisma.AnimeDefaultArgs), 'Fetched info')
+    createSuccessResponse({
+      data: await anime.initOrGet(parseNumber(id)!, json as Prisma.AnimeDefaultArgs),
+      message: 'Fetched info'
+    })
   );
 });
 
-animeRoute.post('/findMany', async (c) => {
+animeRoute.post('/many', async (c) => {
   const json = await c.req.json();
 
-  return c.json(createSuccessResponse(await anime.findMany(json as Prisma.AnimeFindManyArgs), 'Fetched data'));
+  const data = await anime.many(json as Prisma.AnimeFindManyArgs);
+
+  return c.json(
+    createMetaResponse({
+      data: data.data,
+      meta: data.meta,
+      message: 'Fetched data'
+    })
+  );
 });
 
-animeRoute.post('/findFirst', async (c) => {
+animeRoute.post('/first', async (c) => {
   const json = await c.req.json();
 
-  return c.json(createSuccessResponse(await anime.findFirst(json as Prisma.AnimeFindFirstArgs), 'Fetched data'));
+  return c.json(
+    createSuccessResponse({
+      data: await anime.first(json as Prisma.AnimeFindFirstArgs),
+      message: 'Fetched data'
+    })
+  );
+});
+
+animeRoute.post('/indexer/start', async (c) => {
+  const delay = c.req.query('delay');
+
+  const start = await animeIndexer.start(parseNumber(delay));
+
+  return c.json(
+    createSuccessResponse({
+      message: start
+    })
+  );
+});
+
+animeRoute.post('/indexer/stop', async (c) => {
+  animeIndexer.stop();
+
+  return c.json(
+    createSuccessResponse({
+      message: 'Stopped indexer'
+    })
+  );
 });
 
 animeRoute.post('/mappings/initOrGet/:id', async (c) => {
@@ -35,26 +74,32 @@ animeRoute.post('/mappings/initOrGet/:id', async (c) => {
   const json = await c.req.json();
 
   return c.json(
-    createSuccessResponse(
-      await mappings.initOrGet(parseNumber(id)!, json as Prisma.MappingsDefaultArgs),
-      'Fetched mappings'
-    )
+    createSuccessResponse({
+      data: await mappings.initOrGet(parseNumber(id)!, json as Prisma.MappingsDefaultArgs),
+      message: 'Fetched mappings'
+    })
   );
 });
 
-animeRoute.post('/mappings/findMany', async (c) => {
+animeRoute.post('/mappings/many', async (c) => {
   const json = await c.req.json();
 
   return c.json(
-    createSuccessResponse(await mappings.findMany(json as Prisma.MappingsFindManyArgs), 'Fetched data')
+    createSuccessResponse({
+      data: await mappings.many(json as Prisma.MappingsFindManyArgs),
+      message: 'Fetched mappings'
+    })
   );
 });
 
-animeRoute.post('/mappings/findFirst', async (c) => {
+animeRoute.post('/mappings/first', async (c) => {
   const json = await c.req.json();
 
   return c.json(
-    createSuccessResponse(await mappings.findFirst(json as Prisma.MappingsFindFirstArgs), 'Fetched data')
+    createSuccessResponse({
+      data: await mappings.first(json as Prisma.MappingsFindFirstArgs),
+      message: 'Fetched mappings'
+    })
   );
 });
 

@@ -1,3 +1,10 @@
+interface MetaInfo {
+  total: number;
+  page: number;
+  perPage: number;
+  hasNextPage: boolean;
+}
+
 interface BaseResponse {
   success: boolean;
   timestamp: string;
@@ -5,8 +12,15 @@ interface BaseResponse {
 
 interface PaginatedResponse<T> extends BaseResponse {
   success: true;
-  data: T[];
-  pageInfo: PageInfo;
+  data: T[] | undefined;
+  pageInfo: PageInfo | undefined;
+}
+
+interface MetaResponse<T> extends BaseResponse {
+  success: true;
+  data: T | undefined;
+  meta?: MetaInfo | undefined;
+  message?: string | undefined;
 }
 
 interface PageInfo {
@@ -19,48 +33,58 @@ interface PageInfo {
 
 interface SuccessResponse<T> extends BaseResponse {
   success: true;
-  data: T;
-  message?: string;
+  data: T | undefined;
+  message?: string | undefined;
 }
 
 interface ErrorResponse extends BaseResponse {
   success: false;
   error: {
-    status: number;
-    message: string;
-    details?: any;
+    status: number | null;
+    message: string | null;
+    details?: any | null | undefined;
   };
 }
 
-export type ApiResponse<T> = ErrorResponse | SuccessResponse<T> | PaginatedResponse<T>;
+export type ApiResponse<T> = ErrorResponse | SuccessResponse<T> | PaginatedResponse<T> | MetaResponse<T>;
 
-function createPaginatedResponse<T>(data: T[], pageInfo: PageInfo): PaginatedResponse<T> {
+function createPaginatedResponse<T>(data: Partial<PaginatedResponse<T>>): PaginatedResponse<T> {
   return {
     success: true,
-    data,
-    pageInfo,
-    timestamp: new Date().toISOString()
+    data: data.data,
+    pageInfo: data.pageInfo,
+    timestamp: data.timestamp ?? new Date().toISOString()
   };
 }
 
-function createSuccessResponse<T>(data: T, message?: string): SuccessResponse<T> {
+function createMetaResponse<T>(data: Partial<MetaResponse<T>>): MetaResponse<T> {
   return {
     success: true,
-    data,
-    message,
-    timestamp: new Date().toISOString()
+    data: data.data,
+    meta: data.meta,
+    message: data.message,
+    timestamp: data.timestamp ?? new Date().toISOString()
   };
 }
 
-function createErrorResponse(status: number, message: string, details?: any): ErrorResponse {
+function createSuccessResponse<T>(data: Partial<SuccessResponse<T>>): SuccessResponse<T> {
+  return {
+    success: true,
+    data: data.data,
+    message: data.message,
+    timestamp: data.timestamp ?? new Date().toISOString()
+  };
+}
+
+function createErrorResponse(error: Partial<ErrorResponse>): ErrorResponse {
   return {
     success: false,
     error: {
-      status,
-      message,
-      details
+      status: error.error?.status ?? null,
+      message: error.error?.message ?? null,
+      details: error.error?.details
     },
-    timestamp: new Date().toISOString()
+    timestamp: error.timestamp ?? new Date().toISOString()
   };
 }
 
@@ -68,8 +92,11 @@ export {
   createErrorResponse,
   createSuccessResponse,
   createPaginatedResponse,
+  createMetaResponse,
   type ErrorResponse,
   type SuccessResponse,
   type PaginatedResponse,
-  type PageInfo
+  type MetaResponse,
+  type PageInfo,
+  type MetaInfo
 };
