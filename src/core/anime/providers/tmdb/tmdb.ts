@@ -1,13 +1,13 @@
-import mappings from '../mappings/mappings';
-import { mappingsSelect } from '../mappings/types';
+import mappings from '../../mappings/mappings';
+import { mappingsSelect } from '../../mappings/types';
 import { parseNumber, parseString } from 'src/helpers/parsers';
 import tmdbFetch from './helpers/tmdb.fetch';
-import anilist from '../anilist/anilist';
 import { getImage, getTmdbTypeByAl } from './helpers/tmdb.utils';
 import { TmdbInfoResult } from './types';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { NotFoundError } from 'src/helpers/errors';
 import { getKey, Redis } from 'src/helpers/redis.util';
+import anilist from '../anilist/anilist';
 
 class Tmdb {
   async getInfo(id: number): Promise<TmdbInfoResult> {

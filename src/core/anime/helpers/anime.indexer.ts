@@ -1,6 +1,6 @@
 import lock from 'src/core/helpers/lock';
 import prisma from 'src/lib/prisma';
-import anilistFetch from '../anilist/helpers/anilist.fetch';
+import anilistFetch from '../providers/anilist/helpers/anilist.fetch';
 import anime from '../anime';
 import { sleep } from 'bun';
 import logger from 'src/helpers/logger';

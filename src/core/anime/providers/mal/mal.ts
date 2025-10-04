@@ -3,8 +3,8 @@ import { getKey, Redis } from 'src/helpers/redis.util';
 import malFetch from './helpers/mal.fetch';
 import { parseNumber, parseString } from 'src/helpers/parsers';
 import anilist from '../anilist/anilist';
-import mappings from '../mappings/mappings';
-import { mappingsSelect } from '../mappings/types';
+import mappings from '../../mappings/mappings';
+import { mappingsSelect } from '../../mappings/types';
 
 class MyAnimeList {
   async getInfo(id: number): Promise<MALInfo> {

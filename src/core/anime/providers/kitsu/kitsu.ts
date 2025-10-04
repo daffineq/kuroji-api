@@ -1,13 +1,13 @@
 import { KitsuAnime } from './types';
 import { NotFoundError } from 'src/helpers/errors';
-import anilist from '../anilist/anilist';
 import kitsuFetch from './helpers/kitsu.fetch';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { parseNumber } from 'src/helpers/parsers';
-import { findEpisodeCount } from '../anilist/helpers/anilist.utils';
-import mappings from '../mappings/mappings';
-import { mappingsSelect } from '../mappings/types';
+import mappings from '../../mappings/mappings';
+import { mappingsSelect } from '../../mappings/types';
 import { getKey, Redis } from 'src/helpers/redis.util';
+import anilist from '../anilist/anilist';
+import { findEpisodeCount } from '../anilist/helpers/anilist.utils';
 
 class Kitsu {
   async getInfo(id: number): Promise<KitsuAnime> {

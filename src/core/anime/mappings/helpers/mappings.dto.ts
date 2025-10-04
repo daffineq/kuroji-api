@@ -1,8 +1,3 @@
-// mappings.dto.ts
-import { Prisma } from '@prisma/client';
-import { SeasonEpisode } from '../../tmdb/types';
-import { parseString } from 'src/helpers/parsers';
-
 export type MappingEntry = {
   id: string | number;
   name: string;
@@ -10,6 +5,12 @@ export type MappingEntry = {
 
 export interface TitleEntry {
   title: string;
+  source: string;
+  language: string;
+}
+
+export interface DescriptionEntry {
+  description: string;
   source: string;
   language: string;
 }

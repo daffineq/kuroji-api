@@ -4,9 +4,9 @@ import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { findEpisodeCount } from '../anilist/helpers/anilist.utils';
 import { AnimepaheInfo } from 'src/core/types';
 import anilist from '../anilist/anilist';
-import mappings from '../mappings/mappings';
+import mappings from '../../mappings/mappings';
 import { getKey, Redis } from 'src/helpers/redis.util';
-import { mappingsSelect } from '../mappings/types';
+import { mappingsSelect } from '../../mappings/types';
 
 class Animepahe {
   async getInfo(id: number): Promise<AnimepaheInfo> {

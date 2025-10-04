@@ -51,6 +51,10 @@ const env = {
   DEFAULT_PER_PAGE: parseNumber(process.env.DEFAULT_PER_PAGE) ?? 25,
   DEFAULT_PAGE: parseNumber(process.env.DEFAULT_PAGE) ?? 1,
 
+  DEFAULT_MAX_PER_PAGE: process.env.DEFAULT_MAX_PER_PAGE ? parseInt(process.env.DEFAULT_MAX_PER_PAGE) : 50,
+  DEFAULT_MIN_PER_PAGE: process.env.DEFAULT_MIN_PER_PAGE ? parseInt(process.env.DEFAULT_MIN_PER_PAGE) : 1,
+  DEFAULT_MIN_PAGE: process.env.DEFAULT_MIN_PAGE ? parseInt(process.env.DEFAULT_MIN_PAGE) : 1,
+
   // JWT
   JWT_SECRET: process.env.JWT_SECRET ?? 'supersecret',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '1h',

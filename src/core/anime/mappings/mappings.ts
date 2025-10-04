@@ -1,44 +1,47 @@
 import { Prisma } from '@prisma/client';
 import prisma from 'src/lib/prisma';
+import anilist from '../providers/anilist/anilist';
+import mal from '../providers/mal/mal';
+import { MVideo } from '../providers/mal/types';
+import shikimori from '../providers/shikimori/shikimori';
+import tmdbSeasons from '../providers/tmdb/helpers/tmdb.seasons';
+import tmdb from '../providers/tmdb/tmdb';
+import { SeasonEpisode } from '../providers/tmdb/types';
+import tvdb from '../providers/tvdb/tvdb';
 import {
-  TitleEntry,
-  PosterEntry,
-  BannerEntry,
-  ScreenshotEntry,
   ArtworkEntry,
-  MappingEntry
+  BannerEntry,
+  DescriptionEntry,
+  MappingEntry,
+  PosterEntry,
+  ScreenshotEntry,
+  TitleEntry
 } from './helpers/mappings.dto';
 import mappingsFetch from './helpers/mappings.fetch';
-import { toMappingsArray } from './helpers/mappings.utils';
-import { SeasonEpisode } from '../tmdb/types';
 import {
-  getMappingsPrismaData,
-  addMappingsPrismaData,
-  editMappingsPrismaData,
-  removeMappingsPrismaData,
-  addEpisodes,
-  addTitles,
-  removeTitles,
-  addPosters,
-  removePosters,
-  addBanners,
-  removeBanners,
-  addVideos,
-  removeVideos,
-  addScreenshots,
-  removeScreenshots,
   addArtworks,
+  addBanners,
+  addDescriptions,
+  addEpisodes,
+  addMappingsPrismaData,
+  addPosters,
+  addScreenshots,
+  addTitles,
+  addVideos,
+  bulkUpdate,
+  editMappingsPrismaData,
+  getMappingsPrismaData,
   removeArtworks,
+  removeBanners,
+  removeDescriptions,
   removeEpisodes,
-  bulkUpdate
+  removeMappingsPrismaData,
+  removePosters,
+  removeScreenshots,
+  removeTitles,
+  removeVideos
 } from './helpers/mappings.prisma';
-import { MVideo } from '../mal/types';
-import anilist from '../anilist/anilist';
-import mal from '../mal/mal';
-import shikimori from '../shikimori/shikimori';
-import tmdbSeasons from '../tmdb/helpers/tmdb.seasons';
-import tmdb from '../tmdb/tmdb';
-import tvdb from '../tvdb/tvdb';
+import { toMappingsArray } from './helpers/mappings.utils';
 
 class Mappings {
   async initOrGet<T extends Prisma.MappingsDefaultArgs>(
@@ -152,6 +155,38 @@ class Mappings {
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
 
+  async addFranchise<T extends Prisma.MappingsDefaultArgs>(
+    id: number,
+    franchise: string,
+    args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
+  ): Promise<Prisma.MappingsGetPayload<T>> {
+    await this.initOrGet(id);
+
+    return prisma.mappings.update({
+      where: { id },
+      data: {
+        franchise: franchise
+      },
+      ...(args as Prisma.MappingsDefaultArgs)
+    }) as unknown as Prisma.MappingsGetPayload<T>;
+  }
+
+  async addRating<T extends Prisma.MappingsDefaultArgs>(
+    id: number,
+    rating: string,
+    args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
+  ): Promise<Prisma.MappingsGetPayload<T>> {
+    await this.initOrGet(id);
+
+    return prisma.mappings.update({
+      where: { id },
+      data: {
+        rating: rating
+      },
+      ...(args as Prisma.MappingsDefaultArgs)
+    }) as unknown as Prisma.MappingsGetPayload<T>;
+  }
+
   // Title operations
   async addTitles<T extends Prisma.MappingsDefaultArgs>(
     id: number,
@@ -175,6 +210,33 @@ class Mappings {
     return prisma.mappings.update({
       where: { id },
       data: removeTitles(titles),
+      ...(args as Prisma.MappingsDefaultArgs)
+    }) as unknown as Prisma.MappingsGetPayload<T>;
+  }
+
+  // Description operations
+  async addDescriptions<T extends Prisma.MappingsDefaultArgs>(
+    id: number,
+    descriptions: Array<DescriptionEntry>,
+    args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
+  ): Promise<Prisma.MappingsGetPayload<T>> {
+    await this.initOrGet(id);
+
+    return prisma.mappings.update({
+      where: { id },
+      data: addDescriptions(descriptions),
+      ...(args as Prisma.MappingsDefaultArgs)
+    }) as unknown as Prisma.MappingsGetPayload<T>;
+  }
+
+  async removeDescriptions<T extends Prisma.MappingsDefaultArgs>(
+    id: number,
+    descriptions: Array<DescriptionEntry>,
+    args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
+  ): Promise<Prisma.MappingsGetPayload<T>> {
+    return prisma.mappings.update({
+      where: { id },
+      data: removeDescriptions(descriptions),
       ...(args as Prisma.MappingsDefaultArgs)
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
@@ -372,6 +434,14 @@ class Mappings {
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
     return this.addTitles(id, [title], args);
+  }
+
+  async addSingleDescription<T extends Prisma.MappingsDefaultArgs>(
+    id: number,
+    description: DescriptionEntry,
+    args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
+  ): Promise<Prisma.MappingsGetPayload<T>> {
+    return this.addDescriptions(id, [description], args);
   }
 
   async addSinglePoster<T extends Prisma.MappingsDefaultArgs>(

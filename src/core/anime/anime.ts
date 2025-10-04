@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client';
-import { AnilistMedia } from './anilist/types';
+import { AnilistMedia } from './providers/anilist/types';
 import prisma from 'src/lib/prisma';
 import { getAnimePrismaData } from './helpers/anime.prisma';
-import anilist from './anilist/anilist';
+import anilist from './providers/anilist/anilist';
 import mappings from './mappings/mappings';
 import { MetaInfo } from 'src/helpers/response';
 import { BadRequestError } from 'src/helpers/errors';

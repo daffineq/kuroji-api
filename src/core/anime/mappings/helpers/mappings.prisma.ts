@@ -1,9 +1,17 @@
 import { Prisma } from '@prisma/client';
-import { SeasonEpisode } from '../../tmdb/types';
 import { parseString } from 'src/helpers/parsers';
-import { MappingEntry, TitleEntry, PosterEntry, BannerEntry, ScreenshotEntry, ArtworkEntry } from './mappings.dto';
-import { MVideo } from '../../mal/types';
-import { getImage } from '../../tmdb/helpers/tmdb.utils';
+import { MVideo } from '../../providers/mal/types';
+import { getImage } from '../../providers/tmdb/helpers/tmdb.utils';
+import { SeasonEpisode } from '../../providers/tmdb/types';
+import {
+  ArtworkEntry,
+  BannerEntry,
+  DescriptionEntry,
+  MappingEntry,
+  PosterEntry,
+  ScreenshotEntry,
+  TitleEntry
+} from './mappings.dto';
 
 export const getMappingsPrismaData = (id: number): Prisma.MappingsCreateInput => {
   return {
@@ -151,6 +159,42 @@ export const removeTitles = (titles: Array<TitleEntry>): Prisma.MappingsUpdateIn
       disconnect: titles.map((t) => ({
         title_source_language: {
           title: t.title,
+          source: t.source,
+          language: t.language
+        }
+      }))
+    }
+  };
+};
+
+// Description management
+export const addDescriptions = (descriptions: Array<DescriptionEntry>): Prisma.MappingsUpdateInput => {
+  return {
+    descriptions: {
+      connectOrCreate: descriptions.map((d) => ({
+        where: {
+          description_source_language: {
+            description: d.description,
+            source: d.source,
+            language: d.language
+          }
+        },
+        create: {
+          description: d.description,
+          source: d.source,
+          language: d.language
+        }
+      }))
+    }
+  };
+};
+
+export const removeDescriptions = (descriptions: Array<DescriptionEntry>): Prisma.MappingsUpdateInput => {
+  return {
+    descriptions: {
+      disconnect: descriptions.map((t) => ({
+        description_source_language: {
+          description: t.description,
           source: t.source,
           language: t.language
         }

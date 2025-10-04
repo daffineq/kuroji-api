@@ -1,7 +1,7 @@
 import { DateUtils } from 'src/helpers/date';
-import { AnilistMedia } from '../anilist/types';
-import { KitsuAnime } from '../kitsu/types';
-import { ShikimoriAnime } from '../shikimori/types';
+import { AnilistMedia } from '../providers/anilist/types';
+import { KitsuAnime } from '../providers/kitsu/types';
+import { ShikimoriAnime } from '../providers/shikimori/types';
 
 export const getEpisodesCount = (
   anilist: AnilistMedia,

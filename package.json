@@ -13,11 +13,14 @@
   "dependencies": {
     "@hono/eslint-config": "^2.0.3",
     "@prisma/client": "^6.16.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "hono": "^4.9.7",
     "ioredis": "^5.7.0",
-    "ky": "^1.10.0"
+    "ky": "^1.10.0",
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@types/bun": "latest",

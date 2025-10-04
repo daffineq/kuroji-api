@@ -1,12 +1,12 @@
 import { NotFoundError } from 'src/helpers/errors';
-import anilist from '../anilist/anilist';
 import { TvdbInfoResult } from './types';
-import mappings from '../mappings/mappings';
+import mappings from '../../mappings/mappings';
 import { getTvdbTypeByAl } from './helpers/tvdb.utils';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import tvdbFetch from './helpers/tvdb.fetch';
 import { parseString } from 'src/helpers/parsers';
-import { mappingsSelect } from '../mappings/types';
+import { mappingsSelect } from '../../mappings/types';
+import anilist from '../anilist/anilist';
 
 class Tvdb {
   async getInfo(id: number): Promise<TvdbInfoResult> {

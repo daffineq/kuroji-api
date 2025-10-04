@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { AnilistMedia } from '../anilist/types';
+import { AnilistMedia } from '../providers/anilist/types';
 import prisma from 'src/lib/prisma';
 import { DateUtils } from 'src/helpers/date';
 

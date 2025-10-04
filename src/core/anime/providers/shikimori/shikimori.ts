@@ -1,10 +1,10 @@
 import { parseString } from 'src/helpers/parsers';
-import anilist from '../anilist/anilist';
 import shikimoriFetch from './helpers/shikimori.fetch';
 import { ShikimoriAnime } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
-import mappings from '../mappings/mappings';
-import { mappingsSelect } from '../mappings/types';
+import mappings from '../../mappings/mappings';
+import { mappingsSelect } from '../../mappings/types';
+import anilist from '../anilist/anilist';
 
 class Shikimori {
   async getInfo(id: number): Promise<ShikimoriAnime> {
@@ -51,6 +51,14 @@ class Shikimori {
       });
     }
 
+    if (fetched.description) {
+      await mappings.addSingleDescription(id, {
+        description: fetched.description,
+        source: 'shikimori',
+        language: 'russian'
+      });
+    }
+
     if (fetched.poster) {
       await mappings.addSinglePoster(id, {
         url: fetched.poster.originalUrl!,
@@ -58,6 +66,14 @@ class Shikimori {
         large: fetched.poster.originalUrl!,
         source: 'shikimori'
       });
+    }
+
+    if (fetched.franchise) {
+      await mappings.addFranchise(id, fetched.franchise);
+    }
+
+    if (fetched.rating) {
+      await mappings.addRating(id, fetched.rating);
     }
 
     await Redis.set(key, fetched);

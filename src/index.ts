@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { Hono } from 'hono';
 import { createErrorResponse, createSuccessResponse } from './helpers/response';
 import { HttpError, NotFoundError } from './helpers/errors';
@@ -70,7 +71,7 @@ app.notFound((c) => {
 app.get('/', (c) => {
   return c.json(
     createSuccessResponse({
-      message: 'Hello, world!'
+      message: 'Hello Kuroji!'
     }),
     200
   );

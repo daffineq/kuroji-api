@@ -13,12 +13,12 @@ import {
   matchByAnimepahe
 } from './mapping/strategies';
 import { AnimepaheInfo } from 'src/core/types';
-import animepahe from '../../animepahe/animepahe';
-import shikimori from '../../shikimori/shikimori';
-import kitsu from '../../kitsu/kitsu';
-import { getEpisodesCount } from '../../helpers/get.episodes';
-import mappings from '../../mappings/mappings';
+import { getEpisodesCount } from '../../../helpers/get.episodes';
+import mappings from '../../../mappings/mappings';
 import { getKey, Redis } from 'src/helpers/redis.util';
+import animepahe from '../../animepahe/animepahe';
+import kitsu from '../../kitsu/kitsu';
+import shikimori from '../../shikimori/shikimori';
 
 class TmdbSeasons {
   async getSeason(id: number): Promise<SeasonTmdb> {

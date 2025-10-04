@@ -1,17 +1,19 @@
 import { Hono } from 'hono';
 import anime from './anime';
-import { parseNumber } from 'src/helpers/parsers';
-import { createErrorResponse, createMetaResponse, createSuccessResponse } from 'src/helpers/response';
+import { parseDto, parseJson, parseNumber } from 'src/helpers/parsers';
+import { createMetaResponse, createSuccessResponse } from 'src/helpers/response';
 import { Prisma } from '@prisma/client';
 import mappings from './mappings/mappings';
 import animeIndexer from './helpers/anime.indexer';
+import animeFilter from './helpers/anime.filter';
+import { FilterDto } from './helpers/anime.filter.dto';
 
 const animeRoute = new Hono();
 
 animeRoute.post('/initOrGet/:id', async (c) => {
   const { id } = c.req.param();
 
-  const json = await c.req.json();
+  const json = await parseJson(c.req);
 
   return c.json(
     createSuccessResponse({
@@ -22,7 +24,7 @@ animeRoute.post('/initOrGet/:id', async (c) => {
 });
 
 animeRoute.post('/many', async (c) => {
-  const json = await c.req.json();
+  const json = await parseJson(c.req);
 
   const data = await anime.many(json as Prisma.AnimeFindManyArgs);
 
@@ -36,11 +38,26 @@ animeRoute.post('/many', async (c) => {
 });
 
 animeRoute.post('/first', async (c) => {
-  const json = await c.req.json();
+  const json = await parseJson(c.req);
 
   return c.json(
     createSuccessResponse({
       data: await anime.first(json as Prisma.AnimeFindFirstArgs),
+      message: 'Fetched data'
+    })
+  );
+});
+
+animeRoute.post('/filter', async (c) => {
+  const query = await parseDto(FilterDto, c.req.query());
+  const json = await parseJson(c.req);
+
+  const data = await animeFilter.filter(query, json as Prisma.AnimeDefaultArgs);
+
+  return c.json(
+    createMetaResponse({
+      data: data.data,
+      meta: data.meta,
       message: 'Fetched data'
     })
   );
@@ -71,7 +88,7 @@ animeRoute.post('/indexer/stop', async (c) => {
 animeRoute.post('/mappings/initOrGet/:id', async (c) => {
   const { id } = c.req.param();
 
-  const json = await c.req.json();
+  const json = await parseJson(c.req);
 
   return c.json(
     createSuccessResponse({
@@ -82,7 +99,7 @@ animeRoute.post('/mappings/initOrGet/:id', async (c) => {
 });
 
 animeRoute.post('/mappings/many', async (c) => {
-  const json = await c.req.json();
+  const json = await parseJson(c.req);
 
   return c.json(
     createSuccessResponse({
@@ -93,7 +110,7 @@ animeRoute.post('/mappings/many', async (c) => {
 });
 
 animeRoute.post('/mappings/first', async (c) => {
-  const json = await c.req.json();
+  const json = await parseJson(c.req);
 
   return c.json(
     createSuccessResponse({

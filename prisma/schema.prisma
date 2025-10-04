@@ -151,14 +151,18 @@ enum ApiKeyRequestStatus {
 model Mappings {
   id Int @id
 
-  titles      Title[]      @relation("MappingsToTitle")
-  posters     Poster[]     @relation("MappingsToPoster")
-  banners     Banner[]     @relation("MappingsToBanner")
-  mappings    Mapping[]    @relation("MappingsToMapping")
-  episodes    Episode[]    @relation("MappingsToEpisode")
-  videos      Video[]      @relation("MappingsToVideo")
-  screenshots Screenshot[] @relation("MappingsToScreenshot")
-  artworks    Artwork[]    @relation("MappingsToArtwork")
+  franchise String?
+  rating    String?
+
+  titles       Title[]       @relation("MappingsToTitle")
+  descriptions Description[] @relation("MappingsToDescription")
+  posters      Poster[]      @relation("MappingsToPoster")
+  banners      Banner[]      @relation("MappingsToBanner")
+  mappings     Mapping[]     @relation("MappingsToMapping")
+  episodes     Episode[]     @relation("MappingsToEpisode")
+  videos       Video[]       @relation("MappingsToVideo")
+  screenshots  Screenshot[]  @relation("MappingsToScreenshot")
+  artworks     Artwork[]     @relation("MappingsToArtwork")
 
   anime Anime @relation(fields: [id], references: [id])
 }
@@ -209,6 +213,18 @@ model Title {
   parent Mappings[] @relation("MappingsToTitle")
 
   @@unique([title, source, language])
+}
+
+model Description {
+  id String @id @default(cuid())
+
+  description String
+  source      String
+  language    String
+
+  parent Mappings[] @relation("MappingsToDescription")
+
+  @@unique([description, source, language])
 }
 
 model Poster {

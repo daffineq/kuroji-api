@@ -1,5 +1,5 @@
-import { AnimepaheEpisodeMetadata, AnimepaheInfoMetadata } from './anime/animepahe/types';
-import { MInfoMeta } from './anime/mal/types';
+import { AnimepaheEpisodeMetadata, AnimepaheInfoMetadata } from './anime/providers/animepahe/types';
+import { MInfoMeta } from './anime/providers/mal/types';
 
 export interface Title {
   english: string | null | undefined;
