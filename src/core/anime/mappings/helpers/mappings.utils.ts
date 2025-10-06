@@ -1,4 +1,5 @@
-import { AniZipMappings, MappingEntry } from '../types';
+import { AniZipMappings } from '../types';
+import { MappingEntry } from './mappings.dto';
 
 export function toMappingsArray(mappings: AniZipMappings | undefined): MappingEntry[] {
   const result: MappingEntry[] = [];

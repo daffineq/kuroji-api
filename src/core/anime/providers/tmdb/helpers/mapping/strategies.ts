@@ -1,6 +1,6 @@
 import { findEpisodeCount, getDate } from 'src/core/anime/providers/anilist/helpers/anilist.utils';
 import { MatchStrategy, EpisodeMatchCandidate, SeasonEpisodeGroup, MatchResult, SeasonEpisode } from '../../types';
-import { AnilistMedia, MapperAnilist } from 'src/core/anime/providers/anilist/types';
+import { AnilistMedia } from 'src/core/anime/providers/anilist/types';
 import { DateUtils } from 'src/helpers/date';
 import { AnimepaheInfo } from 'src/core/types';
 

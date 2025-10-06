@@ -4,6 +4,7 @@ import anilistFetch from '../providers/anilist/helpers/anilist.fetch';
 import anime from '../anime';
 import { sleep } from 'bun';
 import logger from 'src/helpers/logger';
+import { Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
 
 class AnimeIndexer {
   private delay: number = 20;
@@ -87,6 +88,13 @@ class AnimeIndexer {
     return 'Indexing stopped';
   }
 
+  @Scheduled({
+    strategies: [ScheduleStrategies.EVERY_MONTH_START]
+  })
+  async scheduleIndex() {
+    await this.index();
+  }
+
   public async calculateEstimatedTime(): Promise<string> {
     const totalFetched = await prisma.anime.count();
     const total = await anilistFetch.getTotal();
@@ -117,4 +125,6 @@ class AnimeIndexer {
   }
 }
 
-export default new AnimeIndexer();
+const animeIndexer = new AnimeIndexer();
+
+export default animeIndexer;

@@ -42,7 +42,6 @@ model UpdateHistory {
   id          String   @id @default(uuid())
   animeId     Int
   malId       Int?
-  providers   String[] // Which providers were updated
   success     Boolean
   duration    Int? // How long it took in seconds
   errorCount  Int      @default(0)

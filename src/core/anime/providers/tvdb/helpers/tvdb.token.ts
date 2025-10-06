@@ -107,4 +107,6 @@ class TvdbToken extends Client {
   }
 }
 
-export default new TvdbToken();
+const tvdbToken = new TvdbToken();
+
+export default tvdbToken;

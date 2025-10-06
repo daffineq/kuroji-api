@@ -103,4 +103,6 @@ class Tmdb {
   }
 }
 
-export default new Tmdb();
+const tmdb = new Tmdb();
+
+export default tmdb;

@@ -57,4 +57,6 @@ class MyAnimeList {
   }
 }
 
-export default new MyAnimeList();
+const mal = new MyAnimeList();
+
+export default mal;

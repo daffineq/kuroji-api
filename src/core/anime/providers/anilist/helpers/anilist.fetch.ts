@@ -110,4 +110,6 @@ class AnilistFetch extends Client {
   }
 }
 
-export default new AnilistFetch();
+const anilistFetch = new AnilistFetch();
+
+export default anilistFetch;

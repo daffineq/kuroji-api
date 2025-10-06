@@ -29,4 +29,6 @@ class ShikimoriFetch extends Client {
   }
 }
 
-export default new ShikimoriFetch();
+const shikimoriFetch = new ShikimoriFetch();
+
+export default shikimoriFetch;

@@ -66,4 +66,6 @@ class AnimepaheFetch extends Client {
   }
 }
 
-export default new AnimepaheFetch();
+const animepaheFetch = new AnimepaheFetch();
+
+export default animepaheFetch;

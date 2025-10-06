@@ -26,4 +26,6 @@ class MalFetch extends Client {
   }
 }
 
-export default new MalFetch();
+const malFetch = new MalFetch();
+
+export default malFetch;

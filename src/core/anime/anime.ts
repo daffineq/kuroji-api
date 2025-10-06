@@ -26,6 +26,15 @@ class Anime {
     return this.save(al, args);
   }
 
+  async update<T extends Prisma.AnimeDefaultArgs>(
+    id: number,
+    args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
+  ): Promise<Prisma.AnimeGetPayload<T>> {
+    const al = await anilist.getInfo(id);
+
+    return this.save(al, args);
+  }
+
   async many<T extends Prisma.AnimeFindManyArgs>(
     find?: T
   ): Promise<{ meta: MetaInfo; data: Prisma.AnimeGetPayload<T>[] }> {
@@ -70,8 +79,10 @@ class Anime {
   }
 
   private async initProviders(id: number) {
-    await mappings.initMappings(id);
+    await mappings.loadMappings(id);
   }
 }
 
-export default new Anime();
+const anime = new Anime();
+
+export default anime;

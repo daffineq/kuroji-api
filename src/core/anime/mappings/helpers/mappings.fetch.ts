@@ -22,4 +22,6 @@ class MappingsFetch extends Client {
   }
 }
 
-export default new MappingsFetch();
+const mappingsFetch = new MappingsFetch();
+
+export default mappingsFetch;

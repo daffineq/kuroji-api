@@ -85,4 +85,6 @@ class Animepahe {
   }
 }
 
-export default new Animepahe();
+const animepahe = new Animepahe();
+
+export default animepahe;

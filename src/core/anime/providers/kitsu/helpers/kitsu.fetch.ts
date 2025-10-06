@@ -46,4 +46,6 @@ class KitsuFetch extends Client {
   }
 }
 
-export default new KitsuFetch();
+const kitsuFetch = new KitsuFetch();
+
+export default kitsuFetch;

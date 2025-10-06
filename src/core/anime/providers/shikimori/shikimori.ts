@@ -82,4 +82,6 @@ class Shikimori {
   }
 }
 
-export default new Shikimori();
+const shikimori = new Shikimori();
+
+export default shikimori;

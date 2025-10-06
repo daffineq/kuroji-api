@@ -174,4 +174,6 @@ class TmdbSeasons {
   }
 }
 
-export default new TmdbSeasons();
+const tmdbSeasons = new TmdbSeasons();
+
+export default tmdbSeasons;

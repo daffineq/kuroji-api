@@ -64,4 +64,6 @@ class Tvdb {
   }
 }
 
-export default new Tvdb();
+const tvdb = new Tvdb();
+
+export default tvdb;

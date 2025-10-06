@@ -359,4 +359,6 @@ class AnimeFilter {
   }
 }
 
-export default new AnimeFilter();
+const animeFilter = new AnimeFilter();
+
+export default animeFilter;

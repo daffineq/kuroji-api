@@ -62,7 +62,7 @@ class Mappings {
     return this.save(id, args);
   }
 
-  async initMappings(id: number) {
+  async loadMappings(id: number) {
     const fetched = await mappingsFetch.fetchMappings(id).catch(() => null);
     const mappings = toMappingsArray(fetched?.mappings);
 
@@ -469,4 +469,6 @@ class Mappings {
   }
 }
 
-export default new Mappings();
+const mappings = new Mappings();
+
+export default mappings;

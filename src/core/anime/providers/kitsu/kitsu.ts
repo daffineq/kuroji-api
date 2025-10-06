@@ -81,4 +81,6 @@ class Kitsu {
   }
 }
 
-export default new Kitsu();
+const kitsu = new Kitsu();
+
+export default kitsu;

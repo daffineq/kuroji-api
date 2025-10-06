@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import './core/anime/helpers/anime.update';
 import { Hono } from 'hono';
 import { createErrorResponse, createSuccessResponse } from './helpers/response';
 import { HttpError, NotFoundError } from './helpers/errors';

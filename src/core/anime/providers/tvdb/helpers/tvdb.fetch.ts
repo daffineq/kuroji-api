@@ -75,4 +75,6 @@ class TvdbFetch extends Client {
   }
 }
 
-export default new TvdbFetch();
+const tvdbFetch = new TvdbFetch();
+
+export default tvdbFetch;

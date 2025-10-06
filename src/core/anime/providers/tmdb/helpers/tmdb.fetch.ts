@@ -89,4 +89,6 @@ class TmdbFetch extends Client {
   }
 }
 
-export default new TmdbFetch();
+const tmdbFetch = new TmdbFetch();
+
+export default tmdbFetch;

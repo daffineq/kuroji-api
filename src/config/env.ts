@@ -6,6 +6,8 @@ const env = {
   PORT: parseNumber(process.env.PORT) ?? 3000,
   PUBLIC_URL: process.env.PUBLIC_URL ?? `http://localhost:${process.env.PORT ?? 3000}`,
 
+  PROXY_URL: process.env.PROXY_URL ?? `http://localhost:${process.env.PORT ?? 3000}/api/proxy`,
+
   // CORS
   CORS: (process.env.CORS ?? `http://localhost:${process.env.PORT ?? 3000}`).split(','),
 

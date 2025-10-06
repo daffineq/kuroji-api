@@ -20,4 +20,6 @@ class Anilist {
   }
 }
 
-export default new Anilist();
+const anilist = new Anilist();
+
+export default anilist;
