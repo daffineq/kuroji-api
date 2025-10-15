@@ -3,10 +3,9 @@ import prisma from 'src/lib/prisma';
 import animeUpdateFetch from './anime.update.fetch';
 import { sleep } from 'bun';
 import env from 'src/config/env';
-import lock from 'src/core/helpers/lock';
+import lock from 'src/helpers/lock';
 import anime from '../anime';
-import { Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
-import { secondsToMilliseconds } from 'src/helpers/time';
+import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
 
 export interface QueueItem {
   animeId: number;
@@ -30,6 +29,7 @@ const SLEEP_BETWEEN_UPDATES = 10;
 const MAX_QUEUE_SIZE = 1000;
 const MAX_RETRIES = 3;
 
+@EnableSchedule
 class AnimeUpdate {
   private async cleanupOldQueueItems() {
     try {
@@ -383,7 +383,7 @@ class AnimeUpdate {
   }
 
   async processQueue() {
-    if (!env.UPDATE_ENABLED) {
+    if (!env.ANIME_UPDATE_ENABLED) {
       logger.log('Updates disabled. Skipping queue processing.');
       return;
     }

@@ -9,7 +9,7 @@ class TmdbFetch extends Client {
   }
 
   async fetchSeries(id: number): Promise<TmdbInfoResult> {
-    const { data, error } = await this.client.get<TmdbInfoResult>(`tv/${id}?api_key=${env.TMDB_API}`);
+    const { data, error } = await this.client.get<TmdbInfoResult>(`tv/${id}?api_key=${env.TMDB_AP_KEY}`);
 
     if (error) {
       throw error;
@@ -23,7 +23,9 @@ class TmdbFetch extends Client {
   }
 
   async fetchSeason(id: number, season: number): Promise<SeasonTmdb> {
-    const { data, error } = await this.client.get<SeasonTmdb>(`tv/${id}/season/${season}?api_key=${env.TMDB_API}`);
+    const { data, error } = await this.client.get<SeasonTmdb>(
+      `tv/${id}/season/${season}?api_key=${env.TMDB_AP_KEY}`
+    );
 
     if (error) {
       throw error;
@@ -37,7 +39,7 @@ class TmdbFetch extends Client {
   }
 
   async fetchMovie(id: number): Promise<TmdbInfoResult> {
-    const { data, error } = await this.client.get<TmdbInfoResult>(`movie/${id}?api_key=${env.TMDB_API}`);
+    const { data, error } = await this.client.get<TmdbInfoResult>(`movie/${id}?api_key=${env.TMDB_AP_KEY}`);
 
     if (error) {
       throw error;
@@ -52,7 +54,7 @@ class TmdbFetch extends Client {
 
   async searchSeries(q: string): Promise<Array<TmdbSearchResult>> {
     const { data, error } = await this.client.get<Array<TmdbSearchResult>>(
-      `search/tv?api_key=${env.TMDB_API}&query=${q}`,
+      `search/tv?api_key=${env.TMDB_AP_KEY}&query=${q}`,
       {
         jsonPath: 'results'
       }
@@ -71,7 +73,7 @@ class TmdbFetch extends Client {
 
   async searchMovie(q: string): Promise<Array<TmdbSearchResult>> {
     const { data, error } = await this.client.get<Array<TmdbSearchResult>>(
-      `search/movie?api_key=${env.TMDB_API}&query=${q}`,
+      `search/movie?api_key=${env.TMDB_AP_KEY}&query=${q}`,
       {
         jsonPath: 'results'
       }

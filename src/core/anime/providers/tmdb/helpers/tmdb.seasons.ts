@@ -19,6 +19,7 @@ import { getKey, Redis } from 'src/helpers/redis.util';
 import animepahe from '../../animepahe/animepahe';
 import kitsu from '../../kitsu/kitsu';
 import shikimori from '../../shikimori/shikimori';
+import logger from 'src/helpers/logger';
 
 class TmdbSeasons {
   async getSeason(id: number): Promise<SeasonTmdb> {
@@ -144,7 +145,7 @@ class TmdbSeasons {
           bestMatch = result;
         }
       } catch (error) {
-        console.warn(`Strategy ${index + 1} failed:`, error);
+        logger.warn(`Strategy ${index + 1} failed:`, error);
         continue;
       }
     }

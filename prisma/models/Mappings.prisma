@@ -6,8 +6,7 @@ model Mappings {
 
   titles       Title[]       @relation("MappingsToTitle")
   descriptions Description[] @relation("MappingsToDescription")
-  posters      Poster[]      @relation("MappingsToPoster")
-  banners      Banner[]      @relation("MappingsToBanner")
+  images       Image[]       @relation("MappingsToImage")
   mappings     Mapping[]     @relation("MappingsToMapping")
   episodes     Episode[]     @relation("MappingsToEpisode")
   videos       Video[]       @relation("MappingsToVideo")
@@ -77,7 +76,7 @@ model Description {
   @@unique([description, source, language])
 }
 
-model Poster {
+model Image {
   id String @id @default(cuid())
 
   url    String
@@ -85,26 +84,12 @@ model Poster {
   medium String?
   large  String?
 
+  type   String
   source String
 
-  parent Mappings[] @relation("MappingsToPoster")
+  parent Mappings[] @relation("MappingsToImage")
 
-  @@unique([url, source])
-}
-
-model Banner {
-  id String @id @default(cuid())
-
-  url    String
-  small  String?
-  medium String?
-  large  String?
-
-  source String
-
-  parent Mappings[] @relation("MappingsToBanner")
-
-  @@unique([url, source])
+  @@unique([url, type, source])
 }
 
 model Video {

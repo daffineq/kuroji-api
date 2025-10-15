@@ -1,3 +1,5 @@
+export type sources = 'mal' | 'kitsu' | 'anilist' | 'shikimori' | 'tmdb' | 'tvdb' | 'animepahe';
+
 export type MappingEntry = {
   id: string | number;
   name: string;
@@ -5,30 +7,23 @@ export type MappingEntry = {
 
 export interface TitleEntry {
   title: string;
-  source: string;
+  source: sources;
   language: string;
 }
 
 export interface DescriptionEntry {
   description: string;
-  source: string;
+  source: sources;
   language: string;
 }
 
-export interface PosterEntry {
+export interface ImageEntry {
   url: string;
   small?: string | null;
   medium?: string | null;
   large?: string | null;
-  source: string;
-}
-
-export interface BannerEntry {
-  url: string;
-  small?: string | null;
-  medium?: string | null;
-  large?: string | null;
-  source: string;
+  type: 'poster' | 'banner';
+  source: sources;
 }
 
 export interface ScreenshotEntry {

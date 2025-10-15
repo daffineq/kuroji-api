@@ -7,8 +7,10 @@ import mappings from './mappings/mappings';
 import animeIndexer from './helpers/anime.indexer';
 import animeFilter from './helpers/anime.filter';
 import { FilterDto } from './helpers/anime.filter.dto';
+import animeUpdate from './helpers/anime.update';
+import logger from 'src/helpers/logger';
 
-const animeRoute = new Hono();
+const animeRoute = new Hono().basePath('/anime');
 
 animeRoute.post('/initOrGet/:id', async (c) => {
   const { id } = c.req.param();
@@ -81,6 +83,18 @@ animeRoute.post('/indexer/stop', async (c) => {
   return c.json(
     createSuccessResponse({
       message: 'Stopped indexer'
+    })
+  );
+});
+
+animeRoute.put('/update/process', async (c) => {
+  animeUpdate.processQueue().catch((error) => {
+    logger.error('Error processing update queue:', error);
+  });
+
+  return c.json(
+    createSuccessResponse({
+      message: 'Processing update queue'
     })
   );
 });

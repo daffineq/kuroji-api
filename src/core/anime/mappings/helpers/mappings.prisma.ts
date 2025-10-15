@@ -5,10 +5,9 @@ import { getImage } from '../../providers/tmdb/helpers/tmdb.utils';
 import { SeasonEpisode } from '../../providers/tmdb/types';
 import {
   ArtworkEntry,
-  BannerEntry,
   DescriptionEntry,
+  ImageEntry,
   MappingEntry,
-  PosterEntry,
   ScreenshotEntry,
   TitleEntry
 } from './mappings.dto';
@@ -204,71 +203,40 @@ export const removeDescriptions = (descriptions: Array<DescriptionEntry>): Prism
 };
 
 // Poster management
-export const addPosters = (posters: Array<PosterEntry>): Prisma.MappingsUpdateInput => {
+export const addImages = (images: Array<ImageEntry>): Prisma.MappingsUpdateInput => {
   return {
-    posters: {
-      connectOrCreate: posters.map((p) => ({
+    images: {
+      connectOrCreate: images.map((i) => ({
         where: {
-          url_source: {
-            url: p.url,
-            source: p.source
+          url_type_source: {
+            url: i.url,
+            type: i.type,
+            source: i.source
           }
         },
         create: {
-          url: p.url,
-          small: p.small,
-          medium: p.medium,
-          large: p.large,
-          source: p.source
+          url: i.url,
+          small: i.small,
+          medium: i.medium,
+          large: i.large,
+          type: i.type,
+          source: i.source
         }
       }))
     }
   };
 };
 
-export const removePosters = (posters: Array<Pick<PosterEntry, 'url' | 'source'>>): Prisma.MappingsUpdateInput => {
+export const removeImages = (
+  images: Array<Pick<ImageEntry, 'url' | 'type' | 'source'>>
+): Prisma.MappingsUpdateInput => {
   return {
-    posters: {
-      disconnect: posters.map((p) => ({
-        url_source: {
-          url: p.url,
-          source: p.source
-        }
-      }))
-    }
-  };
-};
-
-// Banner management
-export const addBanners = (banners: Array<BannerEntry>): Prisma.MappingsUpdateInput => {
-  return {
-    banners: {
-      connectOrCreate: banners.map((b) => ({
-        where: {
-          url_source: {
-            url: b.url,
-            source: b.source
-          }
-        },
-        create: {
-          url: b.url,
-          small: b.small,
-          medium: b.medium,
-          large: b.large,
-          source: b.source
-        }
-      }))
-    }
-  };
-};
-
-export const removeBanners = (banners: Array<Pick<BannerEntry, 'url' | 'source'>>): Prisma.MappingsUpdateInput => {
-  return {
-    banners: {
-      disconnect: banners.map((b) => ({
-        url_source: {
-          url: b.url,
-          source: b.source
+    images: {
+      disconnect: images.map((i) => ({
+        url_type_source: {
+          url: i.url,
+          type: i.type,
+          source: i.source
         }
       }))
     }

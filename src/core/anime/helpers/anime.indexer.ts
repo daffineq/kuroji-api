@@ -1,11 +1,13 @@
-import lock from 'src/core/helpers/lock';
+import lock from 'src/helpers/lock';
 import prisma from 'src/lib/prisma';
 import anilistFetch from '../providers/anilist/helpers/anilist.fetch';
 import anime from '../anime';
 import { sleep } from 'bun';
 import logger from 'src/helpers/logger';
-import { Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
+import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
+import env from 'src/config/env';
 
+@EnableSchedule
 class AnimeIndexer {
   private delay: number = 20;
 
@@ -92,6 +94,11 @@ class AnimeIndexer {
     strategies: [ScheduleStrategies.EVERY_MONTH_START]
   })
   async scheduleIndex() {
+    if (!env.ANIME_INDEXER_UPDATE_ENABLED) {
+      logger.log('Anime indexer updates disabled. Skipping scheduled indexing.');
+      return;
+    }
+
     await this.index();
   }
 
@@ -101,7 +108,7 @@ class AnimeIndexer {
 
     const remaining = Math.max(total - totalFetched, 0);
 
-    const timeS = remaining * this.delay;
+    const timeS = remaining * (this.delay + 10);
     const timeM = Math.floor(timeS / 60);
     const timeH = Math.floor(timeM / 60);
     const timeD = Math.floor(timeH / 24);

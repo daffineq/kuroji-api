@@ -60,10 +60,11 @@ class Shikimori {
     }
 
     if (fetched.poster) {
-      await mappings.addSinglePoster(id, {
+      await mappings.addSingleImage(id, {
         url: fetched.poster.originalUrl!,
         medium: fetched.poster.mainUrl!,
         large: fetched.poster.originalUrl!,
+        type: 'poster',
         source: 'shikimori'
       });
     }

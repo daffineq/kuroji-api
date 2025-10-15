@@ -54,98 +54,6 @@ model UpdateHistory {
 }
 
 
-// User.prisma
-model User {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      UserRole @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  apiKeys        ApiKey[]
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  apiKeyRequests ApiKeyRequest[]
-}
-
-model ApiKey {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id        String     @id @default(uuid())
-  userId    String
-  key       String     @unique
-  type      ApiKeyType @default(LIMITED)
-  whatFor   String
-  active    Boolean    @default(true)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  /// @DtoRelationCanCreateOnCreate
-  /// @DtoRelationCanConnectOnCreate
-  usage ApiKeyUsage[]
-  /// @DtoRelationCanConnectOnCreate
-  user  User          @relation(fields: [userId], references: [id])
-}
-
-model ApiKeyUsage {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id        String   @id @default(uuid())
-  apiKeyId  String
-  endpoint  String
-  method    String
-  origin    String?
-  userAgent String?
-  ip        String?
-  usedAt    DateTime @default(now())
-
-  /// @DtoRelationCanConnectOnCreate
-  apiKey ApiKey @relation(fields: [apiKeyId], references: [id])
-}
-
-model ApiKeyRequest {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
-  id        String              @id @default(uuid())
-  userId    String
-  type      ApiKeyType          @default(LIMITED)
-  whatFor   String
-  status    ApiKeyRequestStatus @default(PENDING)
-  reason    String? // for decline or approval notes
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-
-  /// @DtoRelationCanConnectOnCreate
-  user User @relation(fields: [userId], references: [id])
-}
-
-enum UserRole {
-  ADMIN
-  USER
-}
-
-enum ApiKeyType {
-  FULL
-  LIMITED
-}
-
-enum ApiKeyRequestStatus {
-  PENDING
-  APPROVED
-  DECLINED
-}
-
-
 // Mappings.prisma
 model Mappings {
   id Int @id
@@ -155,8 +63,7 @@ model Mappings {
 
   titles       Title[]       @relation("MappingsToTitle")
   descriptions Description[] @relation("MappingsToDescription")
-  posters      Poster[]      @relation("MappingsToPoster")
-  banners      Banner[]      @relation("MappingsToBanner")
+  images       Image[]       @relation("MappingsToImage")
   mappings     Mapping[]     @relation("MappingsToMapping")
   episodes     Episode[]     @relation("MappingsToEpisode")
   videos       Video[]       @relation("MappingsToVideo")
@@ -226,7 +133,7 @@ model Description {
   @@unique([description, source, language])
 }
 
-model Poster {
+model Image {
   id String @id @default(cuid())
 
   url    String
@@ -234,26 +141,12 @@ model Poster {
   medium String?
   large  String?
 
+  type   String
   source String
 
-  parent Mappings[] @relation("MappingsToPoster")
+  parent Mappings[] @relation("MappingsToImage")
 
-  @@unique([url, source])
-}
-
-model Banner {
-  id String @id @default(cuid())
-
-  url    String
-  small  String?
-  medium String?
-  large  String?
-
-  source String
-
-  parent Mappings[] @relation("MappingsToBanner")
-
-  @@unique([url, source])
+  @@unique([url, type, source])
 }
 
 model Video {
@@ -591,4 +484,29 @@ model TvdbLogin {
   token      String
   createDate DateTime @default(now())
   expired    Boolean  @default(false)
+}
+
+
+// Api.prisma
+model ApiKey {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  usage ApiKeyUsage[]
+}
+
+model ApiKeyUsage {
+  id        String   @id @default(cuid())
+  apiKeyId  String
+  endpoint  String
+  method    String
+  origin    String?
+  userAgent String?
+  ip        String?
+  usedAt    DateTime @default(now())
+
+  apiKey ApiKey @relation(fields: [apiKeyId], references: [id])
 }

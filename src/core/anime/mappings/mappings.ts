@@ -10,21 +10,19 @@ import { SeasonEpisode } from '../providers/tmdb/types';
 import tvdb from '../providers/tvdb/tvdb';
 import {
   ArtworkEntry,
-  BannerEntry,
   DescriptionEntry,
+  ImageEntry,
   MappingEntry,
-  PosterEntry,
   ScreenshotEntry,
   TitleEntry
 } from './helpers/mappings.dto';
 import mappingsFetch from './helpers/mappings.fetch';
 import {
   addArtworks,
-  addBanners,
   addDescriptions,
   addEpisodes,
+  addImages,
   addMappingsPrismaData,
-  addPosters,
   addScreenshots,
   addTitles,
   addVideos,
@@ -32,11 +30,10 @@ import {
   editMappingsPrismaData,
   getMappingsPrismaData,
   removeArtworks,
-  removeBanners,
   removeDescriptions,
   removeEpisodes,
+  removeImages,
   removeMappingsPrismaData,
-  removePosters,
   removeScreenshots,
   removeTitles,
   removeVideos
@@ -242,55 +239,28 @@ class Mappings {
   }
 
   // Poster operations
-  async addPosters<T extends Prisma.MappingsDefaultArgs>(
+  async addImages<T extends Prisma.MappingsDefaultArgs>(
     id: number,
-    posters: Array<PosterEntry>,
+    images: Array<ImageEntry>,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
     await this.initOrGet(id);
 
     return prisma.mappings.update({
       where: { id },
-      data: addPosters(posters),
+      data: addImages(images),
       ...(args as Prisma.MappingsDefaultArgs)
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
 
-  async removePosters<T extends Prisma.MappingsDefaultArgs>(
+  async removeImages<T extends Prisma.MappingsDefaultArgs>(
     id: number,
-    posters: Array<Pick<PosterEntry, 'url' | 'source'>>,
+    images: Array<Pick<ImageEntry, 'url' | 'type' | 'source'>>,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
     return prisma.mappings.update({
       where: { id },
-      data: removePosters(posters),
-      ...(args as Prisma.MappingsDefaultArgs)
-    }) as unknown as Prisma.MappingsGetPayload<T>;
-  }
-
-  // Banner operations
-  async addBanners<T extends Prisma.MappingsDefaultArgs>(
-    id: number,
-    banners: Array<BannerEntry>,
-    args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
-  ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.initOrGet(id);
-
-    return prisma.mappings.update({
-      where: { id },
-      data: addBanners(banners),
-      ...(args as Prisma.MappingsDefaultArgs)
-    }) as unknown as Prisma.MappingsGetPayload<T>;
-  }
-
-  async removeBanners<T extends Prisma.MappingsDefaultArgs>(
-    id: number,
-    banners: Array<Pick<BannerEntry, 'url' | 'source'>>,
-    args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
-  ): Promise<Prisma.MappingsGetPayload<T>> {
-    return prisma.mappings.update({
-      where: { id },
-      data: removeBanners(banners),
+      data: removeImages(images),
       ...(args as Prisma.MappingsDefaultArgs)
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
@@ -444,20 +414,12 @@ class Mappings {
     return this.addDescriptions(id, [description], args);
   }
 
-  async addSinglePoster<T extends Prisma.MappingsDefaultArgs>(
+  async addSingleImage<T extends Prisma.MappingsDefaultArgs>(
     id: number,
-    poster: PosterEntry,
+    image: ImageEntry,
     args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
   ): Promise<Prisma.MappingsGetPayload<T>> {
-    return this.addPosters(id, [poster], args);
-  }
-
-  async addSingleBanner<T extends Prisma.MappingsDefaultArgs>(
-    id: number,
-    banner: BannerEntry,
-    args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
-  ): Promise<Prisma.MappingsGetPayload<T>> {
-    return this.addBanners(id, [banner], args);
+    return this.addImages(id, [image], args);
   }
 
   async addSingleVideo<T extends Prisma.MappingsDefaultArgs>(

@@ -4,6 +4,7 @@ import { Client } from 'src/helpers/client';
 import { getTvdbLoginPrismaData } from './tvdb.prisma';
 import prisma from 'src/lib/prisma';
 import { LoginResponse } from '../types';
+import logger from 'src/helpers/logger';
 
 class TvdbToken extends Client {
   constructor() {
@@ -28,7 +29,7 @@ class TvdbToken extends Client {
   public async check(): Promise<void> {
     const count = await prisma.tvdbLogin.count();
     if (count === 0) {
-      console.log('No tokens found');
+      logger.log('No tokens found');
       await this.createToken();
       return;
     }
@@ -46,10 +47,10 @@ class TvdbToken extends Client {
           where: { id: login.id },
           data: { expired: true }
         });
-        console.log('Token expired');
+        logger.log('Token expired');
         await this.createToken();
       } else {
-        console.log(`Token valid until: ${expiryDate.toISOString()}`);
+        logger.log(`Token valid until: ${expiryDate.toISOString()}`);
       }
     } else {
       await this.createToken();
@@ -59,7 +60,7 @@ class TvdbToken extends Client {
   async createToken(): Promise<void> {
     const { data, error } = await this.client.post<LoginResponse>('login', {
       json: {
-        apikey: env.TVDB_API ?? this.getRandomKey()
+        apikey: env.TVDB_API_KEY ?? this.getRandomKey()
       }
     });
 

@@ -1,6 +1,15 @@
 import 'dotenv/config';
 import { parseBoolean, parseNumber } from 'src/helpers/parsers';
 
+type ApiStrategy = 'all_routes' | 'not_required';
+
+function parseApiStrategy(value?: string): ApiStrategy {
+  if (value === 'all_routes' || value === 'not_required') {
+    return value;
+  }
+  return 'not_required';
+}
+
 const env = {
   // App Settings
   PORT: parseNumber(process.env.PORT) ?? 3000,
@@ -12,13 +21,8 @@ const env = {
   CORS: (process.env.CORS ?? `http://localhost:${process.env.PORT ?? 3000}`).split(','),
 
   // Update Settings
-  UPDATE_ENABLED: parseBoolean(process.env.UPDATE_ENABLED) ?? true,
-  ANILIST_INDEXER_UPDATE_ENABLED: parseBoolean(process.env.ANILIST_INDEXER_UPDATE_ENABLED) ?? true,
-
-  // Provider Settings
-  ANIMEPAHE_ENABLED: parseBoolean(process.env.ANIMEPAHE_ENABLED) ?? true,
-  ANIMEKAI_ENABLED: parseBoolean(process.env.ANIMEKAI_ENABLED) ?? true,
-  ZORO_ENABLED: parseBoolean(process.env.ZORO_ENABLED) ?? true,
+  ANIME_UPDATE_ENABLED: parseBoolean(process.env.ANIME_UPDATE_ENABLED) ?? true,
+  ANIME_INDEXER_UPDATE_ENABLED: parseBoolean(process.env.ANIME_INDEXER_UPDATE_ENABLED) ?? true,
 
   // API Base URLs
   ANILIST: process.env.ANILIST ?? 'https://graphql.anilist.co',
@@ -34,11 +38,11 @@ const env = {
   CRYSOLINE_API: process.env.CRYSOLINE_API ?? '',
 
   // API Keys
-  TMDB_API: process.env.TMDB_API ?? '',
-  TVDB_API: process.env.TVDB_API === '' ? null : process.env.TVDB_API,
+  TMDB_AP_KEY: process.env.TMDB_API_KEY ?? '',
+  TVDB_API_KEY: process.env.TVDB_API_KEY === '' ? null : process.env.TVDB_API_KEY,
 
   // Redis Config
-  REDIS_ENABLED: process.env.REDIS !== 'false',
+  REDIS_ENABLED: process.env.REDIS_ENABLED !== 'false',
   REDIS_TIME: parseNumber(process.env.REDIS_TIME) ?? 3600,
   REDIS_USERNAME: process.env.REDIS_USERNAME ?? '',
   REDIS_HOST: process.env.REDIS_HOST ?? 'localhost',
@@ -63,6 +67,8 @@ const env = {
 
   // Admin Key
   ADMIN_KEY: process.env.ADMIN_KEY ?? '',
+
+  API_STRATEGY: parseApiStrategy(process.env.API_KEY_STRATEGY),
 
   // Database
   DATABASE_URL: process.env.DATABASE_URL ?? 'postgresql://prisma:postgres@localhost:5432/kuroji'

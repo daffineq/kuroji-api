@@ -44,9 +44,10 @@ class MyAnimeList {
     }
 
     if (fetched.image) {
-      await mappings.addSinglePoster(id, {
+      await mappings.addSingleImage(id, {
         url: fetched.image as string,
         large: fetched.image as string,
+        type: 'poster',
         source: 'mal'
       });
     }

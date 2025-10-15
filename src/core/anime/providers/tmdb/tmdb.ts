@@ -40,21 +40,23 @@ class Tmdb {
     }
 
     if (tmdb.poster_path) {
-      await mappings.addSinglePoster(id, {
+      await mappings.addSingleImage(id, {
         url: tmdb.poster_path,
         small: getImage('w300', tmdb.poster_path),
         medium: getImage('w780', tmdb.poster_path),
         large: getImage('original', tmdb.poster_path),
+        type: 'poster',
         source: 'tmdb'
       });
     }
 
     if (tmdb.backdrop_path) {
-      await mappings.addSingleBanner(id, {
+      await mappings.addSingleImage(id, {
         url: tmdb.backdrop_path,
         small: getImage('w300', tmdb.backdrop_path),
         medium: getImage('w780', tmdb.backdrop_path),
         large: getImage('original', tmdb.backdrop_path),
+        type: 'banner',
         source: 'tmdb'
       });
     }

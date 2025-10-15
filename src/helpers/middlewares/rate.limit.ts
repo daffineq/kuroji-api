@@ -1,9 +1,32 @@
 import redis from 'src/lib/redis';
-import { RateLimitExceededError } from './errors';
+import { ForbiddenError, RateLimitExceededError } from '../errors';
+import { Context, Next } from 'hono';
+import apiKeys from 'src/core/api/api.keys';
+import env from 'src/config/env';
 
 const rateLimit = (limit: number, windowSec: number) => {
-  return async (c, next) => {
-    const ip = c.req.header('x-forwarded-for') || c.req.raw.headers.get('cf-connecting-ip') || 'unknown';
+  return async (c: Context, next: Next) => {
+    const apiKey = c.req.header('x-api-key');
+
+    if (apiKey) {
+      if (await apiKeys.validate(apiKey)) {
+        await apiKeys.used(apiKey, c);
+        return await next();
+      }
+
+      if (
+        apiKey.length === env.ADMIN_KEY.length &&
+        crypto.timingSafeEqual(Buffer.from(apiKey), Buffer.from(env.ADMIN_KEY))
+      ) {
+        return await next();
+      }
+    }
+
+    const ip = c.req.header('x-forwarded-for') ?? c.req.raw.headers.get('cf-connecting-ip') ?? undefined;
+
+    if (!ip) {
+      throw new ForbiddenError('IP address not found');
+    }
 
     const key = `ratelimit:${ip}`;
     const ttlKey = `${key}:ttl`;
@@ -23,8 +46,7 @@ const rateLimit = (limit: number, windowSec: number) => {
     c.res.headers.set('X-RateLimit-Reset', Math.floor(reset / 1000).toString());
 
     if (limit === 0) {
-      await next();
-      return;
+      return await next();
     }
 
     if (count > limit) {
@@ -34,7 +56,7 @@ const rateLimit = (limit: number, windowSec: number) => {
       );
     }
 
-    await next();
+    return await next();
   };
 };
 

@@ -6,7 +6,7 @@
     "merge": "bun run prisma/merge.js",
     "reset": "bun run prisma migrate reset --force --schema=./prisma/schema.prisma",
     "migrate": "bun run prisma migrate deploy --schema=./prisma/schema.prisma",
-    "migrate:dev": "bun run prisma migrate dev --schema=./prisma/schema.prisma",
+    "migrate dev": "bun run prisma migrate dev --schema=./prisma/schema.prisma",
     "generate": "bun run prisma generate --schema=./prisma/schema.prisma",
     "mrgn": "bun run prisma/merge.js && bun run prisma generate --schema=./prisma/schema.prisma"
   },

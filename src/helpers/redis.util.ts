@@ -3,6 +3,8 @@ import redis from 'src/lib/redis';
 
 export const Redis = {
   async set(key: string, value: any, ttlSeconds: number = env.REDIS_TIME) {
+    if (!env.REDIS_ENABLED) return;
+
     const data = typeof value === 'string' ? value : JSON.stringify(value);
     if (ttlSeconds) {
       await redis.set(key, data, 'EX', ttlSeconds);
@@ -12,6 +14,8 @@ export const Redis = {
   },
 
   async get<T = any>(key: string): Promise<T | null> {
+    if (!env.REDIS_ENABLED) return null;
+
     const data = await redis.get(key);
     if (!data) return null;
 
