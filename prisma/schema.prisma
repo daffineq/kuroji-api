@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // Indexer.prisma
@@ -13,7 +13,6 @@ model IndexerState {
   lastFetchedPage Int
   updatedAt       DateTime @updatedAt
 }
-
 
 // Update.prisma
 model UpdateQueue {
@@ -52,7 +51,6 @@ model UpdateHistory {
   @@index([animeId, createdAt])
   @@index([success, createdAt])
 }
-
 
 // Mappings.prisma
 model Mappings {
@@ -181,7 +179,6 @@ model Artwork {
 
   parent Mappings[] @relation("MappingsToArtwork")
 }
-
 
 // Anime.prisma
 model Anime {
@@ -477,15 +474,13 @@ model AnimeStatusDistribution {
   anime Anime @relation("AnimeStatusDistribution", fields: [animeId], references: [id])
 }
 
-
 // Tvdb.prisma
 model TvdbLogin {
-  id      String @id @default(cuid())
+  id         String   @id @default(cuid())
   token      String
   createDate DateTime @default(now())
   expired    Boolean  @default(false)
 }
-
 
 // Api.prisma
 model ApiKey {

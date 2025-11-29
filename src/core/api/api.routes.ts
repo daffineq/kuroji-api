@@ -4,7 +4,7 @@ import { UnauthorizedError } from 'src/helpers/errors';
 import apiKeys from './api.keys';
 import { createSuccessResponse } from 'src/helpers/response';
 import { parseJson } from 'src/helpers/parsers';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '.prisma/client';
 import { describeTags } from 'src/helpers/docs';
 import { describeRoute } from 'hono-openapi';
 

@@ -1,20 +1,59 @@
 type Query {
   anime(id: Int!): Anime
+  animeByMalId(malId: Int!): Anime
   animes(
     page: Int = 1
     perPage: Int = 20
     search: String
     season: String
     seasonYear: Int
+    seasonYearGreater: Int
+    seasonYearLesser: Int
     format: String
+    formatIn: [String!]
+    formatNotIn: [String!]
     status: String
-    genres: [String!]
+    statusIn: [String!]
+    statusNotIn: [String!]
+    type: String
+    source: String
+    sourceIn: [String!]
+    countryOfOrigin: String
+    isLicensed: Boolean
     isAdult: Boolean
+    genres: [String!]
+    genresIn: [String!]
+    genresNotIn: [String!]
+    tags: [String!]
+    tagsIn: [String!]
+    tagsNotIn: [String!]
+    minimumTagRank: Int
+    studios: [String!]
+    studiosIn: [String!]
+    scoreGreater: Int
+    scoreLesser: Int
+    popularityGreater: Int
+    popularityLesser: Int
+    episodesGreater: Int
+    episodesLesser: Int
+    durationGreater: Int
+    durationLesser: Int
+    startDateGreater: String
+    startDateLesser: String
+    endDateGreater: String
+    endDateLesser: String
+    startDateLike: String
+    endDateLike: String
+    hasNextEpisode: Boolean
+    franchise: String
     sort: [AnimeSort!]
   ): AnimePage!
   character(id: Int!): AnimeCharacter
   studio(id: Int!): AnimeStudio
   tag(id: Int!): AnimeTag
+  genres: [AnimeGenre!]!
+  tags(search: String, category: String, isAdult: Boolean): [AnimeTag!]!
+  studios(search: String): [AnimeStudio!]!
 }
 
 type AnimePage {
