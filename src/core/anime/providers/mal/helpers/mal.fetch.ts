@@ -10,7 +10,7 @@ class MalFetch extends Client {
   async fetchInfo(id: number): Promise<MALInfo> {
     const { data, error } = await this.client.get<CrysolineWrapper<MALInfo>>(`info/${id}`, {
       headers: {
-        'x-api-key': env.CRYSOLINE_API
+        'x-api-key': env.CRYSOLINE_API_KEY
       }
     });
 

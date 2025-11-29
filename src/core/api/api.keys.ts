@@ -37,6 +37,12 @@ class ApiKeys {
 
     if (!apiKey) return;
 
+    const ip =
+      c.req.header('cf-connecting-ip') ??
+      c.req.header('x-forwarded-for') ??
+      c.req.header('x-real-ip') ??
+      '127.0.0.1';
+
     await prisma.apiKeyUsage.create({
       data: {
         apiKeyId: apiKey.id,
@@ -44,7 +50,7 @@ class ApiKeys {
         method: c.req.method,
         origin: c.req.header('origin') ?? undefined,
         userAgent: c.req.header('user-agent') ?? undefined,
-        ip: c.req.header('x-forwarded-for') ?? c.req.raw.headers.get('cf-connecting-ip') ?? undefined
+        ip
       }
     });
   }

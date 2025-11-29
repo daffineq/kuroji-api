@@ -1,5 +1,3 @@
-export type sources = 'mal' | 'kitsu' | 'anilist' | 'shikimori' | 'tmdb' | 'tvdb' | 'animepahe';
-
 export type MappingEntry = {
   id: string | number;
   name: string;

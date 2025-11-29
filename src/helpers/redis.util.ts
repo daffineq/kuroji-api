@@ -1,8 +1,9 @@
 import env from 'src/config/env';
+import { providers } from 'src/core/anime/types';
 import redis from 'src/lib/redis';
 
 export const Redis = {
-  async set(key: string, value: any, ttlSeconds: number = env.REDIS_TIME) {
+  async set(key: string, value: any, ttlSeconds: number = env.REDIS_TTL) {
     if (!env.REDIS_ENABLED) return;
 
     const data = typeof value === 'string' ? value : JSON.stringify(value);
@@ -31,6 +32,6 @@ export const Redis = {
   }
 };
 
-export const getKey = (provider: string, type: string, key: string | number) => {
+export const getKey = (provider: providers, type: string, key: string | number) => {
   return `${provider}:${type}:${key}`;
 };

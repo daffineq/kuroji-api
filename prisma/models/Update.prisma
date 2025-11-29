@@ -1,34 +1,28 @@
 model UpdateQueue {
-  /// @DtoReadOnly
-  /// @DtoCreateOptional
-  /// @DtoUpdateOptional
   id        String   @id @default(uuid())
-  animeId   Int      @unique // Ensures no duplicate anime in queue
+  animeId   Int      @unique
   malId     Int?
-  priority  String // 'high', 'medium', 'low'
-  reason    String // 'today', 'week_ago', 'missed'
+  priority  String
+  reason    String
   addedAt   DateTime @default(now())
   retries   Int      @default(0)
-  lastError String? // Store last error message for debugging
+  lastError String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([priority, addedAt]) // For efficient queue processing
-  @@index([animeId]) // For quick lookups
+  @@index([priority, addedAt])
+  @@index([animeId])
 }
 
-/// @DtoReadOnly
-/// @DtoCreateOptional
-/// @DtoUpdateOptional
 model UpdateHistory {
   id          String   @id @default(uuid())
   animeId     Int
   malId       Int?
   success     Boolean
-  duration    Int? // How long it took in seconds
+  duration    Int?
   errorCount  Int      @default(0)
-  errors      String[] // Any errors that occurred
-  triggeredBy String // 'today', 'week_ago', 'manual', etc.
+  errors      String[]
+  triggeredBy String
   createdAt   DateTime @default(now())
 
   @@index([animeId, createdAt])

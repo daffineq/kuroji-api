@@ -11,7 +11,7 @@ class AnimepaheFetch extends Client {
   async getSources(id: string, epId: string): Promise<Source> {
     const { data, error } = await this.client.get<CrysolineWrapper<Source>>(`sources/${id}/${epId}`, {
       headers: {
-        'x-api-key': env.CRYSOLINE_API
+        'x-api-key': env.CRYSOLINE_API_KEY
       }
     });
 
@@ -29,7 +29,7 @@ class AnimepaheFetch extends Client {
   async fetchInfo(id: string): Promise<AnimepaheInfo> {
     const { data, error } = await this.client.get<CrysolineWrapper<AnimepaheInfo>>(`info/${id}`, {
       headers: {
-        'x-api-key': env.CRYSOLINE_API
+        'x-api-key': env.CRYSOLINE_API_KEY
       }
     });
 
@@ -49,7 +49,7 @@ class AnimepaheFetch extends Client {
       `search?q=${q}`,
       {
         headers: {
-          'x-api-key': env.CRYSOLINE_API
+          'x-api-key': env.CRYSOLINE_API_KEY
         }
       }
     );

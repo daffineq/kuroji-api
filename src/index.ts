@@ -6,10 +6,14 @@ import { prettyJSON } from 'hono/pretty-json';
 import env from './config/env';
 import { cors } from 'hono/cors';
 import rateLimit from './helpers/middlewares/rate.limit';
-import animeRoute from './core/anime/anime.routes';
 import proxy from './helpers/proxy';
 import protectRoute from './helpers/middlewares/protect.route';
 import apiRoute from './core/api/api.routes';
+import { describeRoute, openAPIRouteHandler } from 'hono-openapi';
+import { Scalar } from '@scalar/hono-api-reference';
+import { yoga } from './core/graphql/yoga';
+import proxyRoute from './core/proxy/proxy.routes';
+import animeRoute from './core/anime/anime.routes';
 
 const app = new Hono().use(prettyJSON());
 
@@ -75,39 +79,92 @@ app.notFound((c) => {
 
 app.route('/api', animeRoute);
 app.route('/api', apiRoute);
+app.route('/proxy', proxyRoute);
 
-app.get('api/proxy', async (c) => {
-  const url = decodeURIComponent(c.req.query('url') ?? '');
-  if (!url.startsWith('http')) return c.text('Invalid URL', 400);
-
-  const referer = c.req.query('referer') ?? '';
-
-  const customHeaders: Record<string, string> = {
-    'User-Agent': c.req.header('user-agent') ?? '',
-    Referer: referer
-  };
-
-  const { content, headers: proxyHeaders, isStream } = await proxy.fetchProxiedStream(url, customHeaders);
-
-  for (const [key, value] of Object.entries(proxyHeaders)) {
-    if (value) c.header(key, value);
-  }
-
-  if (isStream) {
-    const stream = content as NodeJS.ReadableStream;
-    const readable = new ReadableStream({
-      start(controller) {
-        stream.on('data', (chunk) => controller.enqueue(new Uint8Array(chunk)));
-        stream.on('end', () => controller.close());
-        stream.on('error', (err) => controller.error(err));
+app.get(
+  '/docs/openapi',
+  describeRoute({
+    tags: ['Docs'],
+    description: 'Returns the full OpenAPI schema for the Kuroji API.',
+    responses: {
+      200: {
+        description: 'OpenAPI JSON documentation.'
       }
-    });
-    return new Response(readable, { status: 200 });
-  } else {
-    const buffer = content as Buffer;
-    return new Response(new Uint8Array(buffer), { status: 200 });
-  }
-});
+    }
+  }),
+  openAPIRouteHandler(app, {
+    documentation: {
+      info: {
+        title: 'Kuroji API',
+        description: 'Public documentation for the Kuroji API.',
+        version: '1.0.0'
+      },
+      servers: [
+        {
+          url: env.PUBLIC_URL,
+          description: 'Production server'
+        }
+      ],
+      tags: [
+        {
+          name: 'Anime',
+          description: 'Anime REST endpoints'
+        },
+        {
+          name: 'API',
+          description: 'Main REST endpoints'
+        },
+        {
+          name: 'Proxy',
+          description: 'Proxy endpoints'
+        },
+        {
+          name: 'Docs',
+          description: 'Documentation-related endpoints'
+        },
+        {
+          name: 'GraphQL',
+          description: 'GraphQL endpoints'
+        }
+      ]
+    }
+  })
+);
+
+app.get(
+  '/docs',
+  describeRoute({
+    tags: ['Docs'],
+    description: 'Interactive Swagger-like UI rendered with Scalar.'
+  }),
+  Scalar({
+    theme: 'saturn',
+    url: '/docs/openapi'
+  })
+);
+
+app.get(
+  '/graphql',
+  describeRoute({
+    tags: ['GraphQL'],
+    description: 'GraphQL Playground (GraphiQL UI). Use this to explore and test queries.'
+  }),
+  (c) => yoga.handle(c.req.raw)
+);
+
+app.post(
+  '/graphql',
+  describeRoute({
+    tags: ['GraphQL'],
+    description: 'Main GraphQL endpoint. Send GraphQL operations here.',
+    responses: {
+      200: {
+        description: 'GraphQL response payload.'
+      }
+    }
+  }),
+  (c) => yoga.handle(c.req.raw)
+);
 
 Bun.serve({
   port: env.PORT,

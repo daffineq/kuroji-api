@@ -1,5 +1,3 @@
-import { TmdbSeasonEpisode } from '@prisma/client';
-
 export interface TmdbSearchResult {
   adult: boolean;
   backdrop_path: string;

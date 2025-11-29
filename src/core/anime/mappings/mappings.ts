@@ -373,30 +373,6 @@ class Mappings {
     }) as unknown as Prisma.MappingsGetPayload<T>;
   }
 
-  // Bulk operations
-  async bulkUpdate<T extends Prisma.MappingsDefaultArgs>(
-    id: number,
-    data: {
-      titles?: Array<TitleEntry>;
-      posters?: Array<PosterEntry>;
-      banners?: Array<BannerEntry>;
-      videos?: Array<MVideo>;
-      screenshots?: Array<ScreenshotEntry>;
-      artworks?: Array<ArtworkEntry>;
-      episodes?: Array<SeasonEpisode>;
-      mappings?: Array<MappingEntry>;
-    },
-    args?: Prisma.SelectSubset<T, Prisma.MappingsDefaultArgs>
-  ): Promise<Prisma.MappingsGetPayload<T>> {
-    await this.initOrGet(id);
-
-    return prisma.mappings.update({
-      where: { id },
-      data: bulkUpdate(data),
-      ...(args as Prisma.MappingsDefaultArgs)
-    }) as unknown as Prisma.MappingsGetPayload<T>;
-  }
-
   // Utility methods for common operations
   async addSingleTitle<T extends Prisma.MappingsDefaultArgs>(
     id: number,

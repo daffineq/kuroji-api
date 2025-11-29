@@ -1,137 +1,83 @@
 import { Hono } from 'hono';
-import anime from './anime';
-import { parseDto, parseJson, parseNumber } from 'src/helpers/parsers';
-import { createMetaResponse, createSuccessResponse } from 'src/helpers/response';
-import { Prisma } from '@prisma/client';
-import mappings from './mappings/mappings';
+import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
+import { describeRoute } from 'hono-openapi';
+import { parseNumber } from 'src/helpers/parsers';
+import { createSuccessResponse } from 'src/helpers/response';
 import animeIndexer from './helpers/anime.indexer';
-import animeFilter from './helpers/anime.filter';
-import { FilterDto } from './helpers/anime.filter.dto';
 import animeUpdate from './helpers/anime.update';
 import logger from 'src/helpers/logger';
+import { describeTags } from 'src/helpers/docs';
 
-const animeRoute = new Hono().basePath('/anime');
+const animeRoute = new Hono().basePath('/anime').use('*', describeTags(['Anime']));
 
-animeRoute.post('/initOrGet/:id', async (c) => {
-  const { id } = c.req.param();
-
-  const json = await parseJson(c.req);
-
-  return c.json(
-    createSuccessResponse({
-      data: await anime.initOrGet(parseNumber(id)!, json as Prisma.AnimeDefaultArgs),
-      message: 'Fetched info'
-    })
-  );
+const startIndexerQuerySchema = z.object({
+  delay: z.coerce.number().optional().describe('Optional delay in seconds before starting the indexer')
 });
 
-animeRoute.post('/many', async (c) => {
-  const json = await parseJson(c.req);
+animeRoute.post(
+  '/indexer/start',
+  zValidator('query', startIndexerQuerySchema),
+  describeRoute({
+    description:
+      'Starts the anime indexer. Optionally accepts a `delay` query param (in seconds) before execution begins.',
+    responses: {
+      200: { description: 'Indexer started successfully.' },
+      400: { description: 'Invalid query parameters.' }
+    }
+  }),
+  async (c) => {
+    const { delay } = c.req.valid('query') as { delay?: number };
 
-  const data = await anime.many(json as Prisma.AnimeFindManyArgs);
+    const start = await animeIndexer.start(delay);
 
-  return c.json(
-    createMetaResponse({
-      data: data.data,
-      meta: data.meta,
-      message: 'Fetched data'
-    })
-  );
-});
+    return c.json(
+      createSuccessResponse({
+        message: start
+      })
+    );
+  }
+);
 
-animeRoute.post('/first', async (c) => {
-  const json = await parseJson(c.req);
+animeRoute.post(
+  '/indexer/stop',
+  describeRoute({
+    description: 'Stops the anime indexer immediately.',
+    responses: {
+      200: { description: 'Indexer stopped.' }
+    }
+  }),
+  async (c) => {
+    animeIndexer.stop();
 
-  return c.json(
-    createSuccessResponse({
-      data: await anime.first(json as Prisma.AnimeFindFirstArgs),
-      message: 'Fetched data'
-    })
-  );
-});
+    return c.json(
+      createSuccessResponse({
+        message: 'Stopped indexer'
+      })
+    );
+  }
+);
 
-animeRoute.post('/filter', async (c) => {
-  const query = await parseDto(FilterDto, c.req.query());
-  const json = await parseJson(c.req);
+animeRoute.put(
+  '/update/process',
+  describeRoute({
+    description:
+      'Processes the update queue for anime metadata changes. This triggers background processing; it returns immediately.',
+    responses: {
+      200: { description: 'Update queue processing started.' }
+    }
+  }),
+  async (c) => {
+    animeUpdate.processQueue().catch((error) => {
+      logger.error('Error processing update queue:', error);
+    });
 
-  const data = await animeFilter.filter(query, json as Prisma.AnimeDefaultArgs);
-
-  return c.json(
-    createMetaResponse({
-      data: data.data,
-      meta: data.meta,
-      message: 'Fetched data'
-    })
-  );
-});
-
-animeRoute.post('/indexer/start', async (c) => {
-  const delay = c.req.query('delay');
-
-  const start = await animeIndexer.start(parseNumber(delay));
-
-  return c.json(
-    createSuccessResponse({
-      message: start
-    })
-  );
-});
-
-animeRoute.post('/indexer/stop', async (c) => {
-  animeIndexer.stop();
-
-  return c.json(
-    createSuccessResponse({
-      message: 'Stopped indexer'
-    })
-  );
-});
-
-animeRoute.put('/update/process', async (c) => {
-  animeUpdate.processQueue().catch((error) => {
-    logger.error('Error processing update queue:', error);
-  });
-
-  return c.json(
-    createSuccessResponse({
-      message: 'Processing update queue'
-    })
-  );
-});
-
-animeRoute.post('/mappings/initOrGet/:id', async (c) => {
-  const { id } = c.req.param();
-
-  const json = await parseJson(c.req);
-
-  return c.json(
-    createSuccessResponse({
-      data: await mappings.initOrGet(parseNumber(id)!, json as Prisma.MappingsDefaultArgs),
-      message: 'Fetched mappings'
-    })
-  );
-});
-
-animeRoute.post('/mappings/many', async (c) => {
-  const json = await parseJson(c.req);
-
-  return c.json(
-    createSuccessResponse({
-      data: await mappings.many(json as Prisma.MappingsFindManyArgs),
-      message: 'Fetched mappings'
-    })
-  );
-});
-
-animeRoute.post('/mappings/first', async (c) => {
-  const json = await parseJson(c.req);
-
-  return c.json(
-    createSuccessResponse({
-      data: await mappings.first(json as Prisma.MappingsFindFirstArgs),
-      message: 'Fetched mappings'
-    })
-  );
-});
+    return c.json(
+      createSuccessResponse({
+        message: 'Processing update queue'
+      })
+    );
+  }
+);
 
 export default animeRoute;
