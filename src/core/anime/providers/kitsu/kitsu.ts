@@ -3,8 +3,8 @@ import { NotFoundError } from 'src/helpers/errors';
 import kitsuFetch from './helpers/kitsu.fetch';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { parseNumber } from 'src/helpers/parsers';
-import mappings from '../../mappings/mappings';
-import { mappingsSelect } from '../../mappings/types';
+import meta from '../../meta/meta';
+import { metaSelect } from '../../meta/types';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import anilist from '../anilist/anilist';
 import { findEpisodeCount } from '../anilist/helpers/anilist.utils';
@@ -19,7 +19,7 @@ class Kitsu {
       return cached;
     }
 
-    const mapping = await mappings.initOrGet(id, mappingsSelect).catch(() => null);
+    const mapping = await meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
     const kitsuId = mapping?.mappings.find((m) => m.sourceName === 'kitsu')?.sourceId;
 
@@ -32,7 +32,7 @@ class Kitsu {
     } else {
       const kitsu = await this.find(id);
 
-      await mappings.addMapping(id, {
+      await meta.addMapping(id, {
         id: kitsu.id,
         name: 'kitsu'
       });

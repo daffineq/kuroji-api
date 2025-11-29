@@ -8,6 +8,8 @@ import animeIndexer from './helpers/anime.indexer';
 import animeUpdate from './helpers/anime.update';
 import logger from 'src/helpers/logger';
 import { describeTags } from 'src/helpers/docs';
+import anime from './anime';
+import { Prisma } from '@prisma/client';
 
 const animeRoute = new Hono().basePath('/anime').use('*', describeTags(['Anime']));
 
@@ -15,12 +17,33 @@ const startIndexerQuerySchema = z.object({
   delay: z.coerce.number().optional().describe('Optional delay in seconds before starting the indexer')
 });
 
+animeRoute.get(
+  '/fetchOrCreate/:id',
+  describeRoute({
+    description: 'Fetches an anime by ID. If it does not exist yet, it will be initialized.',
+    responses: {
+      200: { description: 'Anime fetched or created successfully.' },
+      400: { description: 'Invalid parameters or malformed body.' }
+    }
+  }),
+  async (c) => {
+    const { id } = c.req.param();
+
+    return c.json(
+      createSuccessResponse({
+        data: await anime.fetchOrCreate(parseNumber(id)!),
+        message: 'Fetched info'
+      })
+    );
+  }
+);
+
 animeRoute.post(
   '/indexer/start',
   zValidator('query', startIndexerQuerySchema),
   describeRoute({
     description:
-      'Starts the anime indexer. Optionally accepts a `delay` query param (in seconds) before execution begins.',
+      'Starts the anime indexer. Optionally accepts a `delay` query param (in seconds), the delay between each request, default is 10',
     responses: {
       200: { description: 'Indexer started successfully.' },
       400: { description: 'Invalid query parameters.' }

@@ -333,10 +333,12 @@ export const getAnimePrismaData = async (anilist: AnilistMedia): Promise<Prisma.
         }
       : undefined,
 
-    mappings: {
+    meta: {
       connectOrCreate: {
         where: { id: anilist.id },
-        create: {}
+        create: {
+          id: anilist.id
+        }
       }
     }
   };

@@ -1,6 +1,6 @@
 import env from 'src/config/env';
 import { Client } from 'src/helpers/client';
-import { SeasonTmdb, TmdbInfoResult, TmdbSearchResult } from '../types';
+import { SeasonTmdb, TmdbImage, TmdbInfoResult, TmdbSearchResult } from '../types';
 import { Prisma } from '@prisma/client';
 
 class TmdbFetch extends Client {
@@ -88,6 +88,50 @@ class TmdbFetch extends Client {
     }
 
     return data;
+  }
+
+  async getMovieImages(id: number): Promise<TmdbImage[]> {
+    const { data, error } = await this.client.get<{
+      backdrops: TmdbImage[];
+      logos: TmdbImage[];
+      posters: TmdbImage[];
+    }>(`movie/${id}/images?api_key=${env.TMDB_AP_KEY}`);
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('No data');
+    }
+
+    data.backdrops.forEach((b) => (b.type = 'backdrop'));
+    data.logos.forEach((b) => (b.type = 'logo'));
+    data.posters.forEach((b) => (b.type = 'poster'));
+
+    return [...data.backdrops, ...data.logos, ...data.posters];
+  }
+
+  async getSeriesImages(id: number): Promise<TmdbImage[]> {
+    const { data, error } = await this.client.get<{
+      backdrops: TmdbImage[];
+      logos: TmdbImage[];
+      posters: TmdbImage[];
+    }>(`tv/${id}/images?api_key=${env.TMDB_AP_KEY}`);
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('No data');
+    }
+
+    data.backdrops.forEach((b) => (b.type = 'backdrop'));
+    data.logos.forEach((b) => (b.type = 'logo'));
+    data.posters.forEach((b) => (b.type = 'poster'));
+
+    return [...data.backdrops, ...data.logos, ...data.posters];
   }
 }
 

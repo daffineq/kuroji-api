@@ -14,11 +14,12 @@ import { Scalar } from '@scalar/hono-api-reference';
 import { yoga } from './core/graphql/yoga';
 import proxyRoute from './core/proxy/proxy.routes';
 import animeRoute from './core/anime/anime.routes';
+import logger from './helpers/logger';
 
 const app = new Hono().use(prettyJSON());
 
 app.use(
-  '/api/*',
+  '*',
   cors({
     origin: env.CORS,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -27,15 +28,21 @@ app.use(
   })
 );
 
-app.use('/api/*', rateLimit(env.RATE_LIMIT, env.RATE_LIMIT_TTL));
+app.use('*', rateLimit(env.RATE_LIMIT, env.RATE_LIMIT_TTL));
 app.use(
-  '/api/*',
-  protectRoute(() => {
+  '*',
+  protectRoute((c) => {
+    if (['/docs', '/docs/openapi'].includes(c.req.path)) {
+      return true;
+    }
+
     return env.API_STRATEGY === 'not_required';
   })
 );
 
 app.onError((err, c) => {
+  logger.error(err);
+
   if (err instanceof HttpError) {
     return c.json(
       createErrorResponse({

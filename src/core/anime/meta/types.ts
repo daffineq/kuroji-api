@@ -21,8 +21,8 @@ export interface AniZipData {
   mappings: AniZipMappings;
 }
 
-export const mappingsSelect = {
+export const metaSelect = {
   include: {
     mappings: true
   }
-} satisfies Prisma.MappingsDefaultArgs;
+} satisfies Prisma.MetaDefaultArgs;

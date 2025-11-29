@@ -1,29 +1,30 @@
-model Mappings {
-  id Int @id
+model Meta {
+  id      Int @id
+  animeId Int @unique
 
   franchise String?
   rating    String?
 
-  titles       Title[]       @relation("MappingsToTitle")
-  descriptions Description[] @relation("MappingsToDescription")
-  images       Image[]       @relation("MappingsToImage")
-  mappings     Mapping[]     @relation("MappingsToMapping")
-  episodes     Episode[]     @relation("MappingsToEpisode")
-  videos       Video[]       @relation("MappingsToVideo")
-  screenshots  Screenshot[]  @relation("MappingsToScreenshot")
-  artworks     Artwork[]     @relation("MappingsToArtwork")
+  titles       Title[]       @relation("MetaToTitle")
+  descriptions Description[] @relation("MetaToDescription")
+  images       Image[]       @relation("MetaToImage")
+  mappings     Mappings[]    @relation("MetaToMappings")
+  episodes     Episode[]     @relation("MetaToEpisode")
+  videos       Video[]       @relation("MetaToVideo")
+  screenshots  Screenshot[]  @relation("MetaToScreenshot")
+  artworks     Artwork[]     @relation("MetaToArtwork")
 
-  anime Anime @relation(fields: [id], references: [id])
+  anime Anime @relation(fields: [animeId], references: [id])
 }
 
-model Mapping {
+model Mappings {
   id String @id @default(cuid())
 
   sourceId   String
   sourceName String
 
-  mappingsId Int
-  parent     Mappings @relation("MappingsToMapping", fields: [mappingsId], references: [id])
+  metaId Int
+  parent Meta @relation("MetaToMappings", fields: [metaId], references: [id])
 
   @@unique([sourceId, sourceName])
 }
@@ -38,7 +39,7 @@ model Episode {
   runtime   Int?
   date      String?
 
-  parent Mappings[] @relation("MappingsToEpisode")
+  parent Meta[] @relation("MetaToEpisode")
 }
 
 model EpisodeThumbnail {
@@ -59,7 +60,7 @@ model Title {
   source   String
   language String
 
-  parent Mappings[] @relation("MappingsToTitle")
+  parent Meta[] @relation("MetaToTitle")
 
   @@unique([title, source, language])
 }
@@ -71,7 +72,7 @@ model Description {
   source      String
   language    String
 
-  parent Mappings[] @relation("MappingsToDescription")
+  parent Meta[] @relation("MetaToDescription")
 
   @@unique([description, source, language])
 }
@@ -87,7 +88,7 @@ model Image {
   type   String
   source String
 
-  parent Mappings[] @relation("MappingsToImage")
+  parent Meta[] @relation("MetaToImage")
 
   @@unique([url, type, source])
 }
@@ -99,7 +100,7 @@ model Video {
   artist    String?
   type      String?
 
-  parent Mappings[] @relation("MappingsToVideo")
+  parent Meta[] @relation("MetaToVideo")
 }
 
 model Screenshot {
@@ -108,19 +109,21 @@ model Screenshot {
   x166Url     String?
   x332Url     String?
 
-  parent Mappings[] @relation("MappingsToScreenshot")
+  parent Meta[] @relation("MetaToScreenshot")
 }
 
 model Artwork {
-  id           Int      @id
-  height       Int?
-  image        String?
-  includesText Boolean?
-  language     String?
-  score        Int?
-  thumbnail    String?
-  type         Int?
-  width        Int?
+  id        String  @id @default(cuid())
+  url       String
+  height    Int?
+  width     Int?
+  image     String?
+  language  String?
+  thumbnail String?
+  type      String
+  source    String
 
-  parent Mappings[] @relation("MappingsToArtwork")
+  parent Meta[] @relation("MetaToArtwork")
+
+  @@unique([url, type, source])
 }

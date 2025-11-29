@@ -2,14 +2,14 @@
   "name": "kuroji-api-v2",
   "type": "module",
   "scripts": {
-    "prod": "bun run src/index.ts",
-    "dev": "bun run --hot src/index.ts",
-    "merge": "bun run prisma/merge.js",
-    "reset": "bun run prisma migrate reset --force --schema=./prisma/schema.prisma",
-    "migrate": "bun run prisma migrate deploy --schema=./prisma/schema.prisma",
-    "migrate dev": "bun run prisma migrate dev --schema=./prisma/schema.prisma",
-    "generate": "bun run prisma generate --schema=./prisma/schema.prisma",
-    "mrgn": "bun run prisma/merge.js && bun run prisma generate --schema=./prisma/schema.prisma"
+    "prod": "bun src/index.ts",
+    "dev": "bun --hot src/index.ts",
+    "merge": "bun prisma/merge.js",
+    "reset": "bunx prisma migrate reset --force --schema=./prisma/schema.prisma",
+    "migrate": "bunx prisma migrate deploy --schema=./prisma/schema.prisma",
+    "migrate:dev": "bunx prisma migrate dev --schema=./prisma/schema.prisma",
+    "generate": "bunx prisma generate --schema=./prisma/schema.prisma",
+    "mrgn": "bun prisma/merge.js && bunx prisma generate --schema=./prisma/schema.prisma"
   },
   "dependencies": {
     "@hono/eslint-config": "^2.0.3",

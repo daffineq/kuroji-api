@@ -49,7 +49,7 @@ apiRoute.post(
   }
 );
 
-apiRoute.post(
+apiRoute.get(
   '/api-key',
   describeRoute({
     description:
@@ -81,9 +81,7 @@ apiRoute.post(
       throw new UnauthorizedError('Unauthorized');
     }
 
-    const json = await parseJson(c.req);
-
-    const key = await apiKeys.get(apiKey, json as Prisma.ApiKeyDefaultArgs);
+    const key = await apiKeys.get(apiKey);
 
     return c.json(
       createSuccessResponse({

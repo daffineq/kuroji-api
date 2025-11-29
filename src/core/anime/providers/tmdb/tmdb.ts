@@ -1,5 +1,5 @@
-import mappings from '../../mappings/mappings';
-import { mappingsSelect } from '../../mappings/types';
+import meta from '../../meta/meta';
+import { metaSelect } from '../../meta/types';
 import { parseNumber, parseString } from 'src/helpers/parsers';
 import tmdbFetch from './helpers/tmdb.fetch';
 import { getImage, getTmdbTypeByAl } from './helpers/tmdb.utils';
@@ -8,6 +8,7 @@ import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { NotFoundError } from 'src/helpers/errors';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import anilist from '../anilist/anilist';
+import { ArtworkEntry } from '../../meta/helpers/meta.dto';
 
 class Tmdb {
   async getInfo(id: number): Promise<TmdbInfoResult> {
@@ -19,28 +20,48 @@ class Tmdb {
       return cached;
     }
 
-    const mapping = await mappings.initOrGet(id, mappingsSelect).catch(() => null);
+    const mapping = await meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
     const tmdbId = parseNumber(mapping?.mappings.find((m) => m.sourceName === 'tmdb')?.sourceId);
 
     var tmdb: TmdbInfoResult;
 
-    if (tmdbId) {
-      const al = await anilist.getInfo(id);
-      const type = getTmdbTypeByAl(al.format);
+    const al = await anilist.getInfo(id);
+    const type = getTmdbTypeByAl(al.format);
 
+    if (tmdbId) {
       tmdb = type === 'MOVIE' ? await tmdbFetch.fetchMovie(tmdbId) : await tmdbFetch.fetchSeries(tmdbId);
     } else {
       tmdb = await this.find(id);
 
-      await mappings.addMapping(id, {
+      await meta.addMapping(id, {
         id: parseString(tmdb.id)!,
         name: 'tmdb'
       });
     }
 
+    const images =
+      type === 'MOVIE' ? await tmdbFetch.getMovieImages(tmdb.id) : await tmdbFetch.getSeriesImages(tmdb.id);
+
+    const artworks: ArtworkEntry[] = images.map((i) => {
+      return {
+        url: i.file_path,
+        image: getImage('original', i.file_path) ?? undefined,
+        height: i.height,
+        width: i.width,
+        language: i.iso_639_1,
+        thumbnail: getImage('w780', i.file_path) ?? undefined,
+        type: i.type,
+        source: 'tmdb'
+      };
+    });
+
+    if (artworks) {
+      await meta.addArtworks(id, artworks);
+    }
+
     if (tmdb.poster_path) {
-      await mappings.addSingleImage(id, {
+      await meta.addSingleImage(id, {
         url: tmdb.poster_path,
         small: getImage('w300', tmdb.poster_path),
         medium: getImage('w780', tmdb.poster_path),
@@ -51,7 +72,7 @@ class Tmdb {
     }
 
     if (tmdb.backdrop_path) {
-      await mappings.addSingleImage(id, {
+      await meta.addSingleImage(id, {
         url: tmdb.backdrop_path,
         small: getImage('w300', tmdb.backdrop_path),
         medium: getImage('w780', tmdb.backdrop_path),

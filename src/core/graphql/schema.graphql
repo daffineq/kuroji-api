@@ -122,7 +122,7 @@ type Anime {
   externalLinks: [ExternalLink!]!
   scoreDistribution: [ScoreDistribution!]!
   statusDistribution: [StatusDistribution!]!
-  mappings: Mappings
+  meta: Meta
 }
 
 type AnimeTitle {
@@ -268,14 +268,14 @@ type StatusDistribution {
   amount: Int!
 }
 
-type Mappings {
+type Meta {
   id: Int!
   franchise: String
   rating: String
   titles: [Title!]!
   descriptions: [Description!]!
   images: [Image!]!
-  mappings: [Mapping!]!
+  mappings: [Mappings!]!
   episodes: [Episode!]!
   videos: [Video!]!
   screenshots: [Screenshot!]!
@@ -303,7 +303,7 @@ type Image {
   source: String!
 }
 
-type Mapping {
+type Mappings {
   sourceId: String!
   sourceName: String!
 }
@@ -340,13 +340,13 @@ type Screenshot {
 }
 
 type Artwork {
-  id: Int!
+  id: String
+  url: String
   height: Int
   image: String
-  includesText: Boolean
   language: String
-  score: Int
   thumbnail: String
-  type: Int
+  type: String
   width: Int
+  source: String
 }

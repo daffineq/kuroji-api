@@ -1,12 +1,13 @@
 import { NotFoundError } from 'src/helpers/errors';
-import { TvdbInfoResult } from './types';
-import mappings from '../../mappings/mappings';
+import { getTypeNameById, TvdbInfoResult } from './types';
+import meta from '../../meta/meta';
 import { getTvdbTypeByAl } from './helpers/tvdb.utils';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import tvdbFetch from './helpers/tvdb.fetch';
 import { parseString } from 'src/helpers/parsers';
-import { mappingsSelect } from '../../mappings/types';
+import { metaSelect } from '../../meta/types';
 import anilist from '../anilist/anilist';
+import { ArtworkEntry } from '../../meta/helpers/meta.dto';
 
 class Tvdb {
   async getInfo(id: number): Promise<TvdbInfoResult> {
@@ -26,7 +27,7 @@ class Tvdb {
 
     const type = getTvdbTypeByAl(al.format);
 
-    const mapping = await mappings.initOrGet(id, mappingsSelect);
+    const mapping = await meta.fetchOrCreate(id, metaSelect);
 
     const tvdbId = mapping.mappings.find((m) => m.sourceName === 'tvdb')?.sourceId;
     const tmdbId = mapping.mappings.find((m) => m.sourceName === 'tmdb')?.sourceId;
@@ -44,7 +45,7 @@ class Tvdb {
 
       tvdb = type === 'movie' ? await tvdbFetch.fetchMovie(search.id) : await tvdbFetch.fetchSeries(search.id);
 
-      await mappings.addMapping(id, {
+      await meta.addMapping(id, {
         id: parseString(tvdb.id)!,
         name: 'tvdb'
       });
@@ -55,7 +56,20 @@ class Tvdb {
     }
 
     if (tvdb.artworks) {
-      await mappings.addArtworks(id, tvdb.artworks);
+      const artworks: ArtworkEntry[] = tvdb.artworks.map((a) => {
+        return {
+          url: a.image!,
+          image: a.image,
+          width: a.width,
+          height: a.height,
+          language: a.language,
+          thumbnail: a.thumbnail,
+          type: getTypeNameById(a.type ?? 27).toLocaleLowerCase(),
+          source: 'tvdb'
+        };
+      });
+
+      await meta.addArtworks(id, artworks);
     }
 
     await Redis.set(key, tvdb);

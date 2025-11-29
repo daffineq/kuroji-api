@@ -99,7 +99,7 @@ export const resolvers = {
           externalLinks: true,
           scoreDistribution: true,
           statusDistribution: true,
-          mappings: {
+          meta: {
             include: {
               titles: true,
               descriptions: true,
@@ -162,7 +162,7 @@ export const resolvers = {
           externalLinks: true,
           scoreDistribution: true,
           statusDistribution: true,
-          mappings: {
+          meta: {
             include: {
               titles: true,
               descriptions: true,
@@ -252,7 +252,7 @@ export const resolvers = {
           { title: { romaji: { search: normalized } } },
           { title: { english: { search: normalized } } },
           { title: { native: { search: normalized } } },
-          { mappings: { titles: { some: { title: { search: normalized } } } } },
+          { meta: { titles: { some: { title: { search: normalized } } } } },
           { tags: { some: { tag: { name: { search: normalized } } } } },
           { synonyms: { has: search } }
         );
@@ -464,7 +464,7 @@ export const resolvers = {
       }
 
       if (franchise) {
-        where.mappings = {
+        where.meta = {
           franchise: { equals: franchise }
         };
       }
@@ -720,8 +720,8 @@ export const resolvers = {
       });
     },
 
-    mappings: async (parent: any) => {
-      return await prisma.mappings.findUnique({
+    meta: async (parent: any) => {
+      return await prisma.meta.findUnique({
         where: { id: parent.id },
         include: {
           titles: true,
@@ -764,7 +764,7 @@ export const resolvers = {
     image: (parent: any) => parent.image || null
   },
 
-  Mappings: {
+  Meta: {
     episodes: async (parent: any) => {
       return await prisma.episode.findMany({
         where: {

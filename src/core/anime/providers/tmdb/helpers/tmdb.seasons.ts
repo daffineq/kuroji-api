@@ -14,7 +14,7 @@ import {
 } from './mapping/strategies';
 import { AnimepaheInfo } from 'src/core/types';
 import { getEpisodesCount } from '../../../helpers/get.episodes';
-import mappings from '../../../mappings/mappings';
+import meta from '../../../meta/meta';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import animepahe from '../../animepahe/animepahe';
 import kitsu from '../../kitsu/kitsu';
@@ -74,7 +74,7 @@ class TmdbSeasons {
       episodes: matchResult.episodes ?? []
     };
 
-    await mappings.addEpisodes(id, trimmedSeason.episodes);
+    await meta.addEpisodes(id, trimmedSeason.episodes);
 
     await Redis.set(key, trimmedSeason);
 

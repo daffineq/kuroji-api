@@ -3,12 +3,17 @@ import { AnilistMedia } from './providers/anilist/types';
 import prisma from 'src/lib/prisma';
 import { getAnimePrismaData } from './helpers/anime.prisma';
 import anilist from './providers/anilist/anilist';
-import mappings from './mappings/mappings';
+import meta from './meta/meta';
 import { MetaInfo } from 'src/helpers/response';
 import { BadRequestError } from 'src/helpers/errors';
+import mal from './providers/mal/mal';
+import shikimori from './providers/shikimori/shikimori';
+import tmdb from './providers/tmdb/tmdb';
+import tvdb from './providers/tvdb/tvdb';
+import tmdbSeasons from './providers/tmdb/helpers/tmdb.seasons';
 
 class Anime {
-  async initOrGet<T extends Prisma.AnimeDefaultArgs>(
+  async fetchOrCreate<T extends Prisma.AnimeDefaultArgs>(
     id: number,
     args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
   ): Promise<Prisma.AnimeGetPayload<T>> {
@@ -79,7 +84,16 @@ class Anime {
   }
 
   private async initProviders(id: number) {
-    await mappings.loadMappings(id);
+    await meta.loadMappings(id);
+
+    await Promise.all([
+      mal.getInfo(id).catch(() => null),
+      shikimori.getInfo(id).catch(() => null),
+      tmdb.getInfo(id).catch(() => null),
+      tvdb.getInfo(id).catch(() => null)
+    ]);
+
+    await tmdbSeasons.getSeason(id).catch(() => null);
   }
 }
 

@@ -9,7 +9,7 @@ import env from 'src/config/env';
 
 @EnableSchedule
 class AnimeIndexer {
-  private delay: number = 20;
+  private delay: number = 10;
 
   private async index(): Promise<void> {
     try {
@@ -49,7 +49,7 @@ class AnimeIndexer {
           logger.log(`Indexing release ID: ${id}...`);
 
           try {
-            await anime.initOrGet(id);
+            await anime.fetchOrCreate(id);
           } catch (err) {
             logger.error(`Failed to index release ${id}:`, err);
           }
@@ -69,7 +69,7 @@ class AnimeIndexer {
     }
   }
 
-  public async start(delay: number = 20): Promise<string> {
+  public async start(delay: number = 10): Promise<string> {
     if (!lock.acquire('indexer')) {
       logger.log('Indexer already running, skipping new run.');
       return 'Indexer already running, skipping new run.';

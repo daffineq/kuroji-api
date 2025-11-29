@@ -74,6 +74,8 @@ class TvdbToken extends Client {
 
     const token = data.data.token;
 
+    logger.log(`TVDB token: ${token}`);
+
     const tokenData = getTvdbLoginPrismaData({
       token,
       createDate: new Date(),

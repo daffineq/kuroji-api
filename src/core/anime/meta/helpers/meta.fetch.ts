@@ -2,7 +2,7 @@ import env from 'src/config/env';
 import { Client } from 'src/helpers/client';
 import { AniZipData } from '../types';
 
-class MappingsFetch extends Client {
+class MetaFetch extends Client {
   constructor() {
     super(env.ANI_ZIP);
   }
@@ -15,13 +15,13 @@ class MappingsFetch extends Client {
     }
 
     if (!data) {
-      throw new Error('MappingsFetch.fetchMappings: No data found');
+      throw new Error('MetaFetch.fetchMappings: No data found');
     }
 
     return data;
   }
 }
 
-const mappingsFetch = new MappingsFetch();
+const metaFetch = new MetaFetch();
 
-export default mappingsFetch;
+export default metaFetch;

@@ -2,9 +2,10 @@ import { parseString } from 'src/helpers/parsers';
 import shikimoriFetch from './helpers/shikimori.fetch';
 import { ShikimoriAnime } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
-import mappings from '../../mappings/mappings';
-import { mappingsSelect } from '../../mappings/types';
+import meta from '../../meta/meta';
+import { metaSelect } from '../../meta/types';
 import anilist from '../anilist/anilist';
+import logger from 'src/helpers/logger';
 
 class Shikimori {
   async getInfo(id: number): Promise<ShikimoriAnime> {
@@ -16,7 +17,7 @@ class Shikimori {
       return cached;
     }
 
-    const mapping = await mappings.initOrGet(id, mappingsSelect).catch(() => null);
+    const mapping = await meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
     const shikId = mapping?.mappings.find((m) => m.sourceName === 'shikimori')?.sourceId;
 
@@ -33,18 +34,18 @@ class Shikimori {
 
       fetched = await shikimoriFetch.fetchInfo(parseString(al.idMal)!);
 
-      await mappings.addMapping(id, {
+      await meta.addMapping(id, {
         id: al.idMal,
         name: 'shikimori'
       });
     }
 
     if (fetched.screenshots) {
-      await mappings.addScreenshots(id, fetched.screenshots);
+      await meta.addScreenshots(id, fetched.screenshots);
     }
 
     if (fetched.russian) {
-      await mappings.addSingleTitle(id, {
+      await meta.addSingleTitle(id, {
         title: fetched.russian,
         source: 'shikimori',
         language: 'russian'
@@ -52,7 +53,7 @@ class Shikimori {
     }
 
     if (fetched.description) {
-      await mappings.addSingleDescription(id, {
+      await meta.addSingleDescription(id, {
         description: fetched.description,
         source: 'shikimori',
         language: 'russian'
@@ -60,7 +61,7 @@ class Shikimori {
     }
 
     if (fetched.poster) {
-      await mappings.addSingleImage(id, {
+      await meta.addSingleImage(id, {
         url: fetched.poster.originalUrl!,
         medium: fetched.poster.mainUrl!,
         large: fetched.poster.originalUrl!,
@@ -70,11 +71,11 @@ class Shikimori {
     }
 
     if (fetched.franchise) {
-      await mappings.addFranchise(id, fetched.franchise);
+      await meta.addFranchise(id, fetched.franchise);
     }
 
     if (fetched.rating) {
-      await mappings.addRating(id, fetched.rating);
+      await meta.addRating(id, fetched.rating);
     }
 
     await Redis.set(key, fetched);

@@ -3,8 +3,8 @@ import { getKey, Redis } from 'src/helpers/redis.util';
 import malFetch from './helpers/mal.fetch';
 import { parseNumber } from 'src/helpers/parsers';
 import anilist from '../anilist/anilist';
-import mappings from '../../mappings/mappings';
-import { mappingsSelect } from '../../mappings/types';
+import meta from '../../meta/meta';
+import { metaSelect } from '../../meta/types';
 
 class MyAnimeList {
   async getInfo(id: number): Promise<MALInfo> {
@@ -16,7 +16,7 @@ class MyAnimeList {
       return cached;
     }
 
-    const mapping = await mappings.initOrGet(id, mappingsSelect).catch(() => null);
+    const mapping = await meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
     const malId = parseNumber(mapping?.mappings.find((m) => m.sourceName === 'mal')?.sourceId);
 
@@ -33,18 +33,18 @@ class MyAnimeList {
 
       fetched = await malFetch.fetchInfo(al.idMal);
 
-      await mappings.addMapping(id, {
+      await meta.addMapping(id, {
         id: al.idMal,
         name: 'mal'
       });
     }
 
     if (fetched.metadata?.videos) {
-      await mappings.addVideos(id, fetched.metadata.videos);
+      await meta.addVideos(id, fetched.metadata.videos);
     }
 
     if (fetched.image) {
-      await mappings.addSingleImage(id, {
+      await meta.addSingleImage(id, {
         url: fetched.image as string,
         large: fetched.image as string,
         type: 'poster',

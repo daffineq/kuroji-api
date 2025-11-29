@@ -182,6 +182,14 @@ export interface SeasonEpisode {
   vote_count: number;
 }
 
+export interface TmdbImage {
+  height: number;
+  width: number;
+  file_path: string;
+  iso_639_1: string;
+  type: string;
+}
+
 export interface SeasonTmdb {
   _id: string;
   air_date: string;

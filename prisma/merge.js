@@ -10,12 +10,12 @@ const modelFiles = fs.readdirSync(modelDir).filter((file) => file.endsWith('.pri
 
 // Start of the schema.prisma file (generator and datasource)
 let schemaContent = `generator client {
+  previewFeatures = ["fullTextSearchPostgres"]
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }`;
 
 // Add all models from the "models" folder

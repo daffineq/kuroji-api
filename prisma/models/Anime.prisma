@@ -47,7 +47,7 @@ model Anime {
   scoreDistribution  AnimeScoreDistribution[]  @relation("AnimeScoreDistribution")
   statusDistribution AnimeStatusDistribution[] @relation("AnimeStatusDistribution")
 
-  mappings Mappings?
+  meta Meta?
 }
 
 model AnimePoster {

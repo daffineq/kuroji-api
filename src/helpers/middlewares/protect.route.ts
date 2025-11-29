@@ -3,9 +3,9 @@ import { UnauthorizedError } from '../errors';
 import apiKeys from 'src/core/api/api.keys';
 import env from 'src/config/env';
 
-const protectRoute = (skip: () => boolean) => {
+const protectRoute = (skip: (c: Context) => boolean) => {
   return async (c: Context, next: Next) => {
-    if (skip()) {
+    if (skip(c)) {
       return await next();
     }
 

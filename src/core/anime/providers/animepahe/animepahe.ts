@@ -4,9 +4,9 @@ import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { findEpisodeCount } from '../anilist/helpers/anilist.utils';
 import { AnimepaheInfo } from 'src/core/types';
 import anilist from '../anilist/anilist';
-import mappings from '../../mappings/mappings';
+import meta from '../../meta/meta';
 import { getKey, Redis } from 'src/helpers/redis.util';
-import { mappingsSelect } from '../../mappings/types';
+import { metaSelect } from '../../meta/types';
 
 class Animepahe {
   async getInfo(id: number): Promise<AnimepaheInfo> {
@@ -18,7 +18,7 @@ class Animepahe {
       return cached;
     }
 
-    const mapping = await mappings.initOrGet(id, mappingsSelect).catch(() => null);
+    const mapping = await meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
     const paheId = mapping?.mappings.find((mapping) => mapping.sourceName === 'animepahe')?.sourceId;
 
@@ -31,7 +31,7 @@ class Animepahe {
     } else {
       const animepahe = await this.find(id);
 
-      await mappings.addMapping(id, {
+      await meta.addMapping(id, {
         id: animepahe.id as string,
         name: 'animepahe'
       });
