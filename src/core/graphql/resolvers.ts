@@ -1,5 +1,6 @@
 import prisma from 'src/lib/prisma';
 import type { Prisma } from '.prisma/client';
+import anime from '../anime/anime';
 
 interface AnimeFilters {
   page?: number;
@@ -57,66 +58,74 @@ interface CharacterArgs {
 export const resolvers = {
   Query: {
     anime: async (_: any, { id }: { id: number }) => {
-      return await prisma.anime.findUnique({
-        where: { id },
-        include: {
-          title: true,
-          poster: true,
-          startDate: true,
-          endDate: true,
-          genres: true,
-          latestAiringEpisode: true,
-          nextAiringEpisode: true,
-          lastAiringEpisode: true,
-          airingSchedule: true,
-          characters: {
-            include: {
-              character: {
-                include: {
-                  name: true,
-                  image: true
-                }
-              },
-              voiceActors: {
-                include: {
-                  name: true,
-                  image: true
-                }
+      const include: Prisma.AnimeInclude = {
+        title: true,
+        poster: true,
+        startDate: true,
+        endDate: true,
+        genres: true,
+        latestAiringEpisode: true,
+        nextAiringEpisode: true,
+        lastAiringEpisode: true,
+        airingSchedule: true,
+        characters: {
+          include: {
+            character: {
+              include: {
+                name: true,
+                image: true
+              }
+            },
+            voiceActors: {
+              include: {
+                name: true,
+                image: true
               }
             }
-          },
-          studios: {
-            include: {
-              studio: true
-            }
-          },
-          tags: {
-            include: {
-              tag: true
-            }
-          },
-          rankings: true,
-          externalLinks: true,
-          scoreDistribution: true,
-          statusDistribution: true,
-          meta: {
-            include: {
-              titles: true,
-              descriptions: true,
-              images: true,
-              mappings: true,
-              episodes: {
-                include: {
-                  thumbnail: true
-                }
-              },
-              videos: true,
-              screenshots: true,
-              artworks: true
-            }
+          }
+        },
+        studios: {
+          include: {
+            studio: true
+          }
+        },
+        tags: {
+          include: {
+            tag: true
+          }
+        },
+        rankings: true,
+        externalLinks: true,
+        scoreDistribution: true,
+        statusDistribution: true,
+        meta: {
+          include: {
+            titles: true,
+            descriptions: true,
+            images: true,
+            mappings: true,
+            episodes: {
+              include: {
+                thumbnail: true
+              }
+            },
+            videos: true,
+            screenshots: true,
+            artworks: true
           }
         }
+      };
+
+      const release = await prisma.anime.findUnique({
+        where: { id },
+        include
       });
+
+      if (release) {
+        return release;
+      }
+
+      return anime.fetchOrCreate(id, { include });
     },
 
     animeByMalId: async (_: any, { malId }: { malId: number }) => {
