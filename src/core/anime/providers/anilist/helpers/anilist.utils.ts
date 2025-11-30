@@ -2,7 +2,7 @@ import { ReleaseDate } from 'src/core/types';
 import { DateUtils } from 'src/helpers/date';
 import { AnilistMedia } from '../types';
 
-export function findEpisodeCount(data: AnilistMedia, options?: { preferAired?: boolean }): number | undefined {
+const findEpisodeCount = (data: AnilistMedia, options?: { preferAired?: boolean }): number | undefined => {
   const airedSchedule =
     data.airingSchedule?.edges
       ?.filter((schedule) => schedule.node.airingAt != null && DateUtils.isPast(schedule.node.airingAt))
@@ -25,9 +25,9 @@ export function findEpisodeCount(data: AnilistMedia, options?: { preferAired?: b
   if (aired) return aired;
 
   return undefined;
-}
+};
 
-export function getDate(date: ReleaseDate): string | null {
+const getDate = (date: ReleaseDate): string | null => {
   const { year, month, day } = date;
 
   let anilistStartDateString: string | null = null;
@@ -39,4 +39,11 @@ export function getDate(date: ReleaseDate): string | null {
   }
 
   return anilistStartDateString;
-}
+};
+
+const AnilistUtils = {
+  findEpisodeCount,
+  getDate
+};
+
+export { AnilistUtils };

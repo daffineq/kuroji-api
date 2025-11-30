@@ -1,31 +1,29 @@
 import env from 'src/config/env';
 import { CrysolineWrapper, MALInfo } from 'src/core/types';
-import { Client } from 'src/helpers/client';
+import { KurojiClient } from 'src/lib/http';
 
-class MalFetch extends Client {
-  constructor() {
-    super(`${env.CRYSOLINE}/api/anime/mal`);
+const client = new KurojiClient(`${env.CRYSOLINE}/api/anime/mal`);
+
+const fetchInfo = async (id: number): Promise<MALInfo> => {
+  const { data, error } = await client.get<CrysolineWrapper<MALInfo>>(`info/${id}`, {
+    headers: {
+      'x-api-key': env.CRYSOLINE_API_KEY
+    }
+  });
+
+  if (error) {
+    throw new Error(`Failed to fetch anime info: ${error.message}`);
   }
 
-  async fetchInfo(id: number): Promise<MALInfo> {
-    const { data, error } = await this.client.get<CrysolineWrapper<MALInfo>>(`info/${id}`, {
-      headers: {
-        'x-api-key': env.CRYSOLINE_API_KEY
-      }
-    });
-
-    if (error) {
-      throw new Error(`Failed to fetch anime info: ${error.message}`);
-    }
-
-    if (!data?.data) {
-      throw new Error(`Failed to fetch anime info: No data received`);
-    }
-
-    return data.data;
+  if (!data?.data) {
+    throw new Error(`Failed to fetch anime info: No data received`);
   }
-}
 
-const malFetch = new MalFetch();
+  return data.data;
+};
 
-export default malFetch;
+const MalFetch = {
+  fetchInfo
+};
+
+export { MalFetch };

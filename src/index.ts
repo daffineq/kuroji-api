@@ -1,19 +1,15 @@
 import 'reflect-metadata';
 import { Hono } from 'hono';
-import { createErrorResponse } from './helpers/response';
+import { createErrorResponse, createSuccessResponse } from './helpers/response';
 import { HttpError, NotFoundError } from './helpers/errors';
 import { prettyJSON } from 'hono/pretty-json';
 import env from './config/env';
 import { cors } from 'hono/cors';
 import rateLimit from './helpers/middlewares/rate.limit';
-import proxy from './helpers/proxy';
 import protectRoute from './helpers/middlewares/protect.route';
-import apiRoute from './core/api/api.routes';
 import { describeRoute, openAPIRouteHandler } from 'hono-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
-import { yoga } from './core/graphql/yoga';
-import proxyRoute from './core/proxy/proxy.routes';
-import animeRoute from './core/anime/anime.routes';
+import { animeRoute, apiRoute, proxyRoute, yoga } from './core';
 import logger from './helpers/logger';
 
 const app = new Hono().use(prettyJSON());
@@ -169,6 +165,27 @@ app.post(
     }
   }),
   (c) => yoga.handle(c.req.raw)
+);
+
+app.get(
+  '/logs',
+  describeRoute({
+    tags: ['API'],
+    description: 'Get logs',
+    responses: {
+      200: {
+        description: 'Logs'
+      }
+    }
+  }),
+  (c) => {
+    return c.json(
+      createSuccessResponse({
+        message: 'Logs got',
+        data: logger.getLogs()
+      })
+    );
+  }
 );
 
 export default app;

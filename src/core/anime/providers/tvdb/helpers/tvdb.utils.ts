@@ -1,4 +1,4 @@
-export function getTvdbTypeByAl(format: string | null | undefined): 'movie' | 'series' {
+const getTvdbTypeByAl = (format: string | null | undefined): 'movie' | 'series' => {
   switch (format) {
     case 'MOVIE':
       return 'movie';
@@ -11,4 +11,10 @@ export function getTvdbTypeByAl(format: string | null | undefined): 'movie' | 's
     default:
       return 'series';
   }
-}
+};
+
+const TvdbUtils = {
+  getTvdbTypeByAl
+};
+
+export { TvdbUtils };

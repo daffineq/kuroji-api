@@ -1,7 +1,7 @@
 import { AniZipMappings } from '../types';
 import { MappingEntry } from './meta.dto';
 
-export function toMappingsArray(mappings: AniZipMappings | undefined): MappingEntry[] {
+const toMappingsArray = (mappings: AniZipMappings | undefined): MappingEntry[] => {
   const result: MappingEntry[] = [];
 
   if (!mappings) {
@@ -30,4 +30,10 @@ export function toMappingsArray(mappings: AniZipMappings | undefined): MappingEn
   }
 
   return result;
-}
+};
+
+const MetaUtils = {
+  toMappingsArray
+};
+
+export { MetaUtils };

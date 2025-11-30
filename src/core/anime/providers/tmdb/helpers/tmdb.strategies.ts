@@ -1,19 +1,21 @@
-import { findEpisodeCount, getDate } from 'src/core/anime/providers/anilist/helpers/anilist.utils';
-import { MatchStrategy, EpisodeMatchCandidate, SeasonEpisodeGroup, MatchResult, SeasonEpisode } from '../../types';
+import { MatchStrategy, EpisodeMatchCandidate, SeasonEpisodeGroup, MatchResult, SeasonEpisode } from '../types';
 import { AnilistMedia } from 'src/core/anime/providers/anilist/types';
 import { DateUtils } from 'src/helpers/date';
 import { AnimepaheInfo } from 'src/core/types';
+import { AnilistUtils } from '../../anilist';
 
-async function matchByDateRange(
+const matchByDateRange = async (
   anilist: AnilistMedia,
   allEpisodes: SeasonEpisode[],
   seasonGroups: SeasonEpisodeGroup[],
   episodeCount: number | undefined | null
-): Promise<MatchResult> {
+): Promise<MatchResult> => {
   const strategy = MatchStrategy.DATE_RANGE;
 
-  const startDate = anilist.startDate ? getDate(anilist.startDate) : null;
-  const endDate = anilist.endDate ? getDate(anilist.endDate) : getDate(DateUtils.getCurrentReleaseDate());
+  const startDate = anilist.startDate ? AnilistUtils.getDate(anilist.startDate) : null;
+  const endDate = anilist.endDate
+    ? AnilistUtils.getDate(anilist.endDate)
+    : AnilistUtils.getDate(DateUtils.getCurrentReleaseDate());
 
   if (!startDate || !anilist.seasonYear) {
     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
@@ -51,14 +53,14 @@ async function matchByDateRange(
   const confidence = Math.min(0.9, countMatch * 0.85);
 
   return { episodes, primarySeason, confidence, strategy };
-}
+};
 
-async function matchByEpisodeCount(
+const matchByEpisodeCount = async (
   anilist: AnilistMedia,
   allEpisodes: SeasonEpisode[],
   seasonGroups: SeasonEpisodeGroup[],
   episodeCount: number | undefined | null
-): Promise<MatchResult> {
+): Promise<MatchResult> => {
   const strategy = MatchStrategy.EPISODE_COUNT;
 
   if (!episodeCount || !anilist.seasonYear) {
@@ -105,14 +107,14 @@ async function matchByEpisodeCount(
   }
 
   return { episodes: [], primarySeason: 1, confidence: 0, strategy };
-}
+};
 
-async function matchBySeasonYear(
+const matchBySeasonYear = async (
   anilist: AnilistMedia,
   allEpisodes: SeasonEpisode[],
   seasonGroups: SeasonEpisodeGroup[],
   episodeCount: number | undefined | null
-): Promise<MatchResult> {
+): Promise<MatchResult> => {
   const strategy = MatchStrategy.SEASON_YEAR;
 
   if (!anilist.seasonYear) {
@@ -182,13 +184,13 @@ async function matchBySeasonYear(
   }
 
   return bestMatch;
-}
+};
 
-async function matchByAiringSchedule(
+const matchByAiringSchedule = async (
   anilist: AnilistMedia,
   allEpisodes: SeasonEpisode[],
   episodeCount: number | undefined | null
-): Promise<MatchResult> {
+): Promise<MatchResult> => {
   const strategy = MatchStrategy.AIRING_SCHEDULE;
 
   const airingSchedule = anilist.airingSchedule?.edges || [];
@@ -243,7 +245,7 @@ async function matchByAiringSchedule(
   const confidence = Math.min(matchRatio, 0.95 * episodesPenalty);
 
   return { episodes, primarySeason, confidence, strategy };
-}
+};
 
 // Zoro is not implemented yet
 // async function matchByZoro(
@@ -306,12 +308,12 @@ async function matchByAiringSchedule(
 //   return { episodes, primarySeason, confidence, strategy };
 // }
 
-async function matchByAnimepahe(
+const matchByAnimepahe = async (
   anilist: AnilistMedia,
   animepahe: AnimepaheInfo | null,
   allEpisodes: SeasonEpisode[],
   episodeCount: number | undefined | null
-): Promise<MatchResult> {
+): Promise<MatchResult> => {
   const strategy = MatchStrategy.ANIMEPAHE;
 
   if (!animepahe || !animepahe.episodes || animepahe.episodes.length === 0) {
@@ -356,9 +358,9 @@ async function matchByAnimepahe(
   const confidence = Math.min(matchRatio, 0.7 * episodesPenalty);
 
   return { episodes, primarySeason, confidence, strategy };
-}
+};
 
-function getMostCommonSeason(episodes: SeasonEpisode[]): number {
+const getMostCommonSeason = (episodes: SeasonEpisode[]): number => {
   const seasonCounts = new Map<number, number>();
   episodes.forEach((ep) => {
     seasonCounts.set(ep.season_number, (seasonCounts.get(ep.season_number) || 0) + 1);
@@ -374,9 +376,9 @@ function getMostCommonSeason(episodes: SeasonEpisode[]): number {
   });
 
   return mostCommonSeason;
-}
+};
 
-function selectBestEpisodes(episodes: SeasonEpisode[], expectedCount?: number | null): SeasonEpisode[] {
+const selectBestEpisodes = (episodes: SeasonEpisode[], expectedCount?: number | null): SeasonEpisode[] => {
   if (episodes.length === 0) return [];
 
   const regularEpisodes = episodes.filter((ep) => ep.season_number !== 0);
@@ -406,6 +408,14 @@ function selectBestEpisodes(episodes: SeasonEpisode[], expectedCount?: number | 
     ...ep,
     episode_number: index + 1
   }));
-}
+};
 
-export { matchByDateRange, matchByAiringSchedule, matchByEpisodeCount, matchBySeasonYear, matchByAnimepahe };
+const TmdbStrategies = {
+  matchByDateRange,
+  matchByAiringSchedule,
+  matchByEpisodeCount,
+  matchBySeasonYear,
+  matchByAnimepahe
+};
+
+export { TmdbStrategies };

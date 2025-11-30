@@ -1,10 +1,8 @@
 import { Hono } from 'hono';
 import env from 'src/config/env';
 import { UnauthorizedError } from 'src/helpers/errors';
-import apiKeys from './api.keys';
+import { ApiKeys } from './api.keys';
 import { createSuccessResponse } from 'src/helpers/response';
-import { parseJson } from 'src/helpers/parsers';
-import { Prisma } from '.prisma/client';
 import { describeTags } from 'src/helpers/docs';
 import { describeRoute } from 'hono-openapi';
 
@@ -38,7 +36,7 @@ apiRoute.post(
       throw new UnauthorizedError('Unauthorized');
     }
 
-    const apiKey = await apiKeys.generate();
+    const apiKey = await ApiKeys.generate();
 
     return c.json(
       createSuccessResponse({
@@ -81,7 +79,7 @@ apiRoute.get(
       throw new UnauthorizedError('Unauthorized');
     }
 
-    const key = await apiKeys.get(apiKey);
+    const key = await ApiKeys.get(apiKey);
 
     return c.json(
       createSuccessResponse({
@@ -92,4 +90,4 @@ apiRoute.get(
   }
 );
 
-export default apiRoute;
+export { apiRoute };

@@ -1,11 +1,11 @@
 import lock from 'src/helpers/lock';
 import prisma from 'src/lib/prisma';
-import anilistFetch from '../providers/anilist/helpers/anilist.fetch';
-import anime from '../anime';
 import { sleep } from 'bun';
 import logger from 'src/helpers/logger';
 import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
 import env from 'src/config/env';
+import { AnilistFetch } from '../providers';
+import { Anime } from '../anime';
 
 @EnableSchedule
 class AnimeIndexer {
@@ -22,7 +22,7 @@ class AnimeIndexer {
       while (hasNextPage) {
         logger.log(`Fetching IDs from page ${page}...`);
 
-        const response = await anilistFetch.fetchIds(page, perPage);
+        const response = await AnilistFetch.fetchIds(page, perPage);
         const ids = response.media.map((m) => m.id);
         hasNextPage = response.pageInfo.hasNextPage;
 
@@ -49,7 +49,7 @@ class AnimeIndexer {
           logger.log(`Indexing release ID: ${id}...`);
 
           try {
-            await anime.fetchOrCreate(id);
+            await Anime.fetchOrCreate(id);
           } catch (err) {
             logger.error(`Failed to index release ${id}:`, err);
           }
@@ -104,7 +104,7 @@ class AnimeIndexer {
 
   public async calculateEstimatedTime(): Promise<string> {
     const totalFetched = await prisma.anime.count();
-    const total = await anilistFetch.getTotal();
+    const total = await AnilistFetch.getTotal();
 
     const remaining = Math.max(total - totalFetched, 0);
 

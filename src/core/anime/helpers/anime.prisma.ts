@@ -3,7 +3,7 @@ import { AnilistMedia } from '../providers/anilist/types';
 import prisma from 'src/lib/prisma';
 import { DateUtils } from 'src/helpers/date';
 
-export const getAnimePrismaData = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput> => {
+const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput> => {
   const isMalExists = anilist.idMal
     ? (await prisma.anime.findUnique({
         where: {
@@ -343,3 +343,9 @@ export const getAnimePrismaData = async (anilist: AnilistMedia): Promise<Prisma.
     }
   };
 };
+
+const AnimePrisma = {
+  getAnime
+};
+
+export { AnimePrisma };

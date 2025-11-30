@@ -1,72 +1,72 @@
 import { MALInfo } from 'src/core/types';
 import { getKey, Redis } from 'src/helpers/redis.util';
-import malFetch from './helpers/mal.fetch';
 import { parseNumber } from 'src/helpers/parsers';
-import anilist from '../anilist/anilist';
-import meta from '../../meta/meta';
 import { metaSelect } from '../../meta/types';
+import { MalFetch } from './helpers/mal.fetch';
+import { Anilist } from '../anilist';
+import { Meta } from '../../meta';
 
-class MyAnimeList {
-  async getInfo(id: number, idMal: number | undefined = undefined): Promise<MALInfo> {
-    const key = getKey('mal', 'info', id);
+const getInfo = async (id: number, idMal: number | undefined = undefined): Promise<MALInfo> => {
+  const key = getKey('mal', 'info', id);
 
-    const cached = await Redis.get<MALInfo>(key);
+  const cached = await Redis.get<MALInfo>(key);
 
-    if (cached) {
-      return cached;
-    }
+  if (cached) {
+    return cached;
+  }
 
-    var fetched: MALInfo;
+  var fetched: MALInfo;
 
-    if (idMal) {
-      fetched = await malFetch.fetchInfo(idMal);
+  if (idMal) {
+    fetched = await MalFetch.fetchInfo(idMal);
 
-      await meta.addMapping(id, {
-        id: idMal,
+    await Meta.addMapping(id, {
+      id: idMal,
+      name: 'mal'
+    });
+  } else {
+    const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
+
+    const malId = parseNumber(meta?.mappings.find((m) => m.sourceName === 'mal')?.sourceId);
+
+    if (malId) {
+      fetched = await MalFetch.fetchInfo(malId);
+    } else {
+      const al = await Anilist.getInfo(id);
+
+      if (!al.idMal) {
+        throw new Error('No MAL ID found');
+      }
+
+      fetched = await MalFetch.fetchInfo(al.idMal);
+
+      await Meta.addMapping(id, {
+        id: al.idMal,
         name: 'mal'
       });
-    } else {
-      const mapping = await meta.fetchOrCreate(id, metaSelect).catch(() => null);
-
-      const malId = parseNumber(mapping?.mappings.find((m) => m.sourceName === 'mal')?.sourceId);
-
-      if (malId) {
-        fetched = await malFetch.fetchInfo(malId);
-      } else {
-        const al = await anilist.getInfo(id);
-
-        if (!al.idMal) {
-          throw new Error('No MAL ID found');
-        }
-
-        fetched = await malFetch.fetchInfo(al.idMal);
-
-        await meta.addMapping(id, {
-          id: al.idMal,
-          name: 'mal'
-        });
-      }
     }
-
-    if (fetched.metadata?.videos) {
-      await meta.addVideos(id, fetched.metadata.videos);
-    }
-
-    if (fetched.image) {
-      await meta.addSingleImage(id, {
-        url: fetched.image as string,
-        large: fetched.image as string,
-        type: 'poster',
-        source: 'mal'
-      });
-    }
-
-    await Redis.set(key, fetched);
-
-    return fetched;
   }
-}
 
-const mal = new MyAnimeList();
+  if (fetched.metadata?.videos) {
+    await Meta.addVideos(id, fetched.metadata.videos);
+  }
 
-export default mal;
+  if (fetched.image) {
+    await Meta.addSingleImage(id, {
+      url: fetched.image as string,
+      large: fetched.image as string,
+      type: 'poster',
+      source: 'mal'
+    });
+  }
+
+  await Redis.set(key, fetched);
+
+  return fetched;
+};
+
+const Mal = {
+  getInfo
+};
+
+export { Mal };

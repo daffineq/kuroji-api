@@ -56,4 +56,4 @@ proxyRoute.get(
   }
 );
 
-export default proxyRoute;
+export { proxyRoute };

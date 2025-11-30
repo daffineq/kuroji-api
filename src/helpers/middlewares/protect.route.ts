@@ -1,7 +1,7 @@
 import { Context, Next } from 'hono';
 import { UnauthorizedError } from '../errors';
-import apiKeys from 'src/core/api/api.keys';
 import env from 'src/config/env';
+import { ApiKeys } from 'src/core';
 
 const protectRoute = (skip: (c: Context) => boolean) => {
   return async (c: Context, next: Next) => {
@@ -15,7 +15,7 @@ const protectRoute = (skip: (c: Context) => boolean) => {
       throw new UnauthorizedError('No api key provided');
     }
 
-    if (await apiKeys.validate(apiKey)) {
+    if (await ApiKeys.validate(apiKey)) {
       return await next();
     }
 

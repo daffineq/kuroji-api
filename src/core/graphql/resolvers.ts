@@ -1,6 +1,6 @@
 import prisma from 'src/lib/prisma';
 import type { Prisma } from '.prisma/client';
-import anime from '../anime/anime';
+import { Anime } from '../anime';
 
 interface AnimeFilters {
   page?: number;
@@ -125,7 +125,7 @@ export const resolvers = {
         return release;
       }
 
-      return anime.fetchOrCreate(id, { include });
+      return Anime.fetchOrCreate(id, { include });
     },
 
     animeByMalId: async (_: any, { malId }: { malId: number }) => {

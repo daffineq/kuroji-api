@@ -1,11 +1,11 @@
 import { Prisma } from '@prisma/client';
 import { parseString } from 'src/helpers/parsers';
 import { MVideo } from '../../providers/mal/types';
-import { getImage } from '../../providers/tmdb/helpers/tmdb.utils';
 import { SeasonEpisode } from '../../providers/tmdb/types';
 import { ArtworkEntry, DescriptionEntry, ImageEntry, MappingEntry, ScreenshotEntry, TitleEntry } from './meta.dto';
+import { TmdbUtils } from '../../providers';
 
-export const getMetaCreateData = (id: number): Prisma.MetaCreateInput => {
+const getMeta = (id: number): Prisma.MetaCreateInput => {
   return {
     id,
     anime: {
@@ -14,7 +14,7 @@ export const getMetaCreateData = (id: number): Prisma.MetaCreateInput => {
   };
 };
 
-export const addMappingsPrismaData = (data: Array<MappingEntry>): Prisma.MetaUpdateInput => {
+const addMappings = (data: Array<MappingEntry>): Prisma.MetaUpdateInput => {
   return {
     mappings: {
       connectOrCreate: data.map((m) => ({
@@ -33,7 +33,7 @@ export const addMappingsPrismaData = (data: Array<MappingEntry>): Prisma.MetaUpd
   };
 };
 
-export const editMappingsPrismaData = (old: MappingEntry, updated: MappingEntry): Prisma.MetaUpdateInput => {
+const editMappings = (old: MappingEntry, updated: MappingEntry): Prisma.MetaUpdateInput => {
   return {
     mappings: {
       update: {
@@ -52,7 +52,7 @@ export const editMappingsPrismaData = (old: MappingEntry, updated: MappingEntry)
   };
 };
 
-export const removeMappingsPrismaData = (data: MappingEntry): Prisma.MetaUpdateInput => {
+const removeMappings = (data: MappingEntry): Prisma.MetaUpdateInput => {
   return {
     mappings: {
       disconnect: {
@@ -65,8 +65,7 @@ export const removeMappingsPrismaData = (data: MappingEntry): Prisma.MetaUpdateI
   };
 };
 
-// Enhanced episode functions
-export const addEpisodes = (episodes: Array<SeasonEpisode>): Prisma.MetaUpdateInput => {
+const addEpisodes = (episodes: Array<SeasonEpisode>): Prisma.MetaUpdateInput => {
   return {
     episodes: {
       upsert: episodes.map((e) => ({
@@ -79,14 +78,14 @@ export const addEpisodes = (episodes: Array<SeasonEpisode>): Prisma.MetaUpdateIn
             upsert: {
               where: { episodeId: e.id },
               create: {
-                small: getImage('w300', e.still_path),
-                medium: getImage('w780', e.still_path),
-                large: getImage('original', e.still_path)
+                small: TmdbUtils.getImage('w300', e.still_path),
+                medium: TmdbUtils.getImage('w780', e.still_path),
+                large: TmdbUtils.getImage('original', e.still_path)
               },
               update: {
-                small: getImage('w300', e.still_path),
-                medium: getImage('w780', e.still_path),
-                large: getImage('original', e.still_path)
+                small: TmdbUtils.getImage('w300', e.still_path),
+                medium: TmdbUtils.getImage('w780', e.still_path),
+                large: TmdbUtils.getImage('original', e.still_path)
               }
             }
           },
@@ -102,9 +101,9 @@ export const addEpisodes = (episodes: Array<SeasonEpisode>): Prisma.MetaUpdateIn
             connectOrCreate: {
               where: { episodeId: e.id },
               create: {
-                small: getImage('w300', e.still_path),
-                medium: getImage('w780', e.still_path),
-                large: getImage('original', e.still_path)
+                small: TmdbUtils.getImage('w300', e.still_path),
+                medium: TmdbUtils.getImage('w780', e.still_path),
+                large: TmdbUtils.getImage('original', e.still_path)
               }
             }
           },
@@ -116,7 +115,7 @@ export const addEpisodes = (episodes: Array<SeasonEpisode>): Prisma.MetaUpdateIn
   };
 };
 
-export const removeEpisodes = (episodeIds: number[]): Prisma.MetaUpdateInput => {
+const removeEpisodes = (episodeIds: number[]): Prisma.MetaUpdateInput => {
   return {
     episodes: {
       disconnect: episodeIds.map((id) => ({ id }))
@@ -124,8 +123,7 @@ export const removeEpisodes = (episodeIds: number[]): Prisma.MetaUpdateInput => 
   };
 };
 
-// Title management
-export const addTitles = (titles: Array<TitleEntry>): Prisma.MetaUpdateInput => {
+const addTitles = (titles: Array<TitleEntry>): Prisma.MetaUpdateInput => {
   return {
     titles: {
       connectOrCreate: titles.map((t) => ({
@@ -146,7 +144,7 @@ export const addTitles = (titles: Array<TitleEntry>): Prisma.MetaUpdateInput => 
   };
 };
 
-export const removeTitles = (titles: Array<TitleEntry>): Prisma.MetaUpdateInput => {
+const removeTitles = (titles: Array<TitleEntry>): Prisma.MetaUpdateInput => {
   return {
     titles: {
       disconnect: titles.map((t) => ({
@@ -160,8 +158,7 @@ export const removeTitles = (titles: Array<TitleEntry>): Prisma.MetaUpdateInput 
   };
 };
 
-// Description management
-export const addDescriptions = (descriptions: Array<DescriptionEntry>): Prisma.MetaUpdateInput => {
+const addDescriptions = (descriptions: Array<DescriptionEntry>): Prisma.MetaUpdateInput => {
   return {
     descriptions: {
       connectOrCreate: descriptions.map((d) => ({
@@ -182,7 +179,7 @@ export const addDescriptions = (descriptions: Array<DescriptionEntry>): Prisma.M
   };
 };
 
-export const removeDescriptions = (descriptions: Array<DescriptionEntry>): Prisma.MetaUpdateInput => {
+const removeDescriptions = (descriptions: Array<DescriptionEntry>): Prisma.MetaUpdateInput => {
   return {
     descriptions: {
       disconnect: descriptions.map((t) => ({
@@ -196,8 +193,7 @@ export const removeDescriptions = (descriptions: Array<DescriptionEntry>): Prism
   };
 };
 
-// Poster management
-export const addImages = (images: Array<ImageEntry>): Prisma.MetaUpdateInput => {
+const addImages = (images: Array<ImageEntry>): Prisma.MetaUpdateInput => {
   return {
     images: {
       connectOrCreate: images.map((i) => ({
@@ -221,9 +217,7 @@ export const addImages = (images: Array<ImageEntry>): Prisma.MetaUpdateInput => 
   };
 };
 
-export const removeImages = (
-  images: Array<Pick<ImageEntry, 'url' | 'type' | 'source'>>
-): Prisma.MetaUpdateInput => {
+const removeImages = (images: Array<Pick<ImageEntry, 'url' | 'type' | 'source'>>): Prisma.MetaUpdateInput => {
   return {
     images: {
       disconnect: images.map((i) => ({
@@ -237,8 +231,7 @@ export const removeImages = (
   };
 };
 
-// Video management
-export const addVideos = (videos: Array<MVideo>): Prisma.MetaUpdateInput => {
+const addVideos = (videos: Array<MVideo>): Prisma.MetaUpdateInput => {
   return {
     videos: {
       upsert: videos.map((v) => ({
@@ -261,7 +254,7 @@ export const addVideos = (videos: Array<MVideo>): Prisma.MetaUpdateInput => {
   };
 };
 
-export const removeVideos = (videoUrls: string[]): Prisma.MetaUpdateInput => {
+const removeVideos = (videoUrls: string[]): Prisma.MetaUpdateInput => {
   return {
     videos: {
       disconnect: videoUrls.map((url) => ({ url }))
@@ -269,8 +262,7 @@ export const removeVideos = (videoUrls: string[]): Prisma.MetaUpdateInput => {
   };
 };
 
-// Screenshot management
-export const addScreenshots = (screenshots: Array<ScreenshotEntry>): Prisma.MetaUpdateInput => {
+const addScreenshots = (screenshots: Array<ScreenshotEntry>): Prisma.MetaUpdateInput => {
   return {
     screenshots: {
       upsert: screenshots.map((s) => ({
@@ -291,7 +283,7 @@ export const addScreenshots = (screenshots: Array<ScreenshotEntry>): Prisma.Meta
   };
 };
 
-export const removeScreenshots = (screenshotIds: string[]): Prisma.MetaUpdateInput => {
+const removeScreenshots = (screenshotIds: string[]): Prisma.MetaUpdateInput => {
   return {
     screenshots: {
       disconnect: screenshotIds.map((id) => ({ id }))
@@ -299,8 +291,7 @@ export const removeScreenshots = (screenshotIds: string[]): Prisma.MetaUpdateInp
   };
 };
 
-// Artwork management
-export const addArtworks = (artworks: Array<ArtworkEntry>): Prisma.MetaUpdateInput => {
+const addArtworks = (artworks: Array<ArtworkEntry>): Prisma.MetaUpdateInput => {
   return {
     artworks: {
       upsert: artworks.map((a) => ({
@@ -330,10 +321,24 @@ export const addArtworks = (artworks: Array<ArtworkEntry>): Prisma.MetaUpdateInp
   };
 };
 
-// export const removeArtworks = (artworkIds: number[]): Prisma.MetaUpdateInput => {
-//   return {
-//     artworks: {
-//       disconnect: artworkIds.map((id) => ({ id }))
-//     }
-//   };
-// };
+const MetaPrisma = {
+  getMeta,
+  addMappings,
+  editMappings,
+  removeMappings,
+  addEpisodes,
+  removeEpisodes,
+  addTitles,
+  removeTitles,
+  addDescriptions,
+  removeDescriptions,
+  addImages,
+  removeImages,
+  addVideos,
+  removeVideos,
+  addScreenshots,
+  removeScreenshots,
+  addArtworks
+};
+
+export { MetaPrisma };

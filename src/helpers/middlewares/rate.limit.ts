@@ -1,16 +1,16 @@
 import redis from 'src/lib/redis';
 import { ForbiddenError, RateLimitExceededError } from '../errors';
 import { Context, Next } from 'hono';
-import apiKeys from 'src/core/api/api.keys';
 import env from 'src/config/env';
+import { ApiKeys } from 'src/core';
 
 const rateLimit = (limit: number, windowSec: number) => {
   return async (c: Context, next: Next) => {
     const apiKey = c.req.header('x-api-key');
 
     if (apiKey) {
-      if (await apiKeys.validate(apiKey)) {
-        await apiKeys.used(apiKey, c);
+      if (await ApiKeys.validate(apiKey)) {
+        await ApiKeys.used(apiKey, c);
         return await next();
       }
 

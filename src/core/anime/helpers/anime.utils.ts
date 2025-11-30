@@ -3,7 +3,7 @@ import { AnilistMedia } from '../providers/anilist/types';
 import { KitsuAnime } from '../providers/kitsu/types';
 import { ShikimoriAnime } from '../providers/shikimori/types';
 
-export const getEpisodesCount = (
+const getEpisodesCount = (
   anilist: AnilistMedia,
   kitsu: KitsuAnime | null,
   shikimori: ShikimoriAnime | null
@@ -32,3 +32,9 @@ export const getEpisodesCount = (
 
   return total ?? aired ?? null;
 };
+
+const AnimeUtils = {
+  getEpisodesCount
+};
+
+export { AnimeUtils };

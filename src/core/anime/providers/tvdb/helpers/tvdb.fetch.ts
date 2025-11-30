@@ -1,80 +1,80 @@
 import env from 'src/config/env';
-import { Client } from 'src/helpers/client';
-import tvdbToken from './tvdb.token';
 import { TvdbInfoResult, TvdbSearchResult } from '../types';
+import { KurojiClient } from 'src/lib/http';
+import { TvdbToken } from './tvdb.token';
 
-class TvdbFetch extends Client {
-  constructor() {
-    super(env.TVDB);
+const client = new KurojiClient(env.TVDB);
+
+const fetchSeries = async (id: string): Promise<TvdbInfoResult> => {
+  const token = await TvdbToken.getToken();
+
+  const { data, error } = await client.get<TvdbInfoResult>(`series/${id}/extended`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    jsonPath: 'data'
+  });
+
+  if (error) {
+    throw error;
   }
 
-  async fetchSeries(id: string): Promise<TvdbInfoResult> {
-    const token = await tvdbToken.getToken();
+  if (!data) {
+    throw new Error('No data found');
+  }
 
-    const { data, error } = await this.client.get<TvdbInfoResult>(`series/${id}/extended`, {
+  return data;
+};
+
+const fetchMovie = async (id: string): Promise<TvdbInfoResult> => {
+  const token = await TvdbToken.getToken();
+
+  const { data, error } = await client.get<TvdbInfoResult>(`movies/${id}/extended`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    jsonPath: 'data'
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('No data found');
+  }
+
+  return data;
+};
+
+const searchByRemote = async (id: string, type: 'movie' | 'series', title: string): Promise<TvdbSearchResult> => {
+  const token = await TvdbToken.getToken();
+
+  const { data, error } = await client.get<TvdbSearchResult[]>(
+    `search?query=${encodeURIComponent(title)}&type=${type}&remote_id=${id}`,
+    {
       headers: {
         Authorization: `Bearer ${token}`
       },
       jsonPath: 'data'
-    });
-
-    if (error) {
-      throw error;
     }
+  );
 
-    if (!data) {
-      throw new Error('No data found');
-    }
-
-    return data;
+  if (error) {
+    throw error;
   }
 
-  async fetchMovie(id: string): Promise<TvdbInfoResult> {
-    const token = await tvdbToken.getToken();
-
-    const { data, error } = await this.client.get<TvdbInfoResult>(`movies/${id}/extended`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      jsonPath: 'data'
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('No data found');
-    }
-
-    return data;
+  if (!data?.[0]) {
+    throw new Error('No data found');
   }
 
-  async searchByRemote(id: string, type: 'movie' | 'series', title: string): Promise<TvdbSearchResult> {
-    const token = await tvdbToken.getToken();
+  return data[0];
+};
 
-    const { data, error } = await this.client.get<TvdbSearchResult[]>(
-      `search?query=${encodeURIComponent(title)}&type=${type}&remote_id=${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        jsonPath: 'data'
-      }
-    );
+const TvdbFetch = {
+  fetchMovie,
+  fetchSeries,
+  searchByRemote
+};
 
-    if (error) {
-      throw error;
-    }
-
-    if (!data?.[0]) {
-      throw new Error('No data found');
-    }
-
-    return data[0];
-  }
-}
-
-const tvdbFetch = new TvdbFetch();
-
-export default tvdbFetch;
+export { TvdbFetch };

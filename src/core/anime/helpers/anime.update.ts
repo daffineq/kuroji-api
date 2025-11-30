@@ -1,11 +1,11 @@
 import logger from 'src/helpers/logger';
 import prisma from 'src/lib/prisma';
-import animeUpdateFetch from './anime.update.fetch';
 import { sleep } from 'bun';
 import env from 'src/config/env';
 import lock from 'src/helpers/lock';
-import anime from '../anime';
 import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
+import { AnimeUpdateFetch } from './anime.update.fetch';
+import { Anime } from '../anime';
 
 export interface QueueItem {
   animeId: number;
@@ -245,7 +245,7 @@ class AnimeUpdate {
   }
 
   async queueRecentAnime() {
-    const recentAnime = await animeUpdateFetch.getRecentAiredAnime();
+    const recentAnime = await AnimeUpdateFetch.getRecentAiredAnime();
     logger.log(`Adding ${recentAnime.length} recent aired anime to queue with HIGH priority`);
 
     if (recentAnime.length > 0) {
@@ -259,7 +259,7 @@ class AnimeUpdate {
   }
 
   async queueTodayAnime() {
-    const todayAnime = await animeUpdateFetch.getTodayAiredAnime();
+    const todayAnime = await AnimeUpdateFetch.getTodayAiredAnime();
     logger.log(`Adding ${todayAnime.length} today aired anime to queue`);
 
     for (const anime of todayAnime) {
@@ -268,7 +268,7 @@ class AnimeUpdate {
   }
 
   async queueWeekAgoAnime() {
-    const weekAgoAnime = await animeUpdateFetch.getLastWeekAiredAnime();
+    const weekAgoAnime = await AnimeUpdateFetch.getLastWeekAiredAnime();
     logger.log(`Adding ${weekAgoAnime.length} last week aired anime to queue`);
 
     for (const anime of weekAgoAnime) {
@@ -277,7 +277,7 @@ class AnimeUpdate {
   }
 
   async queueTwoDaysAgoAnime() {
-    const twoDaysAgoAnime = await animeUpdateFetch.getDaysAgoAiredAnime(2);
+    const twoDaysAgoAnime = await AnimeUpdateFetch.getDaysAgoAiredAnime(2);
     logger.log(`Adding ${twoDaysAgoAnime.length} two days ago aired anime to queue`);
 
     for (const anime of twoDaysAgoAnime) {
@@ -286,7 +286,7 @@ class AnimeUpdate {
   }
 
   async queueThreeDaysAgoAnime() {
-    const threeDaysAgoAnime = await animeUpdateFetch.getDaysAgoAiredAnime(3);
+    const threeDaysAgoAnime = await AnimeUpdateFetch.getDaysAgoAiredAnime(3);
     logger.log(`Adding ${threeDaysAgoAnime.length} three days ago aired anime to queue`);
 
     for (const anime of threeDaysAgoAnime) {
@@ -298,7 +298,7 @@ class AnimeUpdate {
     const BATCH_SIZE = 100;
     const DELAY_BETWEEN_PAGES = 30;
 
-    const totalCount = await animeUpdateFetch.getTotalFinishedAnimeCount();
+    const totalCount = await AnimeUpdateFetch.getTotalFinishedAnimeCount();
     const totalPages = Math.ceil(totalCount / BATCH_SIZE);
 
     logger.log(`Processing ${totalCount} finished anime across ${totalPages} pages`);
@@ -309,7 +309,7 @@ class AnimeUpdate {
     while (true) {
       logger.log(`Fetching page ${pageNumber}/${totalPages} (offset: ${currentOffset})`);
 
-      const finishedAnime = await animeUpdateFetch.getFinishedAnime(BATCH_SIZE, currentOffset);
+      const finishedAnime = await AnimeUpdateFetch.getFinishedAnime(BATCH_SIZE, currentOffset);
 
       if (finishedAnime.length === 0) {
         logger.log('No more finished anime found, done!');
@@ -319,8 +319,8 @@ class AnimeUpdate {
       logger.log(`Adding ${finishedAnime.length} finished anime to queue`);
 
       for (const anime of finishedAnime) {
-        if (animeUpdateFetch.shouldUpdateBasedOnPopularity(anime.popularity)) {
-          const priority = animeUpdateFetch.getPopularityPriority(anime.popularity);
+        if (AnimeUpdateFetch.shouldUpdateBasedOnPopularity(anime.popularity)) {
+          const priority = AnimeUpdateFetch.getPopularityPriority(anime.popularity);
           await this.addToQueue(anime, priority, 'finished_monthly');
         }
       }
@@ -342,7 +342,7 @@ class AnimeUpdate {
     const BATCH_SIZE = 50;
     const DELAY_BETWEEN_PAGES = 30;
 
-    const totalCount = await animeUpdateFetch.getTotalUpcomingAnimeCount();
+    const totalCount = await AnimeUpdateFetch.getTotalUpcomingAnimeCount();
     const totalPages = Math.ceil(totalCount / BATCH_SIZE);
 
     logger.log(`Processing ${totalCount} upcoming anime across ${totalPages} pages`);
@@ -353,7 +353,7 @@ class AnimeUpdate {
     while (true) {
       logger.log(`Fetching page ${pageNumber}/${totalPages} (offset: ${currentOffset})`);
 
-      const upcomingAnime = await animeUpdateFetch.getUpcomingAnime(BATCH_SIZE, currentOffset);
+      const upcomingAnime = await AnimeUpdateFetch.getUpcomingAnime(BATCH_SIZE, currentOffset);
 
       if (upcomingAnime.length === 0) {
         logger.log('No more upcoming anime found, done!');
@@ -363,8 +363,8 @@ class AnimeUpdate {
       logger.log(`Adding ${upcomingAnime.length} upcoming anime to queue`);
 
       for (const anime of upcomingAnime) {
-        if (animeUpdateFetch.shouldUpdateBasedOnPopularity(anime.popularity)) {
-          const priority = animeUpdateFetch.getPopularityPriority(anime.popularity);
+        if (AnimeUpdateFetch.shouldUpdateBasedOnPopularity(anime.popularity)) {
+          const priority = AnimeUpdateFetch.getPopularityPriority(anime.popularity);
           await this.addToQueue(anime, priority, 'upcoming_weekly');
         }
       }
@@ -475,7 +475,7 @@ class AnimeUpdate {
           }, TIMEOUT);
         });
 
-        return Promise.race([anime.update(animeId), timeoutPromise]);
+        return Promise.race([Anime.update(animeId), timeoutPromise]);
       };
     } catch (error) {
       if (error instanceof Error) {

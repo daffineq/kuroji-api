@@ -8,8 +8,7 @@ import animeIndexer from './helpers/anime.indexer';
 import animeUpdate from './helpers/anime.update';
 import logger from 'src/helpers/logger';
 import { describeTags } from 'src/helpers/docs';
-import anime from './anime';
-import { Prisma } from '@prisma/client';
+import { Anime } from './anime';
 
 const animeRoute = new Hono().basePath('/anime').use('*', describeTags(['Anime']));
 
@@ -31,7 +30,7 @@ animeRoute.get(
 
     return c.json(
       createSuccessResponse({
-        data: await anime.fetchOrCreate(parseNumber(id)!),
+        data: await Anime.fetchOrCreate(parseNumber(id)!),
         message: 'Fetched info'
       })
     );
@@ -103,4 +102,4 @@ animeRoute.put(
   }
 );
 
-export default animeRoute;
+export { animeRoute };

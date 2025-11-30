@@ -1,34 +1,32 @@
 import env from 'src/config/env';
-import { Client } from 'src/helpers/client';
 import { ShikimoriAnime } from '../types';
 import { SHIKIMORI_INFO } from '../graphql';
+import { KurojiClient } from 'src/lib/http';
 
-class ShikimoriFetch extends Client {
-  constructor() {
-    super(`${env.SHIKIMORI}/api/graphql`);
+const client = new KurojiClient(`${env.SHIKIMORI}/api/graphql`);
+
+const fetchInfo = async (id: string): Promise<ShikimoriAnime> => {
+  const { data, error } = await client.post<ShikimoriAnime[]>(``, {
+    json: {
+      query: SHIKIMORI_INFO,
+      variables: { ids: id }
+    },
+    jsonPath: 'data.animes'
+  });
+
+  if (error) {
+    throw error;
   }
 
-  async fetchInfo(id: string): Promise<ShikimoriAnime> {
-    const { data, error } = await this.client.post<ShikimoriAnime[]>(``, {
-      json: {
-        query: SHIKIMORI_INFO,
-        variables: { ids: id }
-      },
-      jsonPath: 'data.animes'
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data?.[0]) {
-      throw new Error(`Anime not found`);
-    }
-
-    return data[0];
+  if (!data?.[0]) {
+    throw new Error(`Anime not found`);
   }
-}
 
-const shikimoriFetch = new ShikimoriFetch();
+  return data[0];
+};
 
-export default shikimoriFetch;
+const ShikimoriFetch = {
+  fetchInfo
+};
+
+export { ShikimoriFetch };
