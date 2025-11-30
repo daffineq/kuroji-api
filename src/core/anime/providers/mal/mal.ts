@@ -7,7 +7,7 @@ import meta from '../../meta/meta';
 import { metaSelect } from '../../meta/types';
 
 class MyAnimeList {
-  async getInfo(id: number): Promise<MALInfo> {
+  async getInfo(id: number, idMal: number | undefined = undefined): Promise<MALInfo> {
     const key = getKey('mal', 'info', id);
 
     const cached = await Redis.get<MALInfo>(key);
@@ -16,27 +16,36 @@ class MyAnimeList {
       return cached;
     }
 
-    const mapping = await meta.fetchOrCreate(id, metaSelect).catch(() => null);
-
-    const malId = parseNumber(mapping?.mappings.find((m) => m.sourceName === 'mal')?.sourceId);
-
     var fetched: MALInfo;
 
-    if (malId) {
-      fetched = await malFetch.fetchInfo(malId);
-    } else {
-      const al = await anilist.getInfo(id);
-
-      if (!al.idMal) {
-        throw new Error('No MAL ID found');
-      }
-
-      fetched = await malFetch.fetchInfo(al.idMal);
+    if (idMal) {
+      fetched = await malFetch.fetchInfo(idMal);
 
       await meta.addMapping(id, {
-        id: al.idMal,
+        id: idMal,
         name: 'mal'
       });
+    } else {
+      const mapping = await meta.fetchOrCreate(id, metaSelect).catch(() => null);
+
+      const malId = parseNumber(mapping?.mappings.find((m) => m.sourceName === 'mal')?.sourceId);
+
+      if (malId) {
+        fetched = await malFetch.fetchInfo(malId);
+      } else {
+        const al = await anilist.getInfo(id);
+
+        if (!al.idMal) {
+          throw new Error('No MAL ID found');
+        }
+
+        fetched = await malFetch.fetchInfo(al.idMal);
+
+        await meta.addMapping(id, {
+          id: al.idMal,
+          name: 'mal'
+        });
+      }
     }
 
     if (fetched.metadata?.videos) {

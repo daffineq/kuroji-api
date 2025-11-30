@@ -75,7 +75,7 @@ class Anime {
       create: await getAnimePrismaData(al)
     });
 
-    await this.initProviders(al.id);
+    await this.initProviders(al.id, al.idMal);
 
     return prisma.anime.findUnique({
       where: { id: al.id },
@@ -83,12 +83,12 @@ class Anime {
     }) as unknown as Promise<Prisma.AnimeGetPayload<T>>;
   }
 
-  private async initProviders(id: number) {
+  private async initProviders(id: number, idMal: number | undefined) {
     await meta.loadMappings(id);
 
     await Promise.all([
-      mal.getInfo(id).catch(() => null),
-      shikimori.getInfo(id).catch(() => null),
+      mal.getInfo(id, idMal).catch(() => null),
+      shikimori.getInfo(id, idMal).catch(() => null),
       tmdb.getInfo(id).catch(() => null),
       tvdb.getInfo(id).catch(() => null)
     ]);

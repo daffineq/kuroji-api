@@ -84,22 +84,14 @@ class TmdbSeasons {
   private async getAllEpisodes(id: number): Promise<SeasonEpisode[]> {
     const TMDB = await tmdb.getInfo(id);
 
-    const allEpisodes: SeasonEpisode[] = [];
+    const seasonsPromise = TMDB.seasons!.map((s) => tmdbFetch.fetchSeason(TMDB.id, s.season_number));
 
-    for (const season of TMDB.seasons!) {
-      const tmdbSeason = await tmdbFetch.fetchSeason(TMDB.id, season.season_number);
+    const seasons = await Promise.all(seasonsPromise);
 
-      if (!tmdbSeason) {
-        continue;
-      }
-
-      if (tmdbSeason.episodes && tmdbSeason.episodes.length > 0) {
-        allEpisodes.push(...tmdbSeason.episodes);
-      }
-    }
-
-    return allEpisodes
-      .filter((e) => e.season_number !== 0)
+    return seasons
+      .filter((s) => s.episodes && s.episodes.length > 0)
+      .flatMap((s) => s.episodes)
+      .filter((e) => e.season_number != 0)
       .sort((a, b) => {
         if (a.season_number !== b.season_number) {
           return a.season_number - b.season_number;

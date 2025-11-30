@@ -8,7 +8,7 @@ import anilist from '../anilist/anilist';
 import logger from 'src/helpers/logger';
 
 class Shikimori {
-  async getInfo(id: number): Promise<ShikimoriAnime> {
+  async getInfo(id: number, idMal: number | undefined = undefined): Promise<ShikimoriAnime> {
     const key = getKey('shikimori', 'info', id);
 
     const cached = await Redis.get<ShikimoriAnime>(key);
@@ -17,27 +17,36 @@ class Shikimori {
       return cached;
     }
 
-    const mapping = await meta.fetchOrCreate(id, metaSelect).catch(() => null);
-
-    const shikId = mapping?.mappings.find((m) => m.sourceName === 'shikimori')?.sourceId;
-
     var fetched: ShikimoriAnime;
 
-    if (shikId) {
-      fetched = await shikimoriFetch.fetchInfo(shikId);
-    } else {
-      const al = await anilist.getInfo(id);
-
-      if (!al.idMal) {
-        throw new Error('Anime not found');
-      }
-
-      fetched = await shikimoriFetch.fetchInfo(parseString(al.idMal)!);
+    if (idMal) {
+      fetched = await shikimoriFetch.fetchInfo(parseString(idMal)!);
 
       await meta.addMapping(id, {
-        id: al.idMal,
+        id: idMal,
         name: 'shikimori'
       });
+    } else {
+      const mapping = await meta.fetchOrCreate(id, metaSelect).catch(() => null);
+
+      const shikId = mapping?.mappings.find((m) => m.sourceName === 'shikimori')?.sourceId;
+
+      if (shikId) {
+        fetched = await shikimoriFetch.fetchInfo(shikId);
+      } else {
+        const al = await anilist.getInfo(id);
+
+        if (!al.idMal) {
+          throw new Error('Anime not found');
+        }
+
+        fetched = await shikimoriFetch.fetchInfo(parseString(al.idMal)!);
+
+        await meta.addMapping(id, {
+          id: al.idMal,
+          name: 'shikimori'
+        });
+      }
     }
 
     if (fetched.screenshots) {

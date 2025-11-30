@@ -1,6 +1,5 @@
 import { Prisma } from '@prisma/client';
 import prisma from 'src/lib/prisma';
-import anilist from '../providers/anilist/anilist';
 import { MVideo } from '../providers/mal/types';
 import { SeasonEpisode } from '../providers/tmdb/types';
 import {
@@ -32,6 +31,7 @@ import {
   removeVideos
 } from './helpers/meta.prisma';
 import { toMappingsArray } from './helpers/meta.utils';
+import anime from '../anime';
 
 class Meta {
   async fetchOrCreate<T extends Prisma.MetaDefaultArgs>(
@@ -47,7 +47,7 @@ class Meta {
       return existing as Prisma.MetaGetPayload<T>;
     }
 
-    await anilist.getInfo(id);
+    anime.fetchOrCreate(id);
 
     return this.save(id, args);
   }
