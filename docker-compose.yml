@@ -23,6 +23,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: ghrc.io/daffineq/kuroji-api
     container_name: kuroji-api
     restart: always
     env_file:
