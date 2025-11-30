@@ -41,8 +41,6 @@ app.use(
 );
 
 app.onError((err, c) => {
-  logger.error(err);
-
   if (err instanceof HttpError) {
     return c.json(
       createErrorResponse({
@@ -172,11 +170,5 @@ app.post(
   }),
   (c) => yoga.handle(c.req.raw)
 );
-
-Bun.serve({
-  port: env.PORT,
-  fetch: app.fetch,
-  idleTimeout: 0
-});
 
 export default app;
