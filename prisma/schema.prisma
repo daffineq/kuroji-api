@@ -385,6 +385,9 @@ model Meta {
   franchise String?
   rating    String?
 
+  episodesAired Int?
+  episodesTotal Int?
+
   titles       Title[]       @relation("MetaToTitle")
   descriptions Description[] @relation("MetaToDescription")
   images       Image[]       @relation("MetaToImage")

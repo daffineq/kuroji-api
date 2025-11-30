@@ -70,17 +70,61 @@ type PageInfo {
 }
 
 enum AnimeSort {
+  # ID Sorting
   ID_DESC
   ID_ASC
+
+  # Title Sorting
   TITLE_ROMAJI
+  TITLE_ROMAJI_DESC
   TITLE_ENGLISH
+  TITLE_ENGLISH_DESC
+  TITLE_NATIVE
+  TITLE_NATIVE_DESC
+
+  # Score & Stats Sorting
   SCORE_DESC
+  SCORE_ASC
   POPULARITY_DESC
+  POPULARITY_ASC
   TRENDING_DESC
+  TRENDING_ASC
   FAVORITES_DESC
+  FAVORITES_ASC
+
+  # Date Sorting
   START_DATE_DESC
+  START_DATE_ASC
   END_DATE_DESC
+  END_DATE_ASC
   UPDATED_AT_DESC
+  UPDATED_AT_ASC
+
+  # Episode Sorting
+  EPISODES_DESC
+  EPISODES_ASC
+  DURATION_DESC
+  DURATION_ASC
+  LATEST_EPISODE_DESC
+  LATEST_EPISODE_ASC
+  NEXT_EPISODE_DESC
+  NEXT_EPISODE_ASC
+  LAST_EPISODE_DESC
+  LAST_EPISODE_ASC
+
+  # Season Sorting
+  SEASON_YEAR_DESC
+  SEASON_YEAR_ASC
+
+  # Format & Type
+  FORMAT_ASC
+  FORMAT_DESC
+  TYPE_ASC
+  TYPE_DESC
+
+  # Status
+  STATUS_ASC
+  STATUS_DESC
 }
 
 type Anime {
@@ -272,6 +316,8 @@ type Meta {
   id: Int!
   franchise: String
   rating: String
+  episodesAired: Int!
+  episodesTotal: Int!
   titles: [Title!]!
   descriptions: [Description!]!
   images: [Image!]!

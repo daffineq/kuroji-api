@@ -78,6 +78,14 @@ class Shikimori {
       await meta.addRating(id, fetched.rating);
     }
 
+    if (fetched.episodesAired) {
+      await meta.addEpisodesAired(id, fetched.episodesAired);
+    }
+
+    if (fetched.episodes) {
+      await meta.addEpisodesTotal(id, fetched.episodes);
+    }
+
     await Redis.set(key, fetched);
 
     return fetched;
