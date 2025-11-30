@@ -52,6 +52,7 @@ class AnimeIndexer {
             await Anime.fetchOrCreate(id);
           } catch (err) {
             logger.error(`Failed to index release ${id}:`, err);
+            return;
           }
 
           await sleep(this.delay * 1000);

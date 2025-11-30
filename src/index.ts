@@ -11,6 +11,8 @@ import { describeRoute, openAPIRouteHandler } from 'hono-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
 import { animeRoute, apiRoute, proxyRoute, yoga } from './core';
 import logger from './helpers/logger';
+import { HTTPError } from 'ky';
+import { ContentfulStatusCode } from 'hono/utils/http-status';
 
 const app = new Hono().use(prettyJSON());
 
@@ -36,7 +38,7 @@ app.use(
   })
 );
 
-app.onError((err, c) => {
+app.onError(async (err, c) => {
   if (err instanceof HttpError) {
     return c.json(
       createErrorResponse({
@@ -47,6 +49,21 @@ app.onError((err, c) => {
         }
       }),
       err.status
+    );
+  }
+
+  if (err instanceof HTTPError) {
+    const status = err.response?.status ?? 500;
+
+    return c.json(
+      createErrorResponse({
+        error: {
+          status,
+          message: err.message,
+          details: await err.response.json()
+        }
+      }),
+      status as ContentfulStatusCode
     );
   }
 

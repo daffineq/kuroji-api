@@ -20,7 +20,9 @@ class Logger {
   }
 
   getLogs() {
-    return this.logs;
+    return this.logs.sort((a, b) => {
+      return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+    });
   }
 
   clearLogs() {
