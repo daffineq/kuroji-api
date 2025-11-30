@@ -7,22 +7,23 @@ services:
       POSTGRES_USER: prisma
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: kuroji
-    ports:
-      - '5432:5432'
+    #ports:             # Don't publish these ports in prod
+    #  - '5432:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
 
   redis:
     image: redis:latest
     container_name: redis
     restart: always
-    ports:
-      - '6379:6379'
+    #ports:             # Don't publish these ports in prod
+    #  - '6379:6379'
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    image: ghrc.io/daffineq/kuroji-api
     container_name: kuroji-api
     restart: always
     env_file:
