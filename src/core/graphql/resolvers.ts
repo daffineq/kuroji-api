@@ -482,38 +482,226 @@ export const resolvers = {
 
       sort.forEach((s) => {
         switch (s) {
+          // ID Sorting
           case 'ID_DESC':
             orderBy.push({ id: 'desc' });
             break;
           case 'ID_ASC':
             orderBy.push({ id: 'asc' });
             break;
+
+          // Title Sorting
           case 'TITLE_ROMAJI':
             orderBy.push({ title: { romaji: 'asc' } });
+            break;
+          case 'TITLE_ROMAJI_DESC':
+            orderBy.push({ title: { romaji: 'desc' } });
             break;
           case 'TITLE_ENGLISH':
             orderBy.push({ title: { english: 'asc' } });
             break;
+          case 'TITLE_ENGLISH_DESC':
+            orderBy.push({ title: { english: 'desc' } });
+            break;
+          case 'TITLE_NATIVE':
+            orderBy.push({ title: { native: 'asc' } });
+            break;
+          case 'TITLE_NATIVE_DESC':
+            orderBy.push({ title: { native: 'desc' } });
+            break;
+
+          // Score & Stats Sorting
           case 'SCORE_DESC':
-            orderBy.push({ score: 'desc' });
+            orderBy.push({ score: { sort: 'desc', nulls: 'last' } });
+            break;
+          case 'SCORE_ASC':
+            orderBy.push({ score: { sort: 'asc', nulls: 'last' } });
             break;
           case 'POPULARITY_DESC':
-            orderBy.push({ popularity: 'desc' });
+            orderBy.push({ popularity: { sort: 'desc', nulls: 'last' } });
+            break;
+          case 'POPULARITY_ASC':
+            orderBy.push({ popularity: { sort: 'asc', nulls: 'last' } });
             break;
           case 'TRENDING_DESC':
-            orderBy.push({ trending: 'desc' });
+            orderBy.push({ trending: { sort: 'desc', nulls: 'last' } });
+            break;
+          case 'TRENDING_ASC':
+            orderBy.push({ trending: { sort: 'asc', nulls: 'last' } });
             break;
           case 'FAVORITES_DESC':
-            orderBy.push({ favorites: 'desc' });
+            orderBy.push({ favorites: { sort: 'desc', nulls: 'last' } });
+            break;
+          case 'FAVORITES_ASC':
+            orderBy.push({ favorites: { sort: 'asc', nulls: 'last' } });
+            break;
+
+          // Date Sorting
+          case 'START_DATE_DESC':
+            orderBy.push({
+              startDate: {
+                year: { sort: 'desc', nulls: 'last' }
+              }
+            });
+            orderBy.push({
+              startDate: {
+                month: { sort: 'desc', nulls: 'last' }
+              }
+            });
+            orderBy.push({
+              startDate: {
+                day: { sort: 'desc', nulls: 'last' }
+              }
+            });
+            break;
+          case 'START_DATE_ASC':
+            orderBy.push({
+              startDate: {
+                year: { sort: 'asc', nulls: 'last' }
+              }
+            });
+            orderBy.push({
+              startDate: {
+                month: { sort: 'asc', nulls: 'last' }
+              }
+            });
+            orderBy.push({
+              startDate: {
+                day: { sort: 'asc', nulls: 'last' }
+              }
+            });
+            break;
+          case 'END_DATE_DESC':
+            orderBy.push({
+              endDate: {
+                year: { sort: 'desc', nulls: 'last' }
+              }
+            });
+            orderBy.push({
+              endDate: {
+                month: { sort: 'desc', nulls: 'last' }
+              }
+            });
+            orderBy.push({
+              endDate: {
+                day: { sort: 'desc', nulls: 'last' }
+              }
+            });
+            break;
+          case 'END_DATE_ASC':
+            orderBy.push({
+              endDate: {
+                year: { sort: 'asc', nulls: 'last' }
+              }
+            });
+            orderBy.push({
+              endDate: {
+                month: { sort: 'asc', nulls: 'last' }
+              }
+            });
+            orderBy.push({
+              endDate: {
+                day: { sort: 'asc', nulls: 'last' }
+              }
+            });
             break;
           case 'UPDATED_AT_DESC':
             orderBy.push({ updatedAt: 'desc' });
             break;
-          case 'START_DATE_DESC':
-            orderBy.push({ startDate: { year: 'desc' } });
+          case 'UPDATED_AT_ASC':
+            orderBy.push({ updatedAt: 'asc' });
             break;
-          case 'END_DATE_DESC':
-            orderBy.push({ endDate: { year: 'desc' } });
+
+          // Episode Sorting
+          case 'EPISODES_DESC':
+            orderBy.push({ episodes: { sort: 'desc', nulls: 'last' } });
+            break;
+          case 'EPISODES_ASC':
+            orderBy.push({ episodes: { sort: 'asc', nulls: 'last' } });
+            break;
+          case 'DURATION_DESC':
+            orderBy.push({ duration: { sort: 'desc', nulls: 'last' } });
+            break;
+          case 'DURATION_ASC':
+            orderBy.push({ duration: { sort: 'asc', nulls: 'last' } });
+            break;
+
+          // Latest Episode Sorting
+          case 'LATEST_EPISODE_DESC':
+            orderBy.push({
+              latestAiringEpisode: {
+                airingAt: { sort: 'desc', nulls: 'last' }
+              }
+            });
+            break;
+          case 'LATEST_EPISODE_ASC':
+            orderBy.push({
+              latestAiringEpisode: {
+                airingAt: { sort: 'asc', nulls: 'last' }
+              }
+            });
+            break;
+
+          // Next Episode Sorting
+          case 'NEXT_EPISODE_DESC':
+            orderBy.push({
+              nextAiringEpisode: {
+                airingAt: { sort: 'desc', nulls: 'last' }
+              }
+            });
+            break;
+          case 'NEXT_EPISODE_ASC':
+            orderBy.push({
+              nextAiringEpisode: {
+                airingAt: { sort: 'asc', nulls: 'last' }
+              }
+            });
+            break;
+
+          // Last Episode Sorting
+          case 'LAST_EPISODE_DESC':
+            orderBy.push({
+              lastAiringEpisode: {
+                airingAt: { sort: 'desc', nulls: 'last' }
+              }
+            });
+            break;
+          case 'LAST_EPISODE_ASC':
+            orderBy.push({
+              lastAiringEpisode: {
+                airingAt: { sort: 'asc', nulls: 'last' }
+              }
+            });
+            break;
+
+          // Season Sorting
+          case 'SEASON_YEAR_DESC':
+            orderBy.push({ seasonYear: { sort: 'desc', nulls: 'last' } });
+            break;
+          case 'SEASON_YEAR_ASC':
+            orderBy.push({ seasonYear: { sort: 'asc', nulls: 'last' } });
+            break;
+
+          // Format & Type Sorting
+          case 'FORMAT_ASC':
+            orderBy.push({ format: { sort: 'asc', nulls: 'last' } });
+            break;
+          case 'FORMAT_DESC':
+            orderBy.push({ format: { sort: 'desc', nulls: 'last' } });
+            break;
+          case 'TYPE_ASC':
+            orderBy.push({ type: { sort: 'asc', nulls: 'last' } });
+            break;
+          case 'TYPE_DESC':
+            orderBy.push({ type: { sort: 'desc', nulls: 'last' } });
+            break;
+
+          // Status Sorting
+          case 'STATUS_ASC':
+            orderBy.push({ status: { sort: 'asc', nulls: 'last' } });
+            break;
+          case 'STATUS_DESC':
+            orderBy.push({ status: { sort: 'desc', nulls: 'last' } });
             break;
         }
       });

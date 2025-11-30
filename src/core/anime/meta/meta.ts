@@ -170,6 +170,38 @@ class Meta {
     }) as unknown as Prisma.MetaGetPayload<T>;
   }
 
+  async addEpisodesAired<T extends Prisma.MetaDefaultArgs>(
+    id: number,
+    episodes: number,
+    args?: Prisma.SelectSubset<T, Prisma.MetaDefaultArgs>
+  ): Promise<Prisma.MetaGetPayload<T>> {
+    await this.fetchOrCreate(id);
+
+    return prisma.meta.update({
+      where: { id },
+      data: {
+        episodesAired: episodes
+      },
+      ...(args as Prisma.MetaDefaultArgs)
+    }) as unknown as Prisma.MetaGetPayload<T>;
+  }
+
+  async addEpisodesTotal<T extends Prisma.MetaDefaultArgs>(
+    id: number,
+    episodes: number,
+    args?: Prisma.SelectSubset<T, Prisma.MetaDefaultArgs>
+  ): Promise<Prisma.MetaGetPayload<T>> {
+    await this.fetchOrCreate(id);
+
+    return prisma.meta.update({
+      where: { id },
+      data: {
+        episodesTotal: episodes
+      },
+      ...(args as Prisma.MetaDefaultArgs)
+    }) as unknown as Prisma.MetaGetPayload<T>;
+  }
+
   // Title operations
   async addTitles<T extends Prisma.MetaDefaultArgs>(
     id: number,
