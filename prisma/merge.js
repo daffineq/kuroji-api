@@ -1,32 +1,21 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // Paths to your model files
 const modelDir = path.join(__dirname, 'models');
 const outputPath = path.join(__dirname, 'schema.prisma');
 
 // Read all models from the "models" folder
-const modelFiles = fs
-  .readdirSync(modelDir)
-  .filter((file) => file.endsWith('.prisma'));
+const modelFiles = fs.readdirSync(modelDir).filter((file) => file.endsWith('.prisma'));
 
 // Start of the schema.prisma file (generator and datasource)
 let schemaContent = `generator client {
+  previewFeatures = ["fullTextSearchPostgres"]
   provider = "prisma-client-js"
-}
-
-generator nestjsDto {
-  provider                        = "prisma-generator-nestjs-dto"
-  output                          = "../src/generated/nestjs-dto"
-  outputToNestJsResourceStructure = "true"
-  exportRelationModifierClasses   = "true"
-  reExport                        = "false"
-  fileNamingStyle                 = "camel"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }`;
 
 // Add all models from the "models" folder

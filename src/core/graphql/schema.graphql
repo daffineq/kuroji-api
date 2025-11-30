@@ -1,0 +1,352 @@
+type Query {
+  anime(id: Int!): Anime
+  animeByMalId(malId: Int!): Anime
+  animes(
+    page: Int = 1
+    perPage: Int = 20
+    search: String
+    season: String
+    seasonYear: Int
+    seasonYearGreater: Int
+    seasonYearLesser: Int
+    format: String
+    formatIn: [String!]
+    formatNotIn: [String!]
+    status: String
+    statusIn: [String!]
+    statusNotIn: [String!]
+    type: String
+    source: String
+    sourceIn: [String!]
+    countryOfOrigin: String
+    isLicensed: Boolean
+    isAdult: Boolean
+    genres: [String!]
+    genresIn: [String!]
+    genresNotIn: [String!]
+    tags: [String!]
+    tagsIn: [String!]
+    tagsNotIn: [String!]
+    minimumTagRank: Int
+    studios: [String!]
+    studiosIn: [String!]
+    scoreGreater: Int
+    scoreLesser: Int
+    popularityGreater: Int
+    popularityLesser: Int
+    episodesGreater: Int
+    episodesLesser: Int
+    durationGreater: Int
+    durationLesser: Int
+    startDateGreater: String
+    startDateLesser: String
+    endDateGreater: String
+    endDateLesser: String
+    startDateLike: String
+    endDateLike: String
+    hasNextEpisode: Boolean
+    franchise: String
+    sort: [AnimeSort!]
+  ): AnimePage!
+  character(id: Int!): AnimeCharacter
+  studio(id: Int!): AnimeStudio
+  tag(id: Int!): AnimeTag
+  genres: [AnimeGenre!]!
+  tags(search: String, category: String, isAdult: Boolean): [AnimeTag!]!
+  studios(search: String): [AnimeStudio!]!
+}
+
+type AnimePage {
+  data: [Anime!]!
+  pageInfo: PageInfo!
+}
+
+type PageInfo {
+  total: Int!
+  perPage: Int!
+  currentPage: Int!
+  lastPage: Int!
+  hasNextPage: Boolean!
+}
+
+enum AnimeSort {
+  ID_DESC
+  ID_ASC
+  TITLE_ROMAJI
+  TITLE_ENGLISH
+  SCORE_DESC
+  POPULARITY_DESC
+  TRENDING_DESC
+  FAVORITES_DESC
+  START_DATE_DESC
+  END_DATE_DESC
+  UPDATED_AT_DESC
+}
+
+type Anime {
+  id: Int!
+  idMal: Int
+  title: AnimeTitle
+  poster: AnimePoster
+  banner: String
+  synonyms: [String!]!
+  description: String
+  status: String
+  type: String
+  format: String
+  updatedAt: Int!
+  startDate: AnimeDate
+  endDate: AnimeDate
+  season: String
+  seasonYear: Int
+  episodes: Int
+  duration: Int
+  countryOfOrigin: String
+  isLicensed: Boolean
+  source: String
+  hashtag: String
+  isAdult: Boolean
+  score: Int
+  popularity: Int
+  trending: Int
+  favorites: Int
+  genres: [AnimeGenre!]!
+  latestAiringEpisode: AiringEpisode
+  nextAiringEpisode: AiringEpisode
+  lastAiringEpisode: AiringEpisode
+  airingSchedule: [AiringSchedule!]!
+  characters(page: Int = 1, perPage: Int = 25): CharacterConnection!
+  studios: [StudioEdge!]!
+  tags: [TagEdge!]!
+  rankings: [Ranking!]!
+  externalLinks: [ExternalLink!]!
+  scoreDistribution: [ScoreDistribution!]!
+  statusDistribution: [StatusDistribution!]!
+  meta: Meta
+}
+
+type AnimeTitle {
+  romaji: String
+  english: String
+  native: String
+}
+
+type AnimePoster {
+  color: String
+  large: String
+  medium: String
+  extraLarge: String
+}
+
+type AnimeDate {
+  day: Int
+  month: Int
+  year: Int
+}
+
+type AnimeGenre {
+  id: String!
+  name: String!
+}
+
+type AiringEpisode {
+  id: Int!
+  episode: Int
+  airingAt: Int
+}
+
+type AiringSchedule {
+  id: Int!
+  episode: Int
+  airingAt: Int
+}
+
+type CharacterConnection {
+  edges: [CharacterEdge!]!
+  pageInfo: PageInfo!
+}
+
+type CharacterEdge {
+  id: Int!
+  role: String
+  character: AnimeCharacter!
+  voiceActors: [VoiceActor!]!
+}
+
+type AnimeCharacter {
+  id: Int!
+  name: CharacterName
+  image: CharacterImage
+}
+
+type CharacterName {
+  full: String
+  native: String
+  alternative: [String!]!
+}
+
+type CharacterImage {
+  large: String
+  medium: String
+}
+
+type VoiceActor {
+  id: Int!
+  language: String
+  name: VoiceActorName
+  image: VoiceActorImage
+}
+
+type VoiceActorName {
+  full: String
+  native: String
+  alternative: [String!]!
+}
+
+type VoiceActorImage {
+  large: String
+  medium: String
+}
+
+type StudioEdge {
+  id: Int!
+  isMain: Boolean
+  studio: AnimeStudio!
+}
+
+type AnimeStudio {
+  id: Int!
+  name: String
+}
+
+type TagEdge {
+  rank: Int
+  isMediaSpoiler: Boolean
+  tag: AnimeTag!
+}
+
+type AnimeTag {
+  id: Int!
+  name: String
+  description: String
+  category: String
+  isGeneralSpoiler: Boolean
+  isAdult: Boolean
+}
+
+type Ranking {
+  id: Int!
+  rank: Int
+  type: String
+  format: String
+  year: Int
+  season: String
+  allTime: Boolean
+  context: String!
+}
+
+type ExternalLink {
+  id: Int!
+  url: String
+  site: String
+  siteId: Int
+  type: String
+  language: String
+  color: String
+  icon: String
+  notes: String
+  isDisabled: Boolean
+}
+
+type ScoreDistribution {
+  score: Int!
+  amount: Int!
+}
+
+type StatusDistribution {
+  status: String!
+  amount: Int!
+}
+
+type Meta {
+  id: Int!
+  franchise: String
+  rating: String
+  titles: [Title!]!
+  descriptions: [Description!]!
+  images: [Image!]!
+  mappings: [Mappings!]!
+  episodes: [Episode!]!
+  videos: [Video!]!
+  screenshots: [Screenshot!]!
+  artworks: [Artwork!]!
+}
+
+type Title {
+  title: String!
+  source: String!
+  language: String!
+}
+
+type Description {
+  description: String!
+  source: String!
+  language: String!
+}
+
+type Image {
+  url: String!
+  small: String
+  medium: String
+  large: String
+  type: String!
+  source: String!
+}
+
+type Mappings {
+  sourceId: String!
+  sourceName: String!
+}
+
+type Episode {
+  id: Int!
+  number: Int!
+  title: String
+  overview: String
+  thumbnail: EpisodeThumbnail
+  runtime: Int
+  date: String
+}
+
+type EpisodeThumbnail {
+  small: String
+  medium: String
+  large: String
+}
+
+type Video {
+  url: String!
+  title: String
+  thumbnail: String
+  artist: String
+  type: String
+}
+
+type Screenshot {
+  id: String!
+  originalUrl: String
+  x166Url: String
+  x332Url: String
+}
+
+type Artwork {
+  id: String
+  url: String
+  height: Int
+  image: String
+  language: String
+  thumbnail: String
+  type: String
+  width: Int
+  source: String
+}

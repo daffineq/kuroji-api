@@ -1,0 +1,129 @@
+model Meta {
+  id      Int @id
+  animeId Int @unique
+
+  franchise String?
+  rating    String?
+
+  titles       Title[]       @relation("MetaToTitle")
+  descriptions Description[] @relation("MetaToDescription")
+  images       Image[]       @relation("MetaToImage")
+  mappings     Mappings[]    @relation("MetaToMappings")
+  episodes     Episode[]     @relation("MetaToEpisode")
+  videos       Video[]       @relation("MetaToVideo")
+  screenshots  Screenshot[]  @relation("MetaToScreenshot")
+  artworks     Artwork[]     @relation("MetaToArtwork")
+
+  anime Anime @relation(fields: [animeId], references: [id])
+}
+
+model Mappings {
+  id String @id @default(cuid())
+
+  sourceId   String
+  sourceName String
+
+  metaId Int
+  parent Meta @relation("MetaToMappings", fields: [metaId], references: [id])
+
+  @@unique([sourceId, sourceName])
+}
+
+model Episode {
+  id Int @id
+
+  number    Int
+  title     String?
+  overview  String?
+  thumbnail EpisodeThumbnail? @relation("EpisodeToEpisodeThumbnail")
+  runtime   Int?
+  date      String?
+
+  parent Meta[] @relation("MetaToEpisode")
+}
+
+model EpisodeThumbnail {
+  id String @id @default(cuid())
+
+  small  String?
+  medium String?
+  large  String?
+
+  episodeId Int     @unique
+  parent    Episode @relation("EpisodeToEpisodeThumbnail", fields: [episodeId], references: [id])
+}
+
+model Title {
+  id String @id @default(cuid())
+
+  title    String
+  source   String
+  language String
+
+  parent Meta[] @relation("MetaToTitle")
+
+  @@unique([title, source, language])
+}
+
+model Description {
+  id String @id @default(cuid())
+
+  description String
+  source      String
+  language    String
+
+  parent Meta[] @relation("MetaToDescription")
+
+  @@unique([description, source, language])
+}
+
+model Image {
+  id String @id @default(cuid())
+
+  url    String
+  small  String?
+  medium String?
+  large  String?
+
+  type   String
+  source String
+
+  parent Meta[] @relation("MetaToImage")
+
+  @@unique([url, type, source])
+}
+
+model Video {
+  url       String  @id
+  title     String?
+  thumbnail String?
+  artist    String?
+  type      String?
+
+  parent Meta[] @relation("MetaToVideo")
+}
+
+model Screenshot {
+  id          String  @id
+  originalUrl String?
+  x166Url     String?
+  x332Url     String?
+
+  parent Meta[] @relation("MetaToScreenshot")
+}
+
+model Artwork {
+  id        String  @id @default(cuid())
+  url       String
+  height    Int?
+  width     Int?
+  image     String?
+  language  String?
+  thumbnail String?
+  type      String
+  source    String
+
+  parent Meta[] @relation("MetaToArtwork")
+
+  @@unique([url, type, source])
+}
