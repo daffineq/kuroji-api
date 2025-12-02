@@ -9,7 +9,7 @@ import { Anime } from '../anime';
 
 @EnableSchedule
 class AnimeIndexer {
-  private delay: number = 10;
+  private delay: number = 5;
 
   private async index(): Promise<void> {
     try {
@@ -49,7 +49,7 @@ class AnimeIndexer {
           logger.log(`Indexing release ID: ${id}...`);
 
           try {
-            await Anime.fetchOrCreate(id);
+            await Anime.updateOrCreate(id);
           } catch (err) {
             logger.error(`Failed to index release ${id}:`, err);
             return;
@@ -62,6 +62,10 @@ class AnimeIndexer {
         page++;
       }
 
+      if (!hasNextPage) {
+        await this.setLastFetchedPage(1);
+      }
+
       logger.log('Indexing complete. All done');
     } catch (err) {
       logger.error('Unexpected error during indexing:', err);
@@ -70,7 +74,7 @@ class AnimeIndexer {
     }
   }
 
-  public async start(delay: number = 10): Promise<string> {
+  public async start(delay: number = 5): Promise<string> {
     if (!lock.acquire('indexer')) {
       logger.log('Indexer already running, skipping new run.');
       return 'Indexer already running, skipping new run.';

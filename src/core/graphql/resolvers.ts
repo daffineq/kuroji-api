@@ -58,136 +58,20 @@ interface CharacterArgs {
 export const resolvers = {
   Query: {
     anime: async (_: any, { id }: { id: number }) => {
-      const include: Prisma.AnimeInclude = {
-        title: true,
-        poster: true,
-        startDate: true,
-        endDate: true,
-        genres: true,
-        latestAiringEpisode: true,
-        nextAiringEpisode: true,
-        lastAiringEpisode: true,
-        airingSchedule: true,
-        characters: {
-          include: {
-            character: {
-              include: {
-                name: true,
-                image: true
-              }
-            },
-            voiceActors: {
-              include: {
-                name: true,
-                image: true
-              }
-            }
-          }
-        },
-        studios: {
-          include: {
-            studio: true
-          }
-        },
-        tags: {
-          include: {
-            tag: true
-          }
-        },
-        rankings: true,
-        externalLinks: true,
-        scoreDistribution: true,
-        statusDistribution: true,
-        meta: {
-          include: {
-            titles: true,
-            descriptions: true,
-            images: true,
-            mappings: true,
-            episodes: {
-              include: {
-                thumbnail: true
-              }
-            },
-            videos: true,
-            screenshots: true,
-            artworks: true
-          }
-        }
-      };
-
       const release = await prisma.anime.findUnique({
-        where: { id },
-        include
+        where: { id }
       });
 
       if (release) {
         return release;
       }
 
-      return Anime.fetchOrCreate(id, { include });
+      return Anime.fetchOrCreate(id);
     },
 
     animeByMalId: async (_: any, { malId }: { malId: number }) => {
-      return await prisma.anime.findUnique({
-        where: { idMal: malId },
-        include: {
-          title: true,
-          poster: true,
-          startDate: true,
-          endDate: true,
-          genres: true,
-          latestAiringEpisode: true,
-          nextAiringEpisode: true,
-          lastAiringEpisode: true,
-          airingSchedule: true,
-          characters: {
-            include: {
-              character: {
-                include: {
-                  name: true,
-                  image: true
-                }
-              },
-              voiceActors: {
-                include: {
-                  name: true,
-                  image: true
-                }
-              }
-            }
-          },
-          studios: {
-            include: {
-              studio: true
-            }
-          },
-          tags: {
-            include: {
-              tag: true
-            }
-          },
-          rankings: true,
-          externalLinks: true,
-          scoreDistribution: true,
-          statusDistribution: true,
-          meta: {
-            include: {
-              titles: true,
-              descriptions: true,
-              images: true,
-              mappings: true,
-              episodes: {
-                include: {
-                  thumbnail: true
-                }
-              },
-              videos: true,
-              screenshots: true,
-              artworks: true
-            }
-          }
-        }
+      return prisma.anime.findUnique({
+        where: { idMal: malId }
       });
     },
 
@@ -711,14 +595,7 @@ export const resolvers = {
           where,
           orderBy,
           skip,
-          take: perPage,
-          include: {
-            title: true,
-            poster: true,
-            startDate: true,
-            endDate: true,
-            genres: true
-          }
+          take: perPage
         }),
         prisma.anime.count({ where })
       ]);
@@ -799,8 +676,34 @@ export const resolvers = {
   },
 
   Anime: {
-    startDate: (parent: any) => parent.startDate || null,
-    endDate: (parent: any) => parent.endDate || null,
+    poster: async (parent: any) => {
+      return prisma.animePoster.findUnique({
+        where: { animeId: parent.id }
+      });
+    },
+
+    title: async (parent: any) => {
+      return prisma.animeTitle.findUnique({
+        where: { animeId: parent.id }
+      });
+    },
+
+    startDate: async (parent: any) => {
+      return prisma.animeStartDate.findUnique({
+        where: { animeId: parent.id }
+      });
+    },
+    endDate: async (parent: any) => {
+      return prisma.animeEndDate.findUnique({
+        where: { animeId: parent.id }
+      });
+    },
+
+    genres: async (parent: any) => {
+      return prisma.animeGenre.findMany({
+        where: { anime: { some: { id: parent.id } } }
+      });
+    },
 
     characters: async (parent: any, args: CharacterArgs) => {
       const { page = 1, perPage = 25 } = args;
@@ -852,7 +755,7 @@ export const resolvers = {
         where.isMain = true;
       }
 
-      return await prisma.animeStudioEdge.findMany({
+      return prisma.animeStudioEdge.findMany({
         where,
         include: {
           studio: true
@@ -861,7 +764,7 @@ export const resolvers = {
     },
 
     tags: async (parent: any) => {
-      return await prisma.animeTagEdge.findMany({
+      return prisma.animeTagEdge.findMany({
         where: { animeId: parent.id },
         include: {
           tag: true
@@ -876,49 +779,49 @@ export const resolvers = {
     },
 
     externalLinks: async (parent: any) => {
-      return await prisma.animeExternalLink.findMany({
+      return prisma.animeExternalLink.findMany({
         where: { animeId: parent.id }
       });
     },
 
     scoreDistribution: async (parent: any) => {
-      return await prisma.animeScoreDistribution.findMany({
+      return prisma.animeScoreDistribution.findMany({
         where: { animeId: parent.id }
       });
     },
 
     statusDistribution: async (parent: any) => {
-      return await prisma.animeStatusDistribution.findMany({
+      return prisma.animeStatusDistribution.findMany({
         where: { animeId: parent.id }
       });
     },
 
     airingSchedule: async (parent: any) => {
-      return await prisma.animeAiringSchedule.findMany({
+      return prisma.animeAiringSchedule.findMany({
         where: { animeId: parent.id }
       });
     },
 
     latestAiringEpisode: async (parent: any) => {
-      return await prisma.animeLatestEpisode.findUnique({
+      return prisma.animeLatestEpisode.findUnique({
         where: { animeId: parent.id }
       });
     },
 
     nextAiringEpisode: async (parent: any) => {
-      return await prisma.animeNextEpisode.findUnique({
+      return prisma.animeNextEpisode.findUnique({
         where: { animeId: parent.id }
       });
     },
 
     lastAiringEpisode: async (parent: any) => {
-      return await prisma.animeLastEpisode.findUnique({
+      return prisma.animeLastEpisode.findUnique({
         where: { animeId: parent.id }
       });
     },
 
     meta: async (parent: any) => {
-      return await prisma.meta.findUnique({
+      return prisma.meta.findUnique({
         where: { id: parent.id },
         include: {
           titles: true,
@@ -963,7 +866,7 @@ export const resolvers = {
 
   Meta: {
     episodes: async (parent: any) => {
-      return await prisma.episode.findMany({
+      return prisma.episode.findMany({
         where: {
           parent: {
             some: {

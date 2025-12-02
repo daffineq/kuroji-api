@@ -46,8 +46,6 @@ const check = async (): Promise<void> => {
       });
       logger.log('Token expired');
       await createToken();
-    } else {
-      logger.log(`Token valid until: ${expiryDate.toISOString()}`);
     }
   } else {
     await createToken();

@@ -316,8 +316,8 @@ type Meta {
   id: Int!
   franchise: String
   rating: String
-  episodesAired: Int!
-  episodesTotal: Int!
+  episodesAired: Int
+  episodesTotal: Int
   titles: [Title!]!
   descriptions: [Description!]!
   images: [Image!]!

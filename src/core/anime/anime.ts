@@ -25,6 +25,13 @@ const fetchOrCreate = async <T extends Prisma.AnimeDefaultArgs>(
   return save(al, args);
 };
 
+const updateOrCreate = async <T extends Prisma.AnimeDefaultArgs>(
+  id: number,
+  args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
+): Promise<Prisma.AnimeGetPayload<T>> => {
+  return update(id, args);
+};
+
 const update = async <T extends Prisma.AnimeDefaultArgs>(
   id: number,
   args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
@@ -92,6 +99,7 @@ const initProviders = async (id: number, idMal: number | undefined) => {
 
 const Anime = {
   fetchOrCreate,
+  updateOrCreate,
   many,
   first,
   update,
