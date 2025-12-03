@@ -8,7 +8,8 @@ import {
   ImageEntry,
   MappingEntry,
   ScreenshotEntry,
-  TitleEntry
+  TitleEntry,
+  VideoEntry
 } from './helpers/meta.dto';
 import { MetaPrisma, MetaFetch, MetaUtils } from './helpers';
 import { Anime } from '../anime';
@@ -139,6 +140,24 @@ const addEpisodesTotal = async (id: number, episodes: number, args?: any) => {
   });
 };
 
+const addMoreinfo = async (id: number, info: string, args?: any) => {
+  await fetchOrCreate(id);
+  return prisma.meta.update({
+    where: { id },
+    data: { moreinfo: info },
+    ...(args as Prisma.MetaDefaultArgs)
+  });
+};
+
+const addBroadcast = async (id: number, broadcast: string, args?: any) => {
+  await fetchOrCreate(id);
+  return prisma.meta.update({
+    where: { id },
+    data: { broadcast },
+    ...(args as Prisma.MetaDefaultArgs)
+  });
+};
+
 const addTitles = async (id: number, titles: TitleEntry[], args?: any) => {
   await fetchOrCreate(id);
   return prisma.meta.update({
@@ -187,7 +206,7 @@ const removeImages = async (id: number, images: ImageEntry[], args?: any) =>
     ...(args as Prisma.MetaDefaultArgs)
   });
 
-const addVideos = async (id: number, videos: MVideo[], args?: any) => {
+const addVideos = async (id: number, videos: VideoEntry[], args?: any) => {
   await fetchOrCreate(id);
   return prisma.meta.update({
     where: { id },
@@ -196,12 +215,12 @@ const addVideos = async (id: number, videos: MVideo[], args?: any) => {
   });
 };
 
-const removeVideos = async (id: number, videoUrls: string[], args?: any) =>
-  prisma.meta.update({
-    where: { id },
-    data: MetaPrisma.removeVideos(videoUrls),
-    ...(args as Prisma.MetaDefaultArgs)
-  });
+// const removeVideos = async (id: number, videoUrls: string[], args?: any) =>
+//   prisma.meta.update({
+//     where: { id },
+//     data: MetaPrisma.removeVideos(videoUrls),
+//     ...(args as Prisma.MetaDefaultArgs)
+//   });
 
 const addScreenshots = async (id: number, screenshots: ScreenshotEntry[], args?: any) => {
   await fetchOrCreate(id);
@@ -250,7 +269,7 @@ const addSingleDescription = (id: number, desc: DescriptionEntry, args?: any) =>
 
 const addSingleImage = (id: number, img: ImageEntry, args?: any) => addImages(id, [img], args);
 
-const addSingleVideo = (id: number, video: MVideo, args?: any) => addVideos(id, [video], args);
+const addSingleVideo = (id: number, video: VideoEntry, args?: any) => addVideos(id, [video], args);
 
 const Meta = {
   fetchOrCreate,
@@ -266,6 +285,8 @@ const Meta = {
   addRating,
   addEpisodesAired,
   addEpisodesTotal,
+  addMoreinfo,
+  addBroadcast,
   addTitles,
   removeTitles,
   addDescriptions,
@@ -273,7 +294,6 @@ const Meta = {
   addImages,
   removeImages,
   addVideos,
-  removeVideos,
   addScreenshots,
   removeScreenshots,
   addArtworks,

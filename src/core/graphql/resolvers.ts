@@ -146,7 +146,6 @@ export const resolvers = {
           { title: { english: { search: normalized } } },
           { title: { native: { search: normalized } } },
           { meta: { titles: { some: { title: { search: normalized } } } } },
-          { tags: { some: { tag: { name: { search: normalized } } } } },
           { synonyms: { has: search } }
         );
 

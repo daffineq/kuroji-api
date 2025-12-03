@@ -4,7 +4,7 @@ import { parseNumber } from 'src/helpers/parsers';
 import { metaSelect } from '../../meta/types';
 import { MalFetch } from './helpers/mal.fetch';
 import { Anilist } from '../anilist';
-import { Meta } from '../../meta';
+import { Meta, VideoEntry } from '../../meta';
 
 const getInfo = async (id: number, idMal: number | undefined = undefined): Promise<MALInfo> => {
   const key = getKey('mal', 'info', id);
@@ -48,7 +48,18 @@ const getInfo = async (id: number, idMal: number | undefined = undefined): Promi
   }
 
   if (fetched.metadata?.videos) {
-    await Meta.addVideos(id, fetched.metadata.videos);
+    const videos: VideoEntry[] = fetched.metadata.videos.map((v) => {
+      return {
+        url: v.url,
+        title: v.title,
+        thumbnail: v.thumbnail ?? undefined,
+        artist: v.artist ?? undefined,
+        type: v.type,
+        source: 'mal'
+      };
+    });
+
+    await Meta.addVideos(id, videos);
   }
 
   if (fetched.image) {
@@ -58,6 +69,14 @@ const getInfo = async (id: number, idMal: number | undefined = undefined): Promi
       type: 'poster',
       source: 'mal'
     });
+  }
+
+  if (fetched.metadata?.moreInfo) {
+    await Meta.addMoreinfo(id, fetched.metadata?.moreInfo);
+  }
+
+  if (fetched.metadata?.broadcast) {
+    await Meta.addBroadcast(id, fetched.metadata?.broadcast);
   }
 
   await Redis.set(key, fetched);

@@ -4,7 +4,7 @@ import { getKey, Redis } from 'src/helpers/redis.util';
 import { metaSelect } from '../../meta/types';
 import { ShikimoriFetch } from './helpers/shikimori.fetch';
 import { Anilist } from '../anilist';
-import { Meta } from '../../meta';
+import { Meta, VideoEntry } from '../../meta';
 
 const getInfo = async (id: number, idMal: number | undefined = undefined): Promise<ShikimoriAnime> => {
   const key = getKey('shikimori', 'info', id);
@@ -45,6 +45,20 @@ const getInfo = async (id: number, idMal: number | undefined = undefined): Promi
         name: 'shikimori'
       });
     }
+  }
+
+  if (fetched.videos) {
+    const videos: VideoEntry[] = fetched.videos.map((v) => {
+      return {
+        url: v.url!,
+        title: v.name,
+        thumbnail: v.imageUrl,
+        type: v.kind,
+        source: 'shikimori'
+      };
+    });
+
+    await Meta.addVideos(id, videos);
   }
 
   if (fetched.screenshots) {

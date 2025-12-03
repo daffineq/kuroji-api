@@ -2,7 +2,15 @@ import { Prisma } from '@prisma/client';
 import { parseString } from 'src/helpers/parsers';
 import { MVideo } from '../../providers/mal/types';
 import { SeasonEpisode } from '../../providers/tmdb/types';
-import { ArtworkEntry, DescriptionEntry, ImageEntry, MappingEntry, ScreenshotEntry, TitleEntry } from './meta.dto';
+import {
+  ArtworkEntry,
+  DescriptionEntry,
+  ImageEntry,
+  MappingEntry,
+  ScreenshotEntry,
+  TitleEntry,
+  VideoEntry
+} from './meta.dto';
 import { TmdbUtils } from '../../providers';
 
 const getMeta = (id: number): Prisma.MetaCreateInput => {
@@ -231,36 +239,38 @@ const removeImages = (images: Array<Pick<ImageEntry, 'url' | 'type' | 'source'>>
   };
 };
 
-const addVideos = (videos: Array<MVideo>): Prisma.MetaUpdateInput => {
+const addVideos = (videos: Array<VideoEntry>): Prisma.MetaUpdateInput => {
   return {
     videos: {
       upsert: videos.map((v) => ({
-        where: { url: v.url },
+        where: { url_source: { url: v.url, source: v.source } },
         update: {
           title: v.title,
           thumbnail: v.thumbnail,
           artist: v.artist,
-          type: v.type
+          type: v.type,
+          source: v.source
         },
         create: {
           url: v.url,
           title: v.title,
           thumbnail: v.thumbnail,
           artist: v.artist,
-          type: v.type
+          type: v.type,
+          source: v.source
         }
       }))
     }
   };
 };
 
-const removeVideos = (videoUrls: string[]): Prisma.MetaUpdateInput => {
-  return {
-    videos: {
-      disconnect: videoUrls.map((url) => ({ url }))
-    }
-  };
-};
+// const removeVideos = (videoUrls: string[]): Prisma.MetaUpdateInput => {
+//   return {
+//     videos: {
+//       disconnect: videoUrls.map((url) => ({ url }))
+//     }
+//   };
+// };
 
 const addScreenshots = (screenshots: Array<ScreenshotEntry>): Prisma.MetaUpdateInput => {
   return {
@@ -335,7 +345,6 @@ const MetaPrisma = {
   addImages,
   removeImages,
   addVideos,
-  removeVideos,
   addScreenshots,
   removeScreenshots,
   addArtworks

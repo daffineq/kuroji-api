@@ -388,6 +388,9 @@ model Meta {
   episodesAired Int?
   episodesTotal Int?
 
+  moreinfo  String?
+  broadcast String?
+
   titles       Title[]       @relation("MetaToTitle")
   descriptions Description[] @relation("MetaToDescription")
   images       Image[]       @relation("MetaToImage")
@@ -477,13 +480,18 @@ model Image {
 }
 
 model Video {
-  url       String  @id
+  id String @id @default(cuid())
+
+  url       String
   title     String?
   thumbnail String?
   artist    String?
   type      String?
+  source    String
 
   parent Meta[] @relation("MetaToVideo")
+
+  @@unique([url, source])
 }
 
 model Screenshot {

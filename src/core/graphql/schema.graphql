@@ -318,6 +318,8 @@ type Meta {
   rating: String
   episodesAired: Int
   episodesTotal: Int
+  moreinfo: String
+  broadcast: String
   titles: [Title!]!
   descriptions: [Description!]!
   images: [Image!]!

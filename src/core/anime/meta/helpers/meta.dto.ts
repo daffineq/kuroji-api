@@ -33,6 +33,15 @@ export interface ScreenshotEntry {
   x332Url?: string;
 }
 
+export interface VideoEntry {
+  url: string;
+  title?: string;
+  thumbnail?: string;
+  artist?: string;
+  type?: string;
+  source: sources;
+}
+
 export interface ArtworkEntry {
   url: string;
   height?: number;
