@@ -1,9 +1,7 @@
-name: "Create Release"
+name: 'Create Release'
 
 on:
-  workflow_dispatch: # Temporarly fix "no triggers defined in on"
-#   push:
-#     branches: ["main"]
+  workflow_dispatch:
 
 jobs:
   changelog:

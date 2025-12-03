@@ -80,6 +80,25 @@ animeRoute.post(
   }
 );
 
+animeRoute.post(
+  '/indexer/reset',
+  describeRoute({
+    description: 'Resets the anime indexer state.',
+    responses: {
+      200: { description: 'Indexer stopped.' }
+    }
+  }),
+  async (c) => {
+    animeIndexer.setLastFetchedPage(1);
+
+    return c.json(
+      createSuccessResponse({
+        message: 'Reseted indexer'
+      })
+    );
+  }
+);
+
 animeRoute.put(
   '/update/process',
   describeRoute({

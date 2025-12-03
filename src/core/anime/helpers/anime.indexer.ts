@@ -121,14 +121,14 @@ class AnimeIndexer {
     return `${timeD} days, ${timeH % 24} hours, ${timeM % 60} minutes, ${timeS % 60} seconds`;
   }
 
-  private async getLastFetchedPage(): Promise<number> {
+  async getLastFetchedPage(): Promise<number> {
     const state = await prisma.indexerState.findUnique({
       where: { id: 'anime' }
     });
     return state?.lastFetchedPage ?? 1;
   }
 
-  private async setLastFetchedPage(page: number): Promise<void> {
+  async setLastFetchedPage(page: number): Promise<void> {
     await prisma.indexerState.upsert({
       where: { id: 'anime' },
       update: { lastFetchedPage: page },
