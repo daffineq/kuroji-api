@@ -1,5 +1,4 @@
-import prisma from 'src/lib/prisma';
-import type { Prisma } from '.prisma/client';
+import { prisma, Prisma } from 'src/lib/prisma';
 import { Anime } from '../anime';
 
 interface AnimeFilters {

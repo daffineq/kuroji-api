@@ -11,6 +11,8 @@ model Meta {
   moreinfo  String?
   broadcast String?
 
+  nsfw Boolean @default(false)
+
   titles       Title[]       @relation("MetaToTitle")
   descriptions Description[] @relation("MetaToDescription")
   images       Image[]       @relation("MetaToImage")

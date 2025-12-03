@@ -1,5 +1,5 @@
 import lock from 'src/helpers/lock';
-import prisma from 'src/lib/prisma';
+import { prisma } from 'src/lib/prisma';
 import { sleep } from 'bun';
 import logger from 'src/helpers/logger';
 import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/schedule';

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/lib/prisma';
 
 export interface AniZipMappings {
   animeplanet_id?: string;

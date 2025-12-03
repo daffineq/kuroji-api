@@ -1,9 +1,8 @@
-import { Prisma } from '@prisma/client';
 import { AnilistMedia } from './providers/anilist/types';
-import prisma from 'src/lib/prisma';
+import { prisma, Prisma } from 'src/lib/prisma';
 import { MetaInfo } from 'src/helpers/response';
 import { BadRequestError } from 'src/helpers/errors';
-import { Anilist, Mal, Shikimori, Tmdb, TmdbSeasons, Tvdb } from './providers';
+import { Anilist, Kitsu, Mal, Shikimori, Tmdb, TmdbSeasons, Tvdb } from './providers';
 import { AnimePrisma } from './helpers/anime.prisma';
 import { Meta } from './meta';
 
@@ -90,6 +89,7 @@ const initProviders = async (id: number, idMal: number | undefined) => {
   await Promise.all([
     Mal.getInfo(id, idMal).catch(() => null),
     Shikimori.getInfo(id, idMal).catch(() => null),
+    Kitsu.getInfo(id).catch(() => null),
     Tmdb.getInfo(id).catch(() => null),
     Tvdb.getInfo(id).catch(() => null)
   ]);

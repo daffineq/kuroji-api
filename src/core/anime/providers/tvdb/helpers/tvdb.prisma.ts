@@ -1,4 +1,4 @@
-import { Prisma, TvdbLogin } from '@prisma/client';
+import { Prisma, TvdbLogin } from 'src/lib/prisma';
 
 const getTvdbLogin = (tvdb: TvdbLogin): Prisma.TvdbLoginCreateInput => {
   return {

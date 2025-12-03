@@ -1,6 +1,4 @@
-import { Prisma } from '@prisma/client';
-import prisma from 'src/lib/prisma';
-import { MVideo } from '../providers/mal/types';
+import { prisma, Prisma } from 'src/lib/prisma';
 import { SeasonEpisode } from '../providers/tmdb/types';
 import {
   ArtworkEntry,
@@ -158,6 +156,15 @@ const addBroadcast = async (id: number, broadcast: string, args?: any) => {
   });
 };
 
+const setNSFW = async (id: number, nsfw: boolean, args?: any) => {
+  await fetchOrCreate(id);
+  return prisma.meta.update({
+    where: { id },
+    data: { nsfw },
+    ...(args as Prisma.MetaDefaultArgs)
+  });
+};
+
 const addTitles = async (id: number, titles: TitleEntry[], args?: any) => {
   await fetchOrCreate(id);
   return prisma.meta.update({
@@ -287,6 +294,7 @@ const Meta = {
   addEpisodesTotal,
   addMoreinfo,
   addBroadcast,
+  setNSFW,
   addTitles,
   removeTitles,
   addDescriptions,

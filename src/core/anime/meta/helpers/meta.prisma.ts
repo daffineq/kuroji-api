@@ -1,6 +1,4 @@
-import { Prisma } from '@prisma/client';
 import { parseString } from 'src/helpers/parsers';
-import { MVideo } from '../../providers/mal/types';
 import { SeasonEpisode } from '../../providers/tmdb/types';
 import {
   ArtworkEntry,
@@ -12,6 +10,7 @@ import {
   VideoEntry
 } from './meta.dto';
 import { TmdbUtils } from '../../providers';
+import { Prisma } from 'src/lib/prisma';
 
 const getMeta = (id: number): Prisma.MetaCreateInput => {
   return {

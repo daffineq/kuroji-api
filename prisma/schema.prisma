@@ -1,6 +1,7 @@
 generator client {
   previewFeatures = ["fullTextSearchPostgres"]
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output = "../src/prisma/generated"
 }
 
 datasource db {
@@ -390,6 +391,8 @@ model Meta {
 
   moreinfo  String?
   broadcast String?
+
+  nsfw Boolean @default(false)
 
   titles       Title[]       @relation("MetaToTitle")
   descriptions Description[] @relation("MetaToDescription")

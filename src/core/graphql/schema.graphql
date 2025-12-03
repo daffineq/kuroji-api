@@ -320,6 +320,7 @@ type Meta {
   episodesTotal: Int
   moreinfo: String
   broadcast: String
+  nsfw: Boolean
   titles: [Title!]!
   descriptions: [Description!]!
   images: [Image!]!

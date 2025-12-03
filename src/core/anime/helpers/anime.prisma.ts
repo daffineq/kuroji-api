@@ -1,6 +1,5 @@
-import { Prisma } from '@prisma/client';
 import { AnilistMedia } from '../providers/anilist/types';
-import prisma from 'src/lib/prisma';
+import { prisma, Prisma } from 'src/lib/prisma';
 import { DateUtils } from 'src/helpers/date';
 
 const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput> => {

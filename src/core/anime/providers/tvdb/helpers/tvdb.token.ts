@@ -1,6 +1,5 @@
-import { TvdbLogin } from '@prisma/client';
 import env from 'src/config/env';
-import prisma from 'src/lib/prisma';
+import { prisma, TvdbLogin } from 'src/lib/prisma';
 import { LoginResponse } from '../types';
 import logger from 'src/helpers/logger';
 import { KurojiClient } from 'src/lib/http';

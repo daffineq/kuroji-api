@@ -21,46 +21,46 @@ const getInfo = async (id: number): Promise<KitsuAnime> => {
 
   const kitsuId = meta?.mappings.find((m) => m.sourceName === 'kitsu')?.sourceId;
 
+  var kitsu: KitsuAnime;
+
   if (kitsuId) {
-    const kitsu = await KitsuFetch.fetchInfo(kitsuId);
-
-    await Redis.set(key, kitsu);
-
-    return kitsu;
+    kitsu = await KitsuFetch.fetchInfo(kitsuId);
   } else {
-    const kitsu = await find(id);
+    kitsu = await find(id);
 
     await Meta.addMapping(id, {
       id: kitsu.id,
       name: 'kitsu'
     });
-
-    if (kitsu.attributes.posterImage) {
-      Meta.addSingleImage(id, {
-        url: kitsu.attributes.posterImage.original,
-        small: kitsu.attributes.posterImage.small,
-        medium: kitsu.attributes.posterImage.medium,
-        large: kitsu.attributes.posterImage.large,
-        type: 'poster',
-        source: 'kitsu'
-      });
-    }
-
-    if (kitsu.attributes.coverImage) {
-      Meta.addSingleImage(id, {
-        url: kitsu.attributes.coverImage.original,
-        small: kitsu.attributes.coverImage.small,
-        medium: kitsu.attributes.coverImage.medium,
-        large: kitsu.attributes.coverImage.large,
-        type: 'banner',
-        source: 'kitsu'
-      });
-    }
-
-    await Redis.set(key, kitsu);
-
-    return kitsu;
   }
+
+  if (kitsu.attributes.posterImage) {
+    Meta.addSingleImage(id, {
+      url: kitsu.attributes.posterImage.original,
+      small: kitsu.attributes.posterImage.small,
+      medium: kitsu.attributes.posterImage.medium,
+      large: kitsu.attributes.posterImage.large,
+      type: 'poster',
+      source: 'kitsu'
+    });
+  }
+
+  if (kitsu.attributes.coverImage) {
+    Meta.addSingleImage(id, {
+      url: kitsu.attributes.coverImage.original,
+      small: kitsu.attributes.coverImage.small,
+      medium: kitsu.attributes.coverImage.medium,
+      large: kitsu.attributes.coverImage.large,
+      type: 'banner',
+      source: 'kitsu'
+    });
+  }
+
+  Meta.setNSFW(id, kitsu.attributes.nsfw);
+
+  await Redis.set(key, kitsu);
+
+  return kitsu;
 };
 
 const find = async (id: number): Promise<KitsuAnime> => {

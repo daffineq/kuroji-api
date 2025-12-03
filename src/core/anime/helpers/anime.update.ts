@@ -1,5 +1,5 @@
 import logger from 'src/helpers/logger';
-import prisma from 'src/lib/prisma';
+import { prisma } from 'src/lib/prisma';
 import { sleep } from 'bun';
 import env from 'src/config/env';
 import lock from 'src/helpers/lock';

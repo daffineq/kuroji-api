@@ -1,6 +1,7 @@
 import env from 'src/config/env';
 import { KitsuAnime } from '../types';
 import { KurojiClient } from 'src/lib/http';
+import logger from 'src/helpers/logger';
 
 const client = new KurojiClient(env.KITSU);
 
@@ -32,6 +33,7 @@ const search = async (q: string): Promise<Array<KitsuAnime>> => {
   });
 
   if (error) {
+    logger.error(error);
     throw error;
   }
 

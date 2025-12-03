@@ -1,6 +1,6 @@
 import { DateUtils } from 'src/helpers/date';
 import { QueueItem } from './anime.update';
-import prisma from 'src/lib/prisma';
+import { prisma } from 'src/lib/prisma';
 import logger from 'src/helpers/logger';
 
 const POPULARITY_THRESHOLDS = {

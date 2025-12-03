@@ -1,7 +1,6 @@
-import { Prisma } from '@prisma/client';
 import crypto, { createHash } from 'crypto';
 import { Context } from 'hono';
-import prisma from 'src/lib/prisma';
+import { prisma, Prisma } from 'src/lib/prisma';
 
 const generate = async (): Promise<string> => {
   const key = crypto.randomBytes(32).toString('base64url');
