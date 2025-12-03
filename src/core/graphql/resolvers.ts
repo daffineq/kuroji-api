@@ -137,19 +137,19 @@ export const resolvers = {
       const where: Prisma.AnimeWhereInput = {};
 
       if (search) {
-        const normalized = normalizeSearch(search);
+        const tokens = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
-        const searchConditions: any[] = [];
-
-        searchConditions.push(
-          { title: { romaji: { search: normalized } } },
-          { title: { english: { search: normalized } } },
-          { title: { native: { search: normalized } } },
-          { meta: { titles: { some: { title: { search: normalized } } } } },
-          { synonyms: { has: search } }
-        );
-
-        where.OR = searchConditions;
+        if (tokens.length > 0) {
+          where.AND = tokens.map((token) => ({
+            OR: [
+              { title: { romaji: { contains: token, mode: 'insensitive' } } },
+              { title: { english: { contains: token, mode: 'insensitive' } } },
+              { title: { native: { contains: token, mode: 'insensitive' } } },
+              { synonyms: { hasSome: tokens } },
+              { meta: { titles: { some: { title: { contains: token, mode: 'insensitive' } } } } }
+            ]
+          }));
+        }
       }
 
       // Season filters
@@ -357,7 +357,7 @@ export const resolvers = {
 
       if (franchise) {
         where.meta = {
-          franchise: { equals: franchise }
+          franchise
         };
       }
 
