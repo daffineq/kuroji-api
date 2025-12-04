@@ -48,7 +48,7 @@ const fetchIds = async (
               lastPage
               hasNextPage
             }
-            media(type: ANIME, sort: [POPULARITY_DESC]) {
+            media(type: ANIME, sort: [POPULARITY_DESC], popularity_greater: ${env.ANIME_POPULARITY_THRESHOLD}) {
               id
             }
           }
@@ -85,7 +85,7 @@ const getTotal = async (): Promise<number> => {
             pageInfo {
               lastPage
             },
-            media(type: ANIME) {
+            media(type: ANIME, popularity_greater: ${env.ANIME_POPULARITY_THRESHOLD}) {
               id
             }
           }

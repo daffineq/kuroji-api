@@ -24,6 +24,9 @@ const env = {
   ANIME_UPDATE_ENABLED: parseBoolean(process.env.ANIME_UPDATE_ENABLED) ?? true,
   ANIME_INDEXER_UPDATE_ENABLED: parseBoolean(process.env.ANIME_INDEXER_UPDATE_ENABLED) ?? true,
 
+  // Indexer
+  ANIME_POPULARITY_THRESHOLD: parseNumber(process.env.ANIME_POPULARITY_THRESHOLD) ?? 1500,
+
   // API Base URLs
   ANILIST: process.env.ANILIST ?? 'https://graphql.anilist.co',
   ANILIBRIA: process.env.ANILIBRIA ?? 'https://aniliberty.top/api/v1',
