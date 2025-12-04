@@ -18,7 +18,7 @@ const getInfo = async (id: number): Promise<AnimepaheInfo> => {
 
   const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
-  const paheId = meta?.mappings.find((mapping) => mapping.sourceName === 'animepahe')?.sourceId;
+  const paheId = meta?.mappings.find((mapping) => mapping.source_name === 'animepahe')?.source_id;
 
   if (paheId) {
     const animepahe = await AnimepaheFetch.fetchInfo(paheId);

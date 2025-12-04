@@ -52,3 +52,9 @@ export interface ArtworkEntry {
   width?: number;
   source: sources;
 }
+
+export interface ChronologyEntry {
+  parentId: number;
+  relatedId: number;
+  order: number;
+}

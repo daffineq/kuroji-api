@@ -6,7 +6,7 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
   const isMalExists = anilist.idMal
     ? (await prisma.anime.findUnique({
         where: {
-          idMal: anilist.idMal
+          id_mal: anilist.idMal
         }
       })) != null
     : false;
@@ -28,11 +28,11 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
 
   return {
     id: anilist.id,
-    idMal: isMalExists ? undefined : anilist.idMal,
+    id_mal: isMalExists ? undefined : anilist.idMal,
     title: anilist.title
       ? {
           connectOrCreate: {
-            where: { animeId: anilist.id },
+            where: { anime_id: anilist.id },
             create: {
               romaji: anilist.title.romaji,
               english: anilist.title.english,
@@ -44,12 +44,12 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
     poster: anilist.coverImage
       ? {
           connectOrCreate: {
-            where: { animeId: anilist.id },
+            where: { anime_id: anilist.id },
             create: {
               color: anilist.coverImage.color,
               medium: anilist.coverImage.medium,
               large: anilist.coverImage.large,
-              extraLarge: anilist.coverImage.extraLarge
+              extra_large: anilist.coverImage.extraLarge
             }
           }
         }
@@ -60,11 +60,11 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
     status: anilist.status,
     type: anilist.type,
     format: anilist.format,
-    updatedAt: Math.floor(Date.now() / 1000),
-    startDate: anilist.startDate
+    updated_at: Math.floor(Date.now() / 1000),
+    start_date: anilist.startDate
       ? {
           connectOrCreate: {
-            where: { animeId: anilist.id },
+            where: { anime_id: anilist.id },
             create: {
               year: anilist.startDate.year,
               month: anilist.startDate.month,
@@ -73,10 +73,10 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
           }
         }
       : undefined,
-    endDate: anilist.endDate
+    end_date: anilist.endDate
       ? {
           connectOrCreate: {
-            where: { animeId: anilist.id },
+            where: { anime_id: anilist.id },
             create: {
               year: anilist.endDate.year,
               month: anilist.endDate.month,
@@ -86,14 +86,14 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
         }
       : undefined,
     season: anilist.season,
-    seasonYear: anilist.seasonYear,
+    season_year: anilist.seasonYear,
     episodes: anilist.episodes,
     duration: anilist.duration,
-    countryOfOrigin: anilist.countryOfOrigin,
-    isLicensed: anilist.isLicensed,
+    country_of_origin: anilist.countryOfOrigin,
+    is_licensed: anilist.isLicensed,
     source: anilist.source,
     hashtag: anilist.hashtag,
-    isAdult: anilist.isAdult,
+    is_adult: anilist.isAdult,
     score: anilist.meanScore,
     popularity: anilist.popularity,
     trending: anilist.trending,
@@ -106,50 +106,50 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
           }))
         }
       : undefined,
-    latestAiringEpisode: latestEpisode
+    latest_airing_episode: latestEpisode
       ? {
           connectOrCreate: {
             where: { id: latestEpisode.id },
             create: {
               id: latestEpisode.id,
               episode: latestEpisode.episode,
-              airingAt: latestEpisode.airingAt
+              airing_at: latestEpisode.airingAt
             }
           }
         }
       : undefined,
-    nextAiringEpisode: nextEpisode
+    next_airing_episode: nextEpisode
       ? {
           connectOrCreate: {
             where: { id: nextEpisode.id },
             create: {
               id: nextEpisode.id,
               episode: nextEpisode.episode,
-              airingAt: nextEpisode.airingAt
+              airing_at: nextEpisode.airingAt
             }
           }
         }
       : undefined,
-    lastAiringEpisode: lastEpisode
+    last_airing_episode: lastEpisode
       ? {
           connectOrCreate: {
             where: { id: lastEpisode.id },
             create: {
               id: lastEpisode.id,
               episode: lastEpisode.episode,
-              airingAt: lastEpisode.airingAt
+              airing_at: lastEpisode.airingAt
             }
           }
         }
       : undefined,
-    airingSchedule: anilist.airingSchedule?.edges?.length
+    airing_schedule: anilist.airingSchedule?.edges?.length
       ? {
           connectOrCreate: anilist.airingSchedule.edges.map((edge) => ({
             where: { id: edge.node.id },
             create: {
               id: edge.node.id,
               episode: edge.node.episode,
-              airingAt: edge.node.airingAt
+              airing_at: edge.node.airingAt
             }
           }))
         }
@@ -169,7 +169,7 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
                     name: edge.node.name
                       ? {
                           connectOrCreate: {
-                            where: { characterId: edge.node.id },
+                            where: { character_id: edge.node.id },
                             create: {
                               full: edge.node.name.full,
                               native: edge.node.name.native,
@@ -181,7 +181,7 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
                     image: edge.node.image
                       ? {
                           connectOrCreate: {
-                            where: { characterId: edge.node.id },
+                            where: { character_id: edge.node.id },
                             create: {
                               large: edge.node.image.large,
                               medium: edge.node.image.medium
@@ -192,7 +192,7 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
                   }
                 }
               },
-              voiceActors: edge.voiceActors?.length
+              voice_actors: edge.voiceActors?.length
                 ? {
                     connectOrCreate: edge.voiceActors.map((va) => ({
                       where: { id: va.id },
@@ -202,7 +202,7 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
                         name: va.name
                           ? {
                               connectOrCreate: {
-                                where: { voiceActorId: va.id },
+                                where: { voice_actor_id: va.id },
                                 create: {
                                   full: va.name.full,
                                   native: va.name.native,
@@ -214,7 +214,7 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
                         image: va.image
                           ? {
                               connectOrCreate: {
-                                where: { voiceActorId: va.id },
+                                where: { voice_actor_id: va.id },
                                 create: {
                                   large: va.image.large,
                                   medium: va.image.medium
@@ -236,7 +236,7 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
             where: { id: edge.id },
             create: {
               id: edge.id,
-              isMain: edge.isMain,
+              is_main: edge.isMain,
               studio: {
                 connectOrCreate: {
                   where: { id: edge.node.id },
@@ -254,14 +254,14 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
       ? {
           connectOrCreate: anilist.tags.map((tag) => ({
             where: {
-              animeId_tagId: {
-                animeId: anilist.id,
-                tagId: tag.id
+              anime_id_tag_id: {
+                anime_id: anilist.id,
+                tag_id: tag.id
               }
             },
             create: {
               rank: tag.rank,
-              isMediaSpoiler: tag.isMediaSpoiler,
+              is_media_spoiler: tag.isMediaSpoiler,
               tag: {
                 connectOrCreate: {
                   where: { id: tag.id },
@@ -270,8 +270,8 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
                     name: tag.name,
                     description: tag.description,
                     category: tag.category,
-                    isGeneralSpoiler: tag.isGeneralSpoiler,
-                    isAdult: tag.isAdult
+                    is_general_spoiler: tag.isGeneralSpoiler,
+                    is_adult: tag.isAdult
                   }
                 }
               }
@@ -290,13 +290,13 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
               format: ranking.format,
               year: ranking.year,
               season: ranking.season,
-              allTime: ranking.allTime,
+              all_time: ranking.allTime,
               context: ranking.context
             }
           }))
         }
       : undefined,
-    externalLinks: anilist.externalLinks?.length
+    external_links: anilist.externalLinks?.length
       ? {
           connectOrCreate: anilist.externalLinks.map((link) => ({
             where: { id: link.id },
@@ -304,18 +304,18 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
               id: link.id,
               url: link.url,
               site: link.site,
-              siteId: link.siteId,
+              site_id: link.siteId,
               type: link.type,
               language: link.language,
               color: link.color,
               icon: link.icon,
               notes: link.notes,
-              isDisabled: link.isDisabled
+              is_disabled: link.isDisabled
             }
           }))
         }
       : undefined,
-    scoreDistribution: anilist.stats?.scoreDistribution?.length
+    score_distribution: anilist.stats?.scoreDistribution?.length
       ? {
           create: anilist.stats.scoreDistribution.map((dist) => ({
             score: dist.score,
@@ -323,7 +323,7 @@ const getAnime = async (anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput>
           }))
         }
       : undefined,
-    statusDistribution: anilist.stats?.statusDistribution?.length
+    status_distribution: anilist.stats?.statusDistribution?.length
       ? {
           create: anilist.stats.statusDistribution.map((dist) => ({
             status: dist.status,

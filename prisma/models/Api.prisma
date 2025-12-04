@@ -1,22 +1,22 @@
 model ApiKey {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  key        String   @unique
+  active     Boolean  @default(true)
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
 
   usage ApiKeyUsage[]
 }
 
 model ApiKeyUsage {
-  id        String   @id @default(cuid())
-  apiKeyId  String
-  endpoint  String
-  method    String
-  origin    String?
-  userAgent String?
-  ip        String?
-  usedAt    DateTime @default(now())
+  id         String   @id @default(cuid())
+  api_key_id String   @map("api_key_id")
+  endpoint   String
+  method     String
+  origin     String?
+  user_agent String?  @map("user_agent")
+  ip         String?
+  used_at    DateTime @default(now()) @map("used_at")
 
-  apiKey ApiKey @relation(fields: [apiKeyId], references: [id])
+  apiKey ApiKey @relation(fields: [api_key_id], references: [id])
 }

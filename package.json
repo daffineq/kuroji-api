@@ -9,7 +9,8 @@
     "migrate": "bunx prisma migrate deploy --schema=./prisma/schema.prisma",
     "migrate:dev": "bunx prisma migrate dev --schema=./prisma/schema.prisma",
     "generate": "bunx prisma generate --schema=./prisma/schema.prisma",
-    "mrgn": "bun prisma/merge.js && bunx prisma generate --schema=./prisma/schema.prisma"
+    "mrgn": "bun prisma/merge.js && bunx prisma generate --schema=./prisma/schema.prisma",
+    "tsc": "tsc --noEmit --watch"
   },
   "dependencies": {
     "@hono/eslint-config": "^2.0.3",

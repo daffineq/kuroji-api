@@ -21,6 +21,10 @@ export interface ShikimoriAnime {
   descriptionHtml?: string;
   descriptionSource?: string;
 
+  chronology?: {
+    id: number;
+  }[];
+
   airedOn?: {
     year?: number;
     month?: number;

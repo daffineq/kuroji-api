@@ -43,11 +43,11 @@ const used = async (key: string, c: Context) => {
 
   await prisma.apiKeyUsage.create({
     data: {
-      apiKeyId: apiKey.id,
+      api_key_id: apiKey.id,
       endpoint: c.req.path,
       method: c.req.method,
       origin: c.req.header('origin') ?? undefined,
-      userAgent: c.req.header('user-agent') ?? undefined,
+      user_agent: c.req.header('user-agent') ?? undefined,
       ip
     }
   });

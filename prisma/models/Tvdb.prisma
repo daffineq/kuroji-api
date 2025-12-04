@@ -1,6 +1,6 @@
 model TvdbLogin {
-  id      String @id @default(cuid())
+  id         String   @id @default(cuid())
   token      String
-  createDate DateTime @default(now())
+  created_at DateTime @default(now()) @map("created_at")
   expired    Boolean  @default(false)
 }

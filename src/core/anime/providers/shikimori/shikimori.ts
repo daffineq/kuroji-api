@@ -1,10 +1,10 @@
-import { parseString } from 'src/helpers/parsers';
+import { parseNumber, parseString } from 'src/helpers/parsers';
 import { ShikimoriAnime } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { metaSelect } from '../../meta/types';
 import { ShikimoriFetch } from './helpers/shikimori.fetch';
 import { Anilist } from '../anilist';
-import { Meta, VideoEntry } from '../../meta';
+import { ChronologyEntry, Meta, VideoEntry } from '../../meta';
 
 const getInfo = async (id: number, idMal: number | undefined = undefined): Promise<ShikimoriAnime> => {
   const key = getKey('shikimori', 'info', id);
@@ -27,7 +27,7 @@ const getInfo = async (id: number, idMal: number | undefined = undefined): Promi
   } else {
     const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
-    const shikId = meta?.mappings.find((m) => m.sourceName === 'shikimori')?.sourceId;
+    const shikId = meta?.mappings.find((m) => m.source_name === 'shikimori')?.source_id;
 
     if (shikId) {
       fetched = await ShikimoriFetch.fetchInfo(shikId);
@@ -105,6 +105,17 @@ const getInfo = async (id: number, idMal: number | undefined = undefined): Promi
 
   if (fetched.episodes) {
     await Meta.addEpisodesTotal(id, fetched.episodes);
+  }
+
+  if (fetched.chronology) {
+    const chronology: ChronologyEntry[] = fetched.chronology.reverse().map((c, i) => {
+      return {
+        parentId: parseNumber(fetched.id)!,
+        relatedId: parseNumber(c.id)!,
+        order: i
+      };
+    });
+    await Meta.addChronologies(id, chronology);
   }
 
   await Redis.set(key, fetched);

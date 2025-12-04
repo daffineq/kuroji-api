@@ -3,7 +3,7 @@ import { Prisma, TvdbLogin } from 'src/lib/prisma';
 const getTvdbLogin = (tvdb: TvdbLogin): Prisma.TvdbLoginCreateInput => {
   return {
     token: tvdb.token,
-    createDate: tvdb.createDate ?? new Date(),
+    created_at: tvdb.created_at ?? new Date(),
     expired: tvdb.expired ?? false
   };
 };

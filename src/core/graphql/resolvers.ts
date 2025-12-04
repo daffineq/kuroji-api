@@ -1,58 +1,6 @@
 import { prisma, Prisma } from 'src/lib/prisma';
 import { Anime } from '../anime';
-
-interface AnimeFilters {
-  page?: number;
-  perPage?: number;
-  search?: string;
-  season?: string;
-  seasonYear?: number;
-  seasonYearGreater?: number;
-  seasonYearLesser?: number;
-  format?: string;
-  formatIn?: string[];
-  formatNotIn?: string[];
-  status?: string;
-  statusIn?: string[];
-  statusNotIn?: string[];
-  type?: string;
-  source?: string;
-  sourceIn?: string[];
-  countryOfOrigin?: string;
-  isLicensed?: boolean;
-  isAdult?: boolean;
-  genres?: string[];
-  genresIn?: string[];
-  genresNotIn?: string[];
-  tags?: string[];
-  tagsIn?: string[];
-  tagsNotIn?: string[];
-  minimumTagRank?: number;
-  studios?: string[];
-  studiosIn?: string[];
-  scoreGreater?: number;
-  scoreLesser?: number;
-  popularityGreater?: number;
-  popularityLesser?: number;
-  episodesGreater?: number;
-  episodesLesser?: number;
-  durationGreater?: number;
-  durationLesser?: number;
-  startDateGreater?: string;
-  startDateLesser?: string;
-  endDateGreater?: string;
-  endDateLesser?: string;
-  startDateLike?: string;
-  endDateLike?: string;
-  hasNextEpisode?: boolean;
-  franchise?: string;
-  sort?: string[];
-}
-
-interface CharacterArgs {
-  page?: number;
-  perPage?: number;
-}
+import { AnimeArgs, CharacterArgs } from './types';
 
 export const resolvers = {
   Query: {
@@ -68,71 +16,62 @@ export const resolvers = {
       return Anime.fetchOrCreate(id);
     },
 
-    animeByMalId: async (_: any, { malId }: { malId: number }) => {
+    anime_by_mal_id: async (_: any, { mal_id }: { mal_id: number }) => {
       return prisma.anime.findUnique({
-        where: { idMal: malId }
+        where: { id_mal: mal_id }
       });
     },
 
-    animes: async (_: any, args: AnimeFilters) => {
+    animes: async (_: any, args: AnimeArgs) => {
       const {
         page = 1,
-        perPage = 20,
+        per_page = 20,
         search,
         season,
-        seasonYear,
-        seasonYearGreater,
-        seasonYearLesser,
+        season_year,
+        season_year_greater,
+        season_year_lesser,
         format,
-        formatIn,
-        formatNotIn,
+        format_in,
+        format_not_in,
         status,
-        statusIn,
-        statusNotIn,
+        status_in,
+        status_not_in,
         type,
         source,
-        sourceIn,
-        countryOfOrigin,
-        isLicensed,
-        isAdult,
+        source_in,
+        country_of_origin,
+        is_licensed,
+        is_adult,
         genres,
-        genresIn,
-        genresNotIn,
+        genres_in,
+        genres_not_in,
         tags,
-        tagsIn,
-        tagsNotIn,
-        minimumTagRank,
+        tags_in,
+        tags_not_in,
+        minimum_tag_rank,
         studios,
-        studiosIn,
-        scoreGreater,
-        scoreLesser,
-        popularityGreater,
-        popularityLesser,
-        episodesGreater,
-        episodesLesser,
-        durationGreater,
-        durationLesser,
-        startDateGreater,
-        startDateLesser,
-        endDateGreater,
-        endDateLesser,
-        startDateLike,
-        endDateLike,
-        hasNextEpisode,
+        studios_in,
+        score_greater,
+        score_lesser,
+        popularity_greater,
+        popularity_lesser,
+        episodes_greater,
+        episodes_lesser,
+        duration_greater,
+        duration_lesser,
+        start_date_greater,
+        start_date_lesser,
+        end_date_greater,
+        end_date_lesser,
+        start_date_like,
+        end_date_like,
+        has_next_episode,
         franchise,
         sort = ['ID_DESC']
       } = args;
 
-      function normalizeSearch(input: string) {
-        return input
-          .trim()
-          .split(/\s+/)
-          .map((token) => token.replace(/[^\p{L}\p{N}]+/gu, ''))
-          .filter((x) => x.length > 0)
-          .join(' | ');
-      }
-
-      const skip = (page - 1) * perPage;
+      const skip = (page - 1) * per_page;
       const where: Prisma.AnimeWhereInput = {};
 
       if (search) {
@@ -153,48 +92,48 @@ export const resolvers = {
 
       // Season filters
       if (season) where.season = season;
-      if (seasonYear) where.seasonYear = seasonYear;
-      if (seasonYearGreater) {
-        where.seasonYear = { ...(where.seasonYear as any), gte: seasonYearGreater };
+      if (season_year) where.season_year = season_year;
+      if (season_year_greater) {
+        where.season_year = { ...(where.season_year as any), gte: season_year_greater };
       }
-      if (seasonYearLesser) {
-        where.seasonYear = { ...(where.seasonYear as any), lte: seasonYearLesser };
+      if (season_year_lesser) {
+        where.season_year = { ...(where.season_year as any), lte: season_year_lesser };
       }
 
       // Format filters
       if (format) where.format = format;
-      if (formatIn && formatIn.length > 0) {
-        where.format = { in: formatIn };
+      if (format_in && format_in.length > 0) {
+        where.format = { in: format_in };
       }
-      if (formatNotIn && formatNotIn.length > 0) {
-        where.format = { ...(where.format as any), notIn: formatNotIn };
+      if (format_not_in && format_not_in.length > 0) {
+        where.format = { ...(where.format as any), notIn: format_not_in };
       }
 
       // Status filters
       if (status) where.status = status;
-      if (statusIn && statusIn.length > 0) {
-        where.status = { in: statusIn };
+      if (status_in && status_in.length > 0) {
+        where.status = { in: status_in };
       }
-      if (statusNotIn && statusNotIn.length > 0) {
-        where.status = { ...(where.status as any), notIn: statusNotIn };
+      if (status_not_in && status_not_in.length > 0) {
+        where.status = { ...(where.status as any), notIn: status_not_in };
       }
 
       // Type and source filters
       if (type) where.type = type;
       if (source) where.source = source;
-      if (sourceIn && sourceIn.length > 0) {
-        where.source = { in: sourceIn };
+      if (source_in && source_in.length > 0) {
+        where.source = { in: source_in };
       }
-      if (countryOfOrigin) where.countryOfOrigin = countryOfOrigin;
+      if (country_of_origin) where.country_of_origin = country_of_origin;
 
       // Boolean filters
-      if (isLicensed !== undefined) where.isLicensed = isLicensed;
-      if (isAdult !== undefined) where.isAdult = isAdult;
-      if (hasNextEpisode !== undefined) {
-        if (hasNextEpisode) {
-          where.nextAiringEpisode = { isNot: null };
+      if (is_licensed !== undefined) where.is_licensed = is_licensed;
+      if (is_adult !== undefined) where.is_adult = is_adult;
+      if (has_next_episode !== undefined) {
+        if (has_next_episode) {
+          where.next_airing_episode = { isNot: null };
         } else {
-          where.nextAiringEpisode = null;
+          where.next_airing_episode = null;
         }
       }
 
@@ -204,14 +143,14 @@ export const resolvers = {
           some: { name: { in: genres } }
         };
       }
-      if (genresIn && genresIn.length > 0) {
+      if (genres_in && genres_in.length > 0) {
         where.genres = {
-          some: { name: { in: genresIn } }
+          some: { name: { in: genres_in } }
         };
       }
-      if (genresNotIn && genresNotIn.length > 0) {
+      if (genres_not_in && genres_not_in.length > 0) {
         where.genres = {
-          none: { name: { in: genresNotIn } }
+          none: { name: { in: genres_not_in } }
         };
       }
 
@@ -220,23 +159,23 @@ export const resolvers = {
         where.tags = {
           some: {
             tag: { name: { in: tags } },
-            ...(minimumTagRank ? { rank: { gte: minimumTagRank } } : {})
+            ...(minimum_tag_rank ? { rank: { gte: minimum_tag_rank } } : {})
           }
         };
       }
-      if (tagsIn && tagsIn.length > 0) {
+      if (tags_in && tags_in.length > 0) {
         where.tags = {
           some: {
-            tag: { name: { in: tagsIn } },
-            ...(minimumTagRank ? { rank: { gte: minimumTagRank } } : {})
+            tag: { name: { in: tags_in } },
+            ...(minimum_tag_rank ? { rank: { gte: minimum_tag_rank } } : {})
           }
         };
       }
-      if (tagsNotIn && tagsNotIn.length > 0) {
+      if (tags_not_in && tags_not_in.length > 0) {
         where.tags = {
           ...(where.tags as any),
           none: {
-            tag: { name: { in: tagsNotIn } }
+            tag: { name: { in: tags_not_in } }
           }
         };
       }
@@ -249,50 +188,50 @@ export const resolvers = {
           }
         };
       }
-      if (studiosIn && studiosIn.length > 0) {
+      if (studios_in && studios_in.length > 0) {
         where.studios = {
           some: {
-            studio: { name: { in: studiosIn } }
+            studio: { name: { in: studios_in } }
           }
         };
       }
 
       // Score filters
-      if (scoreGreater !== undefined) {
-        where.score = { gte: scoreGreater };
+      if (score_greater !== undefined) {
+        where.score = { gte: score_greater };
       }
-      if (scoreLesser !== undefined) {
-        where.score = { ...(where.score as any), lte: scoreLesser };
+      if (score_lesser !== undefined) {
+        where.score = { ...(where.score as any), lte: score_lesser };
       }
 
       // Popularity filters
-      if (popularityGreater !== undefined) {
-        where.popularity = { gte: popularityGreater };
+      if (popularity_greater !== undefined) {
+        where.popularity = { gte: popularity_greater };
       }
-      if (popularityLesser !== undefined) {
-        where.popularity = { ...(where.popularity as any), lte: popularityLesser };
+      if (popularity_lesser !== undefined) {
+        where.popularity = { ...(where.popularity as any), lte: popularity_lesser };
       }
 
       // Episode filters
-      if (episodesGreater !== undefined) {
-        where.episodes = { gte: episodesGreater };
+      if (episodes_greater !== undefined) {
+        where.episodes = { gte: episodes_greater };
       }
-      if (episodesLesser !== undefined) {
-        where.episodes = { ...(where.episodes as any), lte: episodesLesser };
+      if (episodes_lesser !== undefined) {
+        where.episodes = { ...(where.episodes as any), lte: episodes_lesser };
       }
 
       // Duration filters
-      if (durationGreater !== undefined) {
-        where.duration = { gte: durationGreater };
+      if (duration_greater !== undefined) {
+        where.duration = { gte: duration_greater };
       }
-      if (durationLesser !== undefined) {
-        where.duration = { ...(where.duration as any), lte: durationLesser };
+      if (duration_lesser !== undefined) {
+        where.duration = { ...(where.duration as any), lte: duration_lesser };
       }
 
       // Date filters (format: YYYY, YYYY-MM, or YYYY-MM-DD)
-      if (startDateGreater) {
-        const parts = startDateGreater.split('-').map(Number);
-        where.startDate = {
+      if (start_date_greater) {
+        const parts = start_date_greater.split('-').map(Number);
+        where.start_date = {
           OR: [
             { year: { gt: parts[0] } },
             {
@@ -301,10 +240,10 @@ export const resolvers = {
           ]
         };
       }
-      if (startDateLesser) {
-        const parts = startDateLesser.split('-').map(Number);
-        where.startDate = {
-          ...(where.startDate as any),
+      if (start_date_lesser) {
+        const parts = start_date_lesser.split('-').map(Number);
+        where.start_date = {
+          ...(where.start_date as any),
           OR: [
             { year: { lt: parts[0] } },
             {
@@ -313,18 +252,18 @@ export const resolvers = {
           ]
         };
       }
-      if (startDateLike) {
-        const parts = startDateLike.split('-').map(Number);
-        where.startDate = {
+      if (start_date_like) {
+        const parts = start_date_like.split('-').map(Number);
+        where.start_date = {
           year: parts[0],
           ...(parts[1] ? { month: parts[1] } : {}),
           ...(parts[2] ? { day: parts[2] } : {})
         };
       }
 
-      if (endDateGreater) {
-        const parts = endDateGreater.split('-').map(Number);
-        where.endDate = {
+      if (end_date_greater) {
+        const parts = end_date_greater.split('-').map(Number);
+        where.end_date = {
           OR: [
             { year: { gt: parts[0] } },
             {
@@ -333,10 +272,10 @@ export const resolvers = {
           ]
         };
       }
-      if (endDateLesser) {
-        const parts = endDateLesser.split('-').map(Number);
-        where.endDate = {
-          ...(where.endDate as any),
+      if (end_date_lesser) {
+        const parts = end_date_lesser.split('-').map(Number);
+        where.end_date = {
+          ...(where.end_date as any),
           OR: [
             { year: { lt: parts[0] } },
             {
@@ -345,9 +284,9 @@ export const resolvers = {
           ]
         };
       }
-      if (endDateLike) {
-        const parts = endDateLike.split('-').map(Number);
-        where.endDate = {
+      if (end_date_like) {
+        const parts = end_date_like.split('-').map(Number);
+        where.end_date = {
           year: parts[0],
           ...(parts[1] ? { month: parts[1] } : {}),
           ...(parts[2] ? { day: parts[2] } : {})
@@ -421,77 +360,77 @@ export const resolvers = {
           // Date Sorting
           case 'START_DATE_DESC':
             orderBy.push({
-              startDate: {
+              start_date: {
                 year: { sort: 'desc', nulls: 'last' }
               }
             });
             orderBy.push({
-              startDate: {
+              start_date: {
                 month: { sort: 'desc', nulls: 'last' }
               }
             });
             orderBy.push({
-              startDate: {
+              start_date: {
                 day: { sort: 'desc', nulls: 'last' }
               }
             });
             break;
           case 'START_DATE_ASC':
             orderBy.push({
-              startDate: {
+              start_date: {
                 year: { sort: 'asc', nulls: 'last' }
               }
             });
             orderBy.push({
-              startDate: {
+              start_date: {
                 month: { sort: 'asc', nulls: 'last' }
               }
             });
             orderBy.push({
-              startDate: {
+              start_date: {
                 day: { sort: 'asc', nulls: 'last' }
               }
             });
             break;
           case 'END_DATE_DESC':
             orderBy.push({
-              endDate: {
+              end_date: {
                 year: { sort: 'desc', nulls: 'last' }
               }
             });
             orderBy.push({
-              endDate: {
+              end_date: {
                 month: { sort: 'desc', nulls: 'last' }
               }
             });
             orderBy.push({
-              endDate: {
+              end_date: {
                 day: { sort: 'desc', nulls: 'last' }
               }
             });
             break;
           case 'END_DATE_ASC':
             orderBy.push({
-              endDate: {
+              end_date: {
                 year: { sort: 'asc', nulls: 'last' }
               }
             });
             orderBy.push({
-              endDate: {
+              end_date: {
                 month: { sort: 'asc', nulls: 'last' }
               }
             });
             orderBy.push({
-              endDate: {
+              end_date: {
                 day: { sort: 'asc', nulls: 'last' }
               }
             });
             break;
           case 'UPDATED_AT_DESC':
-            orderBy.push({ updatedAt: 'desc' });
+            orderBy.push({ updated_at: 'desc' });
             break;
           case 'UPDATED_AT_ASC':
-            orderBy.push({ updatedAt: 'asc' });
+            orderBy.push({ updated_at: 'asc' });
             break;
 
           // Episode Sorting
@@ -511,15 +450,15 @@ export const resolvers = {
           // Latest Episode Sorting
           case 'LATEST_EPISODE_DESC':
             orderBy.push({
-              latestAiringEpisode: {
-                airingAt: { sort: 'desc', nulls: 'last' }
+              latest_airing_episode: {
+                airing_at: { sort: 'desc', nulls: 'last' }
               }
             });
             break;
           case 'LATEST_EPISODE_ASC':
             orderBy.push({
-              latestAiringEpisode: {
-                airingAt: { sort: 'asc', nulls: 'last' }
+              latest_airing_episode: {
+                airing_at: { sort: 'asc', nulls: 'last' }
               }
             });
             break;
@@ -527,15 +466,15 @@ export const resolvers = {
           // Next Episode Sorting
           case 'NEXT_EPISODE_DESC':
             orderBy.push({
-              nextAiringEpisode: {
-                airingAt: { sort: 'desc', nulls: 'last' }
+              next_airing_episode: {
+                airing_at: { sort: 'desc', nulls: 'last' }
               }
             });
             break;
           case 'NEXT_EPISODE_ASC':
             orderBy.push({
-              nextAiringEpisode: {
-                airingAt: { sort: 'asc', nulls: 'last' }
+              next_airing_episode: {
+                airing_at: { sort: 'asc', nulls: 'last' }
               }
             });
             break;
@@ -543,25 +482,25 @@ export const resolvers = {
           // Last Episode Sorting
           case 'LAST_EPISODE_DESC':
             orderBy.push({
-              lastAiringEpisode: {
-                airingAt: { sort: 'desc', nulls: 'last' }
+              last_airing_episode: {
+                airing_at: { sort: 'desc', nulls: 'last' }
               }
             });
             break;
           case 'LAST_EPISODE_ASC':
             orderBy.push({
-              lastAiringEpisode: {
-                airingAt: { sort: 'asc', nulls: 'last' }
+              last_airing_episode: {
+                airing_at: { sort: 'asc', nulls: 'last' }
               }
             });
             break;
 
           // Season Sorting
           case 'SEASON_YEAR_DESC':
-            orderBy.push({ seasonYear: { sort: 'desc', nulls: 'last' } });
+            orderBy.push({ season_year: { sort: 'desc', nulls: 'last' } });
             break;
           case 'SEASON_YEAR_ASC':
-            orderBy.push({ seasonYear: { sort: 'asc', nulls: 'last' } });
+            orderBy.push({ season_year: { sort: 'asc', nulls: 'last' } });
             break;
 
           // Format & Type Sorting
@@ -593,21 +532,21 @@ export const resolvers = {
           where,
           orderBy,
           skip,
-          take: perPage
+          take: per_page
         }),
         prisma.anime.count({ where })
       ]);
 
-      const lastPage = Math.ceil(total / perPage);
+      const last_page = Math.ceil(total / per_page);
 
       return {
         data,
-        pageInfo: {
+        page_info: {
           total,
-          perPage,
-          currentPage: page,
-          lastPage,
-          hasNextPage: page < lastPage
+          per_page,
+          current_page: page,
+          last_page,
+          has_next_page: page < last_page
         }
       };
     },
@@ -640,7 +579,7 @@ export const resolvers = {
       });
     },
 
-    tags: async (_: any, args: { search?: string; category?: string; isAdult?: boolean }) => {
+    tags: async (_: any, args: { search?: string; category?: string; is_adult?: boolean }) => {
       const where: Prisma.AnimeTagWhereInput = {};
 
       if (args.search) {
@@ -650,7 +589,7 @@ export const resolvers = {
         ];
       }
       if (args.category) where.category = args.category;
-      if (args.isAdult !== undefined) where.isAdult = args.isAdult;
+      if (args.is_adult !== undefined) where.is_adult = args.is_adult;
 
       return await prisma.animeTag.findMany({
         where,
@@ -676,24 +615,25 @@ export const resolvers = {
   Anime: {
     poster: async (parent: any) => {
       return prisma.animePoster.findUnique({
-        where: { animeId: parent.id }
+        where: { anime_id: parent.id }
       });
     },
 
     title: async (parent: any) => {
       return prisma.animeTitle.findUnique({
-        where: { animeId: parent.id }
+        where: { anime_id: parent.id }
       });
     },
 
-    startDate: async (parent: any) => {
+    start_date: async (parent: any) => {
       return prisma.animeStartDate.findUnique({
-        where: { animeId: parent.id }
+        where: { anime_id: parent.id }
       });
     },
-    endDate: async (parent: any) => {
+
+    end_date: async (parent: any) => {
       return prisma.animeEndDate.findUnique({
-        where: { animeId: parent.id }
+        where: { anime_id: parent.id }
       });
     },
 
@@ -704,14 +644,14 @@ export const resolvers = {
     },
 
     characters: async (parent: any, args: CharacterArgs) => {
-      const { page = 1, perPage = 25 } = args;
-      const skip = (page - 1) * perPage;
+      const { page = 1, per_page = 25 } = args;
+      const skip = (page - 1) * per_page;
 
       const [edges, total] = await Promise.all([
         prisma.animeCharacterEdge.findMany({
-          where: { animeId: parent.id },
+          where: { anime_id: parent.id },
           skip,
-          take: perPage,
+          take: per_page,
           include: {
             character: {
               include: {
@@ -719,7 +659,7 @@ export const resolvers = {
                 image: true
               }
             },
-            voiceActors: {
+            voice_actors: {
               include: {
                 name: true,
                 image: true
@@ -728,29 +668,29 @@ export const resolvers = {
           }
         }),
         prisma.animeCharacterEdge.count({
-          where: { animeId: parent.id }
+          where: { anime_id: parent.id }
         })
       ]);
 
-      const lastPage = Math.ceil(total / perPage);
+      const last_page = Math.ceil(total / per_page);
 
       return {
         edges,
-        pageInfo: {
+        page_info: {
           total,
-          perPage,
-          currentPage: page,
-          lastPage,
-          hasNextPage: page < lastPage
+          per_page,
+          current_page: page,
+          last_page,
+          has_next_page: page < last_page
         }
       };
     },
 
-    studios: async (parent: any, args: { onlyMain?: boolean }) => {
-      const where: any = { animeId: parent.id };
+    studios: async (parent: any, args: { only_main?: boolean }) => {
+      const where: any = { anime_id: parent.id };
 
-      if (args.onlyMain) {
-        where.isMain = true;
+      if (args.only_main) {
+        where.is_main = true;
       }
 
       return prisma.animeStudioEdge.findMany({
@@ -763,7 +703,7 @@ export const resolvers = {
 
     tags: async (parent: any) => {
       return prisma.animeTagEdge.findMany({
-        where: { animeId: parent.id },
+        where: { anime_id: parent.id },
         include: {
           tag: true
         }
@@ -772,49 +712,49 @@ export const resolvers = {
 
     rankings: async (parent: any) => {
       return await prisma.animeRanking.findMany({
-        where: { animeId: parent.id }
+        where: { anime_id: parent.id }
       });
     },
 
-    externalLinks: async (parent: any) => {
+    external_links: async (parent: any) => {
       return prisma.animeExternalLink.findMany({
-        where: { animeId: parent.id }
+        where: { anime_id: parent.id }
       });
     },
 
-    scoreDistribution: async (parent: any) => {
+    score_distribution: async (parent: any) => {
       return prisma.animeScoreDistribution.findMany({
-        where: { animeId: parent.id }
+        where: { anime_id: parent.id }
       });
     },
 
-    statusDistribution: async (parent: any) => {
+    status_distribution: async (parent: any) => {
       return prisma.animeStatusDistribution.findMany({
-        where: { animeId: parent.id }
+        where: { anime_id: parent.id }
       });
     },
 
-    airingSchedule: async (parent: any) => {
+    airing_schedule: async (parent: any) => {
       return prisma.animeAiringSchedule.findMany({
-        where: { animeId: parent.id }
+        where: { anime_id: parent.id }
       });
     },
 
-    latestAiringEpisode: async (parent: any) => {
+    latest_airing_episode: async (parent: any) => {
       return prisma.animeLatestEpisode.findUnique({
-        where: { animeId: parent.id }
+        where: { anime_id: parent.id }
       });
     },
 
-    nextAiringEpisode: async (parent: any) => {
+    next_airing_episode: async (parent: any) => {
       return prisma.animeNextEpisode.findUnique({
-        where: { animeId: parent.id }
+        where: { anime_id: parent.id }
       });
     },
 
-    lastAiringEpisode: async (parent: any) => {
+    last_airing_episode: async (parent: any) => {
       return prisma.animeLastEpisode.findUnique({
-        where: { animeId: parent.id }
+        where: { anime_id: parent.id }
       });
     },
 
@@ -833,7 +773,8 @@ export const resolvers = {
           },
           videos: true,
           screenshots: true,
-          artworks: true
+          artworks: true,
+          chronology: true
         }
       });
     }
@@ -841,7 +782,7 @@ export const resolvers = {
 
   CharacterEdge: {
     character: (parent: any) => parent.character,
-    voiceActors: (parent: any) => parent.voiceActors
+    voice_actors: (parent: any) => parent.voice_actors
   },
 
   StudioEdge: {
@@ -874,6 +815,23 @@ export const resolvers = {
         },
         include: {
           thumbnail: true
+        }
+      });
+    },
+
+    chronology: async (parent: any) => {
+      const chronologyEntries = await prisma.chronology.findMany({
+        where: { meta_id: parent.id },
+        orderBy: { order: 'asc' }
+      });
+
+      const animeIds = chronologyEntries.map((c) => c.related_id);
+
+      if (animeIds.length === 0) return [];
+
+      return prisma.anime.findMany({
+        where: {
+          id_mal: { in: animeIds }
         }
       });
     }

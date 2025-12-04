@@ -2,6 +2,7 @@ import { prisma, Prisma } from 'src/lib/prisma';
 import { SeasonEpisode } from '../providers/tmdb/types';
 import {
   ArtworkEntry,
+  ChronologyEntry,
   DescriptionEntry,
   ImageEntry,
   MappingEntry,
@@ -124,7 +125,7 @@ const addEpisodesAired = async (id: number, episodes: number, args?: any) => {
   await fetchOrCreate(id);
   return prisma.meta.update({
     where: { id },
-    data: { episodesAired: episodes },
+    data: { episodes_aired: episodes },
     ...(args as Prisma.MetaDefaultArgs)
   });
 };
@@ -133,7 +134,7 @@ const addEpisodesTotal = async (id: number, episodes: number, args?: any) => {
   await fetchOrCreate(id);
   return prisma.meta.update({
     where: { id },
-    data: { episodesTotal: episodes },
+    data: { episodes_total: episodes },
     ...(args as Prisma.MetaDefaultArgs)
   });
 };
@@ -254,6 +255,15 @@ const addArtworks = async (id: number, artworks: ArtworkEntry[], args?: any) => 
   });
 };
 
+const addChronologies = async (id: number, chronologies: ChronologyEntry[], args?: any) => {
+  await fetchOrCreate(id);
+  return prisma.meta.update({
+    where: { id },
+    data: MetaPrisma.addChronologies(chronologies),
+    ...(args as Prisma.MetaDefaultArgs)
+  });
+};
+
 const addEpisodes = async (id: number, episodes: SeasonEpisode[], args?: any) => {
   await fetchOrCreate(id);
   return prisma.meta.update({
@@ -305,6 +315,7 @@ const Meta = {
   addScreenshots,
   removeScreenshots,
   addArtworks,
+  addChronologies,
   addEpisodes,
   removeEpisodes,
   addSingleTitle,

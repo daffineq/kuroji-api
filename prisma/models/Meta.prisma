@@ -1,12 +1,12 @@
 model Meta {
-  id      Int @id
-  animeId Int @unique
+  id       Int @id
+  anime_id Int @unique
 
   franchise String?
   rating    String?
 
-  episodesAired Int?
-  episodesTotal Int?
+  episodes_aired Int? @map("episodes_aired")
+  episodes_total Int? @map("episodes_total")
 
   moreinfo  String?
   broadcast String?
@@ -21,20 +21,21 @@ model Meta {
   videos       Video[]       @relation("MetaToVideo")
   screenshots  Screenshot[]  @relation("MetaToScreenshot")
   artworks     Artwork[]     @relation("MetaToArtwork")
+  chronology   Chronology[]  @relation("MetaToChronology")
 
-  anime Anime @relation(fields: [animeId], references: [id])
+  anime Anime @relation(fields: [anime_id], references: [id])
 }
 
 model Mappings {
   id String @id @default(cuid())
 
-  sourceId   String
-  sourceName String
+  source_id   String @map("source_id")
+  source_name String @map("source_name")
 
-  metaId Int
-  parent Meta @relation("MetaToMappings", fields: [metaId], references: [id])
+  meta_id Int  @map("meta_id")
+  parent  Meta @relation("MetaToMappings", fields: [meta_id], references: [id])
 
-  @@unique([sourceId, sourceName])
+  @@unique([source_id, source_name])
 }
 
 model Episode {
@@ -57,8 +58,8 @@ model EpisodeThumbnail {
   medium String?
   large  String?
 
-  episodeId Int     @unique
-  parent    Episode @relation("EpisodeToEpisodeThumbnail", fields: [episodeId], references: [id])
+  episode_id Int     @unique @map("episode_id")
+  parent     Episode @relation("EpisodeToEpisodeThumbnail", fields: [episode_id], references: [id])
 }
 
 model Title {
@@ -117,10 +118,10 @@ model Video {
 }
 
 model Screenshot {
-  id          String  @id
-  originalUrl String?
-  x166Url     String?
-  x332Url     String?
+  id       String  @id
+  original String?
+  x166     String?
+  x332     String?
 
   parent Meta[] @relation("MetaToScreenshot")
 }
@@ -139,4 +140,16 @@ model Artwork {
   parent Meta[] @relation("MetaToArtwork")
 
   @@unique([url, type, source])
+}
+
+model Chronology {
+  id         String @id @default(cuid())
+  parent_id  Int    @map("parent_id")
+  related_id Int    @map("related_id")
+  order      Int
+
+  meta_id Int  @map("meta_id")
+  parent  Meta @relation("MetaToChronology", fields: [meta_id], references: [id])
+
+  @@unique([parent_id, related_id, order])
 }

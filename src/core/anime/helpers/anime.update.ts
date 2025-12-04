@@ -36,7 +36,7 @@ class AnimeUpdate {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       await prisma.updateQueue.deleteMany({
         where: {
-          addedAt: {
+          added_at: {
             lt: oneDayAgo
           }
         }
@@ -47,13 +47,13 @@ class AnimeUpdate {
   }
 
   private async addToQueue(
-    anime: { id: number; idMal: number | null | undefined },
+    anime: { id: number; id_mal: number | null | undefined },
     priority: QueueItem['priority'],
     reason: QueueItem['reason']
   ) {
     try {
       const existing = await prisma.updateQueue.findUnique({
-        where: { animeId: anime.id }
+        where: { anime_id: anime.id }
       });
 
       if (
@@ -61,12 +61,12 @@ class AnimeUpdate {
         this.getReasonWeight(reason) > this.getReasonWeight(existing.reason as QueueItem['reason'])
       ) {
         await prisma.updateQueue.update({
-          where: { animeId: anime.id },
+          where: { anime_id: anime.id },
           data: {
             priority,
             reason,
-            addedAt: new Date(),
-            updatedAt: new Date()
+            added_at: new Date(),
+            updated_at: new Date()
           }
         });
       } else if (
@@ -75,11 +75,11 @@ class AnimeUpdate {
         this.getPriorityWeight(priority) > this.getPriorityWeight(existing.priority as QueueItem['priority'])
       ) {
         await prisma.updateQueue.update({
-          where: { animeId: anime.id },
+          where: { anime_id: anime.id },
           data: {
             priority,
-            addedAt: new Date(),
-            updatedAt: new Date()
+            added_at: new Date(),
+            updated_at: new Date()
           }
         });
       } else if (!existing) {
@@ -87,11 +87,11 @@ class AnimeUpdate {
         if (queueCount < MAX_QUEUE_SIZE) {
           await prisma.updateQueue.create({
             data: {
-              animeId: anime.id,
-              malId: anime.idMal ?? null,
+              anime_id: anime.id,
+              mal_id: anime.id_mal ?? null,
               priority,
               reason,
-              addedAt: new Date()
+              added_at: new Date()
             }
           });
         } else {
@@ -106,11 +106,11 @@ class AnimeUpdate {
   private async updateQueueItem(animeId: number, retries: number, lastError: string | null) {
     try {
       await prisma.updateQueue.update({
-        where: { animeId },
+        where: { anime_id: animeId },
         data: {
           retries,
-          lastError,
-          updatedAt: new Date()
+          last_error: lastError,
+          updated_at: new Date()
         }
       });
     } catch (error) {
@@ -121,7 +121,7 @@ class AnimeUpdate {
   private async removeFromQueue(animeId: number) {
     try {
       await prisma.updateQueue.delete({
-        where: { animeId }
+        where: { anime_id: animeId }
       });
     } catch (error) {
       logger.error(`Failed to remove queue item ${animeId} from database:`, error);
@@ -142,7 +142,7 @@ class AnimeUpdate {
     malId: number | null | undefined = undefined,
     priority: QueueItem['priority'] = 'medium'
   ) {
-    await this.addToQueue({ id: animeId, idMal: malId }, priority, 'missed');
+    await this.addToQueue({ id: animeId, id_mal: malId }, priority, 'missed');
     logger.log(`Manually added anime ${animeId} to queue with ${priority} priority`);
   }
 
@@ -157,13 +157,13 @@ class AnimeUpdate {
     try {
       await prisma.updateHistory.create({
         data: {
-          animeId,
-          malId: malId ?? null,
+          anime_id: animeId,
+          mal_id: malId ?? null,
           success,
           duration,
-          errorCount: errors.length,
+          error_count: errors.length,
           errors,
-          triggeredBy
+          triggered_by: triggeredBy
         }
       });
     } catch (e) {
@@ -208,7 +208,7 @@ class AnimeUpdate {
   private async getNextFromQueue(): Promise<QueueItem | null> {
     try {
       const queueItems = await prisma.updateQueue.findMany({
-        orderBy: [{ priority: 'desc' }, { addedAt: 'asc' }]
+        orderBy: [{ priority: 'desc' }, { added_at: 'asc' }]
       });
 
       if (queueItems.length === 0) return null;
@@ -224,7 +224,7 @@ class AnimeUpdate {
           this.getPriorityWeight(a.priority as QueueItem['priority']);
         if (priorityDiff !== 0) return priorityDiff;
 
-        return a.addedAt.getTime() - b.addedAt.getTime();
+        return a.added_at.getTime() - b.added_at.getTime();
       });
 
       const next = sorted[0];
@@ -232,10 +232,10 @@ class AnimeUpdate {
       if (!next) return null;
 
       return {
-        animeId: next.animeId,
-        malId: next.malId ?? undefined,
+        animeId: next.anime_id,
+        malId: next.mal_id ?? undefined,
         priority: next.priority as QueueItem['priority'],
-        addedAt: next.addedAt.getTime(),
+        addedAt: next.added_at.getTime(),
         reason: next.reason as QueueItem['reason']
       };
     } catch (e) {
@@ -249,7 +249,7 @@ class AnimeUpdate {
     logger.log(`Adding ${recentAnime.length} recent aired anime to queue with HIGH priority`);
 
     if (recentAnime.length > 0) {
-      const animeWithEpisodes = recentAnime.filter((anime) => anime.airingSchedule.length > 0);
+      const animeWithEpisodes = recentAnime.filter((anime) => anime.airing_schedule.length > 0);
       logger.log(`Recent anime with episodes: ${animeWithEpisodes.length}/${recentAnime.length}`);
     }
 
@@ -455,7 +455,7 @@ class AnimeUpdate {
 
     if (!success && queueItem.priority !== 'low') {
       logger.log(`Re-queueing failed anime ${queueItem.animeId} with lower priority`);
-      await this.addToQueue({ id: queueItem.animeId, idMal: queueItem.malId }, 'low', 'retry');
+      await this.addToQueue({ id: queueItem.animeId, id_mal: queueItem.malId }, 'low', 'retry');
     }
 
     return success;

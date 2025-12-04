@@ -10,137 +10,138 @@ datasource db {
 
 // Indexer.prisma
 model IndexerState {
-  id              String   @id @default("anime")
-  lastFetchedPage Int
-  updatedAt       DateTime @updatedAt
+  id        String   @id @default("anime")
+  last_page Int      @map("last_page")
+  updatedAt DateTime @updatedAt
 }
 
 
 // Update.prisma
 model UpdateQueue {
-  id        String   @id @default(uuid())
-  animeId   Int      @unique
-  malId     Int?
-  priority  String
-  reason    String
-  addedAt   DateTime @default(now())
-  retries   Int      @default(0)
-  lastError String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(uuid())
+  anime_id   Int      @unique @map("anime_id")
+  mal_id     Int?     @map("mal_id")
+  priority   String
+  reason     String
+  added_at   DateTime @default(now()) @map("added_at")
+  retries    Int      @default(0)
+  last_error String?  @map("last_error")
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updared_at")
 
-  @@index([priority, addedAt])
-  @@index([animeId])
+  @@index([priority, added_at])
+  @@index([anime_id])
 }
 
 model UpdateHistory {
-  id          String   @id @default(uuid())
-  animeId     Int
-  malId       Int?
-  success     Boolean
-  duration    Int?
-  errorCount  Int      @default(0)
-  errors      String[]
-  triggeredBy String
-  createdAt   DateTime @default(now())
+  id           String   @id @default(uuid())
+  anime_id     Int      @map("anime_id")
+  mal_id       Int?     @map("mal_id")
+  success      Boolean
+  duration     Int?
+  error_count  Int      @default(0) @map("error_count")
+  errors       String[]
+  triggered_by String   @map("triggered_by")
+  created_at   DateTime @default(now()) @map("created_at")
 
-  @@index([animeId, createdAt])
-  @@index([success, createdAt])
+  @@index([anime_id, created_at])
+  @@index([success, created_at])
 }
 
 
 // Anime.prisma
 model Anime {
-  id    Int  @id
-  idMal Int? @unique
+  id                 Int   @id
+  id_mal             Int?  @unique @map("id_mal")
 
-  title  AnimeTitle?  @relation("AnimeTitle")
-  poster AnimePoster? @relation("AnimePoster")
-  banner String?
+  title              AnimeTitle?  @relation("AnimeTitle")
+  poster             AnimePoster? @relation("AnimePoster")
+  banner             String?
 
-  synonyms String[]
+  synonyms           String[]
 
-  description String?
-  status      String?
-  type        String?
-  format      String?
+  description        String?
+  status             String?
+  type               String?
+  format             String?
 
-  updatedAt Int
+  updated_at         Int @map("updated_at")
 
-  startDate AnimeStartDate? @relation("AnimeStartDate")
-  endDate   AnimeEndDate?   @relation("AnimeEndDate")
+  start_date         AnimeStartDate? @relation("AnimeStartDate")
+  end_date           AnimeEndDate?   @relation("AnimeEndDate")
 
-  season          String?
-  seasonYear      Int?
-  episodes        Int?
-  duration        Int?
-  countryOfOrigin String?
-  isLicensed      Boolean?
-  source          String?
-  hashtag         String?
-  isAdult         Boolean?
-  score           Int?
-  popularity      Int?
-  trending        Int?
-  favorites       Int?
-  genres          AnimeGenre[] @relation("AnimeGenres")
+  season             String?
+  season_year        Int?     @map("season_year")
+  episodes           Int?
+  duration           Int?
+  country_of_origin  String?  @map("country_of_origin")
+  is_licensed        Boolean? @map("is_licensed")
+  source             String?
+  hashtag            String?
+  is_adult           Boolean? @map("is_adult")
+  score              Int?
+  popularity         Int?
+  trending           Int?
+  favorites          Int?
 
-  latestAiringEpisode AnimeLatestEpisode? @relation("AnimeLatestEpisode")
-  nextAiringEpisode   AnimeNextEpisode?   @relation("AnimeNextEpisode")
-  lastAiringEpisode   AnimeLastEpisode?   @relation("AnimeLastEpisode")
+  genres             AnimeGenre[] @relation("AnimeGenres")
 
-  airingSchedule AnimeAiringSchedule[] @relation("AnimeAiringSchedules")
-  characters     AnimeCharacterEdge[]  @relation("AnimeCharacters")
-  studios        AnimeStudioEdge[]     @relation("AnimeStudios")
-  tags           AnimeTagEdge[]        @relation("AnimeTags")
-  rankings       AnimeRanking[]        @relation("AnimeRankings")
-  externalLinks  AnimeExternalLink[]   @relation("AnimeExternalLinks")
+  latest_airing_episode AnimeLatestEpisode? @relation("AnimeLatestEpisode")
+  next_airing_episode   AnimeNextEpisode?   @relation("AnimeNextEpisode")
+  last_airing_episode   AnimeLastEpisode?   @relation("AnimeLastEpisode")
 
-  scoreDistribution  AnimeScoreDistribution[]  @relation("AnimeScoreDistribution")
-  statusDistribution AnimeStatusDistribution[] @relation("AnimeStatusDistribution")
+  airing_schedule AnimeAiringSchedule[] @relation("AnimeAiringSchedules")
+  characters      AnimeCharacterEdge[]  @relation("AnimeCharacters")
+  studios         AnimeStudioEdge[]     @relation("AnimeStudios")
+  tags            AnimeTagEdge[]        @relation("AnimeTags")
+  rankings        AnimeRanking[]        @relation("AnimeRankings")
+  external_links  AnimeExternalLink[]   @relation("AnimeExternalLinks")
+
+  score_distribution  AnimeScoreDistribution[]  @relation("AnimeScoreDistribution")
+  status_distribution AnimeStatusDistribution[] @relation("AnimeStatusDistribution")
 
   meta Meta?
 }
 
 model AnimePoster {
-  id         String  @id @default(cuid())
-  animeId    Int     @unique
-  color      String?
-  large      String?
-  medium     String?
-  extraLarge String?
+  id          String @id @default(cuid())
+  anime_id    Int    @unique @map("anime_id")
+  color       String?
+  large       String?
+  medium      String?
+  extra_large String? @map("extra_large")
 
-  anime Anime @relation("AnimePoster", fields: [animeId], references: [id], map: "anime_poster_fkey")
+  anime Anime @relation("AnimePoster", fields: [anime_id], references: [id], map: "anime_poster_fkey")
 }
 
 model AnimeTitle {
-  id      String  @id @default(cuid())
-  animeId Int     @unique
-  romaji  String?
-  english String?
-  native  String?
+  id       String @id @default(cuid())
+  anime_id Int    @unique @map("anime_id")
+  romaji   String?
+  english  String?
+  native   String?
 
-  anime Anime @relation("AnimeTitle", fields: [animeId], references: [id], map: "anime_title_fkey")
+  anime Anime @relation("AnimeTitle", fields: [anime_id], references: [id], map: "anime_title_fkey")
 }
 
 model AnimeStartDate {
-  id      String @id @default(cuid())
-  animeId Int    @unique
-  day     Int?
-  month   Int?
-  year    Int?
+  id       String @id @default(cuid())
+  anime_id Int    @unique @map("anime_id")
+  day      Int?
+  month    Int?
+  year     Int?
 
-  anime Anime @relation("AnimeStartDate", fields: [animeId], references: [id], map: "anime_start_date_fkey")
+  anime Anime @relation("AnimeStartDate", fields: [anime_id], references: [id], map: "anime_start_date_fkey")
 }
 
 model AnimeEndDate {
-  id      String @id @default(cuid())
-  animeId Int    @unique
-  day     Int?
-  month   Int?
-  year    Int?
+  id       String @id @default(cuid())
+  anime_id Int    @unique @map("anime_id")
+  day      Int?
+  month    Int?
+  year     Int?
 
-  anime Anime @relation("AnimeEndDate", fields: [animeId], references: [id], map: "anime_end_date_fkey")
+  anime Anime @relation("AnimeEndDate", fields: [anime_id], references: [id], map: "anime_end_date_fkey")
 }
 
 model AnimeGenre {
@@ -151,50 +152,50 @@ model AnimeGenre {
 }
 
 model AnimeAiringSchedule {
-  id       Int  @id
-  animeId  Int
-  episode  Int?
-  airingAt Int?
+  id        Int @id
+  anime_id  Int @map("anime_id")
+  episode   Int?
+  airing_at Int? @map("airing_at")
 
-  anime Anime @relation("AnimeAiringSchedules", fields: [animeId], references: [id])
+  anime Anime @relation("AnimeAiringSchedules", fields: [anime_id], references: [id])
 }
 
 model AnimeLatestEpisode {
-  id       Int  @id
-  animeId  Int  @unique
-  episode  Int?
-  airingAt Int?
+  id        Int @id
+  anime_id  Int @unique @map("anime_id")
+  episode   Int?
+  airing_at Int? @map("airing_at")
 
-  anime Anime @relation("AnimeLatestEpisode", fields: [animeId], references: [id])
+  anime Anime @relation("AnimeLatestEpisode", fields: [anime_id], references: [id])
 }
 
 model AnimeNextEpisode {
-  id       Int  @id
-  animeId  Int  @unique
-  episode  Int?
-  airingAt Int?
+  id        Int @id
+  anime_id  Int @unique @map("anime_id")
+  episode   Int?
+  airing_at Int? @map("airing_at")
 
-  anime Anime @relation("AnimeNextEpisode", fields: [animeId], references: [id])
+  anime Anime @relation("AnimeNextEpisode", fields: [anime_id], references: [id])
 }
 
 model AnimeLastEpisode {
-  id       Int  @id
-  animeId  Int  @unique
-  episode  Int?
-  airingAt Int?
+  id        Int @id
+  anime_id  Int @unique @map("anime_id")
+  episode   Int?
+  airing_at Int? @map("airing_at")
 
-  anime Anime @relation("AnimeLastEpisode", fields: [animeId], references: [id])
+  anime Anime @relation("AnimeLastEpisode", fields: [anime_id], references: [id])
 }
 
 model AnimeCharacterEdge {
-  id          Int     @id
-  animeId     Int
-  characterId Int
-  role        String?
+  id           Int    @id
+  anime_id     Int    @map("anime_id")
+  character_id Int    @map("character_id")
+  role         String?
 
-  anime       Anime             @relation("AnimeCharacters", fields: [animeId], references: [id])
-  character   AnimeCharacter    @relation(fields: [characterId], references: [id])
-  voiceActors AnimeVoiceActor[] @relation("CharacterVoiceActors")
+  anime       Anime             @relation("AnimeCharacters", fields: [anime_id], references: [id])
+  character   AnimeCharacter    @relation(fields: [character_id], references: [id])
+  voice_actors AnimeVoiceActor[] @relation("CharacterVoiceActors")
 }
 
 model AnimeCharacter {
@@ -202,7 +203,7 @@ model AnimeCharacter {
 
   name       AnimeCharacterName?  @relation("CharacterName")
   image      AnimeCharacterImage? @relation("CharacterImage")
-  animeLinks AnimeCharacterEdge[]
+  anime_links AnimeCharacterEdge[]
 }
 
 model AnimeVoiceActor {
@@ -210,184 +211,184 @@ model AnimeVoiceActor {
 
   language String?
 
-  name  AnimeVoiceName?  @relation("VoiceActorName")
-  image AnimeVoiceImage? @relation("VoiceActorImage")
+  name        AnimeVoiceName?  @relation("VoiceActorName")
+  image       AnimeVoiceImage? @relation("VoiceActorImage")
 
-  characters AnimeCharacterEdge[] @relation("CharacterVoiceActors")
+  characters  AnimeCharacterEdge[] @relation("CharacterVoiceActors")
 }
 
 model AnimeCharacterName {
-  id          String   @id @default(cuid())
-  full        String?
-  native      String?
-  alternative String[]
+  id           String @id @default(cuid())
+  full         String?
+  native       String?
+  alternative  String[]
 
-  character   AnimeCharacter? @relation("CharacterName", fields: [characterId], references: [id])
-  characterId Int?            @unique
+  character     AnimeCharacter? @relation("CharacterName", fields: [character_id], references: [id])
+  character_id  Int? @unique @map("character_id")
 }
 
 model AnimeCharacterImage {
-  id     String  @id @default(cuid())
-  large  String?
-  medium String?
+  id          String @id @default(cuid())
+  large       String?
+  medium      String?
 
-  character   AnimeCharacter? @relation("CharacterImage", fields: [characterId], references: [id])
-  characterId Int?            @unique
+  character     AnimeCharacter? @relation("CharacterImage", fields: [character_id], references: [id])
+  character_id  Int? @unique @map("character_id")
 }
 
 model AnimeVoiceName {
-  id          String   @id @default(cuid())
-  full        String?
-  native      String?
-  alternative String[]
+  id           String @id @default(cuid())
+  full         String?
+  native       String?
+  alternative  String[]
 
-  voiceActor   AnimeVoiceActor? @relation("VoiceActorName", fields: [voiceActorId], references: [id])
-  voiceActorId Int?             @unique
+  voice_actor   AnimeVoiceActor? @relation("VoiceActorName", fields: [voice_actor_id], references: [id])
+  voice_actor_id Int? @unique @map("voice_actor_id")
 }
 
 model AnimeVoiceImage {
-  id     String  @id @default(cuid())
-  large  String?
-  medium String?
+  id           String @id @default(cuid())
+  large        String?
+  medium       String?
 
-  voiceActor   AnimeVoiceActor? @relation("VoiceActorImage", fields: [voiceActorId], references: [id])
-  voiceActorId Int?             @unique
+  voice_actor    AnimeVoiceActor? @relation("VoiceActorImage", fields: [voice_actor_id], references: [id])
+  voice_actor_id Int? @unique @map("voice_actor_id")
 }
 
 model AnimeStudioEdge {
-  id       Int      @id
-  animeId  Int
-  studioId Int
-  isMain   Boolean?
+  id        Int @id
+  anime_id  Int @map("anime_id")
+  studio_id Int @map("studio_id")
+  is_main   Boolean? @map("is_main")
 
-  anime  Anime       @relation("AnimeStudios", fields: [animeId], references: [id])
-  studio AnimeStudio @relation(fields: [studioId], references: [id])
+  anime  Anime       @relation("AnimeStudios", fields: [anime_id], references: [id])
+  studio AnimeStudio @relation(fields: [studio_id], references: [id])
 }
 
 model AnimeStudio {
-  id   Int     @id
-  name String?
+  id    Int @id
+  name  String?
 
-  animeLinks AnimeStudioEdge[]
+  anime_links AnimeStudioEdge[]
 }
 
 model AnimeTagEdge {
-  id             String   @id @default(cuid())
-  animeId        Int
-  tagId          Int
-  rank           Int?
-  isMediaSpoiler Boolean?
+  id              String  @id @default(cuid())
+  anime_id        Int     @map("anime_id")
+  tag_id          Int     @map("tag_id")
+  rank            Int?
+  is_media_spoiler Boolean? @map("is_media_spoiler")
 
-  anime Anime    @relation("AnimeTags", fields: [animeId], references: [id])
-  tag   AnimeTag @relation("AnimeTagEdges", fields: [tagId], references: [id])
+  anime Anime    @relation("AnimeTags", fields: [anime_id], references: [id])
+  tag   AnimeTag @relation("AnimeTagEdges", fields: [tag_id], references: [id])
 
-  @@unique([animeId, tagId])
+  @@unique([anime_id, tag_id])
 }
 
 model AnimeTag {
-  id               Int      @id
-  name             String?  @unique
-  description      String?
-  category         String?
-  isGeneralSpoiler Boolean?
-  isAdult          Boolean?
+  id                Int     @id
+  name              String? @unique
+  description       String?
+  category          String?
+  is_general_spoiler Boolean? @map("is_general_spoiler")
+  is_adult           Boolean? @map("is_adult")
 
-  tagEdges AnimeTagEdge[] @relation("AnimeTagEdges")
+  tag_edges AnimeTagEdge[] @relation("AnimeTagEdges")
 }
 
 model AnimeRanking {
-  id      Int      @id
-  animeId Int
-  rank    Int?
-  type    String?
-  format  String?
-  year    Int?
-  season  String?
-  allTime Boolean?
-  context String
+  id        Int    @id
+  anime_id  Int    @map("anime_id")
+  rank      Int?
+  type      String?
+  format    String?
+  year      Int?
+  season    String?
+  all_time  Boolean? @map("all_time")
+  context   String
 
-  anime Anime @relation("AnimeRankings", fields: [animeId], references: [id])
+  anime Anime @relation("AnimeRankings", fields: [anime_id], references: [id])
 }
 
 model AnimeExternalLink {
-  id         Int      @id
-  animeId    Int
-  url        String?
-  site       String?
-  siteId     Int?
-  type       String?
-  language   String?
-  color      String?
-  icon       String?
-  notes      String?
-  isDisabled Boolean?
+  id          Int     @id
+  anime_id    Int     @map("anime_id")
+  url         String?
+  site        String?
+  site_id     Int?    @map("site_id")
+  type        String?
+  language    String?
+  color       String?
+  icon        String?
+  notes       String?
+  is_disabled Boolean? @map("is_disabled")
 
-  anime Anime @relation("AnimeExternalLinks", fields: [animeId], references: [id])
+  anime Anime @relation("AnimeExternalLinks", fields: [anime_id], references: [id])
 }
 
 model AnimeScoreDistribution {
-  id      String @id @default(cuid())
-  score   Int
-  amount  Int
-  animeId Int
+  id       String @id @default(cuid())
+  score    Int
+  amount   Int
+  anime_id Int @map("anime_id")
 
-  anime Anime @relation("AnimeScoreDistribution", fields: [animeId], references: [id])
+  anime Anime @relation("AnimeScoreDistribution", fields: [anime_id], references: [id])
 }
 
 model AnimeStatusDistribution {
-  id      String @id @default(cuid())
-  status  String
-  amount  Int
-  animeId Int
+  id       String @id @default(cuid())
+  status   String
+  amount   Int
+  anime_id Int @map("anime_id")
 
-  anime Anime @relation("AnimeStatusDistribution", fields: [animeId], references: [id])
+  anime Anime @relation("AnimeStatusDistribution", fields: [anime_id], references: [id])
 }
 
 
 // Tvdb.prisma
 model TvdbLogin {
-  id      String @id @default(cuid())
+  id         String   @id @default(cuid())
   token      String
-  createDate DateTime @default(now())
+  created_at DateTime @default(now()) @map("created_at")
   expired    Boolean  @default(false)
 }
 
 
 // Api.prisma
 model ApiKey {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  key        String   @unique
+  active     Boolean  @default(true)
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
 
   usage ApiKeyUsage[]
 }
 
 model ApiKeyUsage {
-  id        String   @id @default(cuid())
-  apiKeyId  String
-  endpoint  String
-  method    String
-  origin    String?
-  userAgent String?
-  ip        String?
-  usedAt    DateTime @default(now())
+  id         String   @id @default(cuid())
+  api_key_id String   @map("api_key_id")
+  endpoint   String
+  method     String
+  origin     String?
+  user_agent String?  @map("user_agent")
+  ip         String?
+  used_at    DateTime @default(now()) @map("used_at")
 
-  apiKey ApiKey @relation(fields: [apiKeyId], references: [id])
+  apiKey ApiKey @relation(fields: [api_key_id], references: [id])
 }
 
 
 // Meta.prisma
 model Meta {
-  id      Int @id
-  animeId Int @unique
+  id       Int @id
+  anime_id Int @unique
 
   franchise String?
   rating    String?
 
-  episodesAired Int?
-  episodesTotal Int?
+  episodes_aired Int? @map("episodes_aired")
+  episodes_total Int? @map("episodes_total")
 
   moreinfo  String?
   broadcast String?
@@ -402,20 +403,21 @@ model Meta {
   videos       Video[]       @relation("MetaToVideo")
   screenshots  Screenshot[]  @relation("MetaToScreenshot")
   artworks     Artwork[]     @relation("MetaToArtwork")
+  chronology   Chronology[]  @relation("MetaToChronology")
 
-  anime Anime @relation(fields: [animeId], references: [id])
+  anime Anime @relation(fields: [anime_id], references: [id])
 }
 
 model Mappings {
   id String @id @default(cuid())
 
-  sourceId   String
-  sourceName String
+  source_id   String @map("source_id")
+  source_name String @map("source_name")
 
-  metaId Int
-  parent Meta @relation("MetaToMappings", fields: [metaId], references: [id])
+  meta_id Int  @map("meta_id")
+  parent  Meta @relation("MetaToMappings", fields: [meta_id], references: [id])
 
-  @@unique([sourceId, sourceName])
+  @@unique([source_id, source_name])
 }
 
 model Episode {
@@ -438,8 +440,8 @@ model EpisodeThumbnail {
   medium String?
   large  String?
 
-  episodeId Int     @unique
-  parent    Episode @relation("EpisodeToEpisodeThumbnail", fields: [episodeId], references: [id])
+  episode_id Int     @unique @map("episode_id")
+  parent     Episode @relation("EpisodeToEpisodeThumbnail", fields: [episode_id], references: [id])
 }
 
 model Title {
@@ -498,10 +500,10 @@ model Video {
 }
 
 model Screenshot {
-  id          String  @id
-  originalUrl String?
-  x166Url     String?
-  x332Url     String?
+  id       String  @id
+  original String?
+  x166     String?
+  x332     String?
 
   parent Meta[] @relation("MetaToScreenshot")
 }
@@ -520,4 +522,16 @@ model Artwork {
   parent Meta[] @relation("MetaToArtwork")
 
   @@unique([url, type, source])
+}
+
+model Chronology {
+  id         String @id @default(cuid())
+  parent_id  Int    @map("parent_id")
+  related_id Int    @map("related_id")
+  order      Int
+
+  meta_id Int  @map("meta_id")
+  parent  Meta @relation("MetaToChronology", fields: [meta_id], references: [id])
+
+  @@unique([parent_id, related_id, order])
 }

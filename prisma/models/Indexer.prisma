@@ -1,5 +1,5 @@
 model IndexerState {
-  id              String   @id @default("anime")
-  lastFetchedPage Int
-  updatedAt       DateTime @updatedAt
+  id        String   @id @default("anime")
+  last_page Int      @map("last_page")
+  updatedAt DateTime @updatedAt
 }

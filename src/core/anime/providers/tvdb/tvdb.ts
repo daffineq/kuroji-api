@@ -28,8 +28,8 @@ const getInfo = async (id: number): Promise<TvdbInfoResult> => {
 
   const meta = await Meta.fetchOrCreate(id, metaSelect);
 
-  const tvdbId = meta.mappings.find((m) => m.sourceName === 'tvdb')?.sourceId;
-  const tmdbId = meta.mappings.find((m) => m.sourceName === 'tmdb')?.sourceId;
+  const tvdbId = meta.mappings.find((m) => m.source_name === 'tvdb')?.source_id;
+  const tmdbId = meta.mappings.find((m) => m.source_name === 'tmdb')?.source_id;
 
   var tvdb: TvdbInfoResult | undefined = undefined;
 

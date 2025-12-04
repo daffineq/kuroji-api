@@ -58,10 +58,10 @@ export class DateUtils {
     // Create start and end of day timestamps for configured timezone
     // Use a direct approach: create the dates and convert properly to UTC
     const startOfDay = new Date(
-      `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T00:00:00`
+      `${year}-${month!.toString().padStart(2, '0')}-${day!.toString().padStart(2, '0')}T00:00:00`
     );
     const endOfDay = new Date(
-      `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T23:59:59.999`
+      `${year}-${month!.toString().padStart(2, '0')}-${day!.toString().padStart(2, '0')}T23:59:59.999`
     );
 
     // Apply timezone offset to convert to UTC

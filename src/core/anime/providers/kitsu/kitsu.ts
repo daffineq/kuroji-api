@@ -19,7 +19,7 @@ const getInfo = async (id: number): Promise<KitsuAnime> => {
 
   const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
-  const kitsuId = meta?.mappings.find((m) => m.sourceName === 'kitsu')?.sourceId;
+  const kitsuId = meta?.mappings.find((m) => m.source_name === 'kitsu')?.source_id;
 
   var kitsu: KitsuAnime;
 

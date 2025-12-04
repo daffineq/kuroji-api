@@ -12,7 +12,7 @@ const getToken = async (): Promise<string> => {
 
   const login = await prisma.tvdbLogin.findFirst({
     where: { expired: false },
-    orderBy: { createDate: 'desc' }
+    orderBy: { created_at: 'desc' }
   });
 
   if (!login) {
@@ -32,11 +32,11 @@ const check = async (): Promise<void> => {
 
   const login = await prisma.tvdbLogin.findFirst({
     where: { expired: false },
-    orderBy: { createDate: 'desc' }
+    orderBy: { created_at: 'desc' }
   });
 
   if (login) {
-    const expiryDate = new Date(login.createDate);
+    const expiryDate = new Date(login.created_at);
     expiryDate.setMonth(expiryDate.getMonth() + 1);
     if (new Date() > expiryDate) {
       await prisma.tvdbLogin.update({
@@ -72,7 +72,7 @@ const createToken = async (): Promise<void> => {
 
   const tokenData = TvdbPrisma.getTvdbLogin({
     token,
-    createDate: new Date(),
+    created_at: new Date(),
     expired: false
   } as TvdbLogin);
 

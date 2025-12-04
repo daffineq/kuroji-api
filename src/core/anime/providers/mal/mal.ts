@@ -27,7 +27,7 @@ const getInfo = async (id: number, idMal: number | undefined = undefined): Promi
   } else {
     const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
-    const malId = parseNumber(meta?.mappings.find((m) => m.sourceName === 'mal')?.sourceId);
+    const malId = parseNumber(meta?.mappings.find((m) => m.source_name === 'mal')?.source_id);
 
     if (malId) {
       fetched = await MalFetch.fetchInfo(malId);

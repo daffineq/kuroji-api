@@ -1,30 +1,30 @@
 model UpdateQueue {
-  id        String   @id @default(uuid())
-  animeId   Int      @unique
-  malId     Int?
-  priority  String
-  reason    String
-  addedAt   DateTime @default(now())
-  retries   Int      @default(0)
-  lastError String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(uuid())
+  anime_id   Int      @unique @map("anime_id")
+  mal_id     Int?     @map("mal_id")
+  priority   String
+  reason     String
+  added_at   DateTime @default(now()) @map("added_at")
+  retries    Int      @default(0)
+  last_error String?  @map("last_error")
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updared_at")
 
-  @@index([priority, addedAt])
-  @@index([animeId])
+  @@index([priority, added_at])
+  @@index([anime_id])
 }
 
 model UpdateHistory {
-  id          String   @id @default(uuid())
-  animeId     Int
-  malId       Int?
-  success     Boolean
-  duration    Int?
-  errorCount  Int      @default(0)
-  errors      String[]
-  triggeredBy String
-  createdAt   DateTime @default(now())
+  id           String   @id @default(uuid())
+  anime_id     Int      @map("anime_id")
+  mal_id       Int?     @map("mal_id")
+  success      Boolean
+  duration     Int?
+  error_count  Int      @default(0) @map("error_count")
+  errors       String[]
+  triggered_by String   @map("triggered_by")
+  created_at   DateTime @default(now()) @map("created_at")
 
-  @@index([animeId, createdAt])
-  @@index([success, createdAt])
+  @@index([anime_id, created_at])
+  @@index([success, created_at])
 }

@@ -2,6 +2,7 @@ import { parseString } from 'src/helpers/parsers';
 import { SeasonEpisode } from '../../providers/tmdb/types';
 import {
   ArtworkEntry,
+  ChronologyEntry,
   DescriptionEntry,
   ImageEntry,
   MappingEntry,
@@ -26,14 +27,14 @@ const addMappings = (data: Array<MappingEntry>): Prisma.MetaUpdateInput => {
     mappings: {
       connectOrCreate: data.map((m) => ({
         where: {
-          sourceId_sourceName: {
-            sourceId: parseString(m.id)!,
-            sourceName: m.name
+          source_id_source_name: {
+            source_id: parseString(m.id)!,
+            source_name: m.name
           }
         },
         create: {
-          sourceId: parseString(m.id)!,
-          sourceName: m.name
+          source_id: parseString(m.id)!,
+          source_name: m.name
         }
       }))
     }
@@ -45,14 +46,14 @@ const editMappings = (old: MappingEntry, updated: MappingEntry): Prisma.MetaUpda
     mappings: {
       update: {
         where: {
-          sourceId_sourceName: {
-            sourceId: parseString(old.id)!,
-            sourceName: old.name
+          source_id_source_name: {
+            source_id: parseString(old.id)!,
+            source_name: old.name
           }
         },
         data: {
-          sourceId: parseString(updated.id)!,
-          sourceName: updated.name
+          source_id: parseString(updated.id)!,
+          source_name: updated.name
         }
       }
     }
@@ -63,9 +64,9 @@ const removeMappings = (data: MappingEntry): Prisma.MetaUpdateInput => {
   return {
     mappings: {
       disconnect: {
-        sourceId_sourceName: {
-          sourceId: parseString(data.id)!,
-          sourceName: data.name
+        source_id_source_name: {
+          source_id: parseString(data.id)!,
+          source_name: data.name
         }
       }
     }
@@ -83,7 +84,7 @@ const addEpisodes = (episodes: Array<SeasonEpisode>): Prisma.MetaUpdateInput => 
           overview: e.overview,
           thumbnail: {
             upsert: {
-              where: { episodeId: e.id },
+              where: { episode_id: e.id },
               create: {
                 small: TmdbUtils.getImage('w300', e.still_path),
                 medium: TmdbUtils.getImage('w780', e.still_path),
@@ -106,7 +107,7 @@ const addEpisodes = (episodes: Array<SeasonEpisode>): Prisma.MetaUpdateInput => 
           overview: e.overview,
           thumbnail: {
             connectOrCreate: {
-              where: { episodeId: e.id },
+              where: { episode_id: e.id },
               create: {
                 small: TmdbUtils.getImage('w300', e.still_path),
                 medium: TmdbUtils.getImage('w780', e.still_path),
@@ -277,15 +278,15 @@ const addScreenshots = (screenshots: Array<ScreenshotEntry>): Prisma.MetaUpdateI
       upsert: screenshots.map((s) => ({
         where: { id: s.id },
         update: {
-          originalUrl: s.originalUrl,
-          x166Url: s.x166Url,
-          x332Url: s.x332Url
+          original: s.originalUrl,
+          x166: s.x166Url,
+          x332: s.x332Url
         },
         create: {
           id: s.id,
-          originalUrl: s.originalUrl,
-          x166Url: s.x166Url,
-          x332Url: s.x332Url
+          original: s.originalUrl,
+          x166: s.x166Url,
+          x332: s.x332Url
         }
       }))
     }
@@ -330,6 +331,26 @@ const addArtworks = (artworks: Array<ArtworkEntry>): Prisma.MetaUpdateInput => {
   };
 };
 
+const addChronologies = (chronologies: Array<ChronologyEntry>): Prisma.MetaUpdateInput => {
+  return {
+    chronology: {
+      upsert: chronologies.map((c) => ({
+        where: { parent_id_related_id_order: { parent_id: c.parentId, related_id: c.relatedId, order: c.order } },
+        update: {
+          parent_id: c.parentId,
+          related_id: c.relatedId,
+          order: c.order
+        },
+        create: {
+          parent_id: c.parentId,
+          related_id: c.relatedId,
+          order: c.order
+        }
+      }))
+    }
+  };
+};
+
 const MetaPrisma = {
   getMeta,
   addMappings,
@@ -346,7 +367,8 @@ const MetaPrisma = {
   addVideos,
   addScreenshots,
   removeScreenshots,
-  addArtworks
+  addArtworks,
+  addChronologies
 };
 
 export { MetaPrisma };

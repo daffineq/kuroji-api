@@ -29,6 +29,7 @@ export const SHIKIMORI_INFO = `
       screenshots { id originalUrl x166Url x332Url }
       scoresStats { score count }
       statusesStats { status count }
+      chronology { id }
       description
       descriptionHtml
       descriptionSource

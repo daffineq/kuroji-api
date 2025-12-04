@@ -1,50 +1,50 @@
 type Query {
   anime(id: Int!): Anime
-  animeByMalId(malId: Int!): Anime
+  anime_by_mal_id(mal_id: Int!): Anime
   animes(
     page: Int = 1
-    perPage: Int = 20
+    per_page: Int = 20
     search: String
     season: String
-    seasonYear: Int
-    seasonYearGreater: Int
-    seasonYearLesser: Int
+    season_year: Int
+    season_year_greater: Int
+    season_year_lesser: Int
     format: String
-    formatIn: [String!]
-    formatNotIn: [String!]
+    format_in: [String!]
+    format_not_in: [String!]
     status: String
-    statusIn: [String!]
-    statusNotIn: [String!]
+    status_in: [String!]
+    status_not_in: [String!]
     type: String
     source: String
-    sourceIn: [String!]
-    countryOfOrigin: String
-    isLicensed: Boolean
-    isAdult: Boolean
+    source_in: [String!]
+    country_of_origin: String
+    is_licensed: Boolean
+    is_adult: Boolean
     genres: [String!]
-    genresIn: [String!]
-    genresNotIn: [String!]
+    genres_in: [String!]
+    genres_not_in: [String!]
     tags: [String!]
-    tagsIn: [String!]
-    tagsNotIn: [String!]
-    minimumTagRank: Int
+    tags_in: [String!]
+    tags_not_in: [String!]
+    minimum_tag_rank: Int
     studios: [String!]
-    studiosIn: [String!]
-    scoreGreater: Int
-    scoreLesser: Int
-    popularityGreater: Int
-    popularityLesser: Int
-    episodesGreater: Int
-    episodesLesser: Int
-    durationGreater: Int
-    durationLesser: Int
-    startDateGreater: String
-    startDateLesser: String
-    endDateGreater: String
-    endDateLesser: String
-    startDateLike: String
-    endDateLike: String
-    hasNextEpisode: Boolean
+    studios_in: [String!]
+    score_greater: Int
+    score_lesser: Int
+    popularity_greater: Int
+    popularity_lesser: Int
+    episodes_greater: Int
+    episodes_lesser: Int
+    duration_greater: Int
+    duration_lesser: Int
+    start_date_greater: String
+    start_date_lesser: String
+    end_date_greater: String
+    end_date_lesser: String
+    start_date_like: String
+    end_date_like: String
+    has_next_episode: Boolean
     franchise: String
     sort: [AnimeSort!]
   ): AnimePage!
@@ -52,21 +52,21 @@ type Query {
   studio(id: Int!): AnimeStudio
   tag(id: Int!): AnimeTag
   genres: [AnimeGenre!]!
-  tags(search: String, category: String, isAdult: Boolean): [AnimeTag!]!
+  tags(search: String, category: String, is_adult: Boolean): [AnimeTag!]!
   studios(search: String): [AnimeStudio!]!
 }
 
 type AnimePage {
   data: [Anime!]!
-  pageInfo: PageInfo!
+  page_info: PageInfo!
 }
 
 type PageInfo {
   total: Int!
-  perPage: Int!
-  currentPage: Int!
-  lastPage: Int!
-  hasNextPage: Boolean!
+  per_page: Int!
+  current_page: Int!
+  last_page: Int!
+  has_next_page: Boolean!
 }
 
 enum AnimeSort {
@@ -129,7 +129,7 @@ enum AnimeSort {
 
 type Anime {
   id: Int!
-  idMal: Int
+  id_mal: Int
   title: AnimeTitle
   poster: AnimePoster
   banner: String
@@ -138,34 +138,34 @@ type Anime {
   status: String
   type: String
   format: String
-  updatedAt: Int!
-  startDate: AnimeDate
-  endDate: AnimeDate
+  updated_at: Int!
+  start_date: AnimeDate
+  end_date: AnimeDate
   season: String
-  seasonYear: Int
+  season_year: Int
   episodes: Int
   duration: Int
-  countryOfOrigin: String
-  isLicensed: Boolean
+  country_of_origin: String
+  is_licensed: Boolean
   source: String
   hashtag: String
-  isAdult: Boolean
+  is_adult: Boolean
   score: Int
   popularity: Int
   trending: Int
   favorites: Int
   genres: [AnimeGenre!]!
-  latestAiringEpisode: AiringEpisode
-  nextAiringEpisode: AiringEpisode
-  lastAiringEpisode: AiringEpisode
-  airingSchedule: [AiringSchedule!]!
-  characters(page: Int = 1, perPage: Int = 25): CharacterConnection!
+  latest_airing_episode: AiringEpisode
+  next_airing_episode: AiringEpisode
+  last_airing_episode: AiringEpisode
+  airing_schedule: [AiringSchedule!]!
+  characters(page: Int = 1, per_page: Int = 25): CharacterConnection!
   studios: [StudioEdge!]!
   tags: [TagEdge!]!
   rankings: [Ranking!]!
-  externalLinks: [ExternalLink!]!
-  scoreDistribution: [ScoreDistribution!]!
-  statusDistribution: [StatusDistribution!]!
+  external_links: [ExternalLink!]!
+  score_distribution: [ScoreDistribution!]!
+  status_distribution: [StatusDistribution!]!
   meta: Meta
 }
 
@@ -179,7 +179,7 @@ type AnimePoster {
   color: String
   large: String
   medium: String
-  extraLarge: String
+  extra_large: String
 }
 
 type AnimeDate {
@@ -196,25 +196,25 @@ type AnimeGenre {
 type AiringEpisode {
   id: Int!
   episode: Int
-  airingAt: Int
+  airing_at: Int
 }
 
 type AiringSchedule {
   id: Int!
   episode: Int
-  airingAt: Int
+  airing_at: Int
 }
 
 type CharacterConnection {
   edges: [CharacterEdge!]!
-  pageInfo: PageInfo!
+  page_info: PageInfo!
 }
 
 type CharacterEdge {
   id: Int!
   role: String
   character: AnimeCharacter!
-  voiceActors: [VoiceActor!]!
+  voice_actors: [VoiceActor!]!
 }
 
 type AnimeCharacter {
@@ -254,7 +254,7 @@ type VoiceActorImage {
 
 type StudioEdge {
   id: Int!
-  isMain: Boolean
+  is_main: Boolean
   studio: AnimeStudio!
 }
 
@@ -265,7 +265,7 @@ type AnimeStudio {
 
 type TagEdge {
   rank: Int
-  isMediaSpoiler: Boolean
+  is_media_spoiler: Boolean
   tag: AnimeTag!
 }
 
@@ -274,8 +274,8 @@ type AnimeTag {
   name: String
   description: String
   category: String
-  isGeneralSpoiler: Boolean
-  isAdult: Boolean
+  is_general_spoiler: Boolean
+  is_adult: Boolean
 }
 
 type Ranking {
@@ -285,7 +285,7 @@ type Ranking {
   format: String
   year: Int
   season: String
-  allTime: Boolean
+  all_time: Boolean
   context: String!
 }
 
@@ -293,13 +293,13 @@ type ExternalLink {
   id: Int!
   url: String
   site: String
-  siteId: Int
+  site_id: Int
   type: String
   language: String
   color: String
   icon: String
   notes: String
-  isDisabled: Boolean
+  is_disabled: Boolean
 }
 
 type ScoreDistribution {
@@ -316,8 +316,8 @@ type Meta {
   id: Int!
   franchise: String
   rating: String
-  episodesAired: Int
-  episodesTotal: Int
+  episodes_aired: Int
+  episodes_total: Int
   moreinfo: String
   broadcast: String
   nsfw: Boolean
@@ -329,6 +329,7 @@ type Meta {
   videos: [Video!]!
   screenshots: [Screenshot!]!
   artworks: [Artwork!]!
+  chronology: [Anime!]!
 }
 
 type Title {
@@ -353,8 +354,8 @@ type Image {
 }
 
 type Mappings {
-  sourceId: String!
-  sourceName: String!
+  source_id: String!
+  source_name: String!
 }
 
 type Episode {
@@ -383,9 +384,9 @@ type Video {
 
 type Screenshot {
   id: String!
-  originalUrl: String
-  x166Url: String
-  x332Url: String
+  original: String
+  x166: String
+  x332: String
 }
 
 type Artwork {

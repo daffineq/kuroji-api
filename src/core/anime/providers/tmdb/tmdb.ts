@@ -21,7 +21,7 @@ const getInfo = async (id: number): Promise<TmdbInfoResult> => {
 
   const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
-  const tmdbId = parseNumber(meta?.mappings.find((m) => m.sourceName === 'tmdb')?.sourceId);
+  const tmdbId = parseNumber(meta?.mappings.find((m) => m.source_name === 'tmdb')?.source_id);
 
   var tmdb: TmdbInfoResult;
 

@@ -59,9 +59,9 @@ const getRecentAiredAnime = async (hoursBack: number = 2) => {
 
     const recentAired = await prisma.anime.findMany({
       where: {
-        airingSchedule: {
+        airing_schedule: {
           some: {
-            airingAt: {
+            airing_at: {
               gte: startTimestamp,
               lte: endTimestamp
             }
@@ -70,15 +70,15 @@ const getRecentAiredAnime = async (hoursBack: number = 2) => {
       },
       select: {
         id: true,
-        idMal: true,
+        id_mal: true,
         popularity: true,
-        airingSchedule: {
+        airing_schedule: {
           select: {
-            airingAt: true,
+            airing_at: true,
             episode: true
           },
           where: {
-            airingAt: {
+            airing_at: {
               gte: startTimestamp,
               lte: endTimestamp
             }
@@ -117,9 +117,9 @@ const getTodayAiredAnime = async () => {
 
     const todayAired = await prisma.anime.findMany({
       where: {
-        airingSchedule: {
+        airing_schedule: {
           some: {
-            airingAt: {
+            airing_at: {
               gte: bufferedStart,
               lte: bufferedEnd
             }
@@ -128,15 +128,15 @@ const getTodayAiredAnime = async () => {
       },
       select: {
         id: true,
-        idMal: true,
+        id_mal: true,
         popularity: true,
-        airingSchedule: {
+        airing_schedule: {
           select: {
-            airingAt: true,
+            airing_at: true,
             episode: true
           },
           where: {
-            airingAt: {
+            airing_at: {
               gte: bufferedStart,
               lte: bufferedEnd
             }
@@ -175,9 +175,9 @@ const getLastWeekAiredAnime = async () => {
 
     const weekAgoAired = await prisma.anime.findMany({
       where: {
-        airingSchedule: {
+        airing_schedule: {
           some: {
-            airingAt: {
+            airing_at: {
               gte: bufferedStart,
               lte: bufferedEnd
             }
@@ -186,15 +186,15 @@ const getLastWeekAiredAnime = async () => {
       },
       select: {
         id: true,
-        idMal: true,
+        id_mal: true,
         popularity: true,
-        airingSchedule: {
+        airing_schedule: {
           select: {
-            airingAt: true,
+            airing_at: true,
             episode: true
           },
           where: {
-            airingAt: {
+            airing_at: {
               gte: bufferedStart,
               lte: bufferedEnd
             }
@@ -231,7 +231,7 @@ const getFinishedAnime = async (limit: number = 100, offset: number = 0) => {
       },
       select: {
         id: true,
-        idMal: true,
+        id_mal: true,
         popularity: true,
         score: true
       },
@@ -267,34 +267,34 @@ const getUpcomingAnime = async (limit: number = 50, offset: number = 0) => {
         popularity: {
           gte: POPULARITY_THRESHOLDS.TRASH
         },
-        startDate: {
+        start_date: {
           year: { gte: DateUtils.getCurrentDate().getFullYear() }
         }
       },
       select: {
         id: true,
-        idMal: true,
+        id_mal: true,
         popularity: true,
-        startDate: true,
+        start_date: true,
         status: true,
-        airingSchedule: {
+        airing_schedule: {
           select: {
-            airingAt: true,
+            airing_at: true,
             episode: true
           },
           where: {
-            airingAt: {
+            airing_at: {
               gte: now,
               lte: futureDate
             }
           },
           orderBy: {
-            airingAt: 'asc'
+            airing_at: 'asc'
           },
           take: 3
         }
       },
-      orderBy: [{ popularity: 'desc' }, { startDate: { year: 'asc' } }],
+      orderBy: [{ popularity: 'desc' }, { start_date: { year: 'asc' } }],
       take: validatedLimit,
       skip: validatedOffset
     });
@@ -324,9 +324,9 @@ const getDaysAgoAiredAnime = async (range: number) => {
 
     const twoDaysAgoAired = await prisma.anime.findMany({
       where: {
-        airingSchedule: {
+        airing_schedule: {
           some: {
-            airingAt: {
+            airing_at: {
               gte: bufferedStart,
               lte: bufferedEnd
             }
@@ -335,15 +335,15 @@ const getDaysAgoAiredAnime = async (range: number) => {
       },
       select: {
         id: true,
-        idMal: true,
+        id_mal: true,
         popularity: true,
-        airingSchedule: {
+        airing_schedule: {
           select: {
-            airingAt: true,
+            airing_at: true,
             episode: true
           },
           where: {
-            airingAt: {
+            airing_at: {
               gte: bufferedStart,
               lte: bufferedEnd
             }
@@ -390,7 +390,7 @@ const getTotalUpcomingAnimeCount = async (): Promise<number> => {
         popularity: {
           gte: POPULARITY_THRESHOLDS.TRASH
         },
-        startDate: {
+        start_date: {
           year: { gte: DateUtils.getCurrentDate().getFullYear() }
         }
       }
