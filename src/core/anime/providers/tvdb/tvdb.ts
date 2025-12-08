@@ -8,6 +8,7 @@ import { Anilist } from '../anilist';
 import { TvdbUtils } from './helpers/tvdb.utils';
 import { TvdbFetch } from './helpers/tvdb.fetch';
 import { Meta } from '../../meta';
+import { normalize_iso_639_1 } from 'src/helpers/languages';
 
 const getInfo = async (id: number): Promise<TvdbInfoResult> => {
   const key = getKey('tvdb', 'info', id);
@@ -61,7 +62,7 @@ const getInfo = async (id: number): Promise<TvdbInfoResult> => {
         image: a.image,
         width: a.width,
         height: a.height,
-        language: a.language,
+        iso_639_1: normalize_iso_639_1(a.language) ?? undefined,
         thumbnail: a.thumbnail,
         type: getTypeNameById(a.type ?? 27).toLocaleLowerCase(),
         source: 'tvdb'

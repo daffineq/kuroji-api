@@ -394,7 +394,7 @@ type Artwork {
   url: String
   height: Int
   image: String
-  language: String
+  iso_639_1: String
   thumbnail: String
   type: String
   width: Int

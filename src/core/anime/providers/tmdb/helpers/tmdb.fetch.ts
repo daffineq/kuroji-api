@@ -1,6 +1,6 @@
 import env from 'src/config/env';
 import { Client } from 'src/helpers/client';
-import { SeasonTmdb, TmdbImage, TmdbInfoResult, TmdbSearchResult } from '../types';
+import { SeasonTmdb, TmdbImage, TmdbInfoResult, TmdbSearchResult, TmdbTranslation } from '../types';
 import { KurojiClient } from 'src/lib/http';
 
 const client = new KurojiClient(env.TMDB);
@@ -129,6 +129,83 @@ const getSeriesImages = async (id: number): Promise<TmdbImage[]> => {
   return [...data.backdrops, ...data.logos, ...data.posters];
 };
 
+const fetchMovieTranslations = async (id: number): Promise<TmdbTranslation[]> => {
+  const { data, error } = await client.get<TmdbTranslation[]>(
+    `movie/${id}/translations?api_key=${env.TMDB_AP_KEY}`,
+    {
+      jsonPath: 'translations'
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('No data');
+  }
+
+  return data;
+};
+
+const fetchSeriesTranslations = async (id: number): Promise<TmdbTranslation[]> => {
+  const { data, error } = await client.get<TmdbTranslation[]>(`tv/${id}/translations?api_key=${env.TMDB_AP_KEY}`, {
+    jsonPath: 'translations'
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('No data');
+  }
+
+  return data;
+};
+
+const fetchSeasonTranslations = async (id: number, season: number): Promise<TmdbTranslation[]> => {
+  const { data, error } = await client.get<TmdbTranslation[]>(
+    `tv/${id}/season/${season}/translations?api_key=${env.TMDB_AP_KEY}`,
+    {
+      jsonPath: 'translations'
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('No data');
+  }
+
+  return data;
+};
+
+const fetchEpisodeTranslations = async (
+  id: number,
+  season: number,
+  episode: number
+): Promise<TmdbTranslation[]> => {
+  const { data, error } = await client.get<TmdbTranslation[]>(
+    `tv/${id}/season/${season}/episode/${episode}/translations?api_key=${env.TMDB_AP_KEY}`,
+    {
+      jsonPath: 'translations'
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('No data');
+  }
+
+  return data;
+};
+
 const TmdbFetch = {
   fetchMovie,
   fetchSeries,
@@ -136,7 +213,11 @@ const TmdbFetch = {
   searchMovie,
   searchSeries,
   getMovieImages,
-  getSeriesImages
+  getSeriesImages,
+  fetchMovieTranslations,
+  fetchSeriesTranslations,
+  fetchSeasonTranslations,
+  fetchEpisodeTranslations
 };
 
 export { TmdbFetch };

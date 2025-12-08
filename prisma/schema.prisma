@@ -430,6 +430,9 @@ model Episode {
   runtime   Int?
   date      String?
 
+  season_number Int? @map("season_number")
+  tmdb_show_id  Int? @map("tmdb_id")
+
   parent Meta[] @relation("MetaToEpisode")
 }
 
@@ -514,7 +517,7 @@ model Artwork {
   height    Int?
   width     Int?
   image     String?
-  language  String?
+  iso_639_1 String?
   thumbnail String?
   type      String
   source    String

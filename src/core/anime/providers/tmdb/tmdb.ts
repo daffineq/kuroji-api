@@ -1,6 +1,6 @@
 import { metaSelect } from '../../meta/types';
 import { parseNumber, parseString } from 'src/helpers/parsers';
-import { TmdbInfoResult } from './types';
+import { TmdbInfoResult, TmdbTranslation } from './types';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { NotFoundError } from 'src/helpers/errors';
 import { getKey, Redis } from 'src/helpers/redis.util';
@@ -9,6 +9,8 @@ import { Anilist } from '../anilist';
 import { TmdbUtils } from './helpers/tmdb.utils';
 import { TmdbFetch } from './helpers/tmdb.fetch';
 import { Meta } from '../../meta';
+import { normalize_iso_639_1 } from 'src/helpers/languages';
+import { prisma } from 'src/lib/prisma';
 
 const getInfo = async (id: number): Promise<TmdbInfoResult> => {
   const key = getKey('tmdb', 'info', id);
@@ -48,7 +50,7 @@ const getInfo = async (id: number): Promise<TmdbInfoResult> => {
       image: TmdbUtils.getImage('original', i.file_path) ?? undefined,
       height: i.height,
       width: i.width,
-      language: i.iso_639_1,
+      iso_639_1: normalize_iso_639_1(i.iso_639_1) ?? undefined,
       thumbnail: TmdbUtils.getImage('w780', i.file_path) ?? undefined,
       type: i.type,
       source: 'tmdb'
@@ -84,6 +86,58 @@ const getInfo = async (id: number): Promise<TmdbInfoResult> => {
   await Redis.set(key, tmdb);
 
   return tmdb;
+};
+
+const getTranslations = async (id: number): Promise<TmdbTranslation[]> => {
+  const key = getKey('tmdb', 'info', 'translations', id);
+
+  const cached = await Redis.get<TmdbTranslation[]>(key);
+
+  if (cached) {
+    return cached;
+  }
+
+  const tmdb = await getInfo(id);
+
+  const al = await Anilist.getInfo(id);
+  const type = TmdbUtils.getTmdbTypeByAl(al.format);
+
+  const translations =
+    type == 'MOVIE'
+      ? await TmdbFetch.fetchMovieTranslations(tmdb.id)
+      : await TmdbFetch.fetchSeriesTranslations(tmdb.id);
+
+  await Redis.set(key, translations);
+
+  return translations;
+};
+
+const getEpisodeTranslations = async (id: number): Promise<TmdbTranslation[]> => {
+  const key = getKey('tmdb', 'info', 'translations', id);
+
+  const cached = await Redis.get<TmdbTranslation[]>(key);
+
+  if (cached) {
+    return cached;
+  }
+
+  const episode = await prisma.episode.findUnique({
+    where: { id }
+  });
+
+  if (!episode || !episode.tmdb_show_id || !episode.season_number || !episode.number) {
+    return [];
+  }
+
+  const translations = await TmdbFetch.fetchEpisodeTranslations(
+    episode.tmdb_show_id,
+    episode.season_number,
+    episode.number
+  );
+
+  await Redis.set(key, translations);
+
+  return translations;
 };
 
 const find = async (id: number): Promise<TmdbInfoResult> => {

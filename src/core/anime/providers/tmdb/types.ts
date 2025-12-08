@@ -166,6 +166,20 @@ export interface TmdbInfoResult {
   type?: string;
 }
 
+export interface TmdbTranslation {
+  iso_3166_1: string;
+  iso_639_1: string;
+  name: string;
+  english_name: string;
+  data: {
+    title?: string;
+    name?: string;
+    overview: string;
+    homepage?: string;
+    biography?: string;
+  };
+}
+
 export interface SeasonEpisode {
   air_date: string;
   episode_number: number;
@@ -176,6 +190,7 @@ export interface SeasonEpisode {
   production_code: string;
   runtime: number;
   season_number: number;
+  season_episode_number: number;
   show_id: number;
   still_path: string;
   vote_average: number;

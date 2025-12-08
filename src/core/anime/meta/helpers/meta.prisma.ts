@@ -79,6 +79,7 @@ const addEpisodes = (episodes: Array<SeasonEpisode>): Prisma.MetaUpdateInput => 
       upsert: episodes.map((e) => ({
         where: { id: e.id },
         update: {
+          id: e.id,
           number: e.episode_number,
           title: e.name,
           overview: e.overview,
@@ -98,7 +99,9 @@ const addEpisodes = (episodes: Array<SeasonEpisode>): Prisma.MetaUpdateInput => 
             }
           },
           runtime: e.runtime,
-          date: e.air_date
+          date: e.air_date,
+          season_number: e.season_number,
+          tmdb_show_id: e.show_id
         },
         create: {
           id: e.id,
@@ -116,7 +119,9 @@ const addEpisodes = (episodes: Array<SeasonEpisode>): Prisma.MetaUpdateInput => 
             }
           },
           runtime: e.runtime,
-          date: e.air_date
+          date: e.air_date,
+          season_number: e.season_number,
+          tmdb_show_id: e.show_id
         }
       }))
     }
@@ -310,7 +315,7 @@ const addArtworks = (artworks: Array<ArtworkEntry>): Prisma.MetaUpdateInput => {
           url: a.url,
           height: a.height,
           image: a.image,
-          language: a.language,
+          iso_639_1: a.iso_639_1,
           thumbnail: a.thumbnail,
           type: a.type,
           width: a.width,
@@ -320,7 +325,7 @@ const addArtworks = (artworks: Array<ArtworkEntry>): Prisma.MetaUpdateInput => {
           url: a.url,
           height: a.height,
           image: a.image,
-          language: a.language,
+          iso_639_1: a.iso_639_1,
           thumbnail: a.thumbnail,
           type: a.type,
           width: a.width,

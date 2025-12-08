@@ -46,7 +46,7 @@ export interface ArtworkEntry {
   url: string;
   height?: number;
   image?: string;
-  language?: string;
+  iso_639_1?: string;
   thumbnail?: string;
   type: string;
   width?: number;
