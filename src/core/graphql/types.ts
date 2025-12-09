@@ -2,6 +2,14 @@ export interface AnimeArgs {
   page?: number;
   per_page?: number;
   search?: string;
+  id?: number;
+  id_in?: number[];
+  id_not?: number;
+  id_not_in?: number[];
+  id_mal?: number;
+  id_mal_in?: number[];
+  id_mal_not?: number;
+  id_mal_not_in?: number[];
   season?: string;
   season_year?: number;
   season_year_greater?: number;
@@ -46,7 +54,26 @@ export interface AnimeArgs {
   sort?: string[];
 }
 
+export interface ChronologyArgs extends AnimeArgs {
+  parent_id: number;
+}
+
 export interface CharacterArgs {
+  page?: number;
+  per_page?: number;
+}
+
+export interface EpisodeArgs {
+  id: number;
+}
+
+export interface ArtworksArgs {
+  page?: number;
+  per_page?: number;
+  iso_639_1?: string;
+}
+
+export interface EpisodesArgs {
   page?: number;
   per_page?: number;
 }

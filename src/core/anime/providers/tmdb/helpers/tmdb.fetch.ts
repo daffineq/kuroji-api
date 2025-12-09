@@ -129,6 +129,25 @@ const getSeriesImages = async (id: number): Promise<TmdbImage[]> => {
   return [...data.backdrops, ...data.logos, ...data.posters];
 };
 
+const fetchEpisodeImages = async (id: number, season: number, episode: number): Promise<TmdbImage[]> => {
+  const { data, error } = await client.get<TmdbImage[]>(
+    `tv/${id}/season/${season}/episode/${episode}/images?api_key=${env.TMDB_AP_KEY}`,
+    {
+      jsonPath: 'stills'
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error('No data');
+  }
+
+  return data;
+};
+
 const fetchMovieTranslations = async (id: number): Promise<TmdbTranslation[]> => {
   const { data, error } = await client.get<TmdbTranslation[]>(
     `movie/${id}/translations?api_key=${env.TMDB_AP_KEY}`,
@@ -214,6 +233,7 @@ const TmdbFetch = {
   searchSeries,
   getMovieImages,
   getSeriesImages,
+  fetchEpisodeImages,
   fetchMovieTranslations,
   fetchSeriesTranslations,
   fetchSeasonTranslations,

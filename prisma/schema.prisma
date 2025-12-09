@@ -398,7 +398,7 @@ model Meta {
   titles       Title[]       @relation("MetaToTitle")
   descriptions Description[] @relation("MetaToDescription")
   images       Image[]       @relation("MetaToImage")
-  mappings     Mappings[]    @relation("MetaToMappings")
+  mappings     Mapping[]     @relation("MetaToMapping")
   episodes     Episode[]     @relation("MetaToEpisode")
   videos       Video[]       @relation("MetaToVideo")
   screenshots  Screenshot[]  @relation("MetaToScreenshot")
@@ -408,16 +408,17 @@ model Meta {
   anime Anime @relation(fields: [anime_id], references: [id])
 }
 
-model Mappings {
+model Mapping {
   id String @id @default(cuid())
 
   source_id   String @map("source_id")
   source_name String @map("source_name")
 
   meta_id Int  @map("meta_id")
-  parent  Meta @relation("MetaToMappings", fields: [meta_id], references: [id])
+  parent  Meta @relation("MetaToMapping", fields: [meta_id], references: [id])
 
   @@unique([source_id, source_name])
+  @@map("Mapping")
 }
 
 model Episode {

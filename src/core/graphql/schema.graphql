@@ -5,6 +5,14 @@ type Query {
     page: Int = 1
     per_page: Int = 20
     search: String
+    id: Int
+    id_in: [Int!]
+    id_not: Int
+    id_not_in: [Int!]
+    id_mal: Int
+    id_mal_in: [Int!]
+    id_mal_not: Int
+    id_mal_not_in: [Int!]
     season: String
     season_year: Int
     season_year_greater: Int
@@ -54,6 +62,63 @@ type Query {
   genres: [AnimeGenre!]!
   tags(search: String, category: String, is_adult: Boolean): [AnimeTag!]!
   studios(search: String): [AnimeStudio!]!
+  episode_by_id(id: Int!): EpisodeInfo
+  chronology(
+    page: Int = 1
+    per_page: Int = 20
+    search: String
+    parent_id: Int
+    id: Int
+    id_in: [Int!]
+    id_not: Int
+    id_not_in: [Int!]
+    id_mal: Int
+    id_mal_in: [Int!]
+    id_mal_not: Int
+    id_mal_not_in: [Int!]
+    season: String
+    season_year: Int
+    season_year_greater: Int
+    season_year_lesser: Int
+    format: String
+    format_in: [String!]
+    format_not_in: [String!]
+    status: String
+    status_in: [String!]
+    status_not_in: [String!]
+    type: String
+    source: String
+    source_in: [String!]
+    country_of_origin: String
+    is_licensed: Boolean
+    is_adult: Boolean
+    genres: [String!]
+    genres_in: [String!]
+    genres_not_in: [String!]
+    tags: [String!]
+    tags_in: [String!]
+    tags_not_in: [String!]
+    minimum_tag_rank: Int
+    studios: [String!]
+    studios_in: [String!]
+    score_greater: Int
+    score_lesser: Int
+    popularity_greater: Int
+    popularity_lesser: Int
+    episodes_greater: Int
+    episodes_lesser: Int
+    duration_greater: Int
+    duration_lesser: Int
+    start_date_greater: String
+    start_date_lesser: String
+    end_date_greater: String
+    end_date_lesser: String
+    start_date_like: String
+    end_date_like: String
+    has_next_episode: Boolean
+    franchise: String
+    sort: [AnimeSort!]
+  ): AnimePage!
 }
 
 type AnimePage {
@@ -324,11 +389,11 @@ type Meta {
   titles: [Title!]!
   descriptions: [Description!]!
   images: [Image!]!
-  mappings: [Mappings!]!
+  mappings: [Mapping!]!
   episodes: [Episode!]!
   videos: [Video!]!
   screenshots: [Screenshot!]!
-  artworks: [Artwork!]!
+  artworks(iso_639_1: String): [Artwork!]!
   chronology: [Anime!]!
 }
 
@@ -353,7 +418,7 @@ type Image {
   source: String!
 }
 
-type Mappings {
+type Mapping {
   source_id: String!
   source_name: String!
 }
@@ -368,10 +433,41 @@ type Episode {
   date: String
 }
 
+type EpisodeInfo {
+  id: Int!
+  number: Int!
+  title: String
+  overview: String
+  thumbnail: EpisodeThumbnail
+  runtime: Int
+  date: String
+  translation: [Translation!]!
+  images: [EpisodeImage!]!
+}
+
 type EpisodeThumbnail {
   small: String
   medium: String
   large: String
+}
+
+type Translation {
+  iso_639_1: String
+  data: TranslationData
+}
+
+type TranslationData {
+  title: String
+  name: String
+  overview: String
+  homepage: String
+}
+
+type EpisodeImage {
+  height: Int
+  width: Int
+  iso_639_1: String
+  image: EpisodeThumbnail
 }
 
 type Video {

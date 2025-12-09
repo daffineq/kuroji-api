@@ -1,6 +1,6 @@
 import { metaSelect } from '../../meta/types';
 import { parseNumber, parseString } from 'src/helpers/parsers';
-import { TmdbInfoResult, TmdbTranslation } from './types';
+import { TmdbImage, TmdbInfoResult, TmdbTranslation } from './types';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { NotFoundError } from 'src/helpers/errors';
 import { getKey, Redis } from 'src/helpers/redis.util';
@@ -140,6 +140,30 @@ const getEpisodeTranslations = async (id: number): Promise<TmdbTranslation[]> =>
   return translations;
 };
 
+const getEpisodeImages = async (id: number): Promise<TmdbImage[]> => {
+  const key = getKey('tmdb', 'info', 'images', id);
+
+  const cached = await Redis.get<TmdbImage[]>(key);
+
+  if (cached) {
+    return cached;
+  }
+
+  const episode = await prisma.episode.findUnique({
+    where: { id }
+  });
+
+  if (!episode || !episode.tmdb_show_id || !episode.season_number || !episode.number) {
+    return [];
+  }
+
+  const images = await TmdbFetch.fetchEpisodeImages(episode.tmdb_show_id, episode.season_number, episode.number);
+
+  await Redis.set(key, images);
+
+  return images;
+};
+
 const find = async (id: number): Promise<TmdbInfoResult> => {
   const al = await Anilist.getInfo(id);
 
@@ -180,6 +204,9 @@ const find = async (id: number): Promise<TmdbInfoResult> => {
 
 const Tmdb = {
   getInfo,
+  getTranslations,
+  getEpisodeTranslations,
+  getEpisodeImages,
   find
 };
 

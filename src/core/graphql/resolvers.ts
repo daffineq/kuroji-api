@@ -1,6 +1,548 @@
 import { prisma, Prisma } from 'src/lib/prisma';
-import { Anime } from '../anime';
-import { AnimeArgs, CharacterArgs } from './types';
+import { Anime, Tmdb, TmdbUtils } from '../anime';
+import { AnimeArgs, ArtworksArgs, CharacterArgs, ChronologyArgs, EpisodeArgs, EpisodesArgs } from './types';
+
+const filterAnime = (
+  args: AnimeArgs
+): {
+  where: Prisma.AnimeWhereInput;
+  orderBy: Prisma.AnimeOrderByWithRelationInput[];
+  take: number;
+  skip: number;
+  page: number;
+} => {
+  const {
+    page = 1,
+    per_page = 20,
+    search,
+    id,
+    id_in,
+    id_not,
+    id_not_in,
+    id_mal,
+    id_mal_in,
+    id_mal_not,
+    id_mal_not_in,
+    season,
+    season_year,
+    season_year_greater,
+    season_year_lesser,
+    format,
+    format_in,
+    format_not_in,
+    status,
+    status_in,
+    status_not_in,
+    type,
+    source,
+    source_in,
+    country_of_origin,
+    is_licensed,
+    is_adult,
+    genres,
+    genres_in,
+    genres_not_in,
+    tags,
+    tags_in,
+    tags_not_in,
+    minimum_tag_rank,
+    studios,
+    studios_in,
+    score_greater,
+    score_lesser,
+    popularity_greater,
+    popularity_lesser,
+    episodes_greater,
+    episodes_lesser,
+    duration_greater,
+    duration_lesser,
+    start_date_greater,
+    start_date_lesser,
+    end_date_greater,
+    end_date_lesser,
+    start_date_like,
+    end_date_like,
+    has_next_episode,
+    franchise,
+    sort = ['ID_DESC']
+  } = args;
+
+  const skip = (page - 1) * per_page;
+  const where: Prisma.AnimeWhereInput = {};
+
+  if (search) {
+    const tokens = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+    if (tokens.length > 0) {
+      where.AND = tokens.map((token) => ({
+        OR: [
+          { title: { romaji: { contains: token, mode: 'insensitive' } } },
+          { title: { english: { contains: token, mode: 'insensitive' } } },
+          { title: { native: { contains: token, mode: 'insensitive' } } },
+          { synonyms: { hasSome: tokens } },
+          { meta: { titles: { some: { title: { contains: token, mode: 'insensitive' } } } } }
+        ]
+      }));
+    }
+  }
+
+  // ID filters
+
+  if (id) where.id = id;
+  if (id_in && id_in.length) where.id = { in: id_in };
+  if (id_not) where.id = { ...(where.id as any), not: id_not };
+  if (id_not_in && id_not_in.length) where.id = { ...(where.id as any), notIn: id_not_in };
+
+  if (id_mal) where.id_mal = id_mal;
+  if (id_mal_in && id_mal_in.length) where.id_mal = { in: id_mal_in };
+  if (id_mal_not) where.id_mal = { ...(where.id_mal as any), not: id_mal_not };
+  if (id_mal_not_in && id_mal_not_in.length) where.id_mal = { ...(where.id_mal as any), notIn: id_mal_not_in };
+
+  // Season filters
+  if (season) where.season = season;
+  if (season_year) where.season_year = season_year;
+  if (season_year_greater) {
+    where.season_year = { ...(where.season_year as any), gte: season_year_greater };
+  }
+  if (season_year_lesser) {
+    where.season_year = { ...(where.season_year as any), lte: season_year_lesser };
+  }
+
+  // Format filters
+  if (format) where.format = format;
+  if (format_in && format_in.length > 0) {
+    where.format = { in: format_in };
+  }
+  if (format_not_in && format_not_in.length > 0) {
+    where.format = { ...(where.format as any), notIn: format_not_in };
+  }
+
+  // Status filters
+  if (status) where.status = status;
+  if (status_in && status_in.length > 0) {
+    where.status = { in: status_in };
+  }
+  if (status_not_in && status_not_in.length > 0) {
+    where.status = { ...(where.status as any), notIn: status_not_in };
+  }
+
+  // Type and source filters
+  if (type) where.type = type;
+  if (source) where.source = source;
+  if (source_in && source_in.length > 0) {
+    where.source = { in: source_in };
+  }
+  if (country_of_origin) where.country_of_origin = country_of_origin;
+
+  // Boolean filters
+  if (is_licensed !== undefined) where.is_licensed = is_licensed;
+  if (is_adult !== undefined) where.is_adult = is_adult;
+  if (has_next_episode !== undefined) {
+    if (has_next_episode) {
+      where.next_airing_episode = { isNot: null };
+    } else {
+      where.next_airing_episode = null;
+    }
+  }
+
+  // Genre filters
+  if (genres && genres.length > 0) {
+    where.genres = {
+      some: { name: { in: genres } }
+    };
+  }
+  if (genres_in && genres_in.length > 0) {
+    where.genres = {
+      some: { name: { in: genres_in } }
+    };
+  }
+  if (genres_not_in && genres_not_in.length > 0) {
+    where.genres = {
+      none: { name: { in: genres_not_in } }
+    };
+  }
+
+  // Tag filters
+  if (tags && tags.length > 0) {
+    where.tags = {
+      some: {
+        tag: { name: { in: tags } },
+        ...(minimum_tag_rank ? { rank: { gte: minimum_tag_rank } } : {})
+      }
+    };
+  }
+  if (tags_in && tags_in.length > 0) {
+    where.tags = {
+      some: {
+        tag: { name: { in: tags_in } },
+        ...(minimum_tag_rank ? { rank: { gte: minimum_tag_rank } } : {})
+      }
+    };
+  }
+  if (tags_not_in && tags_not_in.length > 0) {
+    where.tags = {
+      ...(where.tags as any),
+      none: {
+        tag: { name: { in: tags_not_in } }
+      }
+    };
+  }
+
+  // Studio filters
+  if (studios && studios.length > 0) {
+    where.studios = {
+      some: {
+        studio: { name: { in: studios } }
+      }
+    };
+  }
+  if (studios_in && studios_in.length > 0) {
+    where.studios = {
+      some: {
+        studio: { name: { in: studios_in } }
+      }
+    };
+  }
+
+  // Score filters
+  if (score_greater !== undefined) {
+    where.score = { gte: score_greater };
+  }
+  if (score_lesser !== undefined) {
+    where.score = { ...(where.score as any), lte: score_lesser };
+  }
+
+  // Popularity filters
+  if (popularity_greater !== undefined) {
+    where.popularity = { gte: popularity_greater };
+  }
+  if (popularity_lesser !== undefined) {
+    where.popularity = { ...(where.popularity as any), lte: popularity_lesser };
+  }
+
+  // Episode filters
+  if (episodes_greater !== undefined) {
+    where.episodes = { gte: episodes_greater };
+  }
+  if (episodes_lesser !== undefined) {
+    where.episodes = { ...(where.episodes as any), lte: episodes_lesser };
+  }
+
+  // Duration filters
+  if (duration_greater !== undefined) {
+    where.duration = { gte: duration_greater };
+  }
+  if (duration_lesser !== undefined) {
+    where.duration = { ...(where.duration as any), lte: duration_lesser };
+  }
+
+  // Date filters (format: YYYY, YYYY-MM, or YYYY-MM-DD)
+  if (start_date_greater) {
+    const parts = start_date_greater.split('-').map(Number);
+    where.start_date = {
+      OR: [
+        { year: { gt: parts[0] } },
+        {
+          AND: [{ year: parts[0] }, parts[1] ? { month: { gte: parts[1] } } : {}]
+        }
+      ]
+    };
+  }
+  if (start_date_lesser) {
+    const parts = start_date_lesser.split('-').map(Number);
+    where.start_date = {
+      ...(where.start_date as any),
+      OR: [
+        { year: { lt: parts[0] } },
+        {
+          AND: [{ year: parts[0] }, parts[1] ? { month: { lte: parts[1] } } : {}]
+        }
+      ]
+    };
+  }
+  if (start_date_like) {
+    const parts = start_date_like.split('-').map(Number);
+    where.start_date = {
+      year: parts[0],
+      ...(parts[1] ? { month: parts[1] } : {}),
+      ...(parts[2] ? { day: parts[2] } : {})
+    };
+  }
+
+  if (end_date_greater) {
+    const parts = end_date_greater.split('-').map(Number);
+    where.end_date = {
+      OR: [
+        { year: { gt: parts[0] } },
+        {
+          AND: [{ year: parts[0] }, parts[1] ? { month: { gte: parts[1] } } : {}]
+        }
+      ]
+    };
+  }
+  if (end_date_lesser) {
+    const parts = end_date_lesser.split('-').map(Number);
+    where.end_date = {
+      ...(where.end_date as any),
+      OR: [
+        { year: { lt: parts[0] } },
+        {
+          AND: [{ year: parts[0] }, parts[1] ? { month: { lte: parts[1] } } : {}]
+        }
+      ]
+    };
+  }
+  if (end_date_like) {
+    const parts = end_date_like.split('-').map(Number);
+    where.end_date = {
+      year: parts[0],
+      ...(parts[1] ? { month: parts[1] } : {}),
+      ...(parts[2] ? { day: parts[2] } : {})
+    };
+  }
+
+  if (franchise) {
+    where.meta = {
+      franchise
+    };
+  }
+
+  const orderBy: Prisma.AnimeOrderByWithRelationInput[] = [];
+
+  sort.forEach((s) => {
+    switch (s) {
+      // ID Sorting
+      case 'ID_DESC':
+        orderBy.push({ id: 'desc' });
+        break;
+      case 'ID_ASC':
+        orderBy.push({ id: 'asc' });
+        break;
+
+      // Title Sorting
+      case 'TITLE_ROMAJI':
+        orderBy.push({ title: { romaji: 'asc' } });
+        break;
+      case 'TITLE_ROMAJI_DESC':
+        orderBy.push({ title: { romaji: 'desc' } });
+        break;
+      case 'TITLE_ENGLISH':
+        orderBy.push({ title: { english: 'asc' } });
+        break;
+      case 'TITLE_ENGLISH_DESC':
+        orderBy.push({ title: { english: 'desc' } });
+        break;
+      case 'TITLE_NATIVE':
+        orderBy.push({ title: { native: 'asc' } });
+        break;
+      case 'TITLE_NATIVE_DESC':
+        orderBy.push({ title: { native: 'desc' } });
+        break;
+
+      // Score & Stats Sorting
+      case 'SCORE_DESC':
+        orderBy.push({ score: { sort: 'desc', nulls: 'last' } });
+        break;
+      case 'SCORE_ASC':
+        orderBy.push({ score: { sort: 'asc', nulls: 'last' } });
+        break;
+      case 'POPULARITY_DESC':
+        orderBy.push({ popularity: { sort: 'desc', nulls: 'last' } });
+        break;
+      case 'POPULARITY_ASC':
+        orderBy.push({ popularity: { sort: 'asc', nulls: 'last' } });
+        break;
+      case 'TRENDING_DESC':
+        orderBy.push({ trending: { sort: 'desc', nulls: 'last' } });
+        break;
+      case 'TRENDING_ASC':
+        orderBy.push({ trending: { sort: 'asc', nulls: 'last' } });
+        break;
+      case 'FAVORITES_DESC':
+        orderBy.push({ favorites: { sort: 'desc', nulls: 'last' } });
+        break;
+      case 'FAVORITES_ASC':
+        orderBy.push({ favorites: { sort: 'asc', nulls: 'last' } });
+        break;
+
+      // Date Sorting
+      case 'START_DATE_DESC':
+        orderBy.push({
+          start_date: {
+            year: { sort: 'desc', nulls: 'last' }
+          }
+        });
+        orderBy.push({
+          start_date: {
+            month: { sort: 'desc', nulls: 'last' }
+          }
+        });
+        orderBy.push({
+          start_date: {
+            day: { sort: 'desc', nulls: 'last' }
+          }
+        });
+        break;
+      case 'START_DATE_ASC':
+        orderBy.push({
+          start_date: {
+            year: { sort: 'asc', nulls: 'last' }
+          }
+        });
+        orderBy.push({
+          start_date: {
+            month: { sort: 'asc', nulls: 'last' }
+          }
+        });
+        orderBy.push({
+          start_date: {
+            day: { sort: 'asc', nulls: 'last' }
+          }
+        });
+        break;
+      case 'END_DATE_DESC':
+        orderBy.push({
+          end_date: {
+            year: { sort: 'desc', nulls: 'last' }
+          }
+        });
+        orderBy.push({
+          end_date: {
+            month: { sort: 'desc', nulls: 'last' }
+          }
+        });
+        orderBy.push({
+          end_date: {
+            day: { sort: 'desc', nulls: 'last' }
+          }
+        });
+        break;
+      case 'END_DATE_ASC':
+        orderBy.push({
+          end_date: {
+            year: { sort: 'asc', nulls: 'last' }
+          }
+        });
+        orderBy.push({
+          end_date: {
+            month: { sort: 'asc', nulls: 'last' }
+          }
+        });
+        orderBy.push({
+          end_date: {
+            day: { sort: 'asc', nulls: 'last' }
+          }
+        });
+        break;
+      case 'UPDATED_AT_DESC':
+        orderBy.push({ updated_at: 'desc' });
+        break;
+      case 'UPDATED_AT_ASC':
+        orderBy.push({ updated_at: 'asc' });
+        break;
+
+      // Episode Sorting
+      case 'EPISODES_DESC':
+        orderBy.push({ episodes: { sort: 'desc', nulls: 'last' } });
+        break;
+      case 'EPISODES_ASC':
+        orderBy.push({ episodes: { sort: 'asc', nulls: 'last' } });
+        break;
+      case 'DURATION_DESC':
+        orderBy.push({ duration: { sort: 'desc', nulls: 'last' } });
+        break;
+      case 'DURATION_ASC':
+        orderBy.push({ duration: { sort: 'asc', nulls: 'last' } });
+        break;
+
+      // Latest Episode Sorting
+      case 'LATEST_EPISODE_DESC':
+        orderBy.push({
+          latest_airing_episode: {
+            airing_at: { sort: 'desc', nulls: 'last' }
+          }
+        });
+        break;
+      case 'LATEST_EPISODE_ASC':
+        orderBy.push({
+          latest_airing_episode: {
+            airing_at: { sort: 'asc', nulls: 'last' }
+          }
+        });
+        break;
+
+      // Next Episode Sorting
+      case 'NEXT_EPISODE_DESC':
+        orderBy.push({
+          next_airing_episode: {
+            airing_at: { sort: 'desc', nulls: 'last' }
+          }
+        });
+        break;
+      case 'NEXT_EPISODE_ASC':
+        orderBy.push({
+          next_airing_episode: {
+            airing_at: { sort: 'asc', nulls: 'last' }
+          }
+        });
+        break;
+
+      // Last Episode Sorting
+      case 'LAST_EPISODE_DESC':
+        orderBy.push({
+          last_airing_episode: {
+            airing_at: { sort: 'desc', nulls: 'last' }
+          }
+        });
+        break;
+      case 'LAST_EPISODE_ASC':
+        orderBy.push({
+          last_airing_episode: {
+            airing_at: { sort: 'asc', nulls: 'last' }
+          }
+        });
+        break;
+
+      // Season Sorting
+      case 'SEASON_YEAR_DESC':
+        orderBy.push({ season_year: { sort: 'desc', nulls: 'last' } });
+        break;
+      case 'SEASON_YEAR_ASC':
+        orderBy.push({ season_year: { sort: 'asc', nulls: 'last' } });
+        break;
+
+      // Format & Type Sorting
+      case 'FORMAT_ASC':
+        orderBy.push({ format: { sort: 'asc', nulls: 'last' } });
+        break;
+      case 'FORMAT_DESC':
+        orderBy.push({ format: { sort: 'desc', nulls: 'last' } });
+        break;
+      case 'TYPE_ASC':
+        orderBy.push({ type: { sort: 'asc', nulls: 'last' } });
+        break;
+      case 'TYPE_DESC':
+        orderBy.push({ type: { sort: 'desc', nulls: 'last' } });
+        break;
+
+      // Status Sorting
+      case 'STATUS_ASC':
+        orderBy.push({ status: { sort: 'asc', nulls: 'last' } });
+        break;
+      case 'STATUS_DESC':
+        orderBy.push({ status: { sort: 'desc', nulls: 'last' } });
+        break;
+    }
+  });
+
+  return {
+    where,
+    orderBy,
+    take: per_page,
+    skip,
+    page
+  };
+};
 
 export const resolvers = {
   Query: {
@@ -23,527 +565,25 @@ export const resolvers = {
     },
 
     animes: async (_: any, args: AnimeArgs) => {
-      const {
-        page = 1,
-        per_page = 20,
-        search,
-        season,
-        season_year,
-        season_year_greater,
-        season_year_lesser,
-        format,
-        format_in,
-        format_not_in,
-        status,
-        status_in,
-        status_not_in,
-        type,
-        source,
-        source_in,
-        country_of_origin,
-        is_licensed,
-        is_adult,
-        genres,
-        genres_in,
-        genres_not_in,
-        tags,
-        tags_in,
-        tags_not_in,
-        minimum_tag_rank,
-        studios,
-        studios_in,
-        score_greater,
-        score_lesser,
-        popularity_greater,
-        popularity_lesser,
-        episodes_greater,
-        episodes_lesser,
-        duration_greater,
-        duration_lesser,
-        start_date_greater,
-        start_date_lesser,
-        end_date_greater,
-        end_date_lesser,
-        start_date_like,
-        end_date_like,
-        has_next_episode,
-        franchise,
-        sort = ['ID_DESC']
-      } = args;
-
-      const skip = (page - 1) * per_page;
-      const where: Prisma.AnimeWhereInput = {};
-
-      if (search) {
-        const tokens = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
-
-        if (tokens.length > 0) {
-          where.AND = tokens.map((token) => ({
-            OR: [
-              { title: { romaji: { contains: token, mode: 'insensitive' } } },
-              { title: { english: { contains: token, mode: 'insensitive' } } },
-              { title: { native: { contains: token, mode: 'insensitive' } } },
-              { synonyms: { hasSome: tokens } },
-              { meta: { titles: { some: { title: { contains: token, mode: 'insensitive' } } } } }
-            ]
-          }));
-        }
-      }
-
-      // Season filters
-      if (season) where.season = season;
-      if (season_year) where.season_year = season_year;
-      if (season_year_greater) {
-        where.season_year = { ...(where.season_year as any), gte: season_year_greater };
-      }
-      if (season_year_lesser) {
-        where.season_year = { ...(where.season_year as any), lte: season_year_lesser };
-      }
-
-      // Format filters
-      if (format) where.format = format;
-      if (format_in && format_in.length > 0) {
-        where.format = { in: format_in };
-      }
-      if (format_not_in && format_not_in.length > 0) {
-        where.format = { ...(where.format as any), notIn: format_not_in };
-      }
-
-      // Status filters
-      if (status) where.status = status;
-      if (status_in && status_in.length > 0) {
-        where.status = { in: status_in };
-      }
-      if (status_not_in && status_not_in.length > 0) {
-        where.status = { ...(where.status as any), notIn: status_not_in };
-      }
-
-      // Type and source filters
-      if (type) where.type = type;
-      if (source) where.source = source;
-      if (source_in && source_in.length > 0) {
-        where.source = { in: source_in };
-      }
-      if (country_of_origin) where.country_of_origin = country_of_origin;
-
-      // Boolean filters
-      if (is_licensed !== undefined) where.is_licensed = is_licensed;
-      if (is_adult !== undefined) where.is_adult = is_adult;
-      if (has_next_episode !== undefined) {
-        if (has_next_episode) {
-          where.next_airing_episode = { isNot: null };
-        } else {
-          where.next_airing_episode = null;
-        }
-      }
-
-      // Genre filters
-      if (genres && genres.length > 0) {
-        where.genres = {
-          some: { name: { in: genres } }
-        };
-      }
-      if (genres_in && genres_in.length > 0) {
-        where.genres = {
-          some: { name: { in: genres_in } }
-        };
-      }
-      if (genres_not_in && genres_not_in.length > 0) {
-        where.genres = {
-          none: { name: { in: genres_not_in } }
-        };
-      }
-
-      // Tag filters
-      if (tags && tags.length > 0) {
-        where.tags = {
-          some: {
-            tag: { name: { in: tags } },
-            ...(minimum_tag_rank ? { rank: { gte: minimum_tag_rank } } : {})
-          }
-        };
-      }
-      if (tags_in && tags_in.length > 0) {
-        where.tags = {
-          some: {
-            tag: { name: { in: tags_in } },
-            ...(minimum_tag_rank ? { rank: { gte: minimum_tag_rank } } : {})
-          }
-        };
-      }
-      if (tags_not_in && tags_not_in.length > 0) {
-        where.tags = {
-          ...(where.tags as any),
-          none: {
-            tag: { name: { in: tags_not_in } }
-          }
-        };
-      }
-
-      // Studio filters
-      if (studios && studios.length > 0) {
-        where.studios = {
-          some: {
-            studio: { name: { in: studios } }
-          }
-        };
-      }
-      if (studios_in && studios_in.length > 0) {
-        where.studios = {
-          some: {
-            studio: { name: { in: studios_in } }
-          }
-        };
-      }
-
-      // Score filters
-      if (score_greater !== undefined) {
-        where.score = { gte: score_greater };
-      }
-      if (score_lesser !== undefined) {
-        where.score = { ...(where.score as any), lte: score_lesser };
-      }
-
-      // Popularity filters
-      if (popularity_greater !== undefined) {
-        where.popularity = { gte: popularity_greater };
-      }
-      if (popularity_lesser !== undefined) {
-        where.popularity = { ...(where.popularity as any), lte: popularity_lesser };
-      }
-
-      // Episode filters
-      if (episodes_greater !== undefined) {
-        where.episodes = { gte: episodes_greater };
-      }
-      if (episodes_lesser !== undefined) {
-        where.episodes = { ...(where.episodes as any), lte: episodes_lesser };
-      }
-
-      // Duration filters
-      if (duration_greater !== undefined) {
-        where.duration = { gte: duration_greater };
-      }
-      if (duration_lesser !== undefined) {
-        where.duration = { ...(where.duration as any), lte: duration_lesser };
-      }
-
-      // Date filters (format: YYYY, YYYY-MM, or YYYY-MM-DD)
-      if (start_date_greater) {
-        const parts = start_date_greater.split('-').map(Number);
-        where.start_date = {
-          OR: [
-            { year: { gt: parts[0] } },
-            {
-              AND: [{ year: parts[0] }, parts[1] ? { month: { gte: parts[1] } } : {}]
-            }
-          ]
-        };
-      }
-      if (start_date_lesser) {
-        const parts = start_date_lesser.split('-').map(Number);
-        where.start_date = {
-          ...(where.start_date as any),
-          OR: [
-            { year: { lt: parts[0] } },
-            {
-              AND: [{ year: parts[0] }, parts[1] ? { month: { lte: parts[1] } } : {}]
-            }
-          ]
-        };
-      }
-      if (start_date_like) {
-        const parts = start_date_like.split('-').map(Number);
-        where.start_date = {
-          year: parts[0],
-          ...(parts[1] ? { month: parts[1] } : {}),
-          ...(parts[2] ? { day: parts[2] } : {})
-        };
-      }
-
-      if (end_date_greater) {
-        const parts = end_date_greater.split('-').map(Number);
-        where.end_date = {
-          OR: [
-            { year: { gt: parts[0] } },
-            {
-              AND: [{ year: parts[0] }, parts[1] ? { month: { gte: parts[1] } } : {}]
-            }
-          ]
-        };
-      }
-      if (end_date_lesser) {
-        const parts = end_date_lesser.split('-').map(Number);
-        where.end_date = {
-          ...(where.end_date as any),
-          OR: [
-            { year: { lt: parts[0] } },
-            {
-              AND: [{ year: parts[0] }, parts[1] ? { month: { lte: parts[1] } } : {}]
-            }
-          ]
-        };
-      }
-      if (end_date_like) {
-        const parts = end_date_like.split('-').map(Number);
-        where.end_date = {
-          year: parts[0],
-          ...(parts[1] ? { month: parts[1] } : {}),
-          ...(parts[2] ? { day: parts[2] } : {})
-        };
-      }
-
-      if (franchise) {
-        where.meta = {
-          franchise
-        };
-      }
-
-      const orderBy: Prisma.AnimeOrderByWithRelationInput[] = [];
-
-      sort.forEach((s) => {
-        switch (s) {
-          // ID Sorting
-          case 'ID_DESC':
-            orderBy.push({ id: 'desc' });
-            break;
-          case 'ID_ASC':
-            orderBy.push({ id: 'asc' });
-            break;
-
-          // Title Sorting
-          case 'TITLE_ROMAJI':
-            orderBy.push({ title: { romaji: 'asc' } });
-            break;
-          case 'TITLE_ROMAJI_DESC':
-            orderBy.push({ title: { romaji: 'desc' } });
-            break;
-          case 'TITLE_ENGLISH':
-            orderBy.push({ title: { english: 'asc' } });
-            break;
-          case 'TITLE_ENGLISH_DESC':
-            orderBy.push({ title: { english: 'desc' } });
-            break;
-          case 'TITLE_NATIVE':
-            orderBy.push({ title: { native: 'asc' } });
-            break;
-          case 'TITLE_NATIVE_DESC':
-            orderBy.push({ title: { native: 'desc' } });
-            break;
-
-          // Score & Stats Sorting
-          case 'SCORE_DESC':
-            orderBy.push({ score: { sort: 'desc', nulls: 'last' } });
-            break;
-          case 'SCORE_ASC':
-            orderBy.push({ score: { sort: 'asc', nulls: 'last' } });
-            break;
-          case 'POPULARITY_DESC':
-            orderBy.push({ popularity: { sort: 'desc', nulls: 'last' } });
-            break;
-          case 'POPULARITY_ASC':
-            orderBy.push({ popularity: { sort: 'asc', nulls: 'last' } });
-            break;
-          case 'TRENDING_DESC':
-            orderBy.push({ trending: { sort: 'desc', nulls: 'last' } });
-            break;
-          case 'TRENDING_ASC':
-            orderBy.push({ trending: { sort: 'asc', nulls: 'last' } });
-            break;
-          case 'FAVORITES_DESC':
-            orderBy.push({ favorites: { sort: 'desc', nulls: 'last' } });
-            break;
-          case 'FAVORITES_ASC':
-            orderBy.push({ favorites: { sort: 'asc', nulls: 'last' } });
-            break;
-
-          // Date Sorting
-          case 'START_DATE_DESC':
-            orderBy.push({
-              start_date: {
-                year: { sort: 'desc', nulls: 'last' }
-              }
-            });
-            orderBy.push({
-              start_date: {
-                month: { sort: 'desc', nulls: 'last' }
-              }
-            });
-            orderBy.push({
-              start_date: {
-                day: { sort: 'desc', nulls: 'last' }
-              }
-            });
-            break;
-          case 'START_DATE_ASC':
-            orderBy.push({
-              start_date: {
-                year: { sort: 'asc', nulls: 'last' }
-              }
-            });
-            orderBy.push({
-              start_date: {
-                month: { sort: 'asc', nulls: 'last' }
-              }
-            });
-            orderBy.push({
-              start_date: {
-                day: { sort: 'asc', nulls: 'last' }
-              }
-            });
-            break;
-          case 'END_DATE_DESC':
-            orderBy.push({
-              end_date: {
-                year: { sort: 'desc', nulls: 'last' }
-              }
-            });
-            orderBy.push({
-              end_date: {
-                month: { sort: 'desc', nulls: 'last' }
-              }
-            });
-            orderBy.push({
-              end_date: {
-                day: { sort: 'desc', nulls: 'last' }
-              }
-            });
-            break;
-          case 'END_DATE_ASC':
-            orderBy.push({
-              end_date: {
-                year: { sort: 'asc', nulls: 'last' }
-              }
-            });
-            orderBy.push({
-              end_date: {
-                month: { sort: 'asc', nulls: 'last' }
-              }
-            });
-            orderBy.push({
-              end_date: {
-                day: { sort: 'asc', nulls: 'last' }
-              }
-            });
-            break;
-          case 'UPDATED_AT_DESC':
-            orderBy.push({ updated_at: 'desc' });
-            break;
-          case 'UPDATED_AT_ASC':
-            orderBy.push({ updated_at: 'asc' });
-            break;
-
-          // Episode Sorting
-          case 'EPISODES_DESC':
-            orderBy.push({ episodes: { sort: 'desc', nulls: 'last' } });
-            break;
-          case 'EPISODES_ASC':
-            orderBy.push({ episodes: { sort: 'asc', nulls: 'last' } });
-            break;
-          case 'DURATION_DESC':
-            orderBy.push({ duration: { sort: 'desc', nulls: 'last' } });
-            break;
-          case 'DURATION_ASC':
-            orderBy.push({ duration: { sort: 'asc', nulls: 'last' } });
-            break;
-
-          // Latest Episode Sorting
-          case 'LATEST_EPISODE_DESC':
-            orderBy.push({
-              latest_airing_episode: {
-                airing_at: { sort: 'desc', nulls: 'last' }
-              }
-            });
-            break;
-          case 'LATEST_EPISODE_ASC':
-            orderBy.push({
-              latest_airing_episode: {
-                airing_at: { sort: 'asc', nulls: 'last' }
-              }
-            });
-            break;
-
-          // Next Episode Sorting
-          case 'NEXT_EPISODE_DESC':
-            orderBy.push({
-              next_airing_episode: {
-                airing_at: { sort: 'desc', nulls: 'last' }
-              }
-            });
-            break;
-          case 'NEXT_EPISODE_ASC':
-            orderBy.push({
-              next_airing_episode: {
-                airing_at: { sort: 'asc', nulls: 'last' }
-              }
-            });
-            break;
-
-          // Last Episode Sorting
-          case 'LAST_EPISODE_DESC':
-            orderBy.push({
-              last_airing_episode: {
-                airing_at: { sort: 'desc', nulls: 'last' }
-              }
-            });
-            break;
-          case 'LAST_EPISODE_ASC':
-            orderBy.push({
-              last_airing_episode: {
-                airing_at: { sort: 'asc', nulls: 'last' }
-              }
-            });
-            break;
-
-          // Season Sorting
-          case 'SEASON_YEAR_DESC':
-            orderBy.push({ season_year: { sort: 'desc', nulls: 'last' } });
-            break;
-          case 'SEASON_YEAR_ASC':
-            orderBy.push({ season_year: { sort: 'asc', nulls: 'last' } });
-            break;
-
-          // Format & Type Sorting
-          case 'FORMAT_ASC':
-            orderBy.push({ format: { sort: 'asc', nulls: 'last' } });
-            break;
-          case 'FORMAT_DESC':
-            orderBy.push({ format: { sort: 'desc', nulls: 'last' } });
-            break;
-          case 'TYPE_ASC':
-            orderBy.push({ type: { sort: 'asc', nulls: 'last' } });
-            break;
-          case 'TYPE_DESC':
-            orderBy.push({ type: { sort: 'desc', nulls: 'last' } });
-            break;
-
-          // Status Sorting
-          case 'STATUS_ASC':
-            orderBy.push({ status: { sort: 'asc', nulls: 'last' } });
-            break;
-          case 'STATUS_DESC':
-            orderBy.push({ status: { sort: 'desc', nulls: 'last' } });
-            break;
-        }
-      });
+      const { where, orderBy, skip, take, page } = filterAnime(args);
 
       const [data, total] = await Promise.all([
         prisma.anime.findMany({
           where,
           orderBy,
           skip,
-          take: per_page
+          take
         }),
         prisma.anime.count({ where })
       ]);
 
-      const last_page = Math.ceil(total / per_page);
+      const last_page = Math.ceil(total / take);
 
       return {
         data,
         page_info: {
           total,
-          per_page,
+          per_page: take,
           current_page: page,
           last_page,
           has_next_page: page < last_page
@@ -609,6 +649,76 @@ export const resolvers = {
         orderBy: { name: 'asc' },
         take: 50
       });
+    },
+
+    episode_by_id: async (_: any, args: EpisodeArgs) => {
+      const [translations, images, episode] = await Promise.all([
+        Tmdb.getEpisodeTranslations(args.id),
+        Tmdb.getEpisodeImages(args.id),
+        prisma.episode.findUnique({
+          where: { id: args.id },
+          include: {
+            thumbnail: true
+          }
+        })
+      ]);
+
+      const formattedImages = images.map((i) => ({
+        height: i.height,
+        width: i.width,
+        iso_639_1: i.iso_639_1 ?? '',
+        image: {
+          small: TmdbUtils.getImage('w500', i.file_path),
+          medium: TmdbUtils.getImage('w780', i.file_path),
+          large: TmdbUtils.getImage('original', i.file_path)
+        }
+      }));
+
+      console.log(formattedImages);
+
+      return {
+        ...episode,
+        translation: translations,
+        images: formattedImages
+      };
+    },
+
+    chronology: async (_: any, args: ChronologyArgs) => {
+      const chronologyEntries = await prisma.chronology.findMany({
+        where: { meta_id: args.parent_id },
+        orderBy: { order: 'asc' }
+      });
+
+      const animeIds = chronologyEntries.map((c) => c.related_id);
+
+      if (animeIds.length === 0) return [];
+
+      args.id_mal_in = animeIds;
+
+      const { where, orderBy, skip, take, page } = filterAnime(args);
+
+      const [data, total] = await Promise.all([
+        prisma.anime.findMany({
+          where,
+          orderBy,
+          skip,
+          take
+        }),
+        prisma.anime.count({ where })
+      ]);
+
+      const last_page = Math.ceil(total / take);
+
+      return {
+        data,
+        page_info: {
+          total,
+          per_page: take,
+          current_page: page,
+          last_page,
+          has_next_page: page < last_page
+        }
+      };
     }
   },
 
@@ -760,22 +870,7 @@ export const resolvers = {
 
     meta: async (parent: any) => {
       return prisma.meta.findUnique({
-        where: { id: parent.id },
-        include: {
-          titles: true,
-          descriptions: true,
-          images: true,
-          mappings: true,
-          episodes: {
-            include: {
-              thumbnail: true
-            }
-          },
-          videos: true,
-          screenshots: true,
-          artworks: true,
-          chronology: true
-        }
+        where: { id: parent.id }
       });
     }
   },
@@ -804,18 +899,91 @@ export const resolvers = {
   },
 
   Meta: {
-    episodes: async (parent: any) => {
-      return prisma.episode.findMany({
+    titles: async (parent: any) => {
+      return prisma.title.findMany({
         where: {
           parent: {
             some: {
               id: parent.id
             }
           }
-        },
-        include: {
-          thumbnail: true
         }
+      });
+    },
+
+    descriptions: async (parent: any) => {
+      return prisma.description.findMany({
+        where: {
+          parent: {
+            some: {
+              id: parent.id
+            }
+          }
+        }
+      });
+    },
+
+    images: async (parent: any) => {
+      return prisma.image.findMany({
+        where: {
+          parent: {
+            some: {
+              id: parent.id
+            }
+          }
+        }
+      });
+    },
+
+    mappings: async (parent: any) => {
+      return prisma.mapping.findMany({
+        where: { meta_id: parent.id }
+      });
+    },
+
+    episodes: async (parent: any, args: EpisodesArgs) => {
+      const { page = 1, per_page = 20 } = args;
+      return prisma.episode.findMany({
+        where: { parent: { some: { id: parent.id } } },
+        include: { thumbnail: true },
+        skip: (page - 1) * per_page,
+        take: per_page
+      });
+    },
+
+    videos: async (parent: any) => {
+      return prisma.video.findMany({
+        where: {
+          parent: {
+            some: {
+              id: parent.id
+            }
+          }
+        }
+      });
+    },
+
+    screenshots: async (parent: any) => {
+      return prisma.screenshot.findMany({
+        where: {
+          parent: {
+            some: {
+              id: parent.id
+            }
+          }
+        }
+      });
+    },
+
+    artworks: async (parent: any, args: ArtworksArgs) => {
+      const { page = 1, per_page = 20, iso_639_1 } = args;
+      return prisma.artwork.findMany({
+        where: {
+          parent: { some: { id: parent.id } },
+          ...(iso_639_1 ? { iso_639_1 } : {})
+        },
+        skip: (page - 1) * per_page,
+        take: per_page
       });
     },
 
