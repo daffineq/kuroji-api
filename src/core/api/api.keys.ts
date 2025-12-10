@@ -1,75 +1,72 @@
 import crypto, { createHash } from 'crypto';
 import { Context } from 'hono';
+import { Module } from 'src/helpers/module';
 import { prisma, Prisma } from 'src/lib/prisma';
 
-const generate = async (): Promise<string> => {
-  const key = crypto.randomBytes(32).toString('base64url');
-  const hashed = createHash('sha256').update(key).digest('hex');
+class ApiKeysModule extends Module {
+  override readonly name = 'ApiKeys';
 
-  await prisma.apiKey.create({
-    data: {
-      key: hashed
-    }
-  });
+  async generate(): Promise<string> {
+    const key = crypto.randomBytes(32).toString('base64url');
+    const hashed = createHash('sha256').update(key).digest('hex');
 
-  return key;
-};
+    await prisma.apiKey.create({
+      data: {
+        key: hashed
+      }
+    });
 
-const validate = async (key: string): Promise<boolean> => {
-  const hashed = createHash('sha256').update(key).digest('hex');
-  const apiKey = await prisma.apiKey.findUnique({
-    where: {
-      key: hashed
-    }
-  });
+    return key;
+  }
 
-  return !!apiKey;
-};
+  async validate(key: string): Promise<boolean> {
+    const hashed = createHash('sha256').update(key).digest('hex');
+    const apiKey = await prisma.apiKey.findUnique({
+      where: {
+        key: hashed
+      }
+    });
 
-const used = async (key: string, c: Context) => {
-  const hashed = createHash('sha256').update(key).digest('hex');
+    return !!apiKey;
+  }
 
-  const apiKey = await prisma.apiKey.findUnique({
-    where: { key: hashed }
-  });
+  async used(key: string, c: Context) {
+    const hashed = createHash('sha256').update(key).digest('hex');
 
-  if (!apiKey) return;
+    const apiKey = await prisma.apiKey.findUnique({
+      where: { key: hashed }
+    });
 
-  const ip =
-    c.req.header('cf-connecting-ip') ??
-    c.req.header('x-forwarded-for') ??
-    c.req.header('x-real-ip') ??
-    '127.0.0.1';
+    if (!apiKey) return;
 
-  await prisma.apiKeyUsage.create({
-    data: {
-      api_key_id: apiKey.id,
-      endpoint: c.req.path,
-      method: c.req.method,
-      origin: c.req.header('origin') ?? undefined,
-      user_agent: c.req.header('user-agent') ?? undefined,
-      ip
-    }
-  });
-};
+    const ip =
+      c.req.header('cf-connecting-ip') ??
+      c.req.header('x-forwarded-for') ??
+      c.req.header('x-real-ip') ??
+      '127.0.0.1';
 
-const get = async <T extends Prisma.ApiKeyDefaultArgs>(
-  key: string,
-  args?: T
-): Promise<Prisma.ApiKeyGetPayload<T>> => {
-  const hashed = createHash('sha256').update(key).digest('hex');
+    await prisma.apiKeyUsage.create({
+      data: {
+        api_key_id: apiKey.id,
+        endpoint: c.req.path,
+        method: c.req.method,
+        origin: c.req.header('origin') ?? undefined,
+        user_agent: c.req.header('user-agent') ?? undefined,
+        ip
+      }
+    });
+  }
 
-  return prisma.apiKey.findUnique({
-    where: { key: hashed },
-    ...(args as Prisma.ApiKeyDefaultArgs)
-  }) as unknown as Prisma.ApiKeyGetPayload<T>;
-};
+  async get<T extends Prisma.ApiKeyDefaultArgs>(key: string, args?: T): Promise<Prisma.ApiKeyGetPayload<T>> {
+    const hashed = createHash('sha256').update(key).digest('hex');
 
-const ApiKeys = {
-  generate,
-  used,
-  validate,
-  get
-};
+    return prisma.apiKey.findUnique({
+      where: { key: hashed },
+      ...(args as Prisma.ApiKeyDefaultArgs)
+    }) as unknown as Prisma.ApiKeyGetPayload<T>;
+  }
+}
 
-export { ApiKeys };
+const ApiKeys = new ApiKeysModule();
+
+export { ApiKeys, ApiKeysModule };

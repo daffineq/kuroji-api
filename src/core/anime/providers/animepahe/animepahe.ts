@@ -6,85 +6,89 @@ import { metaSelect } from '../../meta/types';
 import { AnimepaheFetch } from './helpers/animepahe.fetch';
 import { Anilist, AnilistUtils } from '../anilist';
 import { Meta } from '../../meta';
+import { ProviderModule } from 'src/helpers/module';
 
-const getInfo = async (id: number): Promise<AnimepaheInfo> => {
-  const key = getKey('animepahe', 'info', id);
+class AnimepaheModule extends ProviderModule<AnimepaheInfo> {
+  override readonly name = 'animepahe';
+  override readonly logo =
+    'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fplay-lh.googleusercontent.com%2FZn_w34b1OId-07zs7vVPpxylz9RZFfuJBP2o37gkO_muf2rWc-VIzi47dxJZnR2ne80&f=1&nofb=1&ipt=f64aae80bb47cd380f9a2323c6e86ca4bdd5b18c64cc3052c74a3905909d5f1a';
 
-  const cached = await Redis.get<AnimepaheInfo>(key);
+  override async getInfo(id: number): Promise<AnimepaheInfo> {
+    const key = getKey('animepahe', 'info', id);
 
-  if (cached) {
-    return cached;
-  }
+    const cached = await Redis.get<AnimepaheInfo>(key);
 
-  const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
+    if (cached) {
+      return cached;
+    }
 
-  const paheId = meta?.mappings.find((mapping) => mapping.source_name === 'animepahe')?.source_id;
+    const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
-  if (paheId) {
-    const animepahe = await AnimepaheFetch.fetchInfo(paheId);
+    const paheId = meta?.mappings.find((mapping) => mapping.source_name === 'animepahe')?.source_id;
 
-    await Redis.set(key, animepahe);
+    if (paheId) {
+      const animepahe = await AnimepaheFetch.fetchInfo(paheId);
 
-    return animepahe;
-  } else {
-    const animepahe = await find(id);
+      await Redis.set(key, animepahe);
 
-    await Meta.addMapping(id, {
-      id: animepahe.id as string,
-      name: 'animepahe'
-    });
+      return animepahe;
+    } else {
+      const animepahe = await this.find(id);
 
-    await Redis.set(key, animepahe);
+      await Meta.addSingleMapping(id, {
+        id: animepahe.id as string,
+        name: 'animepahe'
+      });
 
-    return animepahe;
-  }
-};
+      await Redis.set(key, animepahe);
 
-const find = async (id: number) => {
-  const al = await Anilist.getInfo(id);
-
-  if (!al) throw new NotFoundError('Anilist not found');
-
-  const search = await AnimepaheFetch.search(deepCleanTitle(al.title?.romaji ?? ''));
-
-  const results = search.map((result) => ({
-    titles: [result.title as string],
-    id: result.id as string,
-    type: result.metadata?.type ?? undefined,
-    year: result.metadata?.year ?? undefined
-  }));
-
-  const searchCriteria: ExpectAnime = {
-    titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.synonyms],
-    year: al.seasonYear ?? undefined,
-    type: al.format ?? undefined,
-    episodes: AnilistUtils.findEpisodeCount(al)
-  };
-
-  const exclude: string[] = [];
-
-  for (let i = 0; i < 3; i++) {
-    const bestMatch = findBestMatch(searchCriteria, results, exclude);
-
-    if (bestMatch) {
-      const data = await AnimepaheFetch.fetchInfo(bestMatch.result.id);
-
-      if ((data.idAl && Number(data.idAl) === al.id) || (data.idMal && Number(data.idMal) === al.idMal)) {
-        data.idAl = id;
-        return data;
-      } else {
-        exclude.push(bestMatch.result.id);
-        continue;
-      }
+      return animepahe;
     }
   }
 
-  throw new NotFoundError('Animepahe not found');
-};
+  async find(id: number) {
+    const al = await Anilist.getInfo(id);
 
-const Animepahe = {
-  getInfo,
-  find
-};
+    if (!al) throw new NotFoundError('Anilist not found');
 
-export { Animepahe };
+    const search = await AnimepaheFetch.search(deepCleanTitle(al.title?.romaji ?? ''));
+
+    const results = search.map((result) => ({
+      titles: [result.title as string],
+      id: result.id as string,
+      type: result.metadata?.type ?? undefined,
+      year: result.metadata?.year ?? undefined
+    }));
+
+    const searchCriteria: ExpectAnime = {
+      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.synonyms],
+      year: al.seasonYear ?? undefined,
+      type: al.format ?? undefined,
+      episodes: AnilistUtils.findEpisodeCount(al)
+    };
+
+    const exclude: string[] = [];
+
+    for (let i = 0; i < 3; i++) {
+      const bestMatch = findBestMatch(searchCriteria, results, exclude);
+
+      if (bestMatch) {
+        const data = await AnimepaheFetch.fetchInfo(bestMatch.result.id);
+
+        if ((data.idAl && Number(data.idAl) === al.id) || (data.idMal && Number(data.idMal) === al.idMal)) {
+          data.idAl = id;
+          return data;
+        } else {
+          exclude.push(bestMatch.result.id);
+          continue;
+        }
+      }
+    }
+
+    throw new NotFoundError('Animepahe not found');
+  }
+}
+
+const Animepahe = new AnimepaheModule();
+
+export { Animepahe, AnimepaheModule };

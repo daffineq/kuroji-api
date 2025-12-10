@@ -6,6 +6,7 @@ import lock from 'src/helpers/lock';
 import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
 import { AnimeUpdateFetch } from './anime.update.fetch';
 import { Anime } from '../anime';
+import { Module } from 'src/helpers/module';
 
 export interface QueueItem {
   animeId: number;
@@ -30,7 +31,9 @@ const MAX_QUEUE_SIZE = 1000;
 const MAX_RETRIES = 3;
 
 @EnableSchedule
-class AnimeUpdate {
+class AnimeUpdateModule extends Module {
+  override readonly name = 'AnimeUpdate';
+
   private async cleanupOldQueueItems() {
     try {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -536,6 +539,6 @@ class AnimeUpdate {
   }
 }
 
-const animeUpdate = new AnimeUpdate();
+const AnimeUpdate = new AnimeUpdateModule();
 
-export default animeUpdate;
+export { AnimeUpdate, AnimeUpdateModule };

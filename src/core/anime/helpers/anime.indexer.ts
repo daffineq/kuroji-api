@@ -6,9 +6,12 @@ import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/sched
 import env from 'src/config/env';
 import { AnilistFetch } from '../providers';
 import { Anime } from '../anime';
+import { Module } from 'src/helpers/module';
 
 @EnableSchedule
-class AnimeIndexer {
+class AnimeIndexerModule extends Module {
+  override readonly name = 'AnimeIndexer';
+
   private delay: number = 5;
 
   private async index(): Promise<void> {
@@ -137,6 +140,6 @@ class AnimeIndexer {
   }
 }
 
-const animeIndexer = new AnimeIndexer();
+const AnimeIndexer = new AnimeIndexerModule();
 
-export default animeIndexer;
+export { AnimeIndexer, AnimeIndexerModule };

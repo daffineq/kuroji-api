@@ -1,109 +1,80 @@
 import { AnilistMedia } from './providers/anilist/types';
 import { prisma, Prisma } from 'src/lib/prisma';
-import { MetaInfo } from 'src/helpers/response';
-import { BadRequestError } from 'src/helpers/errors';
-import { Anilist, Kitsu, Mal, Shikimori, Tmdb, TmdbSeasons, Tvdb } from './providers';
+import { Anilist, Kitsu, MyAnimeList, Shikimori, Tmdb, TmdbSeasons, Tvdb } from './providers';
 import { AnimePrisma } from './helpers/anime.prisma';
 import { Meta } from './meta';
+import { Module } from 'src/helpers/module';
 
-const fetchOrCreate = async <T extends Prisma.AnimeDefaultArgs>(
-  id: number,
-  args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
-): Promise<Prisma.AnimeGetPayload<T>> => {
-  const existing = await prisma.anime.findUnique({
-    where: { id },
-    ...(args as Prisma.AnimeDefaultArgs)
-  });
+class AnimeModule extends Module {
+  override readonly name = 'Anime';
 
-  if (existing) {
-    return existing as Prisma.AnimeGetPayload<T>;
+  async fetchOrCreate<T extends Prisma.AnimeDefaultArgs>(
+    id: number,
+    args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
+  ): Promise<Prisma.AnimeGetPayload<T>> {
+    const existing = await prisma.anime.findUnique({
+      where: { id },
+      ...(args as Prisma.AnimeDefaultArgs)
+    });
+
+    if (existing) {
+      return existing as Prisma.AnimeGetPayload<T>;
+    }
+
+    const al = await Anilist.getInfo(id);
+
+    return this.save(al, args);
   }
 
-  const al = await Anilist.getInfo(id);
-
-  return save(al, args);
-};
-
-const updateOrCreate = async <T extends Prisma.AnimeDefaultArgs>(
-  id: number,
-  args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
-): Promise<Prisma.AnimeGetPayload<T>> => {
-  return update(id, args);
-};
-
-const update = async <T extends Prisma.AnimeDefaultArgs>(
-  id: number,
-  args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
-): Promise<Prisma.AnimeGetPayload<T>> => {
-  const al = await Anilist.getInfo(id);
-
-  return save(al, args);
-};
-
-const many = async <T extends Prisma.AnimeFindManyArgs>(
-  find?: T
-): Promise<{ meta: MetaInfo; data: Prisma.AnimeGetPayload<T>[] }> => {
-  if (find?.take && find.take > 50) {
-    throw new BadRequestError('Nawwww, Maximum take is 50');
+  async updateOrCreate<T extends Prisma.AnimeDefaultArgs>(
+    id: number,
+    args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
+  ): Promise<Prisma.AnimeGetPayload<T>> {
+    return this.update(id, args);
   }
 
-  const [total, data] = await Promise.all([
-    prisma.anime.count({ where: find?.where }),
-    prisma.anime.findMany(find)
-  ]);
+  async update<T extends Prisma.AnimeDefaultArgs>(
+    id: number,
+    args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
+  ): Promise<Prisma.AnimeGetPayload<T>> {
+    const al = await Anilist.getInfo(id);
 
-  const page = find?.skip ? Math.floor(find.skip / (find.take ?? 1)) + 1 : 1;
-  const perPage = find?.take || 1;
+    return this.save(al, args);
+  }
 
-  return {
-    meta: { total, page, perPage, hasNextPage: total > page * perPage },
-    data: data as Prisma.AnimeGetPayload<T>[]
-  };
-};
+  async save<T extends Prisma.AnimeDefaultArgs>(
+    al: AnilistMedia,
+    args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
+  ): Promise<Prisma.AnimeGetPayload<T>> {
+    await prisma.anime.upsert({
+      where: { id: al.id },
+      update: await AnimePrisma.getAnime(al),
+      create: await AnimePrisma.getAnime(al)
+    });
 
-const first = async <T extends Prisma.AnimeFindFirstArgs>(find?: T) => {
-  return prisma.anime.findFirst(find);
-};
+    await this.initProviders(al.id, al.idMal);
 
-const save = async <T extends Prisma.AnimeDefaultArgs>(
-  al: AnilistMedia,
-  args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
-): Promise<Prisma.AnimeGetPayload<T>> => {
-  await prisma.anime.upsert({
-    where: { id: al.id },
-    update: await AnimePrisma.getAnime(al),
-    create: await AnimePrisma.getAnime(al)
-  });
+    return prisma.anime.findUnique({
+      where: { id: al.id },
+      ...(args as Prisma.AnimeDefaultArgs)
+    }) as unknown as Promise<Prisma.AnimeGetPayload<T>>;
+  }
 
-  await initProviders(al.id, al.idMal);
+  async initProviders(id: number, idMal: number | undefined) {
+    await Meta.loadMappings(id);
 
-  return prisma.anime.findUnique({
-    where: { id: al.id },
-    ...(args as Prisma.AnimeDefaultArgs)
-  }) as unknown as Promise<Prisma.AnimeGetPayload<T>>;
-};
+    await Promise.all([
+      MyAnimeList.getInfo(id, idMal).catch(() => null),
+      Shikimori.getInfo(id, idMal).catch(() => null),
+      Kitsu.getInfo(id).catch(() => null),
+      Tmdb.getInfo(id).catch(() => null),
+      Tvdb.getInfo(id).catch(() => null)
+    ]);
 
-const initProviders = async (id: number, idMal: number | undefined) => {
-  await Meta.loadMappings(id);
+    await TmdbSeasons.getSeason(id).catch(() => null);
+  }
+}
 
-  await Promise.all([
-    Mal.getInfo(id, idMal).catch(() => null),
-    Shikimori.getInfo(id, idMal).catch(() => null),
-    Kitsu.getInfo(id).catch(() => null),
-    Tmdb.getInfo(id).catch(() => null),
-    Tvdb.getInfo(id).catch(() => null)
-  ]);
+const Anime = new AnimeModule();
 
-  await TmdbSeasons.getSeason(id).catch(() => null);
-};
-
-const Anime = {
-  fetchOrCreate,
-  updateOrCreate,
-  many,
-  first,
-  update,
-  save
-};
-
-export { Anime };
+export { Anime, AnimeModule };

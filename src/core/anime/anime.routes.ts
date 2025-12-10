@@ -4,8 +4,8 @@ import { zValidator } from '@hono/zod-validator';
 import { describeRoute } from 'hono-openapi';
 import { parseNumber } from 'src/helpers/parsers';
 import { createSuccessResponse } from 'src/helpers/response';
-import animeIndexer from './helpers/anime.indexer';
-import animeUpdate from './helpers/anime.update';
+import { AnimeIndexer } from './helpers/anime.indexer';
+import { AnimeUpdate } from './helpers/anime.update';
 import logger from 'src/helpers/logger';
 import { describeTags } from 'src/helpers/docs';
 import { Anime } from './anime';
@@ -51,7 +51,7 @@ animeRoute.post(
   async (c) => {
     const { delay } = c.req.valid('query') as { delay?: number };
 
-    const start = await animeIndexer.start(delay);
+    const start = await AnimeIndexer.start(delay);
 
     return c.json(
       createSuccessResponse({
@@ -70,7 +70,7 @@ animeRoute.post(
     }
   }),
   async (c) => {
-    animeIndexer.stop();
+    AnimeIndexer.stop();
 
     return c.json(
       createSuccessResponse({
@@ -89,7 +89,7 @@ animeRoute.post(
     }
   }),
   async (c) => {
-    animeIndexer.setLastFetchedPage(1);
+    AnimeIndexer.setLastFetchedPage(1);
 
     return c.json(
       createSuccessResponse({
@@ -109,7 +109,7 @@ animeRoute.put(
     }
   }),
   async (c) => {
-    animeUpdate.processQueue().catch((error) => {
+    AnimeUpdate.processQueue().catch((error) => {
       logger.error('Error processing update queue:', error);
     });
 

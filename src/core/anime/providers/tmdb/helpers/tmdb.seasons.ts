@@ -14,153 +14,156 @@ import { Kitsu } from '../../kitsu';
 import { TmdbFetch } from './tmdb.fetch';
 import { AnimeUtils } from 'src/core/anime/helpers';
 import { Meta } from 'src/core/anime/meta';
+import { Module } from 'src/helpers/module';
 
-const getSeason = async (id: number): Promise<SeasonTmdb> => {
-  const key = getKey('tmdb', 'seasons', id);
+class TmdbSeasonsModule extends Module {
+  override readonly name = 'TmdbSeasons';
 
-  const cached = await Redis.get<SeasonTmdb>(key);
+  async getSeason(id: number): Promise<SeasonTmdb> {
+    const key = getKey('tmdb', 'seasons', id);
 
-  if (cached) {
-    return cached;
+    const cached = await Redis.get<SeasonTmdb>(key);
+
+    if (cached) {
+      return cached;
+    }
+
+    const al = await Anilist.getInfo(id);
+
+    if (!al) {
+      throw new NotFoundError('Anilist not found');
+    }
+
+    if (TmdbUtils.getTmdbTypeByAl(al.format) === 'MOVIE') {
+      throw new Error("LMAO, movies can't have seasons, you baka!");
+    }
+
+    const tmdb = await Tmdb.getInfo(id);
+
+    const allEpisodes = await this.getAllEpisodes(id);
+    const seasonGroups = this.groupEpisodesBySeasons(allEpisodes);
+
+    const [pahe, shik, kit] = await Promise.all([
+      Animepahe.getInfo(id).catch(() => null),
+      Shikimori.getInfo(id).catch(() => null),
+      Kitsu.getInfo(id).catch(() => null)
+    ]);
+
+    const episodeCount = AnimeUtils.getEpisodesCount(al, kit, shik);
+
+    const matchResult = await this.findBestEpisodeSequence(al, pahe, allEpisodes, seasonGroups, episodeCount);
+
+    if (!matchResult.episodes || matchResult.episodes.length === 0) {
+      throw new NotFoundError('Could not find matching episodes for AniList entry');
+    }
+
+    if (matchResult.confidence < 0.4) {
+      throw new Error(`Episode matching confidence too low (${matchResult.confidence.toFixed(2)})`);
+    }
+
+    const season = await TmdbFetch.fetchSeason(tmdb.id, matchResult.primarySeason);
+    if (!season) {
+      throw new NotFoundError('Primary season not found');
+    }
+
+    const trimmedSeason: SeasonTmdb = {
+      ...season,
+      episodes: matchResult.episodes ?? []
+    };
+
+    await Meta.addEpisodes(id, trimmedSeason.episodes);
+
+    await Redis.set(key, trimmedSeason);
+
+    return trimmedSeason;
   }
 
-  const al = await Anilist.getInfo(id);
+  async getAllEpisodes(id: number): Promise<SeasonEpisode[]> {
+    const tmdb = await Tmdb.getInfo(id);
 
-  if (!al) {
-    throw new NotFoundError('Anilist not found');
+    const seasonsPromise = tmdb.seasons!.map((s) => TmdbFetch.fetchSeason(tmdb.id, s.season_number));
+
+    const seasons = await Promise.all(seasonsPromise);
+
+    return seasons
+      .filter((s) => s.episodes && s.episodes.length > 0)
+      .flatMap((s) => s.episodes)
+      .filter((e) => e.season_number != 0)
+      .sort((a, b) => {
+        if (a.season_number !== b.season_number) {
+          return a.season_number - b.season_number;
+        }
+        return a.episode_number - b.episode_number;
+      });
   }
 
-  if (TmdbUtils.getTmdbTypeByAl(al.format) === 'MOVIE') {
-    throw new Error("LMAO, movies can't have seasons, you baka!");
-  }
+  async findBestEpisodeSequence(
+    anilist: AnilistMedia,
+    animepahe: AnimepaheInfo | null,
+    allEpisodes: SeasonEpisode[],
+    seasonGroups: SeasonEpisodeGroup[],
+    episodeCount: number | undefined | null
+  ): Promise<MatchResult> {
+    const strategies = [
+      () => TmdbStrategies.matchByDateRange(anilist, allEpisodes, seasonGroups, episodeCount),
+      () => TmdbStrategies.matchByEpisodeCount(anilist, allEpisodes, seasonGroups, episodeCount),
+      () => TmdbStrategies.matchByAiringSchedule(anilist, allEpisodes, episodeCount),
+      () => TmdbStrategies.matchBySeasonYear(anilist, allEpisodes, seasonGroups, episodeCount),
+      () => TmdbStrategies.matchByAnimepahe(anilist, animepahe, allEpisodes, episodeCount)
+    ];
 
-  const tmdb = await Tmdb.getInfo(id);
+    let bestMatch: MatchResult = {
+      episodes: [],
+      primarySeason: 1,
+      confidence: 0,
+      strategy: MatchStrategy.NONE
+    };
 
-  const allEpisodes = await getAllEpisodes(id);
-  const seasonGroups = groupEpisodesBySeasons(allEpisodes);
+    // console.log(`Trying to match ${episodeCount} episodes for AniList ID ${anilist.id}`);
 
-  const [pahe, shik, kit] = await Promise.all([
-    Animepahe.getInfo(id).catch(() => null),
-    Shikimori.getInfo(id).catch(() => null),
-    Kitsu.getInfo(id).catch(() => null)
-  ]);
+    for (const [index, strategy] of strategies.entries()) {
+      try {
+        const result = await strategy();
+        // console.log(`Strategy ${result.strategy} result:`, {
+        //   episodeCount: result.episodes.length,
+        //   confidence: result.confidence,
+        //   primarySeason: result.primarySeason
+        // });
 
-  const episodeCount = AnimeUtils.getEpisodesCount(al, kit, shik);
-
-  const matchResult = await findBestEpisodeSequence(al, pahe, allEpisodes, seasonGroups, episodeCount);
-
-  if (!matchResult.episodes || matchResult.episodes.length === 0) {
-    throw new NotFoundError('Could not find matching episodes for AniList entry');
-  }
-
-  if (matchResult.confidence < 0.4) {
-    throw new Error(`Episode matching confidence too low (${matchResult.confidence.toFixed(2)})`);
-  }
-
-  const season = await TmdbFetch.fetchSeason(tmdb.id, matchResult.primarySeason);
-  if (!season) {
-    throw new NotFoundError('Primary season not found');
-  }
-
-  const trimmedSeason: SeasonTmdb = {
-    ...season,
-    episodes: matchResult.episodes ?? []
-  };
-
-  await Meta.addEpisodes(id, trimmedSeason.episodes);
-
-  await Redis.set(key, trimmedSeason);
-
-  return trimmedSeason;
-};
-
-const getAllEpisodes = async (id: number): Promise<SeasonEpisode[]> => {
-  const tmdb = await Tmdb.getInfo(id);
-
-  const seasonsPromise = tmdb.seasons!.map((s) => TmdbFetch.fetchSeason(tmdb.id, s.season_number));
-
-  const seasons = await Promise.all(seasonsPromise);
-
-  return seasons
-    .filter((s) => s.episodes && s.episodes.length > 0)
-    .flatMap((s) => s.episodes)
-    .filter((e) => e.season_number != 0)
-    .sort((a, b) => {
-      if (a.season_number !== b.season_number) {
-        return a.season_number - b.season_number;
+        if (result.confidence > bestMatch.confidence) {
+          bestMatch = result;
+        }
+      } catch (error) {
+        logger.warn(`Strategy ${index + 1} failed:`, error);
+        continue;
       }
-      return a.episode_number - b.episode_number;
+    }
+
+    if (bestMatch.confidence < 0.6) {
+      throw new Error('No reliable episode matching strategy succeeded');
+    }
+
+    return bestMatch;
+  }
+
+  groupEpisodesBySeasons = (episodes: SeasonEpisode[]): SeasonEpisodeGroup[] => {
+    const seasonMap = new Map<number, SeasonEpisode[]>();
+
+    episodes.forEach((episode) => {
+      if (!seasonMap.has(episode.season_number)) {
+        seasonMap.set(episode.season_number, []);
+      }
+      seasonMap.get(episode.season_number)!.push(episode);
     });
-};
 
-const findBestEpisodeSequence = async (
-  anilist: AnilistMedia,
-  animepahe: AnimepaheInfo | null,
-  allEpisodes: SeasonEpisode[],
-  seasonGroups: SeasonEpisodeGroup[],
-  episodeCount: number | undefined | null
-): Promise<MatchResult> => {
-  const strategies = [
-    () => TmdbStrategies.matchByDateRange(anilist, allEpisodes, seasonGroups, episodeCount),
-    () => TmdbStrategies.matchByEpisodeCount(anilist, allEpisodes, seasonGroups, episodeCount),
-    () => TmdbStrategies.matchByAiringSchedule(anilist, allEpisodes, episodeCount),
-    () => TmdbStrategies.matchBySeasonYear(anilist, allEpisodes, seasonGroups, episodeCount),
-    () => TmdbStrategies.matchByAnimepahe(anilist, animepahe, allEpisodes, episodeCount)
-  ];
-
-  let bestMatch: MatchResult = {
-    episodes: [],
-    primarySeason: 1,
-    confidence: 0,
-    strategy: MatchStrategy.NONE
+    return Array.from(seasonMap.entries()).map(([seasonNumber, seasonEpisodes]) => ({
+      seasonNumber,
+      episodes: seasonEpisodes.sort((a, b) => a.episode_number - b.episode_number),
+      totalEpisodes: seasonEpisodes.length
+    }));
   };
+}
 
-  // console.log(`Trying to match ${episodeCount} episodes for AniList ID ${anilist.id}`);
-
-  for (const [index, strategy] of strategies.entries()) {
-    try {
-      const result = await strategy();
-      // console.log(`Strategy ${result.strategy} result:`, {
-      //   episodeCount: result.episodes.length,
-      //   confidence: result.confidence,
-      //   primarySeason: result.primarySeason
-      // });
-
-      if (result.confidence > bestMatch.confidence) {
-        bestMatch = result;
-      }
-    } catch (error) {
-      logger.warn(`Strategy ${index + 1} failed:`, error);
-      continue;
-    }
-  }
-
-  if (bestMatch.confidence < 0.6) {
-    throw new Error('No reliable episode matching strategy succeeded');
-  }
-
-  return bestMatch;
-};
-
-const groupEpisodesBySeasons = (episodes: SeasonEpisode[]): SeasonEpisodeGroup[] => {
-  const seasonMap = new Map<number, SeasonEpisode[]>();
-
-  episodes.forEach((episode) => {
-    if (!seasonMap.has(episode.season_number)) {
-      seasonMap.set(episode.season_number, []);
-    }
-    seasonMap.get(episode.season_number)!.push(episode);
-  });
-
-  return Array.from(seasonMap.entries()).map(([seasonNumber, seasonEpisodes]) => ({
-    seasonNumber,
-    episodes: seasonEpisodes.sort((a, b) => a.episode_number - b.episode_number),
-    totalEpisodes: seasonEpisodes.length
-  }));
-};
-
-const TmdbSeasons = {
-  getSeason
-};
+const TmdbSeasons = new TmdbSeasonsModule();
 
 export { TmdbSeasons };

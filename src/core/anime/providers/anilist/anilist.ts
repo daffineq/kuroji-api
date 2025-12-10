@@ -1,25 +1,29 @@
+import { ProviderModule } from 'src/helpers/module';
 import { AnilistFetch } from './helpers/anilist.fetch';
 import { AnilistMedia } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
 
-const getInfo = async (id: number): Promise<AnilistMedia> => {
-  const key = getKey('anilist', 'info', id);
+class AnilistModule extends ProviderModule<AnilistMedia> {
+  override readonly name = 'Anilist';
+  override readonly logo = 'https://anilist.co/img/icons/android-chrome-512x512.png';
 
-  const cached = await Redis.get<AnilistMedia>(key);
+  override async getInfo(id: number): Promise<AnilistMedia> {
+    const key = getKey('anilist', 'info', id);
 
-  if (cached) {
-    return cached;
+    const cached = await Redis.get<AnilistMedia>(key);
+
+    if (cached) {
+      return cached;
+    }
+
+    const anilist = await AnilistFetch.fetchInfo(id);
+
+    await Redis.set(key, anilist);
+
+    return anilist;
   }
+}
 
-  const anilist = await AnilistFetch.fetchInfo(id);
+const Anilist = new AnilistModule();
 
-  await Redis.set(key, anilist);
-
-  return anilist;
-};
-
-const Anilist = {
-  getInfo
-};
-
-export { Anilist };
+export { Anilist, AnilistModule };

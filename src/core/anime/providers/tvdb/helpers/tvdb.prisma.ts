@@ -1,15 +1,18 @@
+import { Module } from 'src/helpers/module';
 import { Prisma, TvdbLogin } from 'src/lib/prisma';
 
-const getTvdbLogin = (tvdb: TvdbLogin): Prisma.TvdbLoginCreateInput => {
-  return {
-    token: tvdb.token,
-    created_at: tvdb.created_at ?? new Date(),
-    expired: tvdb.expired ?? false
-  };
-};
+class TvdbPrismaModule extends Module {
+  override readonly name = 'TvdbPrisma';
 
-const TvdbPrisma = {
-  getTvdbLogin
-};
+  getTvdbLogin(tvdb: TvdbLogin): Prisma.TvdbLoginCreateInput {
+    return {
+      token: tvdb.token,
+      created_at: tvdb.created_at ?? new Date(),
+      expired: tvdb.expired ?? false
+    };
+  }
+}
 
-export { TvdbPrisma };
+const TvdbPrisma = new TvdbPrismaModule();
+
+export { TvdbPrisma, TvdbPrismaModule };
