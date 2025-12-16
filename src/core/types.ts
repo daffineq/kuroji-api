@@ -1,56 +1,45 @@
 import { AnimepaheEpisodeMetadata, AnimepaheInfoMetadata } from './anime/providers/animepahe/types';
 import { MInfoMeta } from './anime/providers/mal/types';
 
-export interface Title {
-  english: string | null | undefined;
-  romaji: string | null | undefined;
-  japanese: string | null | undefined;
+interface Title {
+  english?: string | null | undefined;
+  romaji?: string | null | undefined;
+  japanese?: string | null | undefined;
+  native?: string | null | undefined;
 }
 
-export interface KFormatImage {
-  aspectRatio: number | null;
-  jpeg: {
-    sm: string;
-    hq: string;
-  };
-  webp: {
-    sm: string;
-    hq: string;
-  };
+interface Image {
+  aspectRatio: number;
+  lowQuality: string;
+  mediumQuality: string;
+  highQuality: string;
 }
 
-export interface NImage {
-  resized: Record<string, string>;
-  resized_blur: Record<string, string>;
+interface ExternalIds {
+  mal: number | null | undefined;
+  anilist: number | null | undefined;
+  mdx: string | null | undefined;
 }
 
-export interface APPosterImage {
-  large: string;
-  medium: string;
-  small: string;
-  original: string;
-}
-
-export interface AnimeInfo<T = unknown, E = unknown> {
-  id: number | string | null | undefined;
-  idMal: number | null | undefined;
-  idAl: number | null | undefined;
-  title: Partial<Title> | string | null | undefined;
+interface AnimeInfo<T = unknown, E = unknown> {
+  id: string | number | null | undefined;
+  externalIds: ExternalIds;
+  title: Title | null | undefined;
   synonyms: string[] | null | undefined;
   description: string | null | undefined;
-  image: KFormatImage | NImage | string | null | undefined;
-  banner: KFormatImage | NImage | string | null | undefined;
-  logo: NImage | string | null | undefined;
+  image: Image | null | undefined;
+  banner: Image | null | undefined;
+  logo: Image | null | undefined;
   airedEpisodes: number | null | undefined;
   totalEpisodes: number | null | undefined;
   metadata: T | null | undefined;
-  episodes: Array<Partial<E>> | null | undefined;
+  episodes: Partial<E>[] | null | undefined;
 }
 
 export interface Episode<T = unknown> {
   id: number | string | undefined;
   title: string | null | undefined;
-  image: KFormatImage | NImage | string | null | undefined;
+  image: Image | null | undefined;
   description: string | null | undefined;
   number: number | null | undefined;
   teaserUrl: string | null | undefined;
@@ -61,10 +50,10 @@ export interface Episode<T = unknown> {
 
 export interface Search<T = unknown> {
   id: number | string | null | undefined;
-  title: Partial<Title> | string | null | undefined;
-  image: KFormatImage | NImage | APPosterImage | string | null | undefined;
-  banner: KFormatImage | NImage | string | null | undefined;
-  logo: NImage | string | null | undefined;
+  title: Title | null | undefined;
+  image: Image | null | undefined;
+  banner: Image | null | undefined;
+  logo: Image | string | null | undefined;
   description: string | null | undefined;
   airedEpisodes: number | null | undefined;
   totalEpisodes: number | null | undefined;

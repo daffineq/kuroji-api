@@ -8,7 +8,7 @@ class AnimepaheFetchModule extends ClientModule {
   protected override client = new KurojiClient(`${env.CRYSOLINE}/api/anime/animepahe`);
 
   async getSources(id: string, epId: string): Promise<Source> {
-    const { data, error } = await this.client.get<CrysolineWrapper<Source>>(`sources/${id}/${epId}`, {
+    const { data, error } = await this.client.get<Source>(`sources/${id}/${epId}`, {
       headers: {
         'x-api-key': env.CRYSOLINE_API_KEY
       }
@@ -18,15 +18,15 @@ class AnimepaheFetchModule extends ClientModule {
       throw error;
     }
 
-    if (!data?.data) {
+    if (!data) {
       throw new Error(`AnimepaheFetch.getSources: No data found`);
     }
 
-    return data.data;
+    return data;
   }
 
   async fetchInfo(id: string): Promise<AnimepaheInfo> {
-    const { data, error } = await this.client.get<CrysolineWrapper<AnimepaheInfo>>(`info/${id}`, {
+    const { data, error } = await this.client.get<AnimepaheInfo>(`info/${id}`, {
       headers: {
         'x-api-key': env.CRYSOLINE_API_KEY
       }
@@ -36,32 +36,29 @@ class AnimepaheFetchModule extends ClientModule {
       throw error;
     }
 
-    if (!data?.data) {
+    if (!data) {
       throw new Error(`AnimepaheFetch.fetchInfo: No data found`);
     }
 
-    return data.data;
+    return data;
   }
 
   async search(q: string): Promise<Search<AnimepaheSearchMetadata>[]> {
-    const { data, error } = await this.client.get<CrysolineWrapper<Search<AnimepaheSearchMetadata>[]>>(
-      `search?q=${q}`,
-      {
-        headers: {
-          'x-api-key': env.CRYSOLINE_API_KEY
-        }
+    const { data, error } = await this.client.get<Search<AnimepaheSearchMetadata>[]>(`search?q=${q}`, {
+      headers: {
+        'x-api-key': env.CRYSOLINE_API_KEY
       }
-    );
+    });
 
     if (error) {
       throw error;
     }
 
-    if (!data?.data) {
+    if (!data) {
       throw new Error(`AnimepaheFetch.search: No data found`);
     }
 
-    return data.data;
+    return data;
   }
 }
 

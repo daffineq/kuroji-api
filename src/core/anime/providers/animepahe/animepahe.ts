@@ -75,8 +75,8 @@ class AnimepaheModule extends ProviderModule<AnimepaheInfo> {
       if (bestMatch) {
         const data = await AnimepaheFetch.fetchInfo(bestMatch.result.id);
 
-        if ((data.idAl && Number(data.idAl) === al.id) || (data.idMal && Number(data.idMal) === al.idMal)) {
-          data.idAl = id;
+        if (data.externalIds.anilist === al.id || data.externalIds.mal === al.idMal) {
+          data.externalIds.anilist = id;
           return data;
         } else {
           exclude.push(bestMatch.result.id);

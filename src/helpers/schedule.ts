@@ -95,11 +95,12 @@ const STRATEGIES: Record<ScheduleStrategies, Partial<ScheduleOptions>> = {
   },
   [ScheduleStrategies.EVERY_MONTH_START]: {
     delay: hoursToMilliseconds(1),
-    shouldRun: (now) => now.getDate() === 1 && now.getHours() === 0 && now.getMinutes() === 0
+    shouldRun: (now) => now.getDate() === 1 && now.getDay() === 1 && now.getHours() === 0
   },
   [ScheduleStrategies.EVERY_OTHER_MONTH]: {
     delay: hoursToMilliseconds(1),
-    shouldRun: (now) => monthsSinceEpoch(now) % 2 === 0 && now.getDate() === 1 && now.getHours() === 0
+    shouldRun: (now) =>
+      monthsSinceEpoch(now) % 2 === 0 && now.getDate() === 1 && now.getDay() === 1 && now.getHours() === 0
   }
 };
 
@@ -107,7 +108,7 @@ function mergeStrategies(strategies?: ScheduleStrategies[]): Partial<ScheduleOpt
   if (!strategies?.length) return {};
   const merged: Partial<ScheduleOptions> = {
     days: [],
-    delay: minutesToMilliseconds(1)
+    delay: secondsToMilliseconds(1)
   };
 
   for (const strategy of strategies) {
@@ -116,9 +117,13 @@ function mergeStrategies(strategies?: ScheduleStrategies[]): Partial<ScheduleOpt
 
     if (s.days) merged.days!.push(...s.days);
     if (s.everyMs && (!merged.everyMs || s.everyMs < merged.everyMs)) merged.everyMs = s.everyMs;
-    if (s.delay && s.delay < (merged.delay ?? Infinity)) merged.delay = s.delay;
-    if (s.hour !== undefined) merged.hour = s.hour;
-    if (s.minute !== undefined) merged.minute = s.minute;
+    if (s.delay && (!merged.delay || s.delay < merged.delay)) merged.delay = s.delay;
+
+    if (s.hour !== undefined && s.minute !== undefined) {
+      if (!merged.hour) merged.hour = s.hour;
+      if (!merged.minute) merged.minute = s.minute;
+    }
+
     if (s.shouldRun) {
       const prev = merged.shouldRun;
       merged.shouldRun = prev ? (now, lastRun) => prev(now, lastRun) || s.shouldRun!(now, lastRun) : s.shouldRun;
@@ -176,6 +181,14 @@ function EnableSchedule<T extends new (...args: any[]) => any>(constructor: T): 
             const day = now.getDay();
             const currentTime = now.getTime();
 
+            const target = new Date();
+            if (hour || minute) {
+              if (hour) target.setHours(hour);
+              if (minute) target.setMinutes(minute);
+              target.setSeconds(0);
+              target.setMilliseconds(0);
+            }
+
             if (!days.includes(day)) return;
 
             let run = false;
@@ -184,8 +197,8 @@ function EnableSchedule<T extends new (...args: any[]) => any>(constructor: T): 
               run = shouldRun(now, lastRun);
             } else if (everyMs) {
               run = currentTime - lastRun >= everyMs;
-            } else if (hour !== undefined && minute !== undefined) {
-              run = now.getHours() === hour && now.getMinutes() === minute;
+            } else if (currentTime > target.getTime() && lastRun < target.getTime() && (hour || minute)) {
+              run = true;
             }
 
             if (run) {
