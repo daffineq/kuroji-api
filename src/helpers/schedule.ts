@@ -8,28 +8,70 @@ import {
   weeksSinceEpoch
 } from './time';
 
-enum ScheduleStrategies {
-  EVERY_MINUTE,
-  EVERY_5_MINUTES,
-  EVERY_15_MINUTES,
-  EVERY_30_MINUTES,
-  EVERY_HOUR,
-  EVERY_2_HOURS,
-  EVERY_6_HOURS,
-  EVERY_12_HOURS,
-  EVERY_DAY_MIDNIGHT,
-  EVERY_DAY_23,
-  EVERY_OTHER_DAY,
-  EVERY_OTHER_WEEK,
-  WEEKDAYS,
-  WEEKENDS,
-  EVERY_WEEK,
-  EVERY_MONTH_START,
-  EVERY_OTHER_MONTH
-}
+type ScheduleStrategyConfig = Partial<Omit<ScheduleOptions, 'strategies'>>;
+
+const ScheduleStrategies = {
+  EVERY_MINUTE: { everyMs: minutesToMilliseconds(1) },
+  EVERY_5_MINUTES: { everyMs: minutesToMilliseconds(5) },
+  EVERY_15_MINUTES: { everyMs: minutesToMilliseconds(15) },
+  EVERY_30_MINUTES: { everyMs: minutesToMilliseconds(30) },
+
+  EVERY_HOUR: { everyMs: hoursToMilliseconds(1) },
+  EVERY_2_HOURS: { everyMs: hoursToMilliseconds(2) },
+  EVERY_6_HOURS: { everyMs: hoursToMilliseconds(6) },
+  EVERY_12_HOURS: { everyMs: hoursToMilliseconds(12) },
+
+  EVERY_DAY_MIDNIGHT: {
+    hour: 0,
+    minute: 0,
+    delay: minutesToMilliseconds(1)
+  },
+
+  EVERY_DAY_23: {
+    hour: 23,
+    minute: 0,
+    delay: minutesToMilliseconds(10)
+  },
+
+  EVERY_OTHER_DAY: {
+    days: [1, 3, 5],
+    delay: minutesToMilliseconds(30)
+  },
+
+  WEEKDAYS: {
+    days: [1, 2, 3, 4, 5],
+    delay: minutesToMilliseconds(30)
+  },
+
+  WEEKENDS: {
+    days: [0, 6],
+    delay: minutesToMilliseconds(30)
+  },
+
+  EVERY_WEEK: {
+    days: [1],
+    delay: hoursToMilliseconds(1)
+  },
+
+  EVERY_OTHER_WEEK: {
+    delay: hoursToMilliseconds(1),
+    shouldRun: (now) => weeksSinceEpoch(now) % 2 === 0 && now.getDay() === 1 && now.getHours() === 0
+  },
+
+  EVERY_MONTH_START: {
+    delay: hoursToMilliseconds(1),
+    shouldRun: (now) => now.getDate() === 1 && now.getDay() === 1 && now.getHours() === 0
+  },
+
+  EVERY_OTHER_MONTH: {
+    delay: hoursToMilliseconds(1),
+    shouldRun: (now) =>
+      monthsSinceEpoch(now) % 2 === 0 && now.getDate() === 1 && now.getDay() === 1 && now.getHours() === 0
+  }
+} as const satisfies Record<string, ScheduleStrategyConfig>;
 
 type ScheduleOptions = {
-  strategies?: ScheduleStrategies[];
+  strategies?: ScheduleStrategyConfig[];
   days?: number[]; // 0 = Sun ... 6 = Sat
   hour?: number;
   minute?: number;
@@ -38,83 +80,14 @@ type ScheduleOptions = {
   shouldRun?: (now: Date, lastRun: number) => boolean;
 };
 
-const STRATEGIES: Record<ScheduleStrategies, Partial<ScheduleOptions>> = {
-  [ScheduleStrategies.EVERY_MINUTE]: {
-    everyMs: minutesToMilliseconds(1)
-  },
-  [ScheduleStrategies.EVERY_5_MINUTES]: {
-    everyMs: minutesToMilliseconds(5)
-  },
-  [ScheduleStrategies.EVERY_15_MINUTES]: {
-    everyMs: minutesToMilliseconds(15)
-  },
-  [ScheduleStrategies.EVERY_30_MINUTES]: {
-    everyMs: minutesToMilliseconds(30)
-  },
-  [ScheduleStrategies.EVERY_HOUR]: {
-    everyMs: hoursToMilliseconds(1)
-  },
-  [ScheduleStrategies.EVERY_2_HOURS]: {
-    everyMs: hoursToMilliseconds(2)
-  },
-  [ScheduleStrategies.EVERY_6_HOURS]: {
-    everyMs: hoursToMilliseconds(6)
-  },
-  [ScheduleStrategies.EVERY_12_HOURS]: {
-    everyMs: hoursToMilliseconds(12)
-  },
-  [ScheduleStrategies.EVERY_DAY_MIDNIGHT]: {
-    hour: 0,
-    minute: 0,
-    delay: minutesToMilliseconds(1)
-  },
-  [ScheduleStrategies.EVERY_DAY_23]: {
-    hour: 23,
-    minute: 0,
-    delay: minutesToMilliseconds(10)
-  },
-  [ScheduleStrategies.EVERY_OTHER_DAY]: {
-    days: [1, 3, 5],
-    delay: minutesToMilliseconds(30)
-  },
-  [ScheduleStrategies.WEEKDAYS]: {
-    days: [1, 2, 3, 4, 5],
-    delay: minutesToMilliseconds(30)
-  },
-  [ScheduleStrategies.WEEKENDS]: {
-    days: [0, 6],
-    delay: minutesToMilliseconds(30)
-  },
-  [ScheduleStrategies.EVERY_WEEK]: {
-    days: [1],
-    delay: hoursToMilliseconds(1)
-  },
-  [ScheduleStrategies.EVERY_OTHER_WEEK]: {
-    delay: hoursToMilliseconds(1),
-    shouldRun: (now) => weeksSinceEpoch(now) % 2 === 0 && now.getDay() === 1 && now.getHours() === 0
-  },
-  [ScheduleStrategies.EVERY_MONTH_START]: {
-    delay: hoursToMilliseconds(1),
-    shouldRun: (now) => now.getDate() === 1 && now.getDay() === 1 && now.getHours() === 0
-  },
-  [ScheduleStrategies.EVERY_OTHER_MONTH]: {
-    delay: hoursToMilliseconds(1),
-    shouldRun: (now) =>
-      monthsSinceEpoch(now) % 2 === 0 && now.getDate() === 1 && now.getDay() === 1 && now.getHours() === 0
-  }
-};
-
-function mergeStrategies(strategies?: ScheduleStrategies[]): Partial<ScheduleOptions> {
+function mergeStrategies(strategies?: ScheduleStrategyConfig[]): Partial<ScheduleOptions> {
   if (!strategies?.length) return {};
   const merged: Partial<ScheduleOptions> = {
     days: [0, 1, 2, 3, 4, 5, 6],
     delay: secondsToMilliseconds(1)
   };
 
-  for (const strategy of strategies) {
-    const s = STRATEGIES[strategy];
-    if (!s) continue;
-
+  for (const s of strategies) {
     if (s.days) merged.days = s.days;
     if (s.everyMs !== undefined) merged.everyMs = s.everyMs;
     if (s.delay !== undefined) merged.delay = s.delay;
