@@ -107,7 +107,7 @@ const STRATEGIES: Record<ScheduleStrategies, Partial<ScheduleOptions>> = {
 function mergeStrategies(strategies?: ScheduleStrategies[]): Partial<ScheduleOptions> {
   if (!strategies?.length) return {};
   const merged: Partial<ScheduleOptions> = {
-    days: [],
+    days: [0, 1, 2, 3, 4, 5, 6],
     delay: secondsToMilliseconds(1)
   };
 
@@ -115,22 +115,17 @@ function mergeStrategies(strategies?: ScheduleStrategies[]): Partial<ScheduleOpt
     const s = STRATEGIES[strategy];
     if (!s) continue;
 
-    if (s.days) merged.days!.push(...s.days);
-    if (s.everyMs && (!merged.everyMs || s.everyMs < merged.everyMs)) merged.everyMs = s.everyMs;
-    if (s.delay && (!merged.delay || s.delay < merged.delay)) merged.delay = s.delay;
-
-    if (s.hour !== undefined && s.minute !== undefined) {
-      if (!merged.hour) merged.hour = s.hour;
-      if (!merged.minute) merged.minute = s.minute;
-    }
+    if (s.days) merged.days = s.days;
+    if (s.everyMs !== undefined) merged.everyMs = s.everyMs;
+    if (s.delay !== undefined) merged.delay = s.delay;
+    if (s.hour !== undefined) merged.hour = s.hour;
+    if (s.minute !== undefined) merged.minute = s.minute;
 
     if (s.shouldRun) {
       const prev = merged.shouldRun;
       merged.shouldRun = prev ? (now, lastRun) => prev(now, lastRun) || s.shouldRun!(now, lastRun) : s.shouldRun;
     }
   }
-
-  merged.days = [...new Set(merged.days)];
 
   return merged;
 }
@@ -174,7 +169,7 @@ function EnableSchedule<T extends new (...args: any[]) => any>(constructor: T): 
             shouldRun
           } = merged;
 
-          let lastRun = 0;
+          let lastRun = new Date().getTime();
 
           setInterval(async () => {
             const now = new Date();
@@ -182,9 +177,9 @@ function EnableSchedule<T extends new (...args: any[]) => any>(constructor: T): 
             const currentTime = now.getTime();
 
             const target = new Date();
-            if (hour || minute) {
-              if (hour) target.setHours(hour);
-              if (minute) target.setMinutes(minute);
+            if (hour !== undefined || minute !== undefined) {
+              if (hour !== undefined) target.setHours(hour);
+              if (minute !== undefined) target.setMinutes(minute);
               target.setSeconds(0);
               target.setMilliseconds(0);
             }
@@ -197,7 +192,11 @@ function EnableSchedule<T extends new (...args: any[]) => any>(constructor: T): 
               run = shouldRun(now, lastRun);
             } else if (everyMs) {
               run = currentTime - lastRun >= everyMs;
-            } else if (currentTime > target.getTime() && lastRun < target.getTime() && (hour || minute)) {
+            } else if (
+              currentTime > target.getTime() &&
+              lastRun < target.getTime() &&
+              (hour !== undefined || minute !== undefined)
+            ) {
               run = true;
             }
 

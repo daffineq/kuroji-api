@@ -188,7 +188,7 @@ app.get(
   '/logs',
   describeRoute({
     tags: ['API'],
-    description: 'Get logs',
+    description: 'Get logs (paginated)',
     responses: {
       200: {
         description: 'Logs'
@@ -196,10 +196,15 @@ app.get(
     }
   }),
   (c) => {
+    const page = Math.max(1, Number(c.req.query('page') ?? 1));
+    const perPage = Math.min(100, Math.max(1, Number(c.req.query('per_page') ?? 50)));
+
+    const logs = logger.getLogsPaginated(page, perPage);
+
     return c.json(
       createSuccessResponse({
         message: 'Logs got',
-        data: logger.getLogs()
+        data: logs
       })
     );
   }

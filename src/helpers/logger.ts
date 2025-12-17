@@ -25,6 +25,17 @@ class Logger {
     });
   }
 
+  getLogsPaginated(page = 1, perPage = 50) {
+    const sorted = [...this.logs].sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    const start = (page - 1) * perPage;
+    const end = start + perPage;
+
+    return sorted.slice(start, end);
+  }
+
   clearLogs() {
     this.logs = [];
   }
