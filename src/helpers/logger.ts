@@ -5,9 +5,9 @@ class Logger {
     const stack = new Error().stack;
     if (!stack) return 'unknown';
 
-    const lines = stack.split('\n').slice(2);
+    const lines = stack.split('\n').slice(3);
     const callerLine = lines[0]?.trim();
-    return callerLine || 'unknown';
+    return callerLine ?? 'unknown';
   }
 
   private save(level: string, message: any[], caller: string) {
