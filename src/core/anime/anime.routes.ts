@@ -1,124 +1,56 @@
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { zValidator } from '@hono/zod-validator';
-import { describeRoute } from 'hono-openapi';
 import { parseNumber } from 'src/helpers/parsers';
 import { createSuccessResponse } from 'src/helpers/response';
 import { AnimeIndexer } from './helpers/anime.indexer';
 import { AnimeUpdate } from './helpers/anime.update';
 import logger from 'src/helpers/logger';
-import { describeTags } from 'src/helpers/docs';
 import { Anime } from './anime';
+import Elysia, { t } from 'elysia';
 
-const animeRoute = new Hono().basePath('/anime').use('*', describeTags(['Anime']));
+const animeRoute = () => {
+  return (app: Elysia) =>
+    app.group('/api/anime', { tags: ['Anime'] }, (app) =>
+      app
+        .get(
+          '/fetchOrCreate/:id',
+          async ({ params }) =>
+            createSuccessResponse({
+              data: await Anime.fetchOrCreate(parseNumber(params.id)!),
+              message: 'Fetched info'
+            }),
+          {
+            params: t.Object({ id: t.Number() })
+          }
+        )
 
-const startIndexerQuerySchema = z.object({
-  delay: z.coerce.number().optional().describe('Optional delay in seconds before starting the indexer')
-});
+        .post(
+          '/indexer/start',
+          async ({ query }) =>
+            createSuccessResponse({
+              message: await AnimeIndexer.start(parseNumber(query.delay))
+            }),
+          {
+            query: t.Object({ delay: t.Number() })
+          }
+        )
 
-animeRoute.get(
-  '/fetchOrCreate/:id',
-  describeRoute({
-    description: 'Fetches an anime by ID. If it does not exist yet, it will be initialized.',
-    responses: {
-      200: { description: 'Anime fetched or created successfully.' },
-      400: { description: 'Invalid parameters or malformed body.' }
-    }
-  }),
-  async (c) => {
-    const { id } = c.req.param();
+        .post('/indexer/stop', () => {
+          AnimeIndexer.stop();
+          return createSuccessResponse({ message: 'Stopped indexer' });
+        })
 
-    return c.json(
-      createSuccessResponse({
-        data: await Anime.fetchOrCreate(parseNumber(id)!),
-        message: 'Fetched info'
-      })
+        .post('/indexer/reset', () => {
+          AnimeIndexer.setLastFetchedPage(1);
+          return createSuccessResponse({ message: 'Reseted indexer' });
+        })
+
+        .put('/update/process', () => {
+          AnimeUpdate.processQueue().catch((error) => {
+            logger.error('Error processing update queue:', error);
+          });
+
+          return createSuccessResponse({ message: 'Processing update queue' });
+        })
     );
-  }
-);
-
-animeRoute.post(
-  '/indexer/start',
-  zValidator('query', startIndexerQuerySchema),
-  describeRoute({
-    description:
-      'Starts the anime indexer. Optionally accepts a `delay` query param (in seconds), the delay between each request, default is 10',
-    responses: {
-      200: { description: 'Indexer started successfully.' },
-      400: { description: 'Invalid query parameters.' }
-    }
-  }),
-  async (c) => {
-    const { delay } = c.req.valid('query') as { delay?: number };
-
-    const start = await AnimeIndexer.start(delay);
-
-    return c.json(
-      createSuccessResponse({
-        message: start
-      })
-    );
-  }
-);
-
-animeRoute.post(
-  '/indexer/stop',
-  describeRoute({
-    description: 'Stops the anime indexer immediately.',
-    responses: {
-      200: { description: 'Indexer stopped.' }
-    }
-  }),
-  async (c) => {
-    AnimeIndexer.stop();
-
-    return c.json(
-      createSuccessResponse({
-        message: 'Stopped indexer'
-      })
-    );
-  }
-);
-
-animeRoute.post(
-  '/indexer/reset',
-  describeRoute({
-    description: 'Resets the anime indexer state.',
-    responses: {
-      200: { description: 'Indexer stopped.' }
-    }
-  }),
-  async (c) => {
-    AnimeIndexer.setLastFetchedPage(1);
-
-    return c.json(
-      createSuccessResponse({
-        message: 'Reseted indexer'
-      })
-    );
-  }
-);
-
-animeRoute.put(
-  '/update/process',
-  describeRoute({
-    description:
-      'Processes the update queue for anime metadata changes. This triggers background processing; it returns immediately.',
-    responses: {
-      200: { description: 'Update queue processing started.' }
-    }
-  }),
-  async (c) => {
-    AnimeUpdate.processQueue().catch((error) => {
-      logger.error('Error processing update queue:', error);
-    });
-
-    return c.json(
-      createSuccessResponse({
-        message: 'Processing update queue'
-      })
-    );
-  }
-);
+};
 
 export { animeRoute };

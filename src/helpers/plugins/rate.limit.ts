@@ -1,0 +1,55 @@
+import redis from 'src/lib/redis';
+import { ForbiddenError, RateLimitExceededError } from '../errors';
+import env from 'src/config/env';
+import { ApiKeys } from 'src/core';
+import Elysia from 'elysia';
+
+const rateLimit = (limit: number, windowSec: number, skip: (request: Request) => boolean) => {
+  return (app: Elysia) =>
+    app.onBeforeHandle(async ({ request, set }) => {
+      if (skip(request)) return;
+
+      const apiKey = request.headers.get('x-api-key');
+
+      if (apiKey) {
+        if (await ApiKeys.validate(apiKey)) return;
+
+        if (
+          apiKey.length === env.ADMIN_KEY.length &&
+          crypto.timingSafeEqual(Buffer.from(apiKey), Buffer.from(env.ADMIN_KEY))
+        )
+          return;
+      }
+
+      const ip =
+        request.headers.get('cf-connecting-ip') ??
+        request.headers.get('x-forwarded-for') ??
+        request.headers.get('x-real-ip') ??
+        '127.0.0.1';
+
+      if (!ip) throw new ForbiddenError('IP address not found');
+
+      const key = `ratelimit:${ip}`;
+      const ttlKey = `${key}:ttl`;
+
+      const count = await redis.incr(key);
+      if (count === 1) {
+        await redis.expire(key, windowSec);
+        await redis.set(ttlKey, Date.now() + windowSec * 1000, 'EX', windowSec);
+      }
+
+      const ttlMs = await redis.get(ttlKey);
+      const reset = ttlMs ? Number(ttlMs) : Date.now() + windowSec * 1000;
+      const remaining = Math.max(0, limit - count);
+
+      set.headers['X-RateLimit-Limit'] = limit.toString();
+      set.headers['X-RateLimit-Remaining'] = remaining.toString();
+      set.headers['X-RateLimit-Reset'] = Math.floor(reset / 1000).toString();
+
+      if (limit !== 0 && count > limit) {
+        throw new RateLimitExceededError('Rate Limit Exceeded');
+      }
+    });
+};
+
+export default rateLimit;

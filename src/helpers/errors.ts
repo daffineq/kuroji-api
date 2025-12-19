@@ -1,10 +1,8 @@
-import { ContentfulStatusCode } from 'hono/utils/http-status';
-
 export class HttpError extends Error {
-  public status: ContentfulStatusCode;
+  public status: number;
   public details?: any;
 
-  constructor(message: string, status: ContentfulStatusCode, details?: any) {
+  constructor(message: string, status: number, details?: any) {
     super(message);
     this.status = status;
     this.details = details;

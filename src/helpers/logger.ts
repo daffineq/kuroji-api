@@ -1,3 +1,5 @@
+const MAX_LOGS = 500;
+
 class Logger {
   private logs: { level: string; timestamp: string; caller: string; message: any[] }[] = [];
 
@@ -17,6 +19,10 @@ class Logger {
       caller,
       message
     });
+
+    if (this.logs.length > MAX_LOGS) {
+      this.logs.shift();
+    }
   }
 
   getLogs() {
@@ -60,4 +66,5 @@ class Logger {
 }
 
 const logger = new Logger();
+
 export default logger;

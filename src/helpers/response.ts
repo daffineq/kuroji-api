@@ -31,6 +31,10 @@ interface PageInfo {
   hasNextPage: boolean;
 }
 
+interface MessageResponse extends BaseResponse {
+  message?: string | undefined;
+}
+
 interface SuccessResponse<T> extends BaseResponse {
   success: true;
   data: T | undefined;
@@ -46,7 +50,20 @@ interface ErrorResponse extends BaseResponse {
   };
 }
 
-export type ApiResponse<T> = ErrorResponse | SuccessResponse<T> | PaginatedResponse<T> | MetaResponse<T>;
+export type ApiResponse<T> =
+  | ErrorResponse
+  | MessageResponse
+  | SuccessResponse<T>
+  | PaginatedResponse<T>
+  | MetaResponse<T>;
+
+function createMessageResponse(data: Partial<MessageResponse>): MessageResponse {
+  return {
+    success: data.success ?? true,
+    message: data.message,
+    timestamp: data.timestamp ?? new Date().toISOString()
+  };
+}
 
 function createPaginatedResponse<T>(data: Partial<PaginatedResponse<T>>): PaginatedResponse<T> {
   return {
@@ -89,10 +106,12 @@ function createErrorResponse(error: Partial<ErrorResponse>): ErrorResponse {
 }
 
 export {
+  createMessageResponse,
   createErrorResponse,
   createSuccessResponse,
   createPaginatedResponse,
   createMetaResponse,
+  type MessageResponse,
   type ErrorResponse,
   type SuccessResponse,
   type PaginatedResponse,

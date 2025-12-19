@@ -1,213 +1,135 @@
 import 'reflect-metadata';
-import { Hono } from 'hono';
 import { createErrorResponse, createSuccessResponse } from './helpers/response';
-import { HttpError, NotFoundError } from './helpers/errors';
-import { prettyJSON } from 'hono/pretty-json';
+import { HttpError } from './helpers/errors';
 import env from './config/env';
-import { cors } from 'hono/cors';
-import rateLimit from './helpers/middlewares/rate.limit';
-import protectRoute from './helpers/middlewares/protect.route';
-import { describeRoute, openAPIRouteHandler } from 'hono-openapi';
-import { Scalar } from '@scalar/hono-api-reference';
+import rateLimit from './helpers/plugins/rate.limit';
+import protectRoute from './helpers/plugins/protect.route';
 import { animeRoute, apiRoute, proxyRoute, yoga } from './core';
 import logger from './helpers/logger';
 import { HTTPError } from 'ky';
-import { ContentfulStatusCode } from 'hono/utils/http-status';
+import Elysia, { NotFoundError } from 'elysia';
+import { cors } from '@elysiajs/cors';
+import swagger from '@elysiajs/swagger';
 
-const app = new Hono().use(prettyJSON());
-
-app.use(
-  '*',
-  cors({
-    origin: env.CORS,
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-    credentials: false
-  })
-);
-
-app.use('*', rateLimit(env.RATE_LIMIT, env.RATE_LIMIT_TTL));
-app.use(
-  '*',
-  protectRoute((c) => {
-    if (['/docs', '/docs/openapi'].includes(c.req.path)) {
-      return true;
+const app = new Elysia()
+  .use(
+    cors({
+      origin: env.CORS,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: false
+    })
+  )
+  .use(
+    protectRoute((request) =>
+      ['/docs', '/docs/openapi'].includes(new URL(request.url).pathname)
+        ? true
+        : env.API_STRATEGY === 'not_required'
+    )
+  )
+  .use(
+    rateLimit(env.RATE_LIMIT, env.RATE_LIMIT_TTL, (request) =>
+      ['/docs', '/docs/openapi'].includes(new URL(request.url).pathname)
+    )
+  )
+  .use(
+    swagger({
+      path: '/docs',
+      specPath: '/docs/openapi',
+      documentation: {
+        info: {
+          title: 'Kuroji API',
+          description: 'Public documentation for the Kuroji API.',
+          version: '1.0.0'
+        },
+        servers: [
+          {
+            url: env.PUBLIC_URL,
+            description: 'Production server'
+          }
+        ],
+        components: {
+          securitySchemes: {
+            apiKey: {
+              type: 'apiKey',
+              in: 'header',
+              name: 'x-api-key',
+              description: 'API key'
+            }
+          }
+        },
+        security: [{ apiKey: [] }],
+        tags: [
+          {
+            name: 'Anime',
+            description: 'Anime REST endpoints'
+          },
+          {
+            name: 'API',
+            description: 'Main REST endpoints'
+          },
+          {
+            name: 'Proxy',
+            description: 'Proxy endpoints'
+          },
+          {
+            name: 'GraphQL',
+            description: 'GraphQL endpoints'
+          }
+        ]
+      }
+    })
+  )
+  .onError(({ error, set }) => {
+    if (error instanceof NotFoundError) {
+      set.status = 404;
+      return createErrorResponse({
+        error: { status: 404, message: 'Route not found', details: `Docs: ${env.PUBLIC_URL}/docs` }
+      });
     }
 
-    return env.API_STRATEGY === 'not_required';
-  })
-);
+    if (error instanceof HttpError) {
+      set.status = error.status;
+      return createErrorResponse({
+        error: { status: error.status, message: error.message, details: error.details }
+      });
+    }
 
-app.onError(async (err, c) => {
-  if (err instanceof HttpError) {
-    return c.json(
-      createErrorResponse({
+    if (error instanceof HTTPError) {
+      set.status = error.response?.status ?? 500;
+      return createErrorResponse({
         error: {
-          status: err.status,
-          message: err.message,
-          details: err.details
+          status: set.status,
+          message: error.message
         }
-      }),
-      err.status
-    );
-  }
+      });
+    }
 
-  if (err instanceof HTTPError) {
-    const status = err.response?.status ?? 500;
+    if (error instanceof Error) {
+      set.status = 500;
+      return createErrorResponse({
+        error: { status: 500, message: error.message, details: error.stack }
+      });
+    }
 
-    return c.json(
-      createErrorResponse({
-        error: {
-          status,
-          message: err.message,
-          details: await err.response.json()
-        }
-      }),
-      status as ContentfulStatusCode
-    );
-  }
+    set.status = 500;
+    return createErrorResponse({ error: { status: 500, message: 'Unknown error' } });
+  });
 
-  if (err instanceof Error) {
-    return c.json(
-      createErrorResponse({
-        error: {
-          status: 500,
-          message: err.message,
-          details: err.stack
-        }
-      }),
-      500
-    );
-  }
+app.use(animeRoute());
+app.use(apiRoute());
+app.use(proxyRoute());
 
-  return c.json(
-    createErrorResponse({
-      error: {
-        status: 500,
-        message: 'Unknown error'
-      }
-    }),
-    500
-  );
+app.get('/graphql', ({ request }) => yoga.handle(request));
+app.post('/graphql', ({ request }) => yoga.handle(request));
+
+app.get('/logs', ({ query }) => {
+  const page = Math.max(1, Number(query.page ?? 1));
+  const perPage = Math.min(100, Math.max(1, Number(query.per_page ?? 50)));
+
+  const logs = logger.getLogsPaginated(page, perPage);
+
+  return createSuccessResponse({ message: 'Logs got', data: logs });
 });
-
-app.notFound((c) => {
-  throw new NotFoundError('Page not found', `Docs: ${env.PUBLIC_URL}/docs`);
-});
-
-app.route('/api', animeRoute);
-app.route('/api', apiRoute);
-app.route('/proxy', proxyRoute);
-
-app.get(
-  '/docs/openapi',
-  describeRoute({
-    tags: ['Docs'],
-    description: 'Returns the full OpenAPI schema for the Kuroji API.',
-    responses: {
-      200: {
-        description: 'OpenAPI JSON documentation.'
-      }
-    }
-  }),
-  openAPIRouteHandler(app, {
-    documentation: {
-      info: {
-        title: 'Kuroji API',
-        description: 'Public documentation for the Kuroji API.',
-        version: '1.0.0'
-      },
-      servers: [
-        {
-          url: env.PUBLIC_URL,
-          description: 'Production server'
-        }
-      ],
-      tags: [
-        {
-          name: 'Anime',
-          description: 'Anime REST endpoints'
-        },
-        {
-          name: 'API',
-          description: 'Main REST endpoints'
-        },
-        {
-          name: 'Proxy',
-          description: 'Proxy endpoints'
-        },
-        {
-          name: 'Docs',
-          description: 'Documentation-related endpoints'
-        },
-        {
-          name: 'GraphQL',
-          description: 'GraphQL endpoints'
-        }
-      ]
-    }
-  })
-);
-
-app.get(
-  '/docs',
-  describeRoute({
-    tags: ['Docs'],
-    description: 'Interactive Swagger-like UI rendered with Scalar.'
-  }),
-  Scalar({
-    theme: 'saturn',
-    url: '/docs/openapi'
-  })
-);
-
-app.get(
-  '/graphql',
-  describeRoute({
-    tags: ['GraphQL'],
-    description: 'GraphQL Playground (GraphiQL UI). Use this to explore and test queries.'
-  }),
-  (c) => yoga.handle(c.req.raw)
-);
-
-app.post(
-  '/graphql',
-  describeRoute({
-    tags: ['GraphQL'],
-    description: 'Main GraphQL endpoint. Send GraphQL operations here.',
-    responses: {
-      200: {
-        description: 'GraphQL response payload.'
-      }
-    }
-  }),
-  (c) => yoga.handle(c.req.raw)
-);
-
-app.get(
-  '/logs',
-  describeRoute({
-    tags: ['API'],
-    description: 'Get logs (paginated)',
-    responses: {
-      200: {
-        description: 'Logs'
-      }
-    }
-  }),
-  (c) => {
-    const page = Math.max(1, Number(c.req.query('page') ?? 1));
-    const perPage = Math.min(100, Math.max(1, Number(c.req.query('per_page') ?? 50)));
-
-    const logs = logger.getLogsPaginated(page, perPage);
-
-    return c.json(
-      createSuccessResponse({
-        message: 'Logs got',
-        data: logs
-      })
-    );
-  }
-);
 
 export default app;

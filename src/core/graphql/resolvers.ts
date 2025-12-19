@@ -674,8 +674,6 @@ export const resolvers = {
         }
       }));
 
-      console.log(formattedImages);
-
       return {
         ...episode,
         translation: translations,

@@ -9,7 +9,7 @@
 <p align="center">
   <a href="#"><img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white" alt="TypeScript"></a>
   <a href="#"><img src="https://img.shields.io/badge/Bun-000000?style=flat&logo=bun&logoColor=white" alt="Bun"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Hono-FD4F00?style=flat&logo=hono&logoColor=white" alt="Hono"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Elysia-FD4F00?style=flat&logo=elysia&logoColor=white" alt="Elysia"></a>
   <a href="#"><img src="https://img.shields.io/badge/Prisma-3982CE?style=flat&logo=Prisma&logoColor=white" alt="Prisma"></a>
   <a href="#"><img src="https://img.shields.io/badge/GraphQL-E10098?style=flat&logo=graphql&logoColor=white" alt="GraphQL"></a>
   <a href="#"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>

@@ -1,93 +1,51 @@
-import { Hono } from 'hono';
 import env from 'src/config/env';
 import { UnauthorizedError } from 'src/helpers/errors';
 import { ApiKeys } from './api.keys';
 import { createSuccessResponse } from 'src/helpers/response';
-import { describeTags } from 'src/helpers/docs';
-import { describeRoute } from 'hono-openapi';
+import Elysia from 'elysia';
 
-const apiRoute = new Hono().use('*', describeTags(['API']));
+const apiRoute = () => {
+  return (app: Elysia) =>
+    app.group('/api', { tags: ['API'] }, (app) =>
+      app
+        .post('/api-key/generate', async ({ headers }) => {
+          const adminKey = headers['x-api-key'];
 
-apiRoute.post(
-  '/api-key/generate',
-  describeRoute({
-    description: 'Creates a new API key. Requires the admin key in the `x-api-key` header for authorization.',
-    responses: {
-      200: {
-        description: 'Newly created API key.'
-      },
-      401: {
-        description: 'Unauthorized — wrong or missing admin key.'
-      }
-    }
-  }),
-  async (c) => {
-    const adminKey = c.req.header('x-api-key');
-
-    if (!adminKey) {
-      throw new UnauthorizedError('Unauthorized');
-    }
-
-    const isValid =
-      adminKey.length === env.ADMIN_KEY.length &&
-      crypto.timingSafeEqual(Buffer.from(adminKey), Buffer.from(env.ADMIN_KEY));
-
-    if (!isValid) {
-      throw new UnauthorizedError('Unauthorized');
-    }
-
-    const apiKey = await ApiKeys.generate();
-
-    return c.json(
-      createSuccessResponse({
-        message: 'Created api key',
-        data: apiKey
-      })
-    );
-  }
-);
-
-apiRoute.get(
-  '/api-key',
-  describeRoute({
-    description:
-      'Retrieves information about an API key using Prisma-style arguments. Requires the API key in the `x-api-key` header.',
-    requestBody: {
-      description: 'Prisma ApiKeyDefaultArgs JSON structure.',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            description: 'Raw Prisma args passed to the database.'
+          if (!adminKey) {
+            throw new UnauthorizedError('Unauthorized');
           }
-        }
-      }
-    },
-    responses: {
-      200: {
-        description: 'Fetched API key info.'
-      },
-      401: {
-        description: 'Unauthorized — invalid or missing API key.'
-      }
-    }
-  }),
-  async (c) => {
-    const apiKey = c.req.header('x-api-key');
 
-    if (!apiKey) {
-      throw new UnauthorizedError('Unauthorized');
-    }
+          const isValid =
+            adminKey.length === env.ADMIN_KEY.length &&
+            crypto.timingSafeEqual(Buffer.from(adminKey), Buffer.from(env.ADMIN_KEY));
 
-    const key = await ApiKeys.get(apiKey);
+          if (!isValid) {
+            throw new UnauthorizedError('Unauthorized');
+          }
 
-    return c.json(
-      createSuccessResponse({
-        message: 'Fetched api key',
-        data: key
-      })
+          const apiKey = await ApiKeys.generate();
+
+          return createSuccessResponse({
+            message: 'Created api key',
+            data: apiKey
+          });
+        })
+
+        .get('/api-key', async ({ headers }) => {
+          const apiKey = headers['x-api-key'];
+
+          if (!apiKey) {
+            throw new UnauthorizedError('Unauthorized');
+          }
+
+          const key = await ApiKeys.get(apiKey);
+
+          return createSuccessResponse({
+            message: 'Fetched api key',
+            data: key
+          });
+        })
     );
-  }
-);
+};
 
 export { apiRoute };
