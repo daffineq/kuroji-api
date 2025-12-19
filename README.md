@@ -113,7 +113,7 @@ Once the server is running, access the interactive documentation:
 
 ## Tech Stack
 
-- **[Hono](https://hono.dev/)** - Ultra-fast web framework for the edge
+- **[Elysia](https://elysiajs.com/)** - Ultra-fast web framework for the edge
 - **[Bun](https://bun.sh/)** - All-in-one JavaScript runtime and toolkit
 - **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript development
 - **[Prisma](https://www.prisma.io/)** - Next-generation ORM with PostgreSQL adapter
@@ -145,7 +145,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- Built with [Hono](https://hono.dev/)
+- Built with [Elysia](https://elysiajs.com/)
 - Powered by [Bun](https://bun.sh/)
 - Documentation by [Scalar](https://github.com/scalar/scalar)
 
