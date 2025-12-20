@@ -251,13 +251,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 - Built with [Elysia](https://elysiajs.com/)
 - Powered by [Bun](https://bun.sh/)
 - Documentation by [Scalar](https://github.com/scalar/scalar)
-- Data from:
-  - [AniList](https://anilist.co/)
-  - [Crysoline API](https://github.com/crysolaris/crysoline-api) (AnimePahe & MyAnimeList)
-  - [Kitsu](https://kitsu.io/)
-  - [Shikimori](https://shikimori.one/)
-  - [TMDB](https://www.themoviedb.org/)
-  - [TVDB](https://thetvdb.com/)
 
 ---
 
