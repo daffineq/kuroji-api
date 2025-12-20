@@ -29,21 +29,9 @@ class AnimeIndexerModule extends Module {
         const ids = response.media.map((m) => m.id);
         hasNextPage = response.pageInfo.hasNextPage;
 
-        logger.log(`Fetched ${ids.length} IDs, checking for new releases...`);
+        logger.log(`Fetched ${ids.length} IDs`);
 
-        const existingIdsRaw = await prisma.anime.findMany({
-          where: {
-            id: { in: ids }
-          },
-          select: { id: true }
-        });
-
-        const existingIdsSet = new Set(existingIdsRaw.map((e) => e.id));
-        const newIds = ids.filter((id) => !existingIdsSet.has(id));
-
-        logger.log(`Found ${newIds.length} new releases on page ${page}.`);
-
-        for (const id of newIds) {
+        for (const id of ids) {
           if (!lock.isLocked('indexer')) {
             logger.log('Indexing stopped manually. Exiting...');
             return;

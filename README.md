@@ -121,7 +121,6 @@ Once the server is running, access the interactive documentation:
 - **[Scalar](https://github.com/scalar/scalar)** - Modern API documentation UI
 - **[Ky](https://github.com/sindresorhus/ky)** - Tiny and elegant HTTP client
 - **[IORedis](https://github.com/redis/ioredis)** - Robust Redis client for Node.js
-- **[Zod](https://zod.dev/)** - TypeScript-first schema validation with static type inference
 
 ---
 
