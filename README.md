@@ -21,6 +21,16 @@
 
 ---
 
+## Requirements
+
+- **Memory:**  
+  - **Minimum:** 500MB–1GB (may be sufficient for small datasets or high `ANIME_POPULARITY_THRESHOLD`)
+  - **Recommended:** 2GB–4GB (for larger datasets or low `ANIME_POPULARITY_THRESHOLD`)
+  - Actual memory usage depends on your `.env` configuration, especially `ANIME_POPULARITY_THRESHOLD` and other indexing/query settings. Lower thresholds and larger datasets require more memory; higher thresholds or indexing fewer anime will need less.  
+  - Running with less than 500MB may cause crashes or slow performance, especially during indexing or heavy queries.
+
+---
+
 ## What's This?
 
 Kuroji API is a fast, modern anime database API that aggregates data from multiple sources. You get REST endpoints, GraphQL queries, rate limiting, API keys - basically everything you need. Built with tech that actually makes development enjoyable.
@@ -40,11 +50,29 @@ Kuroji API is a fast, modern anime database API that aggregates data from multip
 ## Getting Started
 
 ### Installation
+
+#### Fast Docker Compose Install
+
+If you want to get started quickly using Docker Compose (recommended for most users):
+
 ```bash
 # Clone the repo
 git clone https://github.com/daffineq/kuroji-api.git
 cd kuroji-api
 
+# Copy environment file and edit as needed
+cp .env.example .env
+# Edit .env with your config (database, API keys, etc.)
+
+# Start everything with Docker Compose
+docker compose up --build -d
+```
+
+This will build and start all required services (API, database, etc.) automatically. Make sure Docker is installed and running.
+
+#### Manual (Bun) Install
+
+```bash
 # Install dependencies (using Bun because it's fast)
 bun install
 
