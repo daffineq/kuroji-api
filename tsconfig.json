@@ -34,6 +34,6 @@
     "lib": ["ES2020"],
     "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["src/**/*", "node_modules/.prisma/client"],
+  "include": ["src/**/*", "tests/**/*", "node_modules/.prisma/client"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
 }

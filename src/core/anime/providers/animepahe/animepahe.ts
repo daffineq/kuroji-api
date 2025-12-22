@@ -54,7 +54,7 @@ class AnimepaheModule extends ProviderModule<AnimepaheInfo> {
     const search = await AnimepaheFetch.search(deepCleanTitle(al.title?.romaji ?? ''));
 
     const results = search.map((result) => ({
-      titles: [result.title as string],
+      titles: [result.title?.english, result.title?.romaji, result.title?.japanese],
       id: result.id as string,
       type: result.metadata?.type ?? undefined,
       year: result.metadata?.year ?? undefined
@@ -75,8 +75,8 @@ class AnimepaheModule extends ProviderModule<AnimepaheInfo> {
       if (bestMatch) {
         const data = await AnimepaheFetch.fetchInfo(bestMatch.result.id);
 
-        if (data.externalIds.anilist === al.id || data.externalIds.mal === al.idMal) {
-          data.externalIds.anilist = id;
+        if (data.idAl === al.id || data.idMal === al.idMal) {
+          data.idAl = id;
           return data;
         } else {
           exclude.push(bestMatch.result.id);

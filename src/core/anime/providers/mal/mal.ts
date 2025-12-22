@@ -70,8 +70,8 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
 
     if (fetched.image) {
       await Meta.addSingleImage(id, {
-        url: fetched.image.highQuality,
-        large: fetched.image.highQuality,
+        url: fetched.image.large,
+        large: fetched.image.large,
         type: 'poster',
         source: 'mal'
       });

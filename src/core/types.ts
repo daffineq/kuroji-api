@@ -10,20 +10,16 @@ interface Title {
 
 interface Image {
   aspectRatio: number;
-  lowQuality: string;
-  mediumQuality: string;
-  highQuality: string;
-}
-
-interface ExternalIds {
-  mal: number | null | undefined;
-  anilist: number | null | undefined;
-  mdx: string | null | undefined;
+  small: string;
+  medium: string;
+  large: string;
 }
 
 interface AnimeInfo<T = unknown, E = unknown> {
   id: string | number | null | undefined;
-  externalIds: ExternalIds;
+  idMal?: string | number | null | undefined;
+  idAl?: string | number | null | undefined;
+  idMdx?: string | number | null | undefined;
   title: Title | null | undefined;
   synonyms: string[] | null | undefined;
   description: string | null | undefined;

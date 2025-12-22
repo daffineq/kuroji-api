@@ -8,7 +8,7 @@ class AnimepaheFetchModule extends ClientModule {
   protected override client = new KurojiClient(`${env.CRYSOLINE}/api/anime/animepahe`);
 
   async getSources(id: string, epId: string): Promise<Source> {
-    const { data, error } = await this.client.get<Source>(`sources/${id}/${epId}`, {
+    const { data, error } = await this.client.get<Source>(`sources?id=${id}&episodeId=${epId}`, {
       headers: {
         'x-api-key': env.CRYSOLINE_API_KEY
       }
