@@ -140,8 +140,8 @@ app.post('/graphql', ({ request }) => yoga.handle(request), {
 app.get(
   '/logs',
   ({ query }) => {
-    const page = Math.max(1, Number(query.page ?? 1));
-    const perPage = Math.min(100, Math.max(1, Number(query.per_page ?? 50)));
+    const page = Math.max(1, Number(query.page));
+    const perPage = Math.min(100, Math.max(1, Number(query.per_page)));
 
     const logs = logger.getLogsPaginated(page, perPage);
 
@@ -150,8 +150,8 @@ app.get(
   {
     tags: ['System'],
     query: t.Object({
-      page: t.Optional(t.Number({ default: 1 })),
-      per_page: t.Optional(t.Number({ default: 50 }))
+      page: t.Number({ default: 1 }),
+      per_page: t.Number({ default: 50 })
     }),
     detail: {
       description: 'Returns logs from logger'

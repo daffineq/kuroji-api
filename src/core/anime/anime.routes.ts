@@ -3,11 +3,33 @@ import { AnimeIndexer } from './helpers/anime.indexer';
 import { AnimeUpdate } from './helpers/anime.update';
 import logger from 'src/helpers/logger';
 import Elysia, { t } from 'elysia';
+import { prisma } from 'src/lib/prisma';
 
 const animeRoute = () => {
   return (app: Elysia) =>
     app.group('/api/anime', { tags: ['Anime'] }, (app) =>
       app
+        .get(
+          '/update/history',
+          async ({ query }) => {
+            const skip = (query.page - 1) * query.per_page;
+
+            return await prisma.updateHistory.findMany({
+              skip,
+              take: query.per_page
+            });
+          },
+          {
+            query: t.Object({
+              page: t.Number({ default: 1 }),
+              per_page: t.Number({ default: 50 })
+            }),
+            detail: {
+              description: 'Returns history of updates'
+            }
+          }
+        )
+
         .post(
           '/indexer/start',
           async ({ query }) =>
