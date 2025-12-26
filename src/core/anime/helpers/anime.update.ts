@@ -486,7 +486,7 @@ class AnimeUpdateModule extends Module {
       }
     }
 
-    const duration = Math.floor((Date.now() - startTime) / 1000);
+    const duration = Math.floor(Date.now() - startTime);
     const success = errors.length === 0;
 
     await this.addUpdateHistory(animeId, malId, success, errors, duration, triggeredBy);

@@ -3,7 +3,7 @@ import { AnimeIndexer } from './helpers/anime.indexer';
 import { AnimeUpdate } from './helpers/anime.update';
 import logger from 'src/helpers/logger';
 import Elysia, { t } from 'elysia';
-import { prisma } from 'src/lib/prisma';
+import { Prisma, prisma } from 'src/lib/prisma';
 
 const animeRoute = () => {
   return (app: Elysia) =>
@@ -12,17 +12,24 @@ const animeRoute = () => {
         .get(
           '/update/history',
           async ({ query }) => {
-            const skip = (query.page - 1) * query.per_page;
+            const skip = (query.page ?? 1 - 1) * (query.per_page ?? 50);
 
-            return await prisma.updateHistory.findMany({
+            let where: Prisma.UpdateHistoryWhereInput = {};
+
+            if (query.anime_id) {
+              where.anime_id = query.anime_id;
+            }
+
+            return prisma.updateHistory.findMany({
               skip,
-              take: query.per_page
+              take: query.per_page ?? 50
             });
           },
           {
             query: t.Object({
-              page: t.Number({ default: 1 }),
-              per_page: t.Number({ default: 50 })
+              page: t.Optional(t.Number({ default: 1 })),
+              per_page: t.Optional(t.Number({ default: 50, maximum: 100 })),
+              anime_id: t.Optional(t.Number())
             }),
             detail: {
               description: 'Returns history of updates'
@@ -68,7 +75,7 @@ const animeRoute = () => {
           {
             detail: {
               description:
-                'Not really required, just a way to manually process the update queue, scheduler does it as well'
+                'Not really necessary, just a way to manually process the update queue, scheduler does it as well'
             }
           }
         )
