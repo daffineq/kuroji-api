@@ -7,7 +7,7 @@ import protectRoute from './helpers/plugins/protect.route';
 import { animeRoute, apiRoute, proxyRoute, yoga } from './core';
 import logger from './helpers/logger';
 import { HTTPError } from 'ky';
-import Elysia, { NotFoundError } from 'elysia';
+import Elysia, { NotFoundError, t } from 'elysia';
 import { cors } from '@elysiajs/cors';
 import swagger from '@elysiajs/swagger';
 import { prisma } from './lib/prisma';
@@ -23,14 +23,12 @@ const app = new Elysia()
   )
   .use(
     protectRoute((request) =>
-      ['/docs', '/docs/openapi'].includes(new URL(request.url).pathname)
-        ? true
-        : env.API_STRATEGY === 'not_required'
+      env.ROUTES_WHITELIST.includes(new URL(request.url).pathname) ? true : env.API_STRATEGY === 'not_required'
     )
   )
   .use(
     rateLimit(env.RATE_LIMIT, env.RATE_LIMIT_TTL, (request) =>
-      ['/docs', '/docs/openapi'].includes(new URL(request.url).pathname)
+      env.ROUTES_WHITELIST.includes(new URL(request.url).pathname)
     )
   )
   .use(
@@ -126,11 +124,17 @@ app.use(apiRoute());
 app.use(proxyRoute());
 
 app.get('/graphql', ({ request }) => yoga.handle(request), {
-  tags: ['GraphQL']
+  tags: ['GraphQL'],
+  detail: {
+    description: 'GraphiQL UI for graphql'
+  }
 });
 
 app.post('/graphql', ({ request }) => yoga.handle(request), {
-  tags: ['GraphQL']
+  tags: ['GraphQL'],
+  detail: {
+    description: 'The graphql'
+  }
 });
 
 app.get(
@@ -144,7 +148,14 @@ app.get(
     return createSuccessResponse({ message: 'Logs got', data: logs });
   },
   {
-    tags: ['System']
+    tags: ['System'],
+    query: t.Object({
+      page: t.Optional(t.Number({ default: 1 })),
+      per_page: t.Optional(t.Number({ default: 50 }))
+    }),
+    detail: {
+      description: 'Returns logs from logger'
+    }
   }
 );
 
@@ -187,7 +198,10 @@ app.get(
     });
   },
   {
-    tags: ['System']
+    tags: ['System'],
+    detail: {
+      description: 'Returns system state'
+    }
   }
 );
 

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { parseBoolean, parseNumber } from 'src/helpers/parsers';
+import { parseBoolean, parseNumber, parseString } from 'src/helpers/parsers';
 
 type ApiStrategy = 'all_routes' | 'not_required';
 
@@ -70,6 +70,8 @@ const env = {
   ADMIN_KEY: process.env.ADMIN_KEY ?? '',
 
   API_STRATEGY: parseApiStrategy(process.env.API_KEY_STRATEGY),
+
+  ROUTES_WHITELIST: parseString(process.env.ROUTES_WHITELIST)?.split(',') ?? ['/docs', '/docs/openapi'],
 
   // Database
   DATABASE_URL: process.env.DATABASE_URL ?? ''

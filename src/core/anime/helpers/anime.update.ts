@@ -523,20 +523,6 @@ class AnimeUpdateModule extends Module {
   async scheduleWeeklyAnime() {
     await this.queueWeekAgoAnime();
   }
-
-  @Scheduled({
-    strategies: [ScheduleStrategies.EVERY_OTHER_WEEK]
-  })
-  async scheduleUpcomingAnime() {
-    await this.queueUpcomingAnime();
-  }
-
-  @Scheduled({
-    strategies: [ScheduleStrategies.EVERY_MONTH_START]
-  })
-  async scheduleFinishedAnime() {
-    await this.queueFinishedAnime();
-  }
 }
 
 const AnimeUpdate = new AnimeUpdateModule();

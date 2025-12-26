@@ -86,6 +86,13 @@ class AnimeIndexerModule extends Module {
     return 'Indexing stopped';
   }
 
+  public reset(): string {
+    logger.log('Indexer had been reseted');
+    lock.release('indexer');
+    this.setLastFetchedPage(1);
+    return 'Reseted indexer';
+  }
+
   @Scheduled({
     strategies: [ScheduleStrategies.EVERY_MONTH_START]
   })
