@@ -518,6 +518,20 @@ class AnimeUpdateModule extends Module {
   }
 
   @Scheduled({
+    strategies: [ScheduleStrategies.EVERY_12_HOURS]
+  })
+  async scheduleTwoDaysAgoAnime() {
+    await this.queueTwoDaysAgoAnime();
+  }
+
+  @Scheduled({
+    strategies: [ScheduleStrategies.EVERY_DAY_23]
+  })
+  async scheduleThreeDaysAgoAnime() {
+    await this.queueThreeDaysAgoAnime();
+  }
+
+  @Scheduled({
     strategies: [ScheduleStrategies.EVERY_OTHER_DAY, ScheduleStrategies.EVERY_DAY_23]
   })
   async scheduleWeeklyAnime() {

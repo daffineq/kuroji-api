@@ -48,7 +48,7 @@ const env = {
 
   // Redis Config
   REDIS_ENABLED: process.env.REDIS_ENABLED !== 'false',
-  REDIS_TTL: parseNumber(process.env.REDIS_TTL) ?? 3600,
+  REDIS_TTL: parseNumber(process.env.REDIS_TTL) ?? 900,
   REDIS_USERNAME: process.env.REDIS_USERNAME ?? '',
   REDIS_HOST: process.env.REDIS_HOST ?? 'localhost',
   REDIS_PORT: parseNumber(process.env.REDIS_PORT) ?? 6379,
@@ -57,14 +57,6 @@ const env = {
   // Rate Limiting
   RATE_LIMIT: parseNumber(process.env.RATE_LIMIT) ?? 0,
   RATE_LIMIT_TTL: parseNumber(process.env.RATE_LIMIT_TTL) ?? 60,
-
-  // Pagination
-  DEFAULT_PER_PAGE: parseNumber(process.env.DEFAULT_PER_PAGE) ?? 25,
-  DEFAULT_PAGE: parseNumber(process.env.DEFAULT_PAGE) ?? 1,
-
-  DEFAULT_MAX_PER_PAGE: process.env.DEFAULT_MAX_PER_PAGE ? parseInt(process.env.DEFAULT_MAX_PER_PAGE) : 50,
-  DEFAULT_MIN_PER_PAGE: process.env.DEFAULT_MIN_PER_PAGE ? parseInt(process.env.DEFAULT_MIN_PER_PAGE) : 1,
-  DEFAULT_MIN_PAGE: process.env.DEFAULT_MIN_PAGE ? parseInt(process.env.DEFAULT_MIN_PAGE) : 1,
 
   // Admin Key
   ADMIN_KEY: process.env.ADMIN_KEY ?? '',
