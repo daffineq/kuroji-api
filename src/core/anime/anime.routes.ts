@@ -21,6 +21,7 @@ const animeRoute = () => {
             }
 
             return prisma.updateHistory.findMany({
+              where,
               skip,
               take: query.per_page ?? 50
             });
