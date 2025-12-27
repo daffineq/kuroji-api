@@ -270,23 +270,6 @@ class AnimePrismaModule extends Module {
             }))
           }
         : undefined,
-      rankings: anilist.rankings?.length
-        ? {
-            connectOrCreate: anilist.rankings.map((ranking) => ({
-              where: { id: ranking.id },
-              create: {
-                id: ranking.id,
-                rank: ranking.rank,
-                type: ranking.type,
-                format: ranking.format,
-                year: ranking.year,
-                season: ranking.season,
-                all_time: ranking.allTime,
-                context: ranking.context
-              }
-            }))
-          }
-        : undefined,
       external_links: anilist.externalLinks?.length
         ? {
             connectOrCreate: anilist.externalLinks.map((link) => ({
@@ -586,25 +569,6 @@ class AnimePrismaModule extends Module {
                     }
                   }
                 }
-              }
-            }))
-          }
-        : undefined,
-
-      rankings: anilist.rankings?.length
-        ? {
-            upsert: anilist.rankings.map((ranking) => ({
-              where: { id: ranking.id },
-              update: { rank: ranking.rank, type: ranking.type, context: ranking.context },
-              create: {
-                id: ranking.id,
-                rank: ranking.rank,
-                type: ranking.type,
-                format: ranking.format,
-                year: ranking.year,
-                season: ranking.season,
-                all_time: ranking.allTime,
-                context: ranking.context
               }
             }))
           }

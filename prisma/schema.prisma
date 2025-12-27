@@ -51,40 +51,40 @@ model UpdateHistory {
 
 // Anime.prisma
 model Anime {
-  id                 Int   @id
-  id_mal             Int?  @unique @map("id_mal")
+  id     Int  @id
+  id_mal Int? @unique @map("id_mal")
 
-  title              AnimeTitle?  @relation("AnimeTitle")
-  poster             AnimePoster? @relation("AnimePoster")
-  banner             String?
+  title  AnimeTitle?  @relation("AnimeTitle")
+  poster AnimePoster? @relation("AnimePoster")
+  banner String?
 
-  synonyms           String[]
+  synonyms String[]
 
-  description        String?
-  status             String?
-  type               String?
-  format             String?
+  description String?
+  status      String?
+  type        String?
+  format      String?
 
-  updated_at         Int @map("updated_at")
+  updated_at Int @map("updated_at")
 
-  start_date         AnimeStartDate? @relation("AnimeStartDate")
-  end_date           AnimeEndDate?   @relation("AnimeEndDate")
+  start_date AnimeStartDate? @relation("AnimeStartDate")
+  end_date   AnimeEndDate?   @relation("AnimeEndDate")
 
-  season             String?
-  season_year        Int?     @map("season_year")
-  episodes           Int?
-  duration           Int?
-  country_of_origin  String?  @map("country_of_origin")
-  is_licensed        Boolean? @map("is_licensed")
-  source             String?
-  hashtag            String?
-  is_adult           Boolean? @map("is_adult")
-  score              Int?
-  popularity         Int?
-  trending           Int?
-  favorites          Int?
+  season            String?
+  season_year       Int?     @map("season_year")
+  episodes          Int?
+  duration          Int?
+  country_of_origin String?  @map("country_of_origin")
+  is_licensed       Boolean? @map("is_licensed")
+  source            String?
+  hashtag           String?
+  is_adult          Boolean? @map("is_adult")
+  score             Int?
+  popularity        Int?
+  trending          Int?
+  favorites         Int?
 
-  genres             AnimeGenre[] @relation("AnimeGenres")
+  genres AnimeGenre[] @relation("AnimeGenres")
 
   latest_airing_episode AnimeLatestEpisode? @relation("AnimeLatestEpisode")
   next_airing_episode   AnimeNextEpisode?   @relation("AnimeNextEpisode")
@@ -94,7 +94,6 @@ model Anime {
   characters      AnimeCharacterEdge[]  @relation("AnimeCharacters")
   studios         AnimeStudioEdge[]     @relation("AnimeStudios")
   tags            AnimeTagEdge[]        @relation("AnimeTags")
-  rankings        AnimeRanking[]        @relation("AnimeRankings")
   external_links  AnimeExternalLink[]   @relation("AnimeExternalLinks")
 
   score_distribution  AnimeScoreDistribution[]  @relation("AnimeScoreDistribution")
@@ -104,8 +103,8 @@ model Anime {
 }
 
 model AnimePoster {
-  id          String @id @default(cuid())
-  anime_id    Int    @unique @map("anime_id")
+  id          String  @id @default(cuid())
+  anime_id    Int     @unique @map("anime_id")
   color       String?
   large       String?
   medium      String?
@@ -115,8 +114,8 @@ model AnimePoster {
 }
 
 model AnimeTitle {
-  id       String @id @default(cuid())
-  anime_id Int    @unique @map("anime_id")
+  id       String  @id @default(cuid())
+  anime_id Int     @unique @map("anime_id")
   romaji   String?
   english  String?
   native   String?
@@ -152,8 +151,8 @@ model AnimeGenre {
 }
 
 model AnimeAiringSchedule {
-  id        Int @id
-  anime_id  Int @map("anime_id")
+  id        Int  @id
+  anime_id  Int  @map("anime_id")
   episode   Int?
   airing_at Int? @map("airing_at")
 
@@ -161,8 +160,8 @@ model AnimeAiringSchedule {
 }
 
 model AnimeLatestEpisode {
-  id        Int @id
-  anime_id  Int @unique @map("anime_id")
+  id        Int  @id
+  anime_id  Int  @unique @map("anime_id")
   episode   Int?
   airing_at Int? @map("airing_at")
 
@@ -170,8 +169,8 @@ model AnimeLatestEpisode {
 }
 
 model AnimeNextEpisode {
-  id        Int @id
-  anime_id  Int @unique @map("anime_id")
+  id        Int  @id
+  anime_id  Int  @unique @map("anime_id")
   episode   Int?
   airing_at Int? @map("airing_at")
 
@@ -179,8 +178,8 @@ model AnimeNextEpisode {
 }
 
 model AnimeLastEpisode {
-  id        Int @id
-  anime_id  Int @unique @map("anime_id")
+  id        Int  @id
+  anime_id  Int  @unique @map("anime_id")
   episode   Int?
   airing_at Int? @map("airing_at")
 
@@ -188,21 +187,21 @@ model AnimeLastEpisode {
 }
 
 model AnimeCharacterEdge {
-  id           Int    @id
-  anime_id     Int    @map("anime_id")
-  character_id Int    @map("character_id")
+  id           Int     @id
+  anime_id     Int     @map("anime_id")
+  character_id Int     @map("character_id")
   role         String?
 
-  anime       Anime             @relation("AnimeCharacters", fields: [anime_id], references: [id])
-  character   AnimeCharacter    @relation(fields: [character_id], references: [id])
+  anime        Anime             @relation("AnimeCharacters", fields: [anime_id], references: [id])
+  character    AnimeCharacter    @relation(fields: [character_id], references: [id])
   voice_actors AnimeVoiceActor[] @relation("CharacterVoiceActors")
 }
 
 model AnimeCharacter {
   id Int @id
 
-  name       AnimeCharacterName?  @relation("CharacterName")
-  image      AnimeCharacterImage? @relation("CharacterImage")
+  name        AnimeCharacterName?  @relation("CharacterName")
+  image       AnimeCharacterImage? @relation("CharacterImage")
   anime_links AnimeCharacterEdge[]
 }
 
@@ -211,54 +210,54 @@ model AnimeVoiceActor {
 
   language String?
 
-  name        AnimeVoiceName?  @relation("VoiceActorName")
-  image       AnimeVoiceImage? @relation("VoiceActorImage")
+  name  AnimeVoiceName?  @relation("VoiceActorName")
+  image AnimeVoiceImage? @relation("VoiceActorImage")
 
-  characters  AnimeCharacterEdge[] @relation("CharacterVoiceActors")
+  characters AnimeCharacterEdge[] @relation("CharacterVoiceActors")
 }
 
 model AnimeCharacterName {
-  id           String @id @default(cuid())
-  full         String?
-  native       String?
-  alternative  String[]
+  id          String   @id @default(cuid())
+  full        String?
+  native      String?
+  alternative String[]
 
-  character     AnimeCharacter? @relation("CharacterName", fields: [character_id], references: [id])
-  character_id  Int? @unique @map("character_id")
+  character    AnimeCharacter? @relation("CharacterName", fields: [character_id], references: [id])
+  character_id Int?            @unique @map("character_id")
 }
 
 model AnimeCharacterImage {
-  id          String @id @default(cuid())
-  large       String?
-  medium      String?
+  id     String  @id @default(cuid())
+  large  String?
+  medium String?
 
-  character     AnimeCharacter? @relation("CharacterImage", fields: [character_id], references: [id])
-  character_id  Int? @unique @map("character_id")
+  character    AnimeCharacter? @relation("CharacterImage", fields: [character_id], references: [id])
+  character_id Int?            @unique @map("character_id")
 }
 
 model AnimeVoiceName {
-  id           String @id @default(cuid())
-  full         String?
-  native       String?
-  alternative  String[]
+  id          String   @id @default(cuid())
+  full        String?
+  native      String?
+  alternative String[]
 
-  voice_actor   AnimeVoiceActor? @relation("VoiceActorName", fields: [voice_actor_id], references: [id])
-  voice_actor_id Int? @unique @map("voice_actor_id")
+  voice_actor    AnimeVoiceActor? @relation("VoiceActorName", fields: [voice_actor_id], references: [id])
+  voice_actor_id Int?             @unique @map("voice_actor_id")
 }
 
 model AnimeVoiceImage {
-  id           String @id @default(cuid())
-  large        String?
-  medium       String?
+  id     String  @id @default(cuid())
+  large  String?
+  medium String?
 
   voice_actor    AnimeVoiceActor? @relation("VoiceActorImage", fields: [voice_actor_id], references: [id])
-  voice_actor_id Int? @unique @map("voice_actor_id")
+  voice_actor_id Int?             @unique @map("voice_actor_id")
 }
 
 model AnimeStudioEdge {
-  id        Int @id
-  anime_id  Int @map("anime_id")
-  studio_id Int @map("studio_id")
+  id        Int      @id
+  anime_id  Int      @map("anime_id")
+  studio_id Int      @map("studio_id")
   is_main   Boolean? @map("is_main")
 
   anime  Anime       @relation("AnimeStudios", fields: [anime_id], references: [id])
@@ -266,17 +265,17 @@ model AnimeStudioEdge {
 }
 
 model AnimeStudio {
-  id    Int @id
-  name  String?
+  id   Int     @id
+  name String?
 
   anime_links AnimeStudioEdge[]
 }
 
 model AnimeTagEdge {
-  id              String  @id @default(cuid())
-  anime_id        Int     @map("anime_id")
-  tag_id          Int     @map("tag_id")
-  rank            Int?
+  id               String   @id @default(cuid())
+  anime_id         Int      @map("anime_id")
+  tag_id           Int      @map("tag_id")
+  rank             Int?
   is_media_spoiler Boolean? @map("is_media_spoiler")
 
   anime Anime    @relation("AnimeTags", fields: [anime_id], references: [id])
@@ -286,36 +285,22 @@ model AnimeTagEdge {
 }
 
 model AnimeTag {
-  id                Int     @id
-  name              String? @unique
-  description       String?
-  category          String?
+  id                 Int      @id
+  name               String?  @unique
+  description        String?
+  category           String?
   is_general_spoiler Boolean? @map("is_general_spoiler")
   is_adult           Boolean? @map("is_adult")
 
   tag_edges AnimeTagEdge[] @relation("AnimeTagEdges")
 }
 
-model AnimeRanking {
-  id        Int    @id
-  anime_id  Int    @map("anime_id")
-  rank      Int?
-  type      String?
-  format    String?
-  year      Int?
-  season    String?
-  all_time  Boolean? @map("all_time")
-  context   String
-
-  anime Anime @relation("AnimeRankings", fields: [anime_id], references: [id])
-}
-
 model AnimeExternalLink {
-  id          Int     @id
-  anime_id    Int     @map("anime_id")
+  id          Int      @id
+  anime_id    Int      @map("anime_id")
   url         String?
   site        String?
-  site_id     Int?    @map("site_id")
+  site_id     Int?     @map("site_id")
   type        String?
   language    String?
   color       String?
@@ -330,7 +315,7 @@ model AnimeScoreDistribution {
   id       String @id @default(cuid())
   score    Int
   amount   Int
-  anime_id Int @map("anime_id")
+  anime_id Int    @map("anime_id")
 
   anime Anime @relation("AnimeScoreDistribution", fields: [anime_id], references: [id])
 }
@@ -339,7 +324,7 @@ model AnimeStatusDistribution {
   id       String @id @default(cuid())
   status   String
   amount   Int
-  anime_id Int @map("anime_id")
+  anime_id Int    @map("anime_id")
 
   anime Anime @relation("AnimeStatusDistribution", fields: [anime_id], references: [id])
 }
