@@ -48,8 +48,8 @@ class AnimeModule extends Module {
   ): Promise<Prisma.AnimeGetPayload<T>> {
     await prisma.anime.upsert({
       where: { id: al.id },
-      update: await AnimePrisma.getAnime(al),
-      create: await AnimePrisma.getAnime(al)
+      update: await AnimePrisma.getAnimeUpdate(al),
+      create: await AnimePrisma.getAnimeCreate(al)
     });
 
     await this.initProviders(al.id, al.idMal);
