@@ -68,11 +68,10 @@ class AnimeModule extends Module {
       MyAnimeList.getInfo(id, idMal).catch(() => null),
       Shikimori.getInfo(id, idMal).catch(() => null),
       Kitsu.getInfo(id).catch(() => null),
-      Tmdb.getInfo(id).catch(() => null),
-      Tvdb.getInfo(id).catch(() => null)
+      Tmdb.getInfo(id).catch(() => null)
     ]);
 
-    await TmdbSeasons.getSeason(id).catch(() => null);
+    await Promise.all([TmdbSeasons.getSeason(id).catch(() => null), Tvdb.getInfo(id).catch(() => null)]);
   }
 }
 
