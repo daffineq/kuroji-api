@@ -818,12 +818,6 @@ export const resolvers = {
       });
     },
 
-    rankings: async (parent: any) => {
-      return await prisma.animeRanking.findMany({
-        where: { anime_id: parent.id }
-      });
-    },
-
     external_links: async (parent: any) => {
       return prisma.animeExternalLink.findMany({
         where: { anime_id: parent.id }

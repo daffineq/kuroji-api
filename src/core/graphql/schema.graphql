@@ -227,7 +227,6 @@ type Anime {
   characters(page: Int = 1, per_page: Int = 25): CharacterConnection!
   studios: [StudioEdge!]!
   tags: [TagEdge!]!
-  rankings: [Ranking!]!
   external_links: [ExternalLink!]!
   score_distribution: [ScoreDistribution!]!
   status_distribution: [StatusDistribution!]!
@@ -341,17 +340,6 @@ type AnimeTag {
   category: String
   is_general_spoiler: Boolean
   is_adult: Boolean
-}
-
-type Ranking {
-  id: Int!
-  rank: Int
-  type: String
-  format: String
-  year: Int
-  season: String
-  all_time: Boolean
-  context: String!
 }
 
 type ExternalLink {
