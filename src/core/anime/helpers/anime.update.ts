@@ -478,7 +478,7 @@ class AnimeUpdateModule extends Module {
           }, TIMEOUT);
         });
 
-        return Promise.race([Anime.update(animeId), timeoutPromise]);
+        return Promise.race([Anime.updateOrCreate(animeId), timeoutPromise]);
       };
     } catch (error) {
       if (error instanceof Error) {
@@ -522,20 +522,6 @@ class AnimeUpdateModule extends Module {
   })
   async scheduleTwoDaysAgoAnime() {
     await this.queueTwoDaysAgoAnime();
-  }
-
-  @Scheduled({
-    strategies: [ScheduleStrategies.EVERY_DAY_23]
-  })
-  async scheduleThreeDaysAgoAnime() {
-    await this.queueThreeDaysAgoAnime();
-  }
-
-  @Scheduled({
-    strategies: [ScheduleStrategies.EVERY_OTHER_DAY, ScheduleStrategies.EVERY_DAY_23]
-  })
-  async scheduleWeeklyAnime() {
-    await this.queueWeekAgoAnime();
   }
 }
 

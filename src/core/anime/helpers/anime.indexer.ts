@@ -14,7 +14,7 @@ class AnimeIndexerModule extends Module {
 
   private delay: number = 5;
 
-  private async index(): Promise<void> {
+  private async index(status?: string): Promise<void> {
     try {
       let page = await this.getLastFetchedPage();
       let hasNextPage = true;
@@ -25,7 +25,10 @@ class AnimeIndexerModule extends Module {
       while (hasNextPage) {
         logger.log(`Fetching IDs from page ${page}...`);
 
-        const response = await AnilistFetch.fetchIds(page, perPage);
+        const response = status
+          ? await AnilistFetch.fetchIdsStatus(page, perPage, status)
+          : await AnilistFetch.fetchIds(page, perPage);
+
         const ids = response.media.map((m) => m.id);
         hasNextPage = response.pageInfo.hasNextPage;
 
@@ -94,7 +97,7 @@ class AnimeIndexerModule extends Module {
   }
 
   @Scheduled({
-    strategies: [ScheduleStrategies.EVERY_MONTH_START]
+    strategies: [ScheduleStrategies.EVERY_OTHER_WEEK]
   })
   async scheduleIndex() {
     if (!env.ANIME_INDEXER_UPDATE_ENABLED) {
@@ -103,6 +106,30 @@ class AnimeIndexerModule extends Module {
     }
 
     await this.index();
+  }
+
+  @Scheduled({
+    strategies: [ScheduleStrategies.EVERY_OTHER_DAY, ScheduleStrategies.EVERY_DAY_23]
+  })
+  async scheduleIndexReleasing() {
+    if (!env.ANIME_INDEXER_UPDATE_ENABLED) {
+      logger.log('Anime indexer updates disabled. Skipping scheduled releasing indexing.');
+      return;
+    }
+
+    await this.index('RELEASING');
+  }
+
+  @Scheduled({
+    strategies: [ScheduleStrategies.EVERY_WEEK, ScheduleStrategies.EVERY_DAY_23]
+  })
+  async scheduleIndexUpcoming() {
+    if (!env.ANIME_INDEXER_UPDATE_ENABLED) {
+      logger.log('Anime indexer updates disabled. Skipping scheduled upcoming indexing.');
+      return;
+    }
+
+    await this.index('NOT_YET_RELEASED');
   }
 
   public async calculateEstimatedTime(): Promise<string> {

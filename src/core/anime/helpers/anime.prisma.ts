@@ -397,8 +397,16 @@ class AnimePrismaModule extends Module {
         ? {
             upsert: {
               where: { anime_id: anilist.id },
-              update: { year: anilist.startDate.year, month: anilist.startDate.month, day: anilist.startDate.day },
-              create: { year: anilist.startDate.year, month: anilist.startDate.month, day: anilist.startDate.day }
+              update: {
+                year: anilist.startDate.year,
+                month: anilist.startDate.month,
+                day: anilist.startDate.day
+              },
+              create: {
+                year: anilist.startDate.year,
+                month: anilist.startDate.month,
+                day: anilist.startDate.day
+              }
             }
           }
         : undefined,
@@ -407,8 +415,16 @@ class AnimePrismaModule extends Module {
         ? {
             upsert: {
               where: { anime_id: anilist.id },
-              update: { year: anilist.endDate.year, month: anilist.endDate.month, day: anilist.endDate.day },
-              create: { year: anilist.endDate.year, month: anilist.endDate.month, day: anilist.endDate.day }
+              update: {
+                year: anilist.endDate.year,
+                month: anilist.endDate.month,
+                day: anilist.endDate.day
+              },
+              create: {
+                year: anilist.endDate.year,
+                month: anilist.endDate.month,
+                day: anilist.endDate.day
+              }
             }
           }
         : undefined,
@@ -426,9 +442,17 @@ class AnimePrismaModule extends Module {
       latest_airing_episode: latestEpisode
         ? {
             upsert: {
-              where: { id: latestEpisode.id },
-              update: { episode: latestEpisode.episode, airing_at: latestEpisode.airingAt },
-              create: { id: latestEpisode.id, episode: latestEpisode.episode, airing_at: latestEpisode.airingAt }
+              where: { anime_id: anilist.id },
+              update: {
+                id: latestEpisode.id,
+                episode: latestEpisode.episode,
+                airing_at: latestEpisode.airingAt
+              },
+              create: {
+                id: latestEpisode.id,
+                episode: latestEpisode.episode,
+                airing_at: latestEpisode.airingAt
+              }
             }
           }
         : undefined,
@@ -436,9 +460,17 @@ class AnimePrismaModule extends Module {
       next_airing_episode: nextEpisode
         ? {
             upsert: {
-              where: { id: nextEpisode.id },
-              update: { episode: nextEpisode.episode, airing_at: nextEpisode.airingAt },
-              create: { id: nextEpisode.id, episode: nextEpisode.episode, airing_at: nextEpisode.airingAt }
+              where: { anime_id: anilist.id },
+              update: {
+                id: nextEpisode.id,
+                episode: nextEpisode.episode,
+                airing_at: nextEpisode.airingAt
+              },
+              create: {
+                id: nextEpisode.id,
+                episode: nextEpisode.episode,
+                airing_at: nextEpisode.airingAt
+              }
             }
           }
         : undefined,
@@ -446,101 +478,113 @@ class AnimePrismaModule extends Module {
       last_airing_episode: lastEpisode
         ? {
             upsert: {
-              where: { id: lastEpisode.id },
-              update: { episode: lastEpisode.episode, airing_at: lastEpisode.airingAt },
-              create: { id: lastEpisode.id, episode: lastEpisode.episode, airing_at: lastEpisode.airingAt }
+              where: { anime_id: anilist.id },
+              update: {
+                id: lastEpisode.id,
+                episode: lastEpisode.episode,
+                airing_at: lastEpisode.airingAt
+              },
+              create: {
+                id: lastEpisode.id,
+                episode: lastEpisode.episode,
+                airing_at: lastEpisode.airingAt
+              }
             }
           }
         : undefined,
 
       airing_schedule: anilist.airingSchedule?.edges?.length
         ? {
-            upsert: anilist.airingSchedule.edges.map((edge) => ({
-              where: { id: edge.node.id },
-              update: { episode: edge.node.episode, airing_at: edge.node.airingAt },
-              create: { id: edge.node.id, episode: edge.node.episode, airing_at: edge.node.airingAt }
+            deleteMany: {
+              anime_id: anilist.id
+            },
+            create: anilist.airingSchedule.edges.map((edge) => ({
+              id: edge.node.id,
+              episode: edge.node.episode,
+              airing_at: edge.node.airingAt
             }))
           }
         : undefined,
 
       characters: anilist.characters?.edges?.length
         ? {
-            upsert: anilist.characters.edges.map((edge) => ({
-              where: { id: edge.id },
-              update: { role: edge.role },
-              create: {
-                id: edge.id,
-                role: edge.role,
-                character: {
-                  connectOrCreate: {
-                    where: { id: edge.node.id },
-                    create: {
-                      id: edge.node.id,
-                      name: edge.node.name
-                        ? {
-                            create: {
-                              full: edge.node.name.full,
-                              native: edge.node.name.native,
-                              alternative: edge.node.name.alternative || []
-                            }
+            deleteMany: {
+              anime_id: anilist.id
+            },
+            create: anilist.characters.edges.map((edge) => ({
+              id: edge.id,
+              role: edge.role,
+              character: {
+                connectOrCreate: {
+                  where: { id: edge.node.id },
+                  create: {
+                    id: edge.node.id,
+                    name: edge.node.name
+                      ? {
+                          create: {
+                            full: edge.node.name.full,
+                            native: edge.node.name.native,
+                            alternative: edge.node.name.alternative || []
                           }
-                        : undefined,
-                      image: edge.node.image
-                        ? {
-                            create: {
-                              large: edge.node.image.large,
-                              medium: edge.node.image.medium
-                            }
-                          }
-                        : undefined
-                    }
-                  }
-                },
-                voice_actors: edge.voiceActors?.length
-                  ? {
-                      connectOrCreate: edge.voiceActors.map((va) => ({
-                        where: { id: va.id },
-                        create: {
-                          id: va.id,
-                          language: va.languageV2,
-                          name: va.name
-                            ? {
-                                create: {
-                                  full: va.name.full,
-                                  native: va.name.native,
-                                  alternative: va.name.alternative || []
-                                }
-                              }
-                            : undefined,
-                          image: va.image
-                            ? {
-                                create: {
-                                  large: va.image.large,
-                                  medium: va.image.medium
-                                }
-                              }
-                            : undefined
                         }
-                      }))
-                    }
-                  : undefined
-              }
+                      : undefined,
+                    image: edge.node.image
+                      ? {
+                          create: {
+                            large: edge.node.image.large,
+                            medium: edge.node.image.medium
+                          }
+                        }
+                      : undefined
+                  }
+                }
+              },
+              voice_actors: edge.voiceActors?.length
+                ? {
+                    connectOrCreate: edge.voiceActors.map((va) => ({
+                      where: { id: va.id },
+                      create: {
+                        id: va.id,
+                        language: va.languageV2,
+                        name: va.name
+                          ? {
+                              create: {
+                                full: va.name.full,
+                                native: va.name.native,
+                                alternative: va.name.alternative || []
+                              }
+                            }
+                          : undefined,
+                        image: va.image
+                          ? {
+                              create: {
+                                large: va.image.large,
+                                medium: va.image.medium
+                              }
+                            }
+                          : undefined
+                      }
+                    }))
+                  }
+                : undefined
             }))
           }
         : undefined,
 
       studios: anilist.studios?.edges?.length
         ? {
-            upsert: anilist.studios.edges.map((edge) => ({
-              where: { id: edge.id },
-              update: { is_main: edge.isMain },
-              create: {
-                id: edge.id,
-                is_main: edge.isMain,
-                studio: {
-                  connectOrCreate: {
-                    where: { id: edge.node.id },
-                    create: { id: edge.node.id, name: edge.node.name }
+            deleteMany: {
+              anime_id: anilist.id
+            },
+            create: anilist.studios.edges.map((edge) => ({
+              id: edge.id,
+              is_main: edge.isMain,
+              studio: {
+                connectOrCreate: {
+                  where: { id: edge.node.id },
+                  create: {
+                    id: edge.node.id,
+                    name: edge.node.name
                   }
                 }
               }
@@ -550,23 +594,22 @@ class AnimePrismaModule extends Module {
 
       tags: anilist.tags?.length
         ? {
-            upsert: anilist.tags.map((tag) => ({
-              where: { anime_id_tag_id: { anime_id: anilist.id, tag_id: tag.id } },
-              update: { rank: tag.rank, is_media_spoiler: tag.isMediaSpoiler },
-              create: {
-                rank: tag.rank,
-                is_media_spoiler: tag.isMediaSpoiler,
-                tag: {
-                  connectOrCreate: {
-                    where: { id: tag.id },
-                    create: {
-                      id: tag.id,
-                      name: tag.name,
-                      description: tag.description,
-                      category: tag.category,
-                      is_general_spoiler: tag.isGeneralSpoiler,
-                      is_adult: tag.isAdult
-                    }
+            deleteMany: {
+              anime_id: anilist.id
+            },
+            create: anilist.tags.map((tag) => ({
+              rank: tag.rank,
+              is_media_spoiler: tag.isMediaSpoiler,
+              tag: {
+                connectOrCreate: {
+                  where: { id: tag.id },
+                  create: {
+                    id: tag.id,
+                    name: tag.name,
+                    description: tag.description,
+                    category: tag.category,
+                    is_general_spoiler: tag.isGeneralSpoiler,
+                    is_adult: tag.isAdult
                   }
                 }
               }
@@ -576,28 +619,29 @@ class AnimePrismaModule extends Module {
 
       external_links: anilist.externalLinks?.length
         ? {
-            upsert: anilist.externalLinks.map((link) => ({
-              where: { id: link.id },
-              update: { url: link.url, is_disabled: link.isDisabled },
-              create: {
-                id: link.id,
-                url: link.url,
-                site: link.site,
-                site_id: link.siteId,
-                type: link.type,
-                language: link.language,
-                color: link.color,
-                icon: link.icon,
-                notes: link.notes,
-                is_disabled: link.isDisabled
-              }
+            deleteMany: {
+              anime_id: anilist.id
+            },
+            create: anilist.externalLinks.map((link) => ({
+              id: link.id,
+              url: link.url,
+              site: link.site,
+              site_id: link.siteId,
+              type: link.type,
+              language: link.language,
+              color: link.color,
+              icon: link.icon,
+              notes: link.notes,
+              is_disabled: link.isDisabled
             }))
           }
         : undefined,
 
       score_distribution: anilist.stats?.scoreDistribution?.length
         ? {
-            deleteMany: {},
+            deleteMany: {
+              anime_id: anilist.id
+            },
             create: anilist.stats.scoreDistribution.map((dist) => ({
               score: dist.score,
               amount: dist.amount
@@ -607,7 +651,9 @@ class AnimePrismaModule extends Module {
 
       status_distribution: anilist.stats?.statusDistribution?.length
         ? {
-            deleteMany: {},
+            deleteMany: {
+              anime_id: anilist.id
+            },
             create: anilist.stats.statusDistribution.map((dist) => ({
               status: dist.status,
               amount: dist.amount

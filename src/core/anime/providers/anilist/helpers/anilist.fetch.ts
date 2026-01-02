@@ -75,6 +75,54 @@ class AnilistFetchModule extends ClientModule {
     return data;
   }
 
+  async fetchIdsStatus(
+    page: number,
+    perPage: number,
+    status: string
+  ): Promise<{
+    media: { id: number }[];
+    pageInfo: { hasNextPage: boolean };
+  }> {
+    const { data, error } = await this.client.post<{
+      media: { id: number }[];
+      pageInfo: { hasNextPage: boolean };
+    }>(``, {
+      json: {
+        query: `
+          query ($page: Int, $perPage: Int) {
+            Page(page: $page, perPage: $perPage) {
+              pageInfo {
+                total
+                perPage
+                currentPage
+                lastPage
+                hasNextPage
+              }
+              media(type: ANIME, sort: [POPULARITY_DESC], popularity_greater: ${env.ANIME_POPULARITY_THRESHOLD}, status: ${status}) {
+                id
+              }
+            }
+          }
+        `,
+        variables: {
+          page,
+          perPage
+        }
+      },
+      jsonPath: 'data.Page'
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error(`AnilistFetch.fetchIds: No data found`);
+    }
+
+    return data;
+  }
+
   async getTotal(): Promise<number> {
     const { data, error } = await this.client.post<{
       media: { id: number }[];
