@@ -14,9 +14,11 @@ class AnimeIndexerModule extends Module {
 
   private delay: number = 5;
 
-  private async index(status?: string): Promise<void> {
+  private async index(options: { fetchLastPage?: boolean; status?: string } = {}): Promise<void> {
+    const { fetchLastPage = true, status } = options;
+
     try {
-      let page = await this.getLastFetchedPage();
+      let page = fetchLastPage ? await this.getLastFetchedPage() : 1;
       let hasNextPage = true;
       const perPage = 50;
 
@@ -105,7 +107,7 @@ class AnimeIndexerModule extends Module {
       return;
     }
 
-    await this.index();
+    await this.index({ fetchLastPage: false });
   }
 
   @Scheduled({
@@ -117,7 +119,7 @@ class AnimeIndexerModule extends Module {
       return;
     }
 
-    await this.index('RELEASING');
+    await this.index({ fetchLastPage: false, status: 'RELEASING' });
   }
 
   @Scheduled({
@@ -129,7 +131,7 @@ class AnimeIndexerModule extends Module {
       return;
     }
 
-    await this.index('NOT_YET_RELEASED');
+    await this.index({ fetchLastPage: false, status: 'NOT_YET_RELEASED' });
   }
 
   public async calculateEstimatedTime(): Promise<string> {
