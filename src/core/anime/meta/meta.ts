@@ -53,7 +53,7 @@ class MetaModule extends Module {
 
   async addMappings(id: number, entries: MappingEntry[]) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: MetaPrisma.addMappings(entries)
     });
@@ -61,7 +61,7 @@ class MetaModule extends Module {
 
   async addFranchise(id: number, franchise: string) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: { franchise }
     });
@@ -69,7 +69,7 @@ class MetaModule extends Module {
 
   async addRating(id: number, rating: string) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: { rating }
     });
@@ -77,7 +77,7 @@ class MetaModule extends Module {
 
   async addEpisodesAired(id: number, episodes: number) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: { episodes_aired: episodes }
     });
@@ -85,7 +85,7 @@ class MetaModule extends Module {
 
   async addEpisodesTotal(id: number, episodes: number) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: { episodes_total: episodes }
     });
@@ -93,7 +93,7 @@ class MetaModule extends Module {
 
   async addMoreinfo(id: number, info: string) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: { moreinfo: info }
     });
@@ -101,7 +101,7 @@ class MetaModule extends Module {
 
   async addBroadcast(id: number, broadcast: string) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: { broadcast }
     });
@@ -109,7 +109,7 @@ class MetaModule extends Module {
 
   async setNSFW(id: number, nsfw: boolean) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: { nsfw }
     });
@@ -117,7 +117,7 @@ class MetaModule extends Module {
 
   async addTitles(id: number, titles: TitleEntry[]) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: MetaPrisma.addTitles(titles)
     });
@@ -125,7 +125,7 @@ class MetaModule extends Module {
 
   async addDescriptions(id: number, descriptions: DescriptionEntry[]) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: MetaPrisma.addDescriptions(descriptions)
     });
@@ -133,7 +133,7 @@ class MetaModule extends Module {
 
   async addImages(id: number, images: ImageEntry[]) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: MetaPrisma.addImages(images)
     });
@@ -141,7 +141,7 @@ class MetaModule extends Module {
 
   async addVideos(id: number, videos: VideoEntry[]) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: MetaPrisma.addVideos(videos)
     });
@@ -149,7 +149,7 @@ class MetaModule extends Module {
 
   async addScreenshots(id: number, screenshots: ScreenshotEntry[]) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: MetaPrisma.addScreenshots(screenshots)
     });
@@ -157,7 +157,7 @@ class MetaModule extends Module {
 
   async addArtworks(id: number, artworks: ArtworkEntry[]) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: MetaPrisma.addArtworks(artworks)
     });
@@ -165,7 +165,7 @@ class MetaModule extends Module {
 
   async addChronologies(id: number, chronologies: ChronologyEntry[]) {
     await this.fetchOrCreate(id);
-    return prisma.meta.update({
+    await prisma.meta.update({
       where: { id },
       data: MetaPrisma.addChronologies(chronologies)
     });
@@ -180,23 +180,23 @@ class MetaModule extends Module {
   }
 
   async addSingleMapping(id: number, entry: MappingEntry) {
-    return this.addMappings(id, [entry]);
+    await this.addMappings(id, [entry]);
   }
 
   async addSingleTitle(id: number, title: TitleEntry) {
-    return this.addTitles(id, [title]);
+    await this.addTitles(id, [title]);
   }
 
   async addSingleDescription(id: number, desc: DescriptionEntry) {
-    return this.addDescriptions(id, [desc]);
+    await this.addDescriptions(id, [desc]);
   }
 
   async addSingleImage(id: number, img: ImageEntry) {
-    return this.addImages(id, [img]);
+    await this.addImages(id, [img]);
   }
 
   async addSingleVideo(id: number, video: VideoEntry) {
-    return this.addVideos(id, [video]);
+    await this.addVideos(id, [video]);
   }
 }
 

@@ -1,7 +1,6 @@
 import { MatchStrategy, EpisodeMatchCandidate, SeasonEpisodeGroup, MatchResult, SeasonEpisode } from '../types';
 import { AnilistMedia } from 'src/core/anime/providers/anilist/types';
 import { DateUtils } from 'src/helpers/date';
-import { AnimepaheInfo } from 'src/core/types';
 import { AnilistUtils } from '../../anilist';
 import { Module } from 'src/helpers/module';
 
@@ -247,119 +246,6 @@ class TmdbStrategiesModule extends Module {
     const episodesPenalty = episodes.length === episodeCount ? 1 : 0.75;
     const primarySeason = this.getMostCommonSeason(episodes);
     const confidence = Math.min(matchRatio, 0.95 * episodesPenalty);
-
-    return { episodes, primarySeason, confidence, strategy };
-  }
-
-  // Zoro is not implemented yet
-  // async function matchByZoro(
-  //   anilist: MapperAnilist,
-  //   zoro: ZoroPayload | null,
-  //   allEpisodes: TmdbSeasonEpisode[],
-  // ): Promise<MatchResult> {
-  //   const strategy = MatchStrategy.ZORO;
-
-  //   if (!zoro || !zoro.episodes || zoro.episodes.length === 0) {
-  //     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
-  //   }
-
-  //   const matches: EpisodeMatchCandidate[] = [];
-
-  //   zoro.episodes.forEach((zoroEp, index) => {
-  //     const formatTitle = (title?: string | null) =>
-  //       (title ?? '')
-  //         .toLowerCase()
-  //         .replace(/[^a-z0-9]/g, '')
-  //         .trim();
-
-  //     const tmdbEp = allEpisodes.find(
-  //       (ep) => formatTitle(ep.name) === formatTitle(zoroEp.title),
-  //     );
-
-  //     if (tmdbEp) {
-  //       matches.push({
-  //         episode: tmdbEp,
-  //         confidence: 0.9,
-  //         reasons: ['zoro_title_match'],
-  //         anilistEpisodeNumber: zoroEp.number ?? index + 1,
-  //       });
-  //     }
-  //   });
-
-  //   if (matches.length === 0) {
-  //     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
-  //   }
-
-  //   const expectedCount = findEpisodeCount(anilist);
-  //   if (!expectedCount) {
-  //     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
-  //   }
-
-  //   const episodes = selectBestEpisodes(
-  //     matches.map((m) => m.episode),
-  //     expectedCount,
-  //   );
-
-  //   const matchRatio = expectedCount ? episodes.length / expectedCount : 0;
-  //   if (matchRatio < 0.5) {
-  //     return { episodes: [], primarySeason: 1, confidence: 0, strategy };
-  //   }
-
-  //   const episodesPenalty = episodes.length === expectedCount ? 1 : 0.75;
-  //   const primarySeason = getMostCommonSeason(episodes);
-  //   const confidence = Math.min(matchRatio, 0.9 * episodesPenalty);
-
-  //   return { episodes, primarySeason, confidence, strategy };
-  // }
-
-  async matchByAnimepahe(
-    anilist: AnilistMedia,
-    animepahe: AnimepaheInfo | null,
-    allEpisodes: SeasonEpisode[],
-    episodeCount: number | undefined | null
-  ): Promise<MatchResult> {
-    const strategy = MatchStrategy.ANIMEPAHE;
-
-    if (!animepahe || !animepahe.episodes || animepahe.episodes.length === 0) {
-      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
-    }
-
-    const matches: EpisodeMatchCandidate[] = [];
-
-    animepahe.episodes.forEach((animepaheEp, index) => {
-      const tmdbEp = allEpisodes.find((ep) => ep.episode_number === animepaheEp.number);
-
-      if (tmdbEp) {
-        matches.push({
-          episode: tmdbEp,
-          confidence: 0.7,
-          reasons: ['animepahe_episode_number_match'],
-          anilistEpisodeNumber: animepaheEp.number ?? index + 1
-        });
-      }
-    });
-
-    if (matches.length === 0) {
-      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
-    }
-
-    if (!episodeCount) {
-      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
-    }
-
-    const episodes = this.selectBestEpisodes(
-      matches.map((m) => m.episode),
-      episodeCount
-    );
-
-    const matchRatio = episodeCount ? episodes.length / episodeCount : 0;
-    if (matchRatio < 0.5) {
-      return { episodes: [], primarySeason: 1, confidence: 0, strategy };
-    }
-
-    const episodesPenalty = episodes.length === episodeCount ? 1 : 0.75;
-    const primarySeason = this.getMostCommonSeason(episodes);
-    const confidence = Math.min(matchRatio, 0.7 * episodesPenalty);
 
     return { episodes, primarySeason, confidence, strategy };
   }

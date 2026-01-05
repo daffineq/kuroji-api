@@ -1,3 +1,7 @@
+import { Image } from '@crysoline/lib/dist/core/types';
+import { EpisodeThumbnail } from 'src/lib/prisma';
+import { EpisodeProvider } from '../anime';
+
 export interface AnimeArgs {
   page?: number;
   per_page?: number;
@@ -73,7 +77,18 @@ export interface ArtworksArgs {
   iso_639_1?: string;
 }
 
-export interface EpisodesArgs {
-  page?: number;
-  per_page?: number;
+export interface SourcesArgs {
+  id: number;
+  ep_id: string;
+}
+
+export interface MergedEpisode {
+  id: number | null;
+  number: number;
+  title: string | null;
+  overview: string | null;
+  thumbnail: EpisodeThumbnail | Image | string | null;
+  runtime: number | null;
+  date: string | null;
+  providers: EpisodeProvider[];
 }

@@ -1,5 +1,5 @@
 export * from './anilist';
-export * from './animepahe';
+export * from './crysoline';
 export * from './kitsu';
 export * from './mal';
 export * from './shikimori';

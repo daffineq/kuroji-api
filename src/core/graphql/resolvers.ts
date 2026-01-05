@@ -1,6 +1,14 @@
 import { prisma, Prisma } from 'src/lib/prisma';
-import { Anime, Tmdb, TmdbUtils } from '../anime';
-import { AnimeArgs, ArtworksArgs, CharacterArgs, ChronologyArgs, EpisodeArgs, EpisodesArgs } from './types';
+import { Anime, Crysoline, Episode, Tmdb, TmdbUtils } from '../anime';
+import {
+  AnimeArgs,
+  ArtworksArgs,
+  CharacterArgs,
+  ChronologyArgs,
+  EpisodeArgs,
+  MergedEpisode,
+  SourcesArgs
+} from './types';
 
 const filterAnime = (
   args: AnimeArgs
@@ -717,6 +725,24 @@ export const resolvers = {
           has_next_page: page < last_page
         }
       };
+    },
+
+    sources: async (_: any, args: SourcesArgs) => {
+      const sources = await Crysoline.sources(args.id, args.ep_id);
+
+      if (!sources) {
+        return null;
+      }
+
+      return {
+        ...sources,
+        headers: sources.headers
+          ? Object.entries(sources.headers).map(([key, value]) => ({
+              key,
+              value: value != null ? String(value) : null
+            }))
+          : []
+      };
     }
   },
 
@@ -933,14 +959,54 @@ export const resolvers = {
       });
     },
 
-    episodes: async (parent: any, args: EpisodesArgs) => {
-      const { page = 1, per_page = 20 } = args;
-      return prisma.episode.findMany({
+    episodes: async (parent: any) => {
+      const providerEpisodes = await Crysoline.episodes(parent.id);
+
+      const tmdbEpisodes = await prisma.episode.findMany({
         where: { parent: { some: { id: parent.id } } },
-        include: { thumbnail: true },
-        skip: (page - 1) * per_page,
-        take: per_page
+        include: { thumbnail: true }
       });
+
+      const providerMap = new Map<number, Episode>();
+      for (const ep of providerEpisodes) {
+        if (ep.number !== null && ep.number !== undefined) {
+          providerMap.set(ep.number, ep);
+        }
+      }
+
+      const merged: MergedEpisode[] = tmdbEpisodes.map((tmdbEp) => {
+        const providerEp = providerMap.get(tmdbEp.number);
+
+        if (providerEp) {
+          providerMap.delete(tmdbEp.number);
+        }
+
+        return {
+          id: tmdbEp.id,
+          number: tmdbEp.number,
+          title: tmdbEp.title ?? providerEp?.title ?? null,
+          overview: tmdbEp.overview ?? providerEp?.description ?? null,
+          thumbnail: tmdbEp.thumbnail ?? providerEp?.image ?? null,
+          runtime: tmdbEp.runtime ?? null,
+          date: tmdbEp.date ?? null,
+          providers: providerEp?.providers ?? []
+        };
+      });
+
+      for (const [_, providerEp] of providerMap) {
+        merged.push({
+          id: null,
+          number: providerEp.number!,
+          title: providerEp.title ?? null,
+          overview: providerEp.description ?? null,
+          thumbnail: providerEp.image ?? null,
+          runtime: null,
+          date: null,
+          providers: providerEp.providers
+        });
+      }
+
+      return merged.sort((a, b) => a.number - b.number);
     },
 
     videos: async (parent: any) => {

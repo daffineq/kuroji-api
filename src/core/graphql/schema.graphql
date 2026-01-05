@@ -119,6 +119,7 @@ type Query {
     franchise: String
     sort: [AnimeSort!]
   ): AnimePage!
+  sources(id: Int, ep_id: String): Source
 }
 
 type AnimePage {
@@ -412,17 +413,18 @@ type Mapping {
 }
 
 type Episode {
-  id: Int!
+  id: Int
   number: Int!
   title: String
   overview: String
   thumbnail: EpisodeThumbnail
   runtime: Int
   date: String
+  providers: [EpisodeProvider!]!
 }
 
 type EpisodeInfo {
-  id: Int!
+  id: Int
   number: Int!
   title: String
   overview: String
@@ -431,6 +433,11 @@ type EpisodeInfo {
   date: String
   translation: [Translation!]!
   images: [EpisodeImage!]!
+}
+
+type EpisodeProvider {
+  name: String
+  id: String
 }
 
 type EpisodeThumbnail {
@@ -483,4 +490,51 @@ type Artwork {
   type: String
   width: Int
   source: String
+}
+
+enum VideoType {
+  HLS
+  DASH
+  MP4
+}
+
+type IntroOutro {
+  start: Float
+  end: Float
+}
+
+type Download {
+  url: String
+  quality: String
+}
+
+type VideoSource {
+  url: String
+  isM3U8: Boolean
+  type: VideoType
+  quality: String
+  isDub: Boolean
+}
+
+type Subtitle {
+  id: String
+  url: String
+  label: String
+  srcLang: String
+}
+
+type Header {
+  key: String!
+  value: String
+}
+
+type Source {
+  headers: [Header!]
+  intro: IntroOutro
+  outro: IntroOutro
+  sources: [VideoSource!]!
+  subtitles: [Subtitle!]
+  download: [Download!]
+  chapters: String
+  thumbnails: String
 }

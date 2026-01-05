@@ -1,16 +1,22 @@
-import { MALInfo } from 'src/core/types';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { parseNumber } from 'src/helpers/parsers';
 import { metaSelect } from '../../meta/types';
-import { MyAnimeListFetch } from './helpers/mal.fetch';
 import { Anilist } from '../anilist';
 import { Meta, VideoEntry } from '../../meta';
 import { ProviderModule } from 'src/helpers/module';
+import { Meta as CryMeta } from '@crysoline/lib';
+import env from 'src/config/env';
+import { Info } from '@crysoline/lib/dist/core/types';
+import { MInfoMeta } from '@crysoline/lib/dist/core/meta/myanimelist';
+
+type MALInfo = Info<MInfoMeta>;
 
 class MyAnimeListModule extends ProviderModule<MALInfo> {
   override readonly name = 'MyAnimeList';
   override readonly logo =
     'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.logotypes101.com%2Flogos%2F240%2F2042DE55ADC66D19CDDCF3435B9F2A53%2FMyAnimeList.png&f=1&nofb=1&ipt=ed5a038635641ada0d38279a29d32850efade86a3a376f6b95db0c3a8a7ab23f';
+
+  private fetch = CryMeta.MyAnimeList(env.CRYSOLINE_API_KEY);
 
   override async getInfo(id: number, idMal?: number): Promise<MALInfo> {
     const key = getKey('mal', 'info', id);
@@ -24,7 +30,7 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
     let fetched: MALInfo;
 
     if (idMal) {
-      fetched = await MyAnimeListFetch.fetchInfo(idMal);
+      fetched = await this.fetch.info(idMal);
 
       await Meta.addSingleMapping(id, {
         id: idMal,
@@ -36,7 +42,7 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
       const malId = parseNumber(meta?.mappings.find((m) => m.source_name === 'mal')?.source_id);
 
       if (malId) {
-        fetched = await MyAnimeListFetch.fetchInfo(malId);
+        fetched = await this.fetch.info(malId);
       } else {
         const al = await Anilist.getInfo(id);
 
@@ -44,7 +50,7 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
           throw new Error('No MAL ID found');
         }
 
-        fetched = await MyAnimeListFetch.fetchInfo(al.idMal);
+        fetched = await this.fetch.info(al.idMal);
 
         await Meta.addSingleMapping(id, {
           id: al.idMal,

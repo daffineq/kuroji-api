@@ -1,6 +1,6 @@
 import { AnilistMedia } from './providers/anilist/types';
 import { prisma, Prisma } from 'src/lib/prisma';
-import { Anilist, Animepahe, Kitsu, MyAnimeList, Shikimori, Tmdb, TmdbSeasons, Tvdb } from './providers';
+import { Anilist, Crysoline, Kitsu, MyAnimeList, Shikimori, Tmdb, TmdbSeasons, Tvdb } from './providers';
 import { AnimePrisma } from './helpers/anime.prisma';
 import { Meta } from './meta';
 import { Module } from 'src/helpers/module';
@@ -64,7 +64,7 @@ class AnimeModule extends Module {
     await Meta.loadMappings(id);
 
     await Promise.all([
-      Animepahe.getInfo(id).catch(() => null),
+      Crysoline.map(id).catch(() => null),
       MyAnimeList.getInfo(id, idMal).catch(() => null),
       Shikimori.getInfo(id, idMal).catch(() => null),
       Kitsu.getInfo(id).catch(() => null),

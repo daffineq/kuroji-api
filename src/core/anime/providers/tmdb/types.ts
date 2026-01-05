@@ -47,7 +47,7 @@ export interface SpokenLanguage {
 }
 
 // Last episode info for series
-export interface Episode {
+export interface TmdbEpisode {
   id: number;
   name: string;
   overview: string;
@@ -95,9 +95,9 @@ export interface TmdbInfoSeries {
   in_production: boolean;
   languages: string[];
   last_air_date: string;
-  last_episode_to_air: Episode;
+  last_episode_to_air: TmdbEpisode;
   name: string;
-  next_episode_to_air: Episode | null;
+  next_episode_to_air: TmdbEpisode | null;
   networks: Network[];
   number_of_episodes: number;
   number_of_seasons: number;
@@ -155,9 +155,9 @@ export interface TmdbInfoResult {
   in_production?: boolean;
   languages?: string[];
   last_air_date?: string;
-  last_episode_to_air?: Episode;
+  last_episode_to_air?: TmdbEpisode;
   name?: string;
-  next_episode_to_air?: Episode | null;
+  next_episode_to_air?: TmdbEpisode | null;
   networks?: Network[];
   number_of_episodes?: number;
   number_of_seasons?: number;

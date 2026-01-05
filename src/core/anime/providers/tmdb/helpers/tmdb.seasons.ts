@@ -2,13 +2,11 @@ import { NotFoundError } from 'src/helpers/errors';
 import { MatchResult, MatchStrategy, SeasonEpisode, SeasonEpisodeGroup, SeasonTmdb } from '../types';
 import { AnilistMedia } from '../../anilist/types';
 import { TmdbStrategies } from './tmdb.strategies';
-import { AnimepaheInfo } from 'src/core/types';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import logger from 'src/helpers/logger';
 import { Anilist } from '../../anilist';
 import { TmdbUtils } from './tmdb.utils';
 import { Tmdb } from '../tmdb';
-import { Animepahe } from '../../animepahe';
 import { Shikimori } from '../../shikimori';
 import { Kitsu } from '../../kitsu';
 import { TmdbFetch } from './tmdb.fetch';
@@ -43,15 +41,14 @@ class TmdbSeasonsModule extends Module {
     const allEpisodes = await this.getAllEpisodes(id);
     const seasonGroups = this.groupEpisodesBySeasons(allEpisodes);
 
-    const [pahe, shik, kit] = await Promise.all([
-      Animepahe.getInfo(id).catch(() => null),
+    const [shik, kit] = await Promise.all([
       Shikimori.getInfo(id).catch(() => null),
       Kitsu.getInfo(id).catch(() => null)
     ]);
 
     const episodeCount = AnimeUtils.getEpisodesCount(al, kit, shik);
 
-    const matchResult = await this.findBestEpisodeSequence(al, pahe, allEpisodes, seasonGroups, episodeCount);
+    const matchResult = await this.findBestEpisodeSequence(al, allEpisodes, seasonGroups, episodeCount);
 
     if (!matchResult.episodes || matchResult.episodes.length === 0) {
       throw new NotFoundError('Could not find matching episodes for AniList entry');
@@ -85,10 +82,13 @@ class TmdbSeasonsModule extends Module {
 
     const seasons = await Promise.all(seasonsPromise);
 
+    const now = new Date();
+
     return seasons
       .filter((s) => s.episodes && s.episodes.length > 0)
       .flatMap((s) => s.episodes)
       .filter((e) => e.season_number != 0)
+      .filter((e) => e.air_date && new Date(e.air_date) <= now)
       .sort((a, b) => {
         if (a.season_number !== b.season_number) {
           return a.season_number - b.season_number;
@@ -99,7 +99,6 @@ class TmdbSeasonsModule extends Module {
 
   async findBestEpisodeSequence(
     anilist: AnilistMedia,
-    animepahe: AnimepaheInfo | null,
     allEpisodes: SeasonEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
     episodeCount: number | undefined | null
@@ -108,8 +107,7 @@ class TmdbSeasonsModule extends Module {
       () => TmdbStrategies.matchByDateRange(anilist, allEpisodes, seasonGroups, episodeCount),
       () => TmdbStrategies.matchByEpisodeCount(anilist, allEpisodes, seasonGroups, episodeCount),
       () => TmdbStrategies.matchByAiringSchedule(anilist, allEpisodes, episodeCount),
-      () => TmdbStrategies.matchBySeasonYear(anilist, allEpisodes, seasonGroups, episodeCount),
-      () => TmdbStrategies.matchByAnimepahe(anilist, animepahe, allEpisodes, episodeCount)
+      () => TmdbStrategies.matchBySeasonYear(anilist, allEpisodes, seasonGroups, episodeCount)
     ];
 
     let bestMatch: MatchResult = {

@@ -32,6 +32,6 @@ export const Redis = {
   }
 };
 
-export const getKey = (provider: providers, ...args: any[]) => {
+export const getKey = (provider: providers | string, ...args: any[]) => {
   return `${provider}:${args.join(':')}`;
 };

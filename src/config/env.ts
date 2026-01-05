@@ -39,7 +39,6 @@ const env = {
   JIKAN: process.env.JIKAN ?? 'https://api.jikan.moe/v4',
 
   // Crysoline
-  CRYSOLINE: process.env.CRYSOLINE ?? 'https://api.crysoline.moe',
   CRYSOLINE_API_KEY: process.env.CRYSOLINE_API_KEY ?? '',
 
   // API Keys
