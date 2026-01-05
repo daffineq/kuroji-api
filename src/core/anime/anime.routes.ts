@@ -4,6 +4,7 @@ import { AnimeUpdate } from './helpers/anime.update';
 import logger from 'src/helpers/logger';
 import Elysia, { t } from 'elysia';
 import { Prisma, prisma } from 'src/lib/prisma';
+import { Anime } from './anime';
 
 const animeRoute = () => {
   return (app: Elysia) =>
@@ -63,6 +64,23 @@ const animeRoute = () => {
             description: 'Resets the state of indexer, it will start from page 1 on next start'
           }
         })
+
+        .put(
+          '/update',
+          ({ query }) => {
+            Anime.update(query.id).catch((error) => {
+              logger.error('Error updating:', error);
+            });
+
+            return createSuccessResponse({ message: 'Updating anime' });
+          },
+          {
+            query: t.Object({ id: t.Number() }),
+            detail: {
+              description: 'Updates anime with queried id'
+            }
+          }
+        )
 
         .put(
           '/update/process',
