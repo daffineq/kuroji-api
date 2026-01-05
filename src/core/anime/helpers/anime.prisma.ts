@@ -99,142 +99,112 @@ class AnimePrismaModule extends Module {
         : undefined,
       latest_airing_episode: latestEpisode
         ? {
-            connectOrCreate: {
-              where: { id: latestEpisode.id },
-              create: {
-                id: latestEpisode.id,
-                episode: latestEpisode.episode,
-                airing_at: latestEpisode.airingAt
-              }
+            create: {
+              id: latestEpisode.id,
+              episode: latestEpisode.episode,
+              airing_at: latestEpisode.airingAt
             }
           }
         : undefined,
       next_airing_episode: nextEpisode
         ? {
-            connectOrCreate: {
-              where: { id: nextEpisode.id },
-              create: {
-                id: nextEpisode.id,
-                episode: nextEpisode.episode,
-                airing_at: nextEpisode.airingAt
-              }
+            create: {
+              id: nextEpisode.id,
+              episode: nextEpisode.episode,
+              airing_at: nextEpisode.airingAt
             }
           }
         : undefined,
       last_airing_episode: lastEpisode
         ? {
-            connectOrCreate: {
-              where: { id: lastEpisode.id },
-              create: {
-                id: lastEpisode.id,
-                episode: lastEpisode.episode,
-                airing_at: lastEpisode.airingAt
-              }
+            create: {
+              id: lastEpisode.id,
+              episode: lastEpisode.episode,
+              airing_at: lastEpisode.airingAt
             }
           }
         : undefined,
       airing_schedule: anilist.airingSchedule?.edges?.length
         ? {
-            connectOrCreate: anilist.airingSchedule.edges.map((edge) => ({
-              where: { id: edge.node.id },
-              create: {
-                id: edge.node.id,
-                episode: edge.node.episode,
-                airing_at: edge.node.airingAt
-              }
+            create: anilist.airingSchedule.edges.map((edge) => ({
+              id: edge.node.id,
+              episode: edge.node.episode,
+              airing_at: edge.node.airingAt
             }))
           }
         : undefined,
       characters: anilist.characters?.edges?.length
         ? {
-            connectOrCreate: anilist.characters.edges.map((edge) => ({
-              where: { id: edge.id },
-              create: {
-                id: edge.id,
-                role: edge.role,
-                character: {
-                  connectOrCreate: {
-                    where: { id: edge.node.id },
-                    create: {
-                      id: edge.node.id,
-                      name: edge.node.name
-                        ? {
-                            connectOrCreate: {
-                              where: { character_id: edge.node.id },
-                              create: {
-                                full: edge.node.name.full,
-                                native: edge.node.name.native,
-                                alternative: edge.node.name.alternative || []
-                              }
-                            }
+            create: anilist.characters.edges.map((edge) => ({
+              id: edge.id,
+              role: edge.role,
+              character: {
+                connectOrCreate: {
+                  where: { id: edge.node.id },
+                  create: {
+                    id: edge.node.id,
+                    name: edge.node.name
+                      ? {
+                          create: {
+                            full: edge.node.name.full,
+                            native: edge.node.name.native,
+                            alternative: edge.node.name.alternative || []
                           }
-                        : undefined,
-                      image: edge.node.image
-                        ? {
-                            connectOrCreate: {
-                              where: { character_id: edge.node.id },
-                              create: {
-                                large: edge.node.image.large,
-                                medium: edge.node.image.medium
-                              }
-                            }
-                          }
-                        : undefined
-                    }
-                  }
-                },
-                voice_actors: edge.voiceActors?.length
-                  ? {
-                      connectOrCreate: edge.voiceActors.map((va) => ({
-                        where: { id: va.id },
-                        create: {
-                          id: va.id,
-                          language: va.languageV2,
-                          name: va.name
-                            ? {
-                                connectOrCreate: {
-                                  where: { voice_actor_id: va.id },
-                                  create: {
-                                    full: va.name.full,
-                                    native: va.name.native,
-                                    alternative: va.name.alternative || []
-                                  }
-                                }
-                              }
-                            : undefined,
-                          image: va.image
-                            ? {
-                                connectOrCreate: {
-                                  where: { voice_actor_id: va.id },
-                                  create: {
-                                    large: va.image.large,
-                                    medium: va.image.medium
-                                  }
-                                }
-                              }
-                            : undefined
                         }
-                      }))
-                    }
-                  : undefined
-              }
+                      : undefined,
+                    image: edge.node.image
+                      ? {
+                          create: {
+                            large: edge.node.image.large,
+                            medium: edge.node.image.medium
+                          }
+                        }
+                      : undefined
+                  }
+                }
+              },
+              voice_actors: edge.voiceActors?.length
+                ? {
+                    connectOrCreate: edge.voiceActors.map((va) => ({
+                      where: { id: va.id },
+                      create: {
+                        id: va.id,
+                        language: va.languageV2,
+                        name: va.name
+                          ? {
+                              create: {
+                                full: va.name.full,
+                                native: va.name.native,
+                                alternative: va.name.alternative || []
+                              }
+                            }
+                          : undefined,
+                        image: va.image
+                          ? {
+                              create: {
+                                large: va.image.large,
+                                medium: va.image.medium
+                              }
+                            }
+                          : undefined
+                      }
+                    }))
+                  }
+                : undefined
             }))
           }
         : undefined,
       studios: anilist.studios?.edges?.length
         ? {
-            connectOrCreate: anilist.studios.edges.map((edge) => ({
-              where: { id: edge.id },
-              create: {
-                id: edge.id,
-                is_main: edge.isMain,
-                studio: {
-                  connectOrCreate: {
-                    where: { id: edge.node.id },
-                    create: {
-                      id: edge.node.id,
-                      name: edge.node.name
-                    }
+            create: anilist.studios.edges.map((edge) => ({
+              id: edge.id,
+              is_main: edge.isMain,
+              studio: {
+                connectOrCreate: {
+                  where: { id: edge.node.id },
+                  create: {
+                    id: edge.node.id,
+                    name: edge.node.name
                   }
                 }
               }
@@ -243,27 +213,19 @@ class AnimePrismaModule extends Module {
         : undefined,
       tags: anilist.tags?.length
         ? {
-            connectOrCreate: anilist.tags.map((tag) => ({
-              where: {
-                anime_id_tag_id: {
-                  anime_id: anilist.id,
-                  tag_id: tag.id
-                }
-              },
-              create: {
-                rank: tag.rank,
-                is_media_spoiler: tag.isMediaSpoiler,
-                tag: {
-                  connectOrCreate: {
-                    where: { id: tag.id },
-                    create: {
-                      id: tag.id,
-                      name: tag.name,
-                      description: tag.description,
-                      category: tag.category,
-                      is_general_spoiler: tag.isGeneralSpoiler,
-                      is_adult: tag.isAdult
-                    }
+            create: anilist.tags.map((tag) => ({
+              rank: tag.rank,
+              is_media_spoiler: tag.isMediaSpoiler,
+              tag: {
+                connectOrCreate: {
+                  where: { id: tag.id },
+                  create: {
+                    id: tag.id,
+                    name: tag.name,
+                    description: tag.description,
+                    category: tag.category,
+                    is_general_spoiler: tag.isGeneralSpoiler,
+                    is_adult: tag.isAdult
                   }
                 }
               }
@@ -272,20 +234,17 @@ class AnimePrismaModule extends Module {
         : undefined,
       external_links: anilist.externalLinks?.length
         ? {
-            connectOrCreate: anilist.externalLinks.map((link) => ({
-              where: { id: link.id },
-              create: {
-                id: link.id,
-                url: link.url,
-                site: link.site,
-                site_id: link.siteId,
-                type: link.type,
-                language: link.language,
-                color: link.color,
-                icon: link.icon,
-                notes: link.notes,
-                is_disabled: link.isDisabled
-              }
+            create: anilist.externalLinks.map((link) => ({
+              id: link.id,
+              url: link.url,
+              site: link.site,
+              site_id: link.siteId,
+              type: link.type,
+              language: link.language,
+              color: link.color,
+              icon: link.icon,
+              notes: link.notes,
+              is_disabled: link.isDisabled
             }))
           }
         : undefined,
@@ -307,11 +266,8 @@ class AnimePrismaModule extends Module {
         : undefined,
 
       meta: {
-        connectOrCreate: {
-          where: { id: anilist.id },
-          create: {
-            id: anilist.id
-          }
+        create: {
+          id: anilist.id
         }
       }
     };
@@ -444,7 +400,6 @@ class AnimePrismaModule extends Module {
             upsert: {
               where: { anime_id: anilist.id },
               update: {
-                id: latestEpisode.id,
                 episode: latestEpisode.episode,
                 airing_at: latestEpisode.airingAt
               },
@@ -455,14 +410,13 @@ class AnimePrismaModule extends Module {
               }
             }
           }
-        : undefined,
+        : { disconnect: true },
 
       next_airing_episode: nextEpisode
         ? {
             upsert: {
               where: { anime_id: anilist.id },
               update: {
-                id: nextEpisode.id,
                 episode: nextEpisode.episode,
                 airing_at: nextEpisode.airingAt
               },
@@ -473,14 +427,13 @@ class AnimePrismaModule extends Module {
               }
             }
           }
-        : undefined,
+        : { disconnect: true },
 
       last_airing_episode: lastEpisode
         ? {
             upsert: {
               where: { anime_id: anilist.id },
               update: {
-                id: lastEpisode.id,
                 episode: lastEpisode.episode,
                 airing_at: lastEpisode.airingAt
               },
@@ -491,7 +444,7 @@ class AnimePrismaModule extends Module {
               }
             }
           }
-        : undefined,
+        : { disconnect: true },
 
       airing_schedule: anilist.airingSchedule?.edges?.length
         ? {
@@ -504,7 +457,7 @@ class AnimePrismaModule extends Module {
               airing_at: edge.node.airingAt
             }))
           }
-        : undefined,
+        : { deleteMany: { anime_id: anilist.id } },
 
       characters: anilist.characters?.edges?.length
         ? {
@@ -569,7 +522,7 @@ class AnimePrismaModule extends Module {
                 : undefined
             }))
           }
-        : undefined,
+        : { deleteMany: { anime_id: anilist.id } },
 
       studios: anilist.studios?.edges?.length
         ? {
@@ -590,7 +543,7 @@ class AnimePrismaModule extends Module {
               }
             }))
           }
-        : undefined,
+        : { deleteMany: { anime_id: anilist.id } },
 
       tags: anilist.tags?.length
         ? {
@@ -615,7 +568,7 @@ class AnimePrismaModule extends Module {
               }
             }))
           }
-        : undefined,
+        : { deleteMany: { anime_id: anilist.id } },
 
       external_links: anilist.externalLinks?.length
         ? {
@@ -635,7 +588,7 @@ class AnimePrismaModule extends Module {
               is_disabled: link.isDisabled
             }))
           }
-        : undefined,
+        : { deleteMany: { anime_id: anilist.id } },
 
       score_distribution: anilist.stats?.scoreDistribution?.length
         ? {
@@ -647,7 +600,7 @@ class AnimePrismaModule extends Module {
               amount: dist.amount
             }))
           }
-        : undefined,
+        : { deleteMany: { anime_id: anilist.id } },
 
       status_distribution: anilist.stats?.statusDistribution?.length
         ? {
@@ -659,7 +612,7 @@ class AnimePrismaModule extends Module {
               amount: dist.amount
             }))
           }
-        : undefined
+        : { deleteMany: { anime_id: anilist.id } }
     };
   }
 }
