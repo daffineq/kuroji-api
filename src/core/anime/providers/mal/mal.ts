@@ -13,8 +13,6 @@ type MALInfo = Info<MInfoMeta>;
 
 class MyAnimeListModule extends ProviderModule<MALInfo> {
   override readonly name = 'MyAnimeList';
-  override readonly logo =
-    'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.logotypes101.com%2Flogos%2F240%2F2042DE55ADC66D19CDDCF3435B9F2A53%2FMyAnimeList.png&f=1&nofb=1&ipt=ed5a038635641ada0d38279a29d32850efade86a3a376f6b95db0c3a8a7ab23f';
 
   private fetch = CryMeta.MyAnimeList(env.CRYSOLINE_API_KEY);
 

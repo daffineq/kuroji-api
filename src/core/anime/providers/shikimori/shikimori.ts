@@ -9,8 +9,6 @@ import { ProviderModule } from 'src/helpers/module';
 
 class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
   override readonly name = 'Shikimori';
-  override readonly logo =
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTzTi198mtNZ3rGCr6adcXiJBEncgd_Xef_Q&s';
 
   override async getInfo(id: number, idMal?: number): Promise<ShikimoriAnime> {
     const key = getKey('shikimori', 'info', id);

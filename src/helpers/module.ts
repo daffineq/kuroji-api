@@ -3,7 +3,5 @@ export abstract class Module {
 }
 
 export abstract class ProviderModule<T = unknown> extends Module {
-  abstract readonly logo: string;
-
   abstract getInfo(id: number, idMal?: number): Promise<T>;
 }

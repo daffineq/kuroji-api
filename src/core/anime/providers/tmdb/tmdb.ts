@@ -15,8 +15,6 @@ import { ProviderModule } from 'src/helpers/module';
 
 class TmdbModule extends ProviderModule<TmdbInfoResult> {
   override readonly name = 'TMDB';
-  override readonly logo =
-    'https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fwww.szquanli.com%2Fuploads%2Fallimg%2F200415%2F2-200415092044.png&f=1&nofb=1&ipt=f4a9c9d0e85a1fcc90b16b1adf820ed9749cbaaf9d0225821d2785f552ce90c2';
 
   override async getInfo(id: number): Promise<TmdbInfoResult> {
     const key = getKey('tmdb', 'info', id);

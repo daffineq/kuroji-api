@@ -13,8 +13,6 @@ import { ProviderModule } from 'src/helpers/module';
 
 class TvdbModule extends ProviderModule<TvdbInfoResult> {
   override readonly name = 'TVDB';
-  override readonly logo =
-    'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F80431893%3Fs%3D280%26v%3D4&f=1&nofb=1&ipt=67e2c76b2083e6bcbf5be361d0f1453c378070d9aa4acd8f9944025307cef2d6';
 
   override async getInfo(id: number): Promise<TvdbInfoResult> {
     const key = getKey('tvdb', 'info', id);

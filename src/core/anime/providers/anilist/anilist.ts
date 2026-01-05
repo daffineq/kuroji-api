@@ -5,7 +5,6 @@ import { getKey, Redis } from 'src/helpers/redis.util';
 
 class AnilistModule extends ProviderModule<AnilistMedia> {
   override readonly name = 'Anilist';
-  override readonly logo = 'https://anilist.co/img/icons/android-chrome-512x512.png';
 
   override async getInfo(id: number): Promise<AnilistMedia> {
     const key = getKey('anilist', 'info', id);

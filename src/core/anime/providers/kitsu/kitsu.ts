@@ -11,8 +11,6 @@ import { ProviderModule } from 'src/helpers/module';
 
 class KitsuModule extends ProviderModule<KitsuAnime> {
   override readonly name = 'Kitsu';
-  override readonly logo =
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJ03fsAE4oDU3K9-MHWWa7zufXmKKTZMArag&s';
 
   override async getInfo(id: number): Promise<KitsuAnime> {
     const key = getKey('kitsu', 'info', id);
