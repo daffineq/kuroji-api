@@ -30,9 +30,11 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
     if (idMal) {
       fetched = await this.fetch.info(idMal);
 
-      await Meta.addSingleMapping(id, {
-        id: idMal,
-        name: 'mal'
+      await Meta.update(id, {
+        mappings: {
+          id: idMal,
+          name: 'mal'
+        }
       });
     } else {
       const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
@@ -50,9 +52,11 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
 
         fetched = await this.fetch.info(al.idMal);
 
-        await Meta.addSingleMapping(id, {
-          id: al.idMal,
-          name: 'mal'
+        await Meta.update(id, {
+          mappings: {
+            id: al.idMal,
+            name: 'mal'
+          }
         });
       }
     }
@@ -69,24 +73,26 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
         };
       });
 
-      await Meta.addVideos(id, videos);
+      await Meta.update(id, { videos });
     }
 
     if (fetched.image) {
-      await Meta.addSingleImage(id, {
-        url: fetched.image.large,
-        large: fetched.image.large,
-        type: 'poster',
-        source: 'mal'
+      await Meta.update(id, {
+        images: {
+          url: fetched.image.large,
+          large: fetched.image.large,
+          type: 'poster',
+          source: 'mal'
+        }
       });
     }
 
     if (fetched.metadata?.moreInfo) {
-      await Meta.addMoreinfo(id, fetched.metadata?.moreInfo);
+      await Meta.update(id, { moreinfo: fetched.metadata?.moreInfo });
     }
 
     if (fetched.metadata?.broadcast) {
-      await Meta.addBroadcast(id, fetched.metadata?.broadcast);
+      await Meta.update(id, { broadcast: fetched.metadata?.broadcast });
     }
 
     await Redis.set(key, fetched);

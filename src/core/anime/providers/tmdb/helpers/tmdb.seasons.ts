@@ -68,7 +68,7 @@ class TmdbSeasonsModule extends Module {
       episodes: matchResult.episodes ?? []
     };
 
-    await Meta.addEpisodes(id, trimmedSeason.episodes);
+    await Meta.update(id, { episodes: trimmedSeason.episodes });
 
     await Redis.set(key, trimmedSeason);
 

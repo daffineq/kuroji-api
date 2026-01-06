@@ -1,5 +1,3 @@
-export type sources = 'mal' | 'kitsu' | 'anilist' | 'shikimori' | 'tmdb' | 'tvdb' | 'animepahe';
-
 export type MappingEntry = {
   id: string | number;
   name: string;
@@ -7,13 +5,13 @@ export type MappingEntry = {
 
 export interface TitleEntry {
   title: string;
-  source: sources;
+  source: string;
   language: string;
 }
 
 export interface DescriptionEntry {
   description: string;
-  source: sources;
+  source: string;
   language: string;
 }
 
@@ -23,7 +21,7 @@ export interface ImageEntry {
   medium?: string | null;
   large?: string | null;
   type: 'poster' | 'banner';
-  source: sources;
+  source: string;
 }
 
 export interface ScreenshotEntry {
@@ -39,7 +37,7 @@ export interface VideoEntry {
   thumbnail?: string;
   artist?: string;
   type?: string;
-  source: sources;
+  source: string;
 }
 
 export interface ArtworkEntry {
@@ -50,11 +48,46 @@ export interface ArtworkEntry {
   thumbnail?: string;
   type: string;
   width?: number;
-  source: sources;
+  source: string;
 }
 
 export interface ChronologyEntry {
   parentId: number;
   relatedId: number;
   order: number;
+}
+
+export interface EpisodeEntry {
+  air_date: string;
+  episode_number: number;
+  id: number;
+  name: string;
+  overview: string;
+  runtime: number;
+  season_number: number;
+  season_episode_number: number;
+  show_id: number;
+  still_path: string;
+}
+
+export interface MetaPayload {
+  // Scalar fields
+  franchise?: string | null;
+  rating?: string | null;
+  episodes_aired?: number | null;
+  episodes_total?: number | null;
+  moreinfo?: string | null;
+  broadcast?: string | null;
+  nsfw?: boolean;
+
+  // Relational fields
+  mappings?: MappingEntry[] | MappingEntry;
+  titles?: TitleEntry[] | TitleEntry;
+  descriptions?: DescriptionEntry[] | DescriptionEntry;
+  images?: ImageEntry[] | ImageEntry;
+  videos?: VideoEntry[] | VideoEntry;
+  screenshots?: ScreenshotEntry[] | ScreenshotEntry;
+  artworks?: ArtworkEntry[] | ArtworkEntry;
+  chronologies?: ChronologyEntry[] | ChronologyEntry;
+  episodes?: EpisodeEntry[] | EpisodeEntry;
 }

@@ -1,15 +1,5 @@
 import { prisma, Prisma } from 'src/lib/prisma';
-import { SeasonEpisode } from '../providers/tmdb/types';
-import {
-  ArtworkEntry,
-  ChronologyEntry,
-  DescriptionEntry,
-  ImageEntry,
-  MappingEntry,
-  ScreenshotEntry,
-  TitleEntry,
-  VideoEntry
-} from './helpers/meta.dto';
+import { MetaPayload } from './helpers/meta.dto';
 import { MetaPrisma, MetaFetch, MetaUtils } from './helpers';
 import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';
@@ -29,6 +19,7 @@ class MetaModule extends Module {
     if (existing) return existing as Prisma.MetaGetPayload<T>;
 
     await Anime.fetchOrCreate(id);
+
     return this.save(id, args);
   }
 
@@ -48,155 +39,55 @@ class MetaModule extends Module {
     await this.fetchOrCreate(id);
     const fetched = await MetaFetch.fetchMappings(id).catch(() => null);
     const mappings = MetaUtils.toMappingsArray(fetched?.mappings);
-    await this.addMappings(id, mappings);
+    await this.update(id, { mappings });
   }
 
-  async addMappings(id: number, entries: MappingEntry[]) {
+  async update<T extends Prisma.MetaDefaultArgs>(
+    id: number,
+    payload: MetaPayload,
+    args?: Prisma.SelectSubset<T, Prisma.MetaDefaultArgs>
+  ): Promise<Prisma.MetaGetPayload<T>> {
     await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: MetaPrisma.addMappings(entries)
-    });
-  }
 
-  async addFranchise(id: number, franchise: string) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: { franchise }
-    });
-  }
+    const updateData = MetaPrisma.buildUpdateData(payload);
 
-  async addRating(id: number, rating: string) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: { rating }
-    });
-  }
-
-  async addEpisodesAired(id: number, episodes: number) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: { episodes_aired: episodes }
-    });
-  }
-
-  async addEpisodesTotal(id: number, episodes: number) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: { episodes_total: episodes }
-    });
-  }
-
-  async addMoreinfo(id: number, info: string) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: { moreinfo: info }
-    });
-  }
-
-  async addBroadcast(id: number, broadcast: string) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: { broadcast }
-    });
-  }
-
-  async setNSFW(id: number, nsfw: boolean) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: { nsfw }
-    });
-  }
-
-  async addTitles(id: number, titles: TitleEntry[]) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: MetaPrisma.addTitles(titles)
-    });
-  }
-
-  async addDescriptions(id: number, descriptions: DescriptionEntry[]) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: MetaPrisma.addDescriptions(descriptions)
-    });
-  }
-
-  async addImages(id: number, images: ImageEntry[]) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: MetaPrisma.addImages(images)
-    });
-  }
-
-  async addVideos(id: number, videos: VideoEntry[]) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: MetaPrisma.addVideos(videos)
-    });
-  }
-
-  async addScreenshots(id: number, screenshots: ScreenshotEntry[]) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: MetaPrisma.addScreenshots(screenshots)
-    });
-  }
-
-  async addArtworks(id: number, artworks: ArtworkEntry[]) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: MetaPrisma.addArtworks(artworks)
-    });
-  }
-
-  async addChronologies(id: number, chronologies: ChronologyEntry[]) {
-    await this.fetchOrCreate(id);
-    await prisma.meta.update({
-      where: { id },
-      data: MetaPrisma.addChronologies(chronologies)
-    });
-  }
-
-  async addEpisodes(id: number, episodes: SeasonEpisode[]) {
-    await this.fetchOrCreate(id);
     return prisma.meta.update({
       where: { id },
-      data: MetaPrisma.addEpisodes(episodes)
-    });
+      data: updateData,
+      ...(args as Prisma.MetaDefaultArgs)
+    }) as unknown as Prisma.MetaGetPayload<T>;
   }
 
-  async addSingleMapping(id: number, entry: MappingEntry) {
-    await this.addMappings(id, [entry]);
+  async remove<T extends Prisma.MetaDefaultArgs>(
+    id: number,
+    payload: Partial<Record<keyof MetaPayload, true>>,
+    args?: Prisma.SelectSubset<T, Prisma.MetaDefaultArgs>
+  ): Promise<Prisma.MetaGetPayload<T>> {
+    await this.fetchOrCreate(id);
+
+    const removeData = MetaPrisma.buildRemoveData(payload);
+
+    return prisma.meta.update({
+      where: { id },
+      data: removeData,
+      ...(args as Prisma.MetaDefaultArgs)
+    }) as unknown as Prisma.MetaGetPayload<T>;
   }
 
-  async addSingleTitle(id: number, title: TitleEntry) {
-    await this.addTitles(id, [title]);
-  }
+  async forceUpdate<T extends Prisma.MetaDefaultArgs>(
+    id: number,
+    payload: MetaPayload,
+    args?: Prisma.SelectSubset<T, Prisma.MetaDefaultArgs>
+  ): Promise<Prisma.MetaGetPayload<T>> {
+    await this.fetchOrCreate(id);
 
-  async addSingleDescription(id: number, desc: DescriptionEntry) {
-    await this.addDescriptions(id, [desc]);
-  }
+    const updateData = MetaPrisma.buildForceUpdateData(id, payload);
 
-  async addSingleImage(id: number, img: ImageEntry) {
-    await this.addImages(id, [img]);
-  }
-
-  async addSingleVideo(id: number, video: VideoEntry) {
-    await this.addVideos(id, [video]);
+    return prisma.meta.update({
+      where: { id },
+      data: updateData,
+      ...(args as Prisma.MetaDefaultArgs)
+    }) as unknown as Prisma.MetaGetPayload<T>;
   }
 }
 

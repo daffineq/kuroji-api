@@ -24,9 +24,11 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     if (idMal) {
       fetched = await ShikimoriFetch.fetchInfo(parseString(idMal)!);
 
-      await Meta.addSingleMapping(id, {
-        id: idMal,
-        name: 'shikimori'
+      await Meta.update(id, {
+        mappings: {
+          id: idMal,
+          name: 'shikimori'
+        }
       });
     } else {
       const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
@@ -44,9 +46,11 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
 
         fetched = await ShikimoriFetch.fetchInfo(parseString(al.idMal)!);
 
-        await Meta.addSingleMapping(id, {
-          id: al.idMal,
-          name: 'shikimori'
+        await Meta.update(id, {
+          mappings: {
+            id: al.idMal,
+            name: 'shikimori'
+          }
         });
       }
     }
@@ -62,53 +66,59 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
         };
       });
 
-      await Meta.addVideos(id, videos);
+      await Meta.update(id, { videos });
     }
 
     if (fetched.screenshots) {
-      await Meta.addScreenshots(id, fetched.screenshots);
+      await Meta.update(id, { screenshots: fetched.screenshots });
     }
 
     if (fetched.russian) {
-      await Meta.addSingleTitle(id, {
-        title: fetched.russian,
-        source: 'shikimori',
-        language: 'russian'
+      await Meta.update(id, {
+        titles: {
+          title: fetched.russian,
+          source: 'shikimori',
+          language: 'russian'
+        }
       });
     }
 
     if (fetched.description) {
-      await Meta.addSingleDescription(id, {
-        description: fetched.description,
-        source: 'shikimori',
-        language: 'russian'
+      await Meta.update(id, {
+        descriptions: {
+          description: fetched.description,
+          source: 'shikimori',
+          language: 'russian'
+        }
       });
     }
 
     if (fetched.poster) {
-      await Meta.addSingleImage(id, {
-        url: fetched.poster.originalUrl!,
-        medium: fetched.poster.mainUrl!,
-        large: fetched.poster.originalUrl!,
-        type: 'poster',
-        source: 'shikimori'
+      await Meta.update(id, {
+        images: {
+          url: fetched.poster.originalUrl!,
+          medium: fetched.poster.mainUrl!,
+          large: fetched.poster.originalUrl!,
+          type: 'poster',
+          source: 'shikimori'
+        }
       });
     }
 
     if (fetched.franchise) {
-      await Meta.addFranchise(id, fetched.franchise);
+      await Meta.update(id, { franchise: fetched.franchise });
     }
 
     if (fetched.rating) {
-      await Meta.addRating(id, fetched.rating);
+      await Meta.update(id, { rating: fetched.rating });
     }
 
     if (fetched.episodesAired) {
-      await Meta.addEpisodesAired(id, fetched.episodesAired);
+      await Meta.update(id, { episodes_aired: fetched.episodesAired });
     }
 
     if (fetched.episodes) {
-      await Meta.addEpisodesTotal(id, fetched.episodes);
+      await Meta.update(id, { episodes_total: fetched.episodes });
     }
 
     if (fetched.chronology) {
@@ -119,7 +129,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
           order: i
         };
       });
-      await Meta.addChronologies(id, chronology);
+      await Meta.update(id, { chronologies: chronology });
     }
 
     await Redis.set(key, fetched);

@@ -39,9 +39,11 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     } else {
       tmdb = await this.find(id);
 
-      await Meta.addSingleMapping(id, {
-        id: parseString(tmdb.id)!,
-        name: 'tmdb'
+      await Meta.update(id, {
+        mappings: {
+          id: parseString(tmdb.id)!,
+          name: 'tmdb'
+        }
       });
     }
 
@@ -62,28 +64,32 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     });
 
     if (artworks) {
-      await Meta.addArtworks(id, artworks);
+      await Meta.update(id, { artworks });
     }
 
     if (tmdb.poster_path) {
-      await Meta.addSingleImage(id, {
-        url: tmdb.poster_path,
-        small: TmdbUtils.getImage('w300', tmdb.poster_path),
-        medium: TmdbUtils.getImage('w780', tmdb.poster_path),
-        large: TmdbUtils.getImage('original', tmdb.poster_path),
-        type: 'poster',
-        source: 'tmdb'
+      await Meta.update(id, {
+        images: {
+          url: tmdb.poster_path,
+          small: TmdbUtils.getImage('w300', tmdb.poster_path),
+          medium: TmdbUtils.getImage('w780', tmdb.poster_path),
+          large: TmdbUtils.getImage('original', tmdb.poster_path),
+          type: 'poster',
+          source: 'tmdb'
+        }
       });
     }
 
     if (tmdb.backdrop_path) {
-      await Meta.addSingleImage(id, {
-        url: tmdb.backdrop_path,
-        small: TmdbUtils.getImage('w300', tmdb.backdrop_path),
-        medium: TmdbUtils.getImage('w780', tmdb.backdrop_path),
-        large: TmdbUtils.getImage('original', tmdb.backdrop_path),
-        type: 'banner',
-        source: 'tmdb'
+      await Meta.update(id, {
+        images: {
+          url: tmdb.backdrop_path,
+          small: TmdbUtils.getImage('w300', tmdb.backdrop_path),
+          medium: TmdbUtils.getImage('w780', tmdb.backdrop_path),
+          large: TmdbUtils.getImage('original', tmdb.backdrop_path),
+          type: 'banner',
+          source: 'tmdb'
+        }
       });
     }
 

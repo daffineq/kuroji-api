@@ -36,7 +36,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
     const tvdbId = meta.mappings.find((m) => m.source_name === 'tvdb')?.source_id;
     const tmdbId = meta.mappings.find((m) => m.source_name === 'tmdb')?.source_id;
 
-    var tvdb: TvdbInfoResult | undefined = undefined;
+    let tvdb: TvdbInfoResult | undefined = undefined;
 
     if (tvdbId) {
       tvdb = type === 'movie' ? await TvdbFetch.fetchMovie(tvdbId) : await TvdbFetch.fetchSeries(tvdbId);
@@ -49,9 +49,11 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
 
       tvdb = type === 'movie' ? await TvdbFetch.fetchMovie(search.id) : await TvdbFetch.fetchSeries(search.id);
 
-      await Meta.addSingleMapping(id, {
-        id: parseString(tvdb.id)!,
-        name: 'tvdb'
+      await Meta.update(id, {
+        mappings: {
+          id: parseString(tvdb.id)!,
+          name: 'tvdb'
+        }
       });
     }
 
@@ -73,7 +75,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
         };
       });
 
-      await Meta.addArtworks(id, artworks);
+      await Meta.update(id, { artworks });
     }
 
     await Redis.set(key, tvdb);

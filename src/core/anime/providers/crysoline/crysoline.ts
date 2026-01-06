@@ -37,9 +37,11 @@ class CrysolineModule extends Module {
             return;
           }
 
-          await Meta.addSingleMapping(id, {
-            id: info.id,
-            name: p.name
+          await Meta.update(id, {
+            mappings: {
+              id: info.id,
+              name: p.name
+            }
           });
         } catch (e) {
           logger.error(`${p.name} failed ${e}`);
