@@ -106,13 +106,11 @@ class AnimeUpdateModule extends Module {
     }
   }
 
-  private async updateQueueItem(animeId: number, retries: number, lastError: string | null) {
+  private async updateQueueItem(animeId: number) {
     try {
       await prisma.updateQueue.update({
         where: { anime_id: animeId },
         data: {
-          retries,
-          last_error: lastError,
           updated_at: new Date()
         }
       });
@@ -149,24 +147,13 @@ class AnimeUpdateModule extends Module {
     logger.log(`Manually added anime ${animeId} to queue with ${priority} priority`);
   }
 
-  private async addUpdateHistory(
-    animeId: number,
-    malId: number | null | undefined,
-    success: boolean,
-    errors: string[],
-    duration: number,
-    triggeredBy: string
-  ) {
+  private async addUpdateHistory(animeId: number, malId: number | null | undefined, success: boolean) {
     try {
       await prisma.updateHistory.create({
         data: {
           anime_id: animeId,
           mal_id: malId ?? null,
-          success,
-          duration,
-          error_count: errors.length,
-          errors,
-          triggered_by: triggeredBy
+          success
         }
       });
     } catch (e) {
@@ -433,65 +420,19 @@ class AnimeUpdateModule extends Module {
 
   private async processQueueItem(queueItem: QueueItem): Promise<boolean> {
     let success = false;
-    let retries = 0;
-    let lastError: string | null = null;
-
-    while (!success && retries < MAX_RETRIES) {
-      try {
-        await this.updateAnime(queueItem.animeId, queueItem.malId, queueItem.reason);
-        success = true;
-        logger.log(`Successfully updated anime ${queueItem.animeId} after ${retries + 1} attempts`);
-      } catch (error) {
-        retries++;
-        lastError = error instanceof Error ? error.message : String(error);
-        logger.error(`Failed to update anime ${queueItem.animeId} (attempt ${retries}/${MAX_RETRIES}):`, error);
-
-        if (retries < MAX_RETRIES) {
-          const baseDelay = Math.min(1000 * Math.pow(2, retries), 30000);
-          const jitter = Math.random() * 1000;
-          await sleep(Math.floor((baseDelay + jitter) / 1000));
-        }
-      }
-    }
-
-    await this.updateQueueItem(queueItem.animeId, retries, lastError);
-
-    if (!success && queueItem.priority !== 'low') {
-      logger.log(`Re-queueing failed anime ${queueItem.animeId} with lower priority`);
-      await this.addToQueue({ id: queueItem.animeId, id_mal: queueItem.malId }, 'low', 'retry');
-    }
-
-    return success;
-  }
-
-  private async updateAnime(animeId: number, malId: number | null | undefined, triggeredBy: string = 'queue') {
-    const startTime = Date.now();
-    const errors: string[] = [];
-
-    const TIMEOUT = 60000;
 
     try {
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => {
-          reject(new Error(`Anime timeout after ${TIMEOUT}ms`));
-        }, TIMEOUT);
-      });
-
-      await Promise.race([Anime.updateOrCreate(animeId), timeoutPromise]);
+      await Anime.update(queueItem.animeId);
+      success = true;
+      logger.log(`Successfully updated anime ${queueItem.animeId}`);
     } catch (error) {
-      if (error instanceof Error) {
-        errors.push(error.message);
-      }
+      logger.error(`Failed to update anime ${queueItem.animeId}`, error);
     }
 
-    const duration = Math.floor(Date.now() - startTime);
-    const success = errors.length === 0;
+    await this.updateQueueItem(queueItem.animeId);
+    await this.addUpdateHistory(queueItem.animeId, queueItem.malId, success);
 
-    await this.addUpdateHistory(animeId, malId, success, errors, duration, triggeredBy);
-
-    if (!success) {
-      throw new Error(`Failed for anime ${animeId}: ${errors.join(', ')}`);
-    }
+    return success;
   }
 
   @Scheduled({

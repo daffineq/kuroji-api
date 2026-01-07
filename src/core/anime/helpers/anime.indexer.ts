@@ -54,7 +54,10 @@ class AnimeIndexerModule extends Module {
           await sleep(this.delay * 1000);
         }
 
-        await this.setLastFetchedPage(page);
+        if (fetchLastPage) {
+          await this.setLastFetchedPage(page);
+        }
+
         page++;
       }
 
