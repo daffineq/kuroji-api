@@ -31,17 +31,6 @@ model UpdateQueue {
   @@index([anime_id])
 }
 
-model UpdateHistory {
-  id         String   @id @default(uuid())
-  anime_id   Int      @map("anime_id")
-  mal_id     Int?     @map("mal_id")
-  success    Boolean
-  created_at DateTime @default(now()) @map("created_at")
-
-  @@index([anime_id, created_at])
-  @@index([success, created_at])
-}
-
 
 // Anime.prisma
 model Anime {

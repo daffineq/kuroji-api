@@ -63,6 +63,7 @@ const env = {
   API_STRATEGY: parseApiStrategy(process.env.API_KEY_STRATEGY),
 
   ROUTES_WHITELIST: parseString(process.env.ROUTES_WHITELIST)?.split(',') ?? ['/docs', '/docs/openapi'],
+  ROUTES_BLACKLIST: parseString(process.env.ROUTES_BLACKLIST)?.split(',') ?? [],
 
   // Database
   DATABASE_URL: process.env.DATABASE_URL ?? ''

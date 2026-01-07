@@ -28,7 +28,6 @@ export interface QueueItem {
 
 const SLEEP_BETWEEN_UPDATES = 10;
 const MAX_QUEUE_SIZE = 1000;
-const MAX_RETRIES = 3;
 
 @EnableSchedule
 class AnimeUpdateModule extends Module {
@@ -135,29 +134,6 @@ class AnimeUpdateModule extends Module {
       logger.log('Queue cleared manually');
     } catch (e) {
       logger.error('Failed to clear queue:', e);
-    }
-  }
-
-  async addAnimeToQueue(
-    animeId: number,
-    malId: number | null | undefined = undefined,
-    priority: QueueItem['priority'] = 'medium'
-  ) {
-    await this.addToQueue({ id: animeId, id_mal: malId }, priority, 'missed');
-    logger.log(`Manually added anime ${animeId} to queue with ${priority} priority`);
-  }
-
-  private async addUpdateHistory(animeId: number, malId: number | null | undefined, success: boolean) {
-    try {
-      await prisma.updateHistory.create({
-        data: {
-          anime_id: animeId,
-          mal_id: malId ?? null,
-          success
-        }
-      });
-    } catch (e) {
-      logger.error('Failed to save update history:', e);
     }
   }
 
@@ -430,7 +406,6 @@ class AnimeUpdateModule extends Module {
     }
 
     await this.updateQueueItem(queueItem.animeId);
-    await this.addUpdateHistory(queueItem.animeId, queueItem.malId, success);
 
     return success;
   }

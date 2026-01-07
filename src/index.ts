@@ -22,14 +22,24 @@ const app = new Elysia()
     })
   )
   .use(
-    protectRoute((request) =>
-      env.ROUTES_WHITELIST.includes(new URL(request.url).pathname) ? true : env.API_STRATEGY === 'not_required'
-    )
+    protectRoute((request) => {
+      const path = new URL(request.url).pathname;
+
+      if (env.ROUTES_WHITELIST.includes(path)) return true;
+      if (env.ROUTES_BLACKLIST.includes(path)) return false;
+
+      return env.API_STRATEGY === 'not_required';
+    })
   )
   .use(
-    rateLimit(env.RATE_LIMIT, env.RATE_LIMIT_TTL, (request) =>
-      env.ROUTES_WHITELIST.includes(new URL(request.url).pathname)
-    )
+    rateLimit(env.RATE_LIMIT, env.RATE_LIMIT_TTL, (request) => {
+      const path = new URL(request.url).pathname;
+
+      if (env.ROUTES_WHITELIST.includes(path)) return true;
+      if (env.ROUTES_BLACKLIST.includes(path)) return false;
+
+      return true;
+    })
   )
   .use(
     swagger({
