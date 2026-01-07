@@ -471,15 +471,13 @@ class AnimeUpdateModule extends Module {
     const TIMEOUT = 60000;
 
     try {
-      async () => {
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => {
-            reject(new Error(`Anime timeout after ${TIMEOUT}ms`));
-          }, TIMEOUT);
-        });
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error(`Anime timeout after ${TIMEOUT}ms`));
+        }, TIMEOUT);
+      });
 
-        return Promise.race([Anime.updateOrCreate(animeId), timeoutPromise]);
-      };
+      await Promise.race([Anime.updateOrCreate(animeId), timeoutPromise]);
     } catch (error) {
       if (error instanceof Error) {
         errors.push(error.message);
