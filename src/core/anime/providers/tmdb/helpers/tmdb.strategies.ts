@@ -1,4 +1,4 @@
-import { MatchStrategy, EpisodeMatchCandidate, SeasonEpisodeGroup, MatchResult, SeasonEpisode } from '../types';
+import { MatchStrategy, EpisodeMatchCandidate, SeasonEpisodeGroup, MatchResult, TmdbEpisode } from '../types';
 import { AnilistMedia } from 'src/core/anime/providers/anilist/types';
 import { DateUtils } from 'src/helpers/date';
 import { AnilistUtils } from '../../anilist';
@@ -9,7 +9,7 @@ class TmdbStrategiesModule extends Module {
 
   async matchByDateRange(
     anilist: AnilistMedia,
-    allEpisodes: SeasonEpisode[],
+    allEpisodes: TmdbEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
     episodeCount: number | undefined | null
   ): Promise<MatchResult> {
@@ -60,7 +60,7 @@ class TmdbStrategiesModule extends Module {
 
   async matchByEpisodeCount(
     anilist: AnilistMedia,
-    allEpisodes: SeasonEpisode[],
+    allEpisodes: TmdbEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
     episodeCount: number | undefined | null
   ): Promise<MatchResult> {
@@ -114,7 +114,7 @@ class TmdbStrategiesModule extends Module {
 
   async matchBySeasonYear(
     anilist: AnilistMedia,
-    allEpisodes: SeasonEpisode[],
+    allEpisodes: TmdbEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
     episodeCount: number | undefined | null
   ): Promise<MatchResult> {
@@ -191,7 +191,7 @@ class TmdbStrategiesModule extends Module {
 
   async matchByAiringSchedule(
     anilist: AnilistMedia,
-    allEpisodes: SeasonEpisode[],
+    allEpisodes: TmdbEpisode[],
     episodeCount: number | undefined | null
   ): Promise<MatchResult> {
     const strategy = MatchStrategy.AIRING_SCHEDULE;
@@ -250,7 +250,7 @@ class TmdbStrategiesModule extends Module {
     return { episodes, primarySeason, confidence, strategy };
   }
 
-  getMostCommonSeason = (episodes: SeasonEpisode[]): number => {
+  getMostCommonSeason = (episodes: TmdbEpisode[]): number => {
     const seasonCounts = new Map<number, number>();
     episodes.forEach((ep) => {
       seasonCounts.set(ep.season_number, (seasonCounts.get(ep.season_number) || 0) + 1);
@@ -268,15 +268,15 @@ class TmdbStrategiesModule extends Module {
     return mostCommonSeason;
   };
 
-  selectBestEpisodes = (episodes: SeasonEpisode[], expectedCount?: number | null): SeasonEpisode[] => {
+  selectBestEpisodes = (episodes: TmdbEpisode[], expectedCount?: number | null): TmdbEpisode[] => {
     if (episodes.length === 0) return [];
 
     const regularEpisodes = episodes.filter((ep) => ep.season_number !== 0);
     const specialEpisodes = episodes.filter((ep) => ep.season_number === 0);
 
-    const sortByAirDate = (a: SeasonEpisode, b: SeasonEpisode) => a.air_date!.localeCompare(b.air_date!);
+    const sortByAirDate = (a: TmdbEpisode, b: TmdbEpisode) => a.air_date!.localeCompare(b.air_date!);
 
-    let selected: SeasonEpisode[];
+    let selected: TmdbEpisode[];
 
     if (regularEpisodes.length > 0) {
       selected = [...regularEpisodes].sort(sortByAirDate);

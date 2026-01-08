@@ -20,15 +20,16 @@ export interface ImageEntry {
   small?: string | null;
   medium?: string | null;
   large?: string | null;
-  type: 'poster' | 'banner';
+  type: 'poster' | 'background';
   source: string;
 }
 
 export interface ScreenshotEntry {
-  id: string;
-  originalUrl?: string;
-  x166Url?: string;
-  x332Url?: string;
+  url: string;
+  small?: string;
+  medium?: string;
+  large?: string;
+  source: string;
 }
 
 export interface VideoEntry {
@@ -57,19 +58,6 @@ export interface ChronologyEntry {
   order: number;
 }
 
-export interface EpisodeEntry {
-  air_date: string;
-  episode_number: number;
-  id: number;
-  name: string;
-  overview: string;
-  runtime: number;
-  season_number: number;
-  season_episode_number: number;
-  show_id: number;
-  still_path: string;
-}
-
 export interface MetaPayload {
   // Scalar fields
   franchise?: string | null;
@@ -89,5 +77,4 @@ export interface MetaPayload {
   screenshots?: ScreenshotEntry[] | ScreenshotEntry;
   artworks?: ArtworkEntry[] | ArtworkEntry;
   chronologies?: ChronologyEntry[] | ChronologyEntry;
-  episodes?: EpisodeEntry[] | EpisodeEntry;
 }

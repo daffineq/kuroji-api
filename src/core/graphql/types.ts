@@ -1,6 +1,5 @@
 import { Image } from '@crysoline/lib/dist/core/types';
-import { EpisodeThumbnail } from 'src/lib/prisma';
-import { EpisodeProvider } from '../anime';
+import { EpisodeProvider, TmdbEpisode, TmdbUtils } from '../anime';
 
 export interface AnimeArgs {
   page?: number;
@@ -69,6 +68,7 @@ export interface CharacterArgs {
 
 export interface EpisodeArgs {
   id: number;
+  number: number;
 }
 
 export interface ArtworksArgs {
@@ -83,12 +83,25 @@ export interface SourcesArgs {
 }
 
 export interface MergedEpisode {
-  id: number | null;
   number: number;
   title: string | null;
   overview: string | null;
-  thumbnail: EpisodeThumbnail | Image | string | null;
+  image: Image | string | null;
   runtime: number | null;
-  date: string | null;
+  air_date: string | null;
   providers: EpisodeProvider[];
 }
+
+export const formatEpisodeData = (episode: TmdbEpisode) => ({
+  title: episode.name,
+  air_date: episode.air_date,
+  overview: episode.overview,
+  number: episode.episode_number,
+  runtime: episode.runtime,
+  image: {
+    aspectRatio: 1,
+    small: TmdbUtils.getImage('w300', episode.still_path) ?? '',
+    medium: TmdbUtils.getImage('w780', episode.still_path) ?? '',
+    large: TmdbUtils.getImage('original', episode.still_path) ?? ''
+  }
+});

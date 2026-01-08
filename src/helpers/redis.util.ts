@@ -33,5 +33,5 @@ export const Redis = {
 };
 
 export const getKey = (provider: providers | string, ...args: any[]) => {
-  return `${provider}:${args.join(':')}`;
+  return `${provider.toLowerCase()}:${args.join(':')}`;
 };

@@ -17,7 +17,6 @@ model Meta {
   descriptions Description[] @relation("MetaToDescription")
   images       Image[]       @relation("MetaToImage")
   mappings     Mapping[]     @relation("MetaToMapping")
-  episodes     Episode[]     @relation("MetaToEpisode")
   videos       Video[]       @relation("MetaToVideo")
   screenshots  Screenshot[]  @relation("MetaToScreenshot")
   artworks     Artwork[]     @relation("MetaToArtwork")
@@ -37,33 +36,6 @@ model Mapping {
 
   @@unique([source_id, source_name])
   @@map("Mapping")
-}
-
-model Episode {
-  id Int @id
-
-  number    Int
-  title     String?
-  overview  String?
-  thumbnail EpisodeThumbnail? @relation("EpisodeToEpisodeThumbnail")
-  runtime   Int?
-  date      String?
-
-  season_number Int? @map("season_number")
-  tmdb_show_id  Int? @map("tmdb_id")
-
-  parent Meta[] @relation("MetaToEpisode")
-}
-
-model EpisodeThumbnail {
-  id String @id @default(cuid())
-
-  small  String?
-  medium String?
-  large  String?
-
-  episode_id Int     @unique @map("episode_id")
-  parent     Episode @relation("EpisodeToEpisodeThumbnail", fields: [episode_id], references: [id])
 }
 
 model Title {
@@ -122,12 +94,17 @@ model Video {
 }
 
 model Screenshot {
-  id       String  @id
-  original String?
-  x166     String?
-  x332     String?
+  id     String  @id @default(cuid())
+  url    String
+  small  String?
+  medium String?
+  large  String?
+
+  source String
 
   parent Meta[] @relation("MetaToScreenshot")
+
+  @@unique([url, source])
 }
 
 model Artwork {

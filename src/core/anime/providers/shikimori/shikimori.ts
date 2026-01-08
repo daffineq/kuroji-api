@@ -4,14 +4,14 @@ import { getKey, Redis } from 'src/helpers/redis.util';
 import { metaSelect } from '../../meta/types';
 import { ShikimoriFetch } from './helpers/shikimori.fetch';
 import { Anilist } from '../anilist';
-import { ChronologyEntry, Meta, VideoEntry } from '../../meta';
+import { ChronologyEntry, Meta, ScreenshotEntry, VideoEntry } from '../../meta';
 import { ProviderModule } from 'src/helpers/module';
 
 class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
   override readonly name = 'Shikimori';
 
   override async getInfo(id: number, idMal?: number): Promise<ShikimoriAnime> {
-    const key = getKey('shikimori', 'info', id);
+    const key = getKey(this.name, 'info', id);
 
     const cached = await Redis.get<ShikimoriAnime>(key);
 
@@ -27,13 +27,13 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
       await Meta.update(id, {
         mappings: {
           id: idMal,
-          name: 'shikimori'
+          name: this.name
         }
       });
     } else {
       const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
-      const shikId = meta?.mappings.find((m) => m.source_name === 'shikimori')?.source_id;
+      const shikId = meta?.mappings.find((m) => m.source_name === this.name)?.source_id;
 
       if (shikId) {
         fetched = await ShikimoriFetch.fetchInfo(shikId);
@@ -49,7 +49,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
         await Meta.update(id, {
           mappings: {
             id: al.idMal,
-            name: 'shikimori'
+            name: this.name
           }
         });
       }
@@ -62,7 +62,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
           title: v.name,
           thumbnail: v.imageUrl,
           type: v.kind,
-          source: 'shikimori'
+          source: this.name
         };
       });
 
@@ -70,14 +70,22 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (fetched.screenshots) {
-      await Meta.update(id, { screenshots: fetched.screenshots });
+      const screenshots: ScreenshotEntry[] = fetched.screenshots.map((s) => ({
+        url: s.originalUrl!!,
+        small: s.x166Url,
+        medium: s.x332Url,
+        large: s.originalUrl,
+        source: this.name
+      }));
+
+      await Meta.update(id, { screenshots });
     }
 
     if (fetched.russian) {
       await Meta.update(id, {
         titles: {
           title: fetched.russian,
-          source: 'shikimori',
+          source: this.name,
           language: 'russian'
         }
       });
@@ -87,7 +95,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
       await Meta.update(id, {
         descriptions: {
           description: fetched.description,
-          source: 'shikimori',
+          source: this.name,
           language: 'russian'
         }
       });
@@ -100,7 +108,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
           medium: fetched.poster.mainUrl!,
           large: fetched.poster.originalUrl!,
           type: 'poster',
-          source: 'shikimori'
+          source: this.name
         }
       });
     }

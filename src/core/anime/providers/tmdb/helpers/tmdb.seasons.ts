@@ -1,5 +1,5 @@
 import { NotFoundError } from 'src/helpers/errors';
-import { MatchResult, MatchStrategy, SeasonEpisode, SeasonEpisodeGroup, SeasonTmdb } from '../types';
+import { MatchResult, MatchStrategy, TmdbEpisode, SeasonEpisodeGroup } from '../types';
 import { AnilistMedia } from '../../anilist/types';
 import { TmdbStrategies } from './tmdb.strategies';
 import { getKey, Redis } from 'src/helpers/redis.util';
@@ -11,16 +11,15 @@ import { Shikimori } from '../../shikimori';
 import { Kitsu } from '../../kitsu';
 import { TmdbFetch } from './tmdb.fetch';
 import { AnimeUtils } from 'src/core/anime/helpers';
-import { Meta } from 'src/core/anime/meta';
 import { Module } from 'src/helpers/module';
 
 class TmdbSeasonsModule extends Module {
   override readonly name = 'TmdbSeasons';
 
-  async getSeason(id: number): Promise<SeasonTmdb> {
-    const key = getKey('tmdb', 'seasons', id);
+  async getEpisodes(id: number): Promise<TmdbEpisode[]> {
+    const key = getKey(this.name, 'episodes', id);
 
-    const cached = await Redis.get<SeasonTmdb>(key);
+    const cached = await Redis.get<TmdbEpisode[]>(key);
 
     if (cached) {
       return cached;
@@ -58,24 +57,12 @@ class TmdbSeasonsModule extends Module {
       throw new Error(`Episode matching confidence too low (${matchResult.confidence.toFixed(2)})`);
     }
 
-    const season = await TmdbFetch.fetchSeason(tmdb.id, matchResult.primarySeason);
-    if (!season) {
-      throw new NotFoundError('Primary season not found');
-    }
+    await Redis.set(key, matchResult.episodes);
 
-    const trimmedSeason: SeasonTmdb = {
-      ...season,
-      episodes: matchResult.episodes ?? []
-    };
-
-    await Meta.update(id, { episodes: trimmedSeason.episodes });
-
-    await Redis.set(key, trimmedSeason);
-
-    return trimmedSeason;
+    return matchResult.episodes;
   }
 
-  async getAllEpisodes(id: number): Promise<SeasonEpisode[]> {
+  async getAllEpisodes(id: number): Promise<TmdbEpisode[]> {
     const tmdb = await Tmdb.getInfo(id);
 
     const seasonsPromise = tmdb.seasons!.map((s) => TmdbFetch.fetchSeason(tmdb.id, s.season_number));
@@ -99,7 +86,7 @@ class TmdbSeasonsModule extends Module {
 
   async findBestEpisodeSequence(
     anilist: AnilistMedia,
-    allEpisodes: SeasonEpisode[],
+    allEpisodes: TmdbEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
     episodeCount: number | undefined | null
   ): Promise<MatchResult> {
@@ -144,8 +131,8 @@ class TmdbSeasonsModule extends Module {
     return bestMatch;
   }
 
-  groupEpisodesBySeasons = (episodes: SeasonEpisode[]): SeasonEpisodeGroup[] => {
-    const seasonMap = new Map<number, SeasonEpisode[]>();
+  groupEpisodesBySeasons = (episodes: TmdbEpisode[]): SeasonEpisodeGroup[] => {
+    const seasonMap = new Map<number, TmdbEpisode[]>();
 
     episodes.forEach((episode) => {
       if (!seasonMap.has(episode.season_number)) {

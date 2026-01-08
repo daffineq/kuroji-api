@@ -7,7 +7,7 @@ class AnilistModule extends ProviderModule<AnilistMedia> {
   override readonly name = 'Anilist';
 
   override async getInfo(id: number): Promise<AnilistMedia> {
-    const key = getKey('anilist', 'info', id);
+    const key = getKey(this.name, 'info', id);
 
     const cached = await Redis.get<AnilistMedia>(key);
 

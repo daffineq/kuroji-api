@@ -60,7 +60,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
           small: kitsu.attributes.coverImage.small,
           medium: kitsu.attributes.coverImage.medium,
           large: kitsu.attributes.coverImage.large,
-          type: 'banner',
+          type: 'background',
           source: 'kitsu'
         }
       });

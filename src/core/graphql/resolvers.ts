@@ -1,11 +1,12 @@
 import { prisma, Prisma } from 'src/lib/prisma';
-import { Anime, Crysoline, Episode, Tmdb, TmdbUtils } from '../anime';
+import { Anime, Crysoline, Episode, Tmdb, TmdbSeasons, TmdbUtils } from '../anime';
 import {
   AnimeArgs,
   ArtworksArgs,
   CharacterArgs,
   ChronologyArgs,
   EpisodeArgs,
+  formatEpisodeData,
   MergedEpisode,
   SourcesArgs
 } from './types';
@@ -147,7 +148,7 @@ const filterAnime = (
   if (is_adult !== undefined) where.is_adult = is_adult;
   if (has_next_episode !== undefined) {
     if (has_next_episode) {
-      where.next_airing_episode = { isNot: null };
+      where.next_airing_episode = { not: null };
     } else {
       where.next_airing_episode = null;
     }
@@ -466,48 +467,36 @@ const filterAnime = (
       // Latest Episode Sorting
       case 'LATEST_EPISODE_DESC':
         orderBy.push({
-          latest_airing_episode: {
-            airing_at: { sort: 'desc', nulls: 'last' }
-          }
+          latest_airing_episode: { sort: 'desc', nulls: 'last' }
         });
         break;
       case 'LATEST_EPISODE_ASC':
         orderBy.push({
-          latest_airing_episode: {
-            airing_at: { sort: 'asc', nulls: 'last' }
-          }
+          latest_airing_episode: { sort: 'asc', nulls: 'last' }
         });
         break;
 
       // Next Episode Sorting
       case 'NEXT_EPISODE_DESC':
         orderBy.push({
-          next_airing_episode: {
-            airing_at: { sort: 'desc', nulls: 'last' }
-          }
+          next_airing_episode: { sort: 'desc', nulls: 'last' }
         });
         break;
       case 'NEXT_EPISODE_ASC':
         orderBy.push({
-          next_airing_episode: {
-            airing_at: { sort: 'asc', nulls: 'last' }
-          }
+          next_airing_episode: { sort: 'asc', nulls: 'last' }
         });
         break;
 
       // Last Episode Sorting
       case 'LAST_EPISODE_DESC':
         orderBy.push({
-          last_airing_episode: {
-            airing_at: { sort: 'desc', nulls: 'last' }
-          }
+          last_airing_episode: { sort: 'desc', nulls: 'last' }
         });
         break;
       case 'LAST_EPISODE_ASC':
         orderBy.push({
-          last_airing_episode: {
-            airing_at: { sort: 'asc', nulls: 'last' }
-          }
+          last_airing_episode: { sort: 'asc', nulls: 'last' }
         });
         break;
 
@@ -659,16 +648,23 @@ export const resolvers = {
       });
     },
 
-    episode_by_id: async (_: any, args: EpisodeArgs) => {
-      const [translations, images, episode] = await Promise.all([
-        Tmdb.getEpisodeTranslations(args.id),
-        Tmdb.getEpisodeImages(args.id),
-        prisma.episode.findUnique({
-          where: { id: args.id },
-          include: {
-            thumbnail: true
-          }
-        })
+    episode_info: async (_: any, args: EpisodeArgs) => {
+      const [tmdbEpisodes, providerEpisodes] = await Promise.all([
+        TmdbSeasons.getEpisodes(args.id),
+        Crysoline.episodes(args.id)
+      ]);
+
+      const episode = tmdbEpisodes.find((e) => e.episode_number === args.number);
+
+      if (!episode) {
+        return null;
+      }
+
+      const providerEp = providerEpisodes.find((e) => e.number === args.number);
+
+      const [translations, images] = await Promise.all([
+        Tmdb.getEpisodeTranslations(episode?.show_id, episode?.season_number, episode?.episode_number),
+        Tmdb.getEpisodeImages(episode?.show_id, episode?.season_number, episode?.episode_number)
       ]);
 
       const formattedImages = images.map((i) => ({
@@ -682,10 +678,18 @@ export const resolvers = {
         }
       }));
 
+      const baseData = formatEpisodeData(episode);
+
       return {
-        ...episode,
+        images: formattedImages,
         translation: translations,
-        images: formattedImages
+        number: baseData.number,
+        title: baseData.title ?? providerEp?.title ?? null,
+        overview: baseData.overview ?? providerEp?.description ?? null,
+        image: baseData.image ?? providerEp?.image ?? null,
+        runtime: baseData.runtime ?? null,
+        air_date: baseData.air_date ?? null,
+        providers: providerEp?.providers ?? []
       };
     },
 
@@ -868,24 +872,6 @@ export const resolvers = {
       });
     },
 
-    latest_airing_episode: async (parent: any) => {
-      return prisma.animeLatestEpisode.findUnique({
-        where: { anime_id: parent.id }
-      });
-    },
-
-    next_airing_episode: async (parent: any) => {
-      return prisma.animeNextEpisode.findUnique({
-        where: { anime_id: parent.id }
-      });
-    },
-
-    last_airing_episode: async (parent: any) => {
-      return prisma.animeLastEpisode.findUnique({
-        where: { anime_id: parent.id }
-      });
-    },
-
     meta: async (parent: any) => {
       return prisma.meta.findUnique({
         where: { id: parent.id }
@@ -962,10 +948,12 @@ export const resolvers = {
     episodes: async (parent: any) => {
       const providerEpisodes = await Crysoline.episodes(parent.id);
 
-      const tmdbEpisodes = await prisma.episode.findMany({
-        where: { parent: { some: { id: parent.id } } },
-        include: { thumbnail: true }
-      });
+      const tmdbEpisodes = await TmdbSeasons.getEpisodes(parent.id);
+
+      const tmdbEpisodesFormatted: MergedEpisode[] = tmdbEpisodes.map((e) => ({
+        ...formatEpisodeData(e),
+        providers: []
+      }));
 
       const providerMap = new Map<number, Episode>();
       for (const ep of providerEpisodes) {
@@ -974,7 +962,7 @@ export const resolvers = {
         }
       }
 
-      const merged: MergedEpisode[] = tmdbEpisodes.map((tmdbEp) => {
+      const merged: MergedEpisode[] = tmdbEpisodesFormatted.map((tmdbEp) => {
         const providerEp = providerMap.get(tmdbEp.number);
 
         if (providerEp) {
@@ -982,26 +970,24 @@ export const resolvers = {
         }
 
         return {
-          id: tmdbEp.id,
           number: tmdbEp.number,
           title: tmdbEp.title ?? providerEp?.title ?? null,
           overview: tmdbEp.overview ?? providerEp?.description ?? null,
-          thumbnail: tmdbEp.thumbnail ?? providerEp?.image ?? null,
+          image: tmdbEp.image ?? providerEp?.image ?? null,
           runtime: tmdbEp.runtime ?? null,
-          date: tmdbEp.date ?? null,
+          air_date: tmdbEp.air_date ?? null,
           providers: providerEp?.providers ?? []
         };
       });
 
       for (const [_, providerEp] of providerMap) {
         merged.push({
-          id: null,
           number: providerEp.number!,
           title: providerEp.title ?? null,
           overview: providerEp.description ?? null,
-          thumbnail: providerEp.image ?? null,
+          image: providerEp.image ?? null,
           runtime: null,
-          date: null,
+          air_date: null,
           providers: providerEp.providers
         });
       }
@@ -1064,6 +1050,6 @@ export const resolvers = {
   },
 
   Episode: {
-    thumbnail: (parent: any) => parent.thumbnail || null
+    image: (parent: any) => parent.image || null
   }
 };

@@ -51,7 +51,7 @@ class CrysolineModule extends Module {
   }
 
   async episodes(id: number) {
-    const key = getKey('crysoline', 'episodes', id);
+    const key = getKey(this.name, 'episodes', id);
 
     const cached = await Redis.get<Episode[]>(key);
 

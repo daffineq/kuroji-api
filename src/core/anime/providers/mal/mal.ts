@@ -17,7 +17,7 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
   private fetch = CryMeta.MyAnimeList(env.CRYSOLINE_API_KEY);
 
   override async getInfo(id: number, idMal?: number): Promise<MALInfo> {
-    const key = getKey('mal', 'info', id);
+    const key = getKey(this.name, 'info', id);
 
     const cached = await Redis.get<MALInfo>(key);
 
@@ -33,13 +33,13 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
       await Meta.update(id, {
         mappings: {
           id: idMal,
-          name: 'mal'
+          name: this.name
         }
       });
     } else {
       const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
-      const malId = parseNumber(meta?.mappings.find((m) => m.source_name === 'mal')?.source_id);
+      const malId = parseNumber(meta?.mappings.find((m) => m.source_name === this.name.toLowerCase())?.source_id);
 
       if (malId) {
         fetched = await this.fetch.info(malId);
@@ -55,7 +55,7 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
         await Meta.update(id, {
           mappings: {
             id: al.idMal,
-            name: 'mal'
+            name: this.name
           }
         });
       }
@@ -69,7 +69,7 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
           thumbnail: v.thumbnail ?? undefined,
           artist: v.artist ?? undefined,
           type: v.type,
-          source: 'mal'
+          source: this.name
         };
       });
 
@@ -82,7 +82,7 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
           url: fetched.image.large,
           large: fetched.image.large,
           type: 'poster',
-          source: 'mal'
+          source: this.name
         }
       });
     }

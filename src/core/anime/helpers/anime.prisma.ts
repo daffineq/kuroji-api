@@ -51,7 +51,7 @@ class AnimePrismaModule extends Module {
             }
           }
         : undefined,
-      banner: anilist.bannerImage,
+      background: anilist.bannerImage,
       synonyms: anilist.synonyms ?? [],
       description: anilist.description,
       status: anilist.status,
@@ -97,33 +97,11 @@ class AnimePrismaModule extends Module {
             }))
           }
         : undefined,
-      latest_airing_episode: latestEpisode
-        ? {
-            create: {
-              id: latestEpisode.id,
-              episode: latestEpisode.episode,
-              airing_at: latestEpisode.airingAt
-            }
-          }
-        : undefined,
-      next_airing_episode: nextEpisode
-        ? {
-            create: {
-              id: nextEpisode.id,
-              episode: nextEpisode.episode,
-              airing_at: nextEpisode.airingAt
-            }
-          }
-        : undefined,
-      last_airing_episode: lastEpisode
-        ? {
-            create: {
-              id: lastEpisode.id,
-              episode: lastEpisode.episode,
-              airing_at: lastEpisode.airingAt
-            }
-          }
-        : undefined,
+
+      latest_airing_episode: latestEpisode?.airingAt,
+      next_airing_episode: nextEpisode?.airingAt,
+      last_airing_episode: lastEpisode?.airingAt,
+
       airing_schedule: anilist.airingSchedule?.edges?.length
         ? {
             create: anilist.airingSchedule.edges.map((edge) => ({
@@ -290,7 +268,7 @@ class AnimePrismaModule extends Module {
 
     return {
       id_mal: anilist.idMal,
-      banner: anilist.bannerImage,
+      background: anilist.bannerImage,
       synonyms: anilist.synonyms ?? [],
       description: anilist.description,
       status: anilist.status,
@@ -395,38 +373,9 @@ class AnimePrismaModule extends Module {
           }
         : undefined,
 
-      latest_airing_episode: latestEpisode
-        ? {
-            delete: true,
-            create: {
-              id: latestEpisode.id,
-              episode: latestEpisode.episode,
-              airing_at: latestEpisode.airingAt
-            }
-          }
-        : { delete: true },
-
-      next_airing_episode: nextEpisode
-        ? {
-            delete: true,
-            create: {
-              id: nextEpisode.id,
-              episode: nextEpisode.episode,
-              airing_at: nextEpisode.airingAt
-            }
-          }
-        : { delete: true },
-
-      last_airing_episode: lastEpisode
-        ? {
-            delete: true,
-            create: {
-              id: lastEpisode.id,
-              episode: lastEpisode.episode,
-              airing_at: lastEpisode.airingAt
-            }
-          }
-        : { delete: true },
+      latest_airing_episode: latestEpisode?.airingAt,
+      next_airing_episode: nextEpisode?.airingAt,
+      last_airing_episode: lastEpisode?.airingAt,
 
       airing_schedule: anilist.airingSchedule?.edges?.length
         ? {

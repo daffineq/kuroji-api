@@ -17,7 +17,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
   override readonly name = 'TMDB';
 
   override async getInfo(id: number): Promise<TmdbInfoResult> {
-    const key = getKey('tmdb', 'info', id);
+    const key = getKey(this.name, 'info', id);
 
     const cached = await Redis.get<TmdbInfoResult>(key);
 
@@ -27,7 +27,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
 
     const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
 
-    const tmdbId = parseNumber(meta?.mappings.find((m) => m.source_name === 'tmdb')?.source_id);
+    const tmdbId = parseNumber(meta?.mappings.find((m) => m.source_name === this.name)?.source_id);
 
     let tmdb: TmdbInfoResult;
 
@@ -42,7 +42,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       await Meta.update(id, {
         mappings: {
           id: parseString(tmdb.id)!,
-          name: 'tmdb'
+          name: this.name
         }
       });
     }
@@ -59,7 +59,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
         iso_639_1: normalize_iso_639_1(i.iso_639_1) ?? undefined,
         thumbnail: TmdbUtils.getImage('w780', i.file_path) ?? undefined,
         type: i.type,
-        source: 'tmdb'
+        source: this.name
       };
     });
 
@@ -75,7 +75,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
           medium: TmdbUtils.getImage('w780', tmdb.poster_path),
           large: TmdbUtils.getImage('original', tmdb.poster_path),
           type: 'poster',
-          source: 'tmdb'
+          source: this.name
         }
       });
     }
@@ -87,8 +87,8 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
           small: TmdbUtils.getImage('w300', tmdb.backdrop_path),
           medium: TmdbUtils.getImage('w780', tmdb.backdrop_path),
           large: TmdbUtils.getImage('original', tmdb.backdrop_path),
-          type: 'banner',
-          source: 'tmdb'
+          type: 'background',
+          source: this.name
         }
       });
     }
@@ -99,7 +99,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
   }
 
   async getTranslations(id: number): Promise<TmdbTranslation[]> {
-    const key = getKey('tmdb', 'info', 'translations', id);
+    const key = getKey(this.name, 'info', 'translations', id);
 
     const cached = await Redis.get<TmdbTranslation[]>(key);
 
@@ -122,8 +122,12 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     return translations;
   }
 
-  async getEpisodeTranslations(id: number): Promise<TmdbTranslation[]> {
-    const key = getKey('tmdb', 'info', 'translations', id);
+  async getEpisodeTranslations(show_id?: number, season?: number, episode?: number): Promise<TmdbTranslation[]> {
+    if (!show_id || !season || !episode) {
+      return [];
+    }
+
+    const key = getKey(this.name, 'info', 'translations', show_id, season, episode);
 
     const cached = await Redis.get<TmdbTranslation[]>(key);
 
@@ -131,27 +135,19 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       return cached;
     }
 
-    const episode = await prisma.episode.findUnique({
-      where: { id }
-    });
-
-    if (!episode || !episode.tmdb_show_id || !episode.season_number || !episode.number) {
-      return [];
-    }
-
-    const translations = await TmdbFetch.fetchEpisodeTranslations(
-      episode.tmdb_show_id,
-      episode.season_number,
-      episode.number
-    );
+    const translations = await TmdbFetch.fetchEpisodeTranslations(show_id, season, episode);
 
     await Redis.set(key, translations);
 
     return translations;
   }
 
-  async getEpisodeImages(id: number): Promise<TmdbImage[]> {
-    const key = getKey('tmdb', 'info', 'images', id);
+  async getEpisodeImages(show_id?: number, season?: number, episode?: number): Promise<TmdbImage[]> {
+    if (!show_id || !season || !episode) {
+      return [];
+    }
+
+    const key = getKey(this.name, 'info', 'images', show_id, season, episode);
 
     const cached = await Redis.get<TmdbImage[]>(key);
 
@@ -159,15 +155,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       return cached;
     }
 
-    const episode = await prisma.episode.findUnique({
-      where: { id }
-    });
-
-    if (!episode || !episode.tmdb_show_id || !episode.season_number || !episode.number) {
-      return [];
-    }
-
-    const images = await TmdbFetch.fetchEpisodeImages(episode.tmdb_show_id, episode.season_number, episode.number);
+    const images = await TmdbFetch.fetchEpisodeImages(show_id, season, episode);
 
     await Redis.set(key, images);
 

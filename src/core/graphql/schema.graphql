@@ -62,7 +62,7 @@ type Query {
   genres: [AnimeGenre!]!
   tags(search: String, category: String, is_adult: Boolean): [AnimeTag!]!
   studios(search: String): [AnimeStudio!]!
-  episode_by_id(id: Int!): EpisodeInfo
+  episode_info(id: Int!, number: Int!): EpisodeInfo
   chronology(
     page: Int = 1
     per_page: Int = 20
@@ -198,7 +198,7 @@ type Anime {
   id_mal: Int
   title: AnimeTitle
   poster: AnimePoster
-  banner: String
+  background: String
   synonyms: [String!]!
   description: String
   status: String
@@ -221,9 +221,6 @@ type Anime {
   trending: Int
   favorites: Int
   genres: [AnimeGenre!]!
-  latest_airing_episode: AiringEpisode
-  next_airing_episode: AiringEpisode
-  last_airing_episode: AiringEpisode
   airing_schedule: [AiringSchedule!]!
   characters(page: Int = 1, per_page: Int = 25): CharacterConnection!
   studios: [StudioEdge!]!
@@ -256,12 +253,6 @@ type AnimeDate {
 type AnimeGenre {
   id: String!
   name: String!
-}
-
-type AiringEpisode {
-  id: Int!
-  episode: Int
-  airing_at: Int
 }
 
 type AiringSchedule {
@@ -413,26 +404,25 @@ type Mapping {
 }
 
 type Episode {
-  id: Int
   number: Int!
   title: String
   overview: String
-  thumbnail: EpisodeThumbnail
+  image: EpisodeImage
   runtime: Int
-  date: String
+  air_date: String
   providers: [EpisodeProvider!]!
 }
 
 type EpisodeInfo {
-  id: Int
   number: Int!
   title: String
   overview: String
-  thumbnail: EpisodeThumbnail
+  image: EpisodeImage
   runtime: Int
-  date: String
+  air_date: String
   translation: [Translation!]!
-  images: [EpisodeImage!]!
+  images: [EpisodeImages!]!
+  providers: [EpisodeProvider!]!
 }
 
 type EpisodeProvider {
@@ -440,7 +430,7 @@ type EpisodeProvider {
   id: String
 }
 
-type EpisodeThumbnail {
+type EpisodeImage {
   small: String
   medium: String
   large: String
@@ -458,11 +448,11 @@ type TranslationData {
   homepage: String
 }
 
-type EpisodeImage {
+type EpisodeImages {
   height: Int
   width: Int
   iso_639_1: String
-  image: EpisodeThumbnail
+  image: EpisodeImage
 }
 
 type Video {
@@ -474,14 +464,14 @@ type Video {
 }
 
 type Screenshot {
-  id: String!
-  original: String
-  x166: String
-  x332: String
+  url: String!
+  small: String
+  medium: String
+  large: String
+  source: String!
 }
 
 type Artwork {
-  id: String
   url: String
   height: Int
   image: String

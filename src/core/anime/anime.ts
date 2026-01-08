@@ -71,7 +71,7 @@ class AnimeModule extends Module {
       Tmdb.getInfo(id).catch(() => null)
     ]);
 
-    await Promise.all([TmdbSeasons.getSeason(id).catch(() => null), Tvdb.getInfo(id).catch(() => null)]);
+    await Promise.all([Tvdb.getInfo(id)]);
   }
 }
 

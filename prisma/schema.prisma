@@ -32,14 +32,187 @@ model UpdateQueue {
 }
 
 
+// Tvdb.prisma
+model TvdbLogin {
+  id         String   @id @default(cuid())
+  token      String
+  created_at DateTime @default(now()) @map("created_at")
+  expired    Boolean  @default(false)
+}
+
+
+// Api.prisma
+model ApiKey {
+  id         String   @id @default(cuid())
+  key        String   @unique
+  active     Boolean  @default(true)
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+
+  usage ApiKeyUsage[]
+}
+
+model ApiKeyUsage {
+  id         String   @id @default(cuid())
+  api_key_id String   @map("api_key_id")
+  endpoint   String
+  method     String
+  origin     String?
+  user_agent String?  @map("user_agent")
+  ip         String?
+  used_at    DateTime @default(now()) @map("used_at")
+
+  apiKey ApiKey @relation(fields: [api_key_id], references: [id])
+}
+
+
+// Meta.prisma
+model Meta {
+  id       Int @id
+  anime_id Int @unique
+
+  franchise String?
+  rating    String?
+
+  episodes_aired Int? @map("episodes_aired")
+  episodes_total Int? @map("episodes_total")
+
+  moreinfo  String?
+  broadcast String?
+
+  nsfw Boolean @default(false)
+
+  titles       Title[]       @relation("MetaToTitle")
+  descriptions Description[] @relation("MetaToDescription")
+  images       Image[]       @relation("MetaToImage")
+  mappings     Mapping[]     @relation("MetaToMapping")
+  videos       Video[]       @relation("MetaToVideo")
+  screenshots  Screenshot[]  @relation("MetaToScreenshot")
+  artworks     Artwork[]     @relation("MetaToArtwork")
+  chronology   Chronology[]  @relation("MetaToChronology")
+
+  anime Anime @relation(fields: [anime_id], references: [id])
+}
+
+model Mapping {
+  id String @id @default(cuid())
+
+  source_id   String @map("source_id")
+  source_name String @map("source_name")
+
+  meta_id Int  @map("meta_id")
+  parent  Meta @relation("MetaToMapping", fields: [meta_id], references: [id])
+
+  @@unique([source_id, source_name])
+  @@map("Mapping")
+}
+
+model Title {
+  id String @id @default(cuid())
+
+  title    String
+  source   String
+  language String
+
+  parent Meta[] @relation("MetaToTitle")
+
+  @@unique([title, source, language])
+}
+
+model Description {
+  id String @id @default(cuid())
+
+  description String
+  source      String
+  language    String
+
+  parent Meta[] @relation("MetaToDescription")
+
+  @@unique([description, source, language])
+}
+
+model Image {
+  id String @id @default(cuid())
+
+  url    String
+  small  String?
+  medium String?
+  large  String?
+
+  type   String
+  source String
+
+  parent Meta[] @relation("MetaToImage")
+
+  @@unique([url, type, source])
+}
+
+model Video {
+  id String @id @default(cuid())
+
+  url       String
+  title     String?
+  thumbnail String?
+  artist    String?
+  type      String?
+  source    String
+
+  parent Meta[] @relation("MetaToVideo")
+
+  @@unique([url, source])
+}
+
+model Screenshot {
+  id     String  @id @default(cuid())
+  url    String
+  small  String?
+  medium String?
+  large  String?
+
+  source String
+
+  parent Meta[] @relation("MetaToScreenshot")
+
+  @@unique([url, source])
+}
+
+model Artwork {
+  id        String  @id @default(cuid())
+  url       String
+  height    Int?
+  width     Int?
+  image     String?
+  iso_639_1 String?
+  thumbnail String?
+  type      String
+  source    String
+
+  parent Meta[] @relation("MetaToArtwork")
+
+  @@unique([url, type, source])
+}
+
+model Chronology {
+  id         String @id @default(cuid())
+  parent_id  Int    @map("parent_id")
+  related_id Int    @map("related_id")
+  order      Int
+
+  meta_id Int  @map("meta_id")
+  parent  Meta @relation("MetaToChronology", fields: [meta_id], references: [id])
+
+  @@unique([parent_id, related_id, order])
+}
+
+
 // Anime.prisma
 model Anime {
   id     Int  @id
   id_mal Int? @unique @map("id_mal")
 
-  title  AnimeTitle?  @relation("AnimeTitle")
-  poster AnimePoster? @relation("AnimePoster")
-  banner String?
+  title      AnimeTitle?  @relation("AnimeTitle")
+  poster     AnimePoster? @relation("AnimePoster")
+  background String?
 
   synonyms String[]
 
@@ -69,9 +242,9 @@ model Anime {
 
   genres AnimeGenre[] @relation("AnimeGenres")
 
-  latest_airing_episode AnimeLatestEpisode? @relation("AnimeLatestEpisode")
-  next_airing_episode   AnimeNextEpisode?   @relation("AnimeNextEpisode")
-  last_airing_episode   AnimeLastEpisode?   @relation("AnimeLastEpisode")
+  latest_airing_episode Int? @map("latest_airing_episode")
+  next_airing_episode   Int? @map("next_airing_episode")
+  last_airing_episode   Int? @map("last_airing_episode")
 
   airing_schedule AnimeAiringSchedule[] @relation("AnimeAiringSchedules")
   characters      AnimeCharacterEdge[]  @relation("AnimeCharacters")
@@ -140,33 +313,6 @@ model AnimeAiringSchedule {
   airing_at Int? @map("airing_at")
 
   anime Anime @relation("AnimeAiringSchedules", fields: [anime_id], references: [id])
-}
-
-model AnimeLatestEpisode {
-  id        Int  @id
-  anime_id  Int  @unique @map("anime_id")
-  episode   Int?
-  airing_at Int? @map("airing_at")
-
-  anime Anime @relation("AnimeLatestEpisode", fields: [anime_id], references: [id])
-}
-
-model AnimeNextEpisode {
-  id        Int  @id
-  anime_id  Int  @unique @map("anime_id")
-  episode   Int?
-  airing_at Int? @map("airing_at")
-
-  anime Anime @relation("AnimeNextEpisode", fields: [anime_id], references: [id])
-}
-
-model AnimeLastEpisode {
-  id        Int  @id
-  anime_id  Int  @unique @map("anime_id")
-  episode   Int?
-  airing_at Int? @map("airing_at")
-
-  anime Anime @relation("AnimeLastEpisode", fields: [anime_id], references: [id])
 }
 
 model AnimeCharacterEdge {
@@ -310,200 +456,4 @@ model AnimeStatusDistribution {
   anime_id Int    @map("anime_id")
 
   anime Anime @relation("AnimeStatusDistribution", fields: [anime_id], references: [id])
-}
-
-
-// Tvdb.prisma
-model TvdbLogin {
-  id         String   @id @default(cuid())
-  token      String
-  created_at DateTime @default(now()) @map("created_at")
-  expired    Boolean  @default(false)
-}
-
-
-// Api.prisma
-model ApiKey {
-  id         String   @id @default(cuid())
-  key        String   @unique
-  active     Boolean  @default(true)
-  created_at DateTime @default(now()) @map("created_at")
-  updated_at DateTime @updatedAt @map("updated_at")
-
-  usage ApiKeyUsage[]
-}
-
-model ApiKeyUsage {
-  id         String   @id @default(cuid())
-  api_key_id String   @map("api_key_id")
-  endpoint   String
-  method     String
-  origin     String?
-  user_agent String?  @map("user_agent")
-  ip         String?
-  used_at    DateTime @default(now()) @map("used_at")
-
-  apiKey ApiKey @relation(fields: [api_key_id], references: [id])
-}
-
-
-// Meta.prisma
-model Meta {
-  id       Int @id
-  anime_id Int @unique
-
-  franchise String?
-  rating    String?
-
-  episodes_aired Int? @map("episodes_aired")
-  episodes_total Int? @map("episodes_total")
-
-  moreinfo  String?
-  broadcast String?
-
-  nsfw Boolean @default(false)
-
-  titles       Title[]       @relation("MetaToTitle")
-  descriptions Description[] @relation("MetaToDescription")
-  images       Image[]       @relation("MetaToImage")
-  mappings     Mapping[]     @relation("MetaToMapping")
-  episodes     Episode[]     @relation("MetaToEpisode")
-  videos       Video[]       @relation("MetaToVideo")
-  screenshots  Screenshot[]  @relation("MetaToScreenshot")
-  artworks     Artwork[]     @relation("MetaToArtwork")
-  chronology   Chronology[]  @relation("MetaToChronology")
-
-  anime Anime @relation(fields: [anime_id], references: [id])
-}
-
-model Mapping {
-  id String @id @default(cuid())
-
-  source_id   String @map("source_id")
-  source_name String @map("source_name")
-
-  meta_id Int  @map("meta_id")
-  parent  Meta @relation("MetaToMapping", fields: [meta_id], references: [id])
-
-  @@unique([source_id, source_name])
-  @@map("Mapping")
-}
-
-model Episode {
-  id Int @id
-
-  number    Int
-  title     String?
-  overview  String?
-  thumbnail EpisodeThumbnail? @relation("EpisodeToEpisodeThumbnail")
-  runtime   Int?
-  date      String?
-
-  season_number Int? @map("season_number")
-  tmdb_show_id  Int? @map("tmdb_id")
-
-  parent Meta[] @relation("MetaToEpisode")
-}
-
-model EpisodeThumbnail {
-  id String @id @default(cuid())
-
-  small  String?
-  medium String?
-  large  String?
-
-  episode_id Int     @unique @map("episode_id")
-  parent     Episode @relation("EpisodeToEpisodeThumbnail", fields: [episode_id], references: [id])
-}
-
-model Title {
-  id String @id @default(cuid())
-
-  title    String
-  source   String
-  language String
-
-  parent Meta[] @relation("MetaToTitle")
-
-  @@unique([title, source, language])
-}
-
-model Description {
-  id String @id @default(cuid())
-
-  description String
-  source      String
-  language    String
-
-  parent Meta[] @relation("MetaToDescription")
-
-  @@unique([description, source, language])
-}
-
-model Image {
-  id String @id @default(cuid())
-
-  url    String
-  small  String?
-  medium String?
-  large  String?
-
-  type   String
-  source String
-
-  parent Meta[] @relation("MetaToImage")
-
-  @@unique([url, type, source])
-}
-
-model Video {
-  id String @id @default(cuid())
-
-  url       String
-  title     String?
-  thumbnail String?
-  artist    String?
-  type      String?
-  source    String
-
-  parent Meta[] @relation("MetaToVideo")
-
-  @@unique([url, source])
-}
-
-model Screenshot {
-  id       String  @id
-  original String?
-  x166     String?
-  x332     String?
-
-  parent Meta[] @relation("MetaToScreenshot")
-}
-
-model Artwork {
-  id        String  @id @default(cuid())
-  url       String
-  height    Int?
-  width     Int?
-  image     String?
-  iso_639_1 String?
-  thumbnail String?
-  type      String
-  source    String
-
-  parent Meta[] @relation("MetaToArtwork")
-
-  @@unique([url, type, source])
-}
-
-model Chronology {
-  id         String @id @default(cuid())
-  parent_id  Int    @map("parent_id")
-  related_id Int    @map("related_id")
-  order      Int
-
-  meta_id Int  @map("meta_id")
-  parent  Meta @relation("MetaToChronology", fields: [meta_id], references: [id])
-
-  @@unique([parent_id, related_id, order])
 }

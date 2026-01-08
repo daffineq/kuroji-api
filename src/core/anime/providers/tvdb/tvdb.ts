@@ -15,7 +15,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
   override readonly name = 'TVDB';
 
   override async getInfo(id: number): Promise<TvdbInfoResult> {
-    const key = getKey('tvdb', 'info', id);
+    const key = getKey(this.name, 'info', id);
 
     const cached = await Redis.get<TvdbInfoResult>(key);
 
@@ -52,7 +52,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
       await Meta.update(id, {
         mappings: {
           id: parseString(tvdb.id)!,
-          name: 'tvdb'
+          name: this.name
         }
       });
     }
@@ -71,7 +71,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
           iso_639_1: normalize_iso_639_1(a.language) ?? undefined,
           thumbnail: a.thumbnail,
           type: getTypeNameById(a.type ?? 27).toLocaleLowerCase(),
-          source: 'tvdb'
+          source: this.name
         };
       });
 

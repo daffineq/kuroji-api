@@ -46,7 +46,6 @@ export interface SpokenLanguage {
   name: string;
 }
 
-// Last episode info for series
 export interface TmdbEpisode {
   id: number;
   name: string;
@@ -63,7 +62,6 @@ export interface TmdbEpisode {
   still_path: string | null;
 }
 
-// Network info for series
 export interface Network {
   id: number;
   logo_path: string | null;
@@ -71,7 +69,6 @@ export interface Network {
   origin_country: string;
 }
 
-// Season info for series
 export interface Season {
   air_date: string | null;
   episode_count: number;
@@ -83,7 +80,6 @@ export interface Season {
   vote_average: number;
 }
 
-// TMDB series details
 export interface TmdbInfoSeries {
   adult: boolean;
   backdrop_path: string | null;
@@ -118,7 +114,6 @@ export interface TmdbInfoSeries {
   vote_count: number;
 }
 
-// TMDB unified details for movies and series
 export interface TmdbInfoResult {
   adult: boolean;
   backdrop_path: string | null;
@@ -180,23 +175,6 @@ export interface TmdbTranslation {
   };
 }
 
-export interface SeasonEpisode {
-  air_date: string;
-  episode_number: number;
-  episode_type: string;
-  id: number;
-  name: string;
-  overview: string;
-  production_code: string;
-  runtime: number;
-  season_number: number;
-  season_episode_number: number;
-  show_id: number;
-  still_path: string;
-  vote_average: number;
-  vote_count: number;
-}
-
 export interface TmdbImage {
   height: number;
   width: number;
@@ -208,7 +186,7 @@ export interface TmdbImage {
 export interface SeasonTmdb {
   _id: string;
   air_date: string;
-  episodes: SeasonEpisode[];
+  episodes: TmdbEpisode[];
   name: string;
   overview: string;
   id: number;
@@ -218,7 +196,7 @@ export interface SeasonTmdb {
 }
 
 export interface EpisodeMatchCandidate {
-  episode: SeasonEpisode;
+  episode: TmdbEpisode;
   confidence: number;
   reasons: string[];
   anilistEpisodeNumber: number;
@@ -235,7 +213,7 @@ export enum MatchStrategy {
 }
 
 export interface MatchResult {
-  episodes: SeasonEpisode[];
+  episodes: TmdbEpisode[];
   primarySeason: number;
   confidence: number;
   strategy: MatchStrategy;
@@ -243,6 +221,6 @@ export interface MatchResult {
 
 export interface SeasonEpisodeGroup {
   seasonNumber: number;
-  episodes: SeasonEpisode[];
+  episodes: TmdbEpisode[];
   totalEpisodes: number;
 }

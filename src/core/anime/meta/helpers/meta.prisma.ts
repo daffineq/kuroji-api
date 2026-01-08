@@ -34,12 +34,12 @@ class MetaPrismaModule extends Module {
           where: {
             source_id_source_name: {
               source_id: parseString(m.id)!,
-              source_name: m.name
+              source_name: m.name.toLowerCase()
             }
           },
           create: {
             source_id: parseString(m.id)!,
-            source_name: m.name
+            source_name: m.name.toLowerCase()
           }
         }))
       };
@@ -52,13 +52,13 @@ class MetaPrismaModule extends Module {
           where: {
             title_source_language: {
               title: t.title,
-              source: t.source,
+              source: t.source.toLowerCase(),
               language: t.language
             }
           },
           create: {
             title: t.title,
-            source: t.source,
+            source: t.source.toLowerCase(),
             language: t.language
           }
         }))
@@ -72,13 +72,13 @@ class MetaPrismaModule extends Module {
           where: {
             description_source_language: {
               description: d.description,
-              source: d.source,
+              source: d.source.toLowerCase(),
               language: d.language
             }
           },
           create: {
             description: d.description,
-            source: d.source,
+            source: d.source.toLowerCase(),
             language: d.language
           }
         }))
@@ -93,7 +93,7 @@ class MetaPrismaModule extends Module {
             url_type_source: {
               url: i.url,
               type: i.type,
-              source: i.source
+              source: i.source.toLowerCase()
             }
           },
           create: {
@@ -102,7 +102,7 @@ class MetaPrismaModule extends Module {
             medium: i.medium,
             large: i.large,
             type: i.type,
-            source: i.source
+            source: i.source.toLowerCase()
           }
         }))
       };
@@ -112,13 +112,13 @@ class MetaPrismaModule extends Module {
       const videos = Array.isArray(payload.videos) ? payload.videos : [payload.videos];
       data.videos = {
         upsert: videos.map((v) => ({
-          where: { url_source: { url: v.url, source: v.source } },
+          where: { url_source: { url: v.url, source: v.source.toLowerCase() } },
           update: {
             title: v.title,
             thumbnail: v.thumbnail,
             artist: v.artist,
             type: v.type,
-            source: v.source
+            source: v.source.toLowerCase()
           },
           create: {
             url: v.url,
@@ -126,7 +126,7 @@ class MetaPrismaModule extends Module {
             thumbnail: v.thumbnail,
             artist: v.artist,
             type: v.type,
-            source: v.source
+            source: v.source.toLowerCase()
           }
         }))
       };
@@ -136,17 +136,23 @@ class MetaPrismaModule extends Module {
       const screenshots = Array.isArray(payload.screenshots) ? payload.screenshots : [payload.screenshots];
       data.screenshots = {
         upsert: screenshots.map((s) => ({
-          where: { id: s.id },
+          where: {
+            url_source: {
+              url: s.url,
+              source: s.source.toLowerCase()
+            }
+          },
           update: {
-            original: s.originalUrl,
-            x166: s.x166Url,
-            x332: s.x332Url
+            small: s.small,
+            medium: s.medium,
+            large: s.large
           },
           create: {
-            id: s.id,
-            original: s.originalUrl,
-            x166: s.x166Url,
-            x332: s.x332Url
+            url: s.url,
+            small: s.small,
+            medium: s.medium,
+            large: s.large,
+            source: s.source.toLowerCase()
           }
         }))
       };
@@ -156,7 +162,7 @@ class MetaPrismaModule extends Module {
       const artworks = Array.isArray(payload.artworks) ? payload.artworks : [payload.artworks];
       data.artworks = {
         upsert: artworks.map((a) => ({
-          where: { url_type_source: { url: a.url, source: a.source, type: a.type } },
+          where: { url_type_source: { url: a.url, source: a.source.toLowerCase(), type: a.type } },
           update: {
             url: a.url,
             height: a.height,
@@ -165,7 +171,7 @@ class MetaPrismaModule extends Module {
             thumbnail: a.thumbnail,
             type: a.type,
             width: a.width,
-            source: a.source
+            source: a.source.toLowerCase()
           },
           create: {
             url: a.url,
@@ -175,7 +181,7 @@ class MetaPrismaModule extends Module {
             thumbnail: a.thumbnail,
             type: a.type,
             width: a.width,
-            source: a.source
+            source: a.source.toLowerCase()
           }
         }))
       };
@@ -201,60 +207,6 @@ class MetaPrismaModule extends Module {
             parent_id: c.parentId,
             related_id: c.relatedId,
             order: c.order
-          }
-        }))
-      };
-    }
-
-    if (payload.episodes) {
-      const episodes = Array.isArray(payload.episodes) ? payload.episodes : [payload.episodes];
-      data.episodes = {
-        upsert: episodes.map((e) => ({
-          where: { id: e.id },
-          update: {
-            id: e.id,
-            number: e.episode_number,
-            title: e.name,
-            overview: e.overview,
-            thumbnail: {
-              upsert: {
-                where: { episode_id: e.id },
-                create: {
-                  small: TmdbUtils.getImage('w300', e.still_path),
-                  medium: TmdbUtils.getImage('w780', e.still_path),
-                  large: TmdbUtils.getImage('original', e.still_path)
-                },
-                update: {
-                  small: TmdbUtils.getImage('w300', e.still_path),
-                  medium: TmdbUtils.getImage('w780', e.still_path),
-                  large: TmdbUtils.getImage('original', e.still_path)
-                }
-              }
-            },
-            runtime: e.runtime,
-            date: e.air_date,
-            season_number: e.season_number,
-            tmdb_show_id: e.show_id
-          },
-          create: {
-            id: e.id,
-            number: e.episode_number,
-            title: e.name,
-            overview: e.overview,
-            thumbnail: {
-              connectOrCreate: {
-                where: { episode_id: e.id },
-                create: {
-                  small: TmdbUtils.getImage('w300', e.still_path),
-                  medium: TmdbUtils.getImage('w780', e.still_path),
-                  large: TmdbUtils.getImage('original', e.still_path)
-                }
-              }
-            },
-            runtime: e.runtime,
-            date: e.air_date,
-            season_number: e.season_number,
-            tmdb_show_id: e.show_id
           }
         }))
       };
@@ -306,10 +258,6 @@ class MetaPrismaModule extends Module {
       data.chronology = { set: [] };
     }
 
-    if (payload.episodes) {
-      data.episodes = { set: [] };
-    }
-
     return data;
   }
 
@@ -335,12 +283,12 @@ class MetaPrismaModule extends Module {
           where: {
             source_id_source_name: {
               source_id: parseString(m.id)!,
-              source_name: m.name
+              source_name: m.name.toLowerCase()
             }
           },
           create: {
             source_id: parseString(m.id)!,
-            source_name: m.name
+            source_name: m.name.toLowerCase()
           }
         }))
       };
@@ -354,13 +302,13 @@ class MetaPrismaModule extends Module {
           where: {
             title_source_language: {
               title: t.title,
-              source: t.source,
+              source: t.source.toLowerCase(),
               language: t.language
             }
           },
           create: {
             title: t.title,
-            source: t.source,
+            source: t.source.toLowerCase(),
             language: t.language
           }
         }))
@@ -375,13 +323,13 @@ class MetaPrismaModule extends Module {
           where: {
             description_source_language: {
               description: d.description,
-              source: d.source,
+              source: d.source.toLowerCase(),
               language: d.language
             }
           },
           create: {
             description: d.description,
-            source: d.source,
+            source: d.source.toLowerCase(),
             language: d.language
           }
         }))
@@ -397,7 +345,7 @@ class MetaPrismaModule extends Module {
             url_type_source: {
               url: i.url,
               type: i.type,
-              source: i.source
+              source: i.source.toLowerCase()
             }
           },
           create: {
@@ -406,7 +354,7 @@ class MetaPrismaModule extends Module {
             medium: i.medium,
             large: i.large,
             type: i.type,
-            source: i.source
+            source: i.source.toLowerCase()
           }
         }))
       };
@@ -417,14 +365,14 @@ class MetaPrismaModule extends Module {
       data.videos = {
         set: [],
         connectOrCreate: videos.map((v) => ({
-          where: { url_source: { url: v.url, source: v.source } },
+          where: { url_source: { url: v.url, source: v.source.toLowerCase() } },
           create: {
             url: v.url,
             title: v.title,
             thumbnail: v.thumbnail,
             artist: v.artist,
             type: v.type,
-            source: v.source
+            source: v.source.toLowerCase()
           }
         }))
       };
@@ -435,12 +383,18 @@ class MetaPrismaModule extends Module {
       data.screenshots = {
         set: [],
         connectOrCreate: screenshots.map((s) => ({
-          where: { id: s.id },
+          where: {
+            url_source: {
+              url: s.url,
+              source: s.source.toLowerCase()
+            }
+          },
           create: {
-            id: s.id,
-            original: s.originalUrl,
-            x166: s.x166Url,
-            x332: s.x332Url
+            url: s.url,
+            small: s.small,
+            medium: s.medium,
+            large: s.large,
+            source: s.source.toLowerCase()
           }
         }))
       };
@@ -451,7 +405,7 @@ class MetaPrismaModule extends Module {
       data.artworks = {
         set: [],
         connectOrCreate: artworks.map((a) => ({
-          where: { url_type_source: { url: a.url, source: a.source, type: a.type } },
+          where: { url_type_source: { url: a.url, source: a.source.toLowerCase(), type: a.type } },
           create: {
             url: a.url,
             height: a.height,
@@ -460,7 +414,7 @@ class MetaPrismaModule extends Module {
             thumbnail: a.thumbnail,
             type: a.type,
             width: a.width,
-            source: a.source
+            source: a.source.toLowerCase()
           }
         }))
       };
@@ -482,36 +436,6 @@ class MetaPrismaModule extends Module {
             parent_id: c.parentId,
             related_id: c.relatedId,
             order: c.order
-          }
-        }))
-      };
-    }
-
-    if (payload.episodes) {
-      const episodes = Array.isArray(payload.episodes) ? payload.episodes : [payload.episodes];
-      data.episodes = {
-        set: [],
-        connectOrCreate: episodes.map((e) => ({
-          where: { id: e.id },
-          create: {
-            id: e.id,
-            number: e.episode_number,
-            title: e.name,
-            overview: e.overview,
-            thumbnail: {
-              connectOrCreate: {
-                where: { episode_id: e.id },
-                create: {
-                  small: TmdbUtils.getImage('w300', e.still_path),
-                  medium: TmdbUtils.getImage('w780', e.still_path),
-                  large: TmdbUtils.getImage('original', e.still_path)
-                }
-              }
-            },
-            runtime: e.runtime,
-            date: e.air_date,
-            season_number: e.season_number,
-            tmdb_show_id: e.show_id
           }
         }))
       };
