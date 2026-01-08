@@ -404,7 +404,7 @@ class AnimePrismaModule extends Module {
               airing_at: latestEpisode.airingAt
             }
           }
-        : { disconnect: true },
+        : { delete: true },
 
       next_airing_episode: nextEpisode
         ? {
@@ -415,7 +415,7 @@ class AnimePrismaModule extends Module {
               airing_at: nextEpisode.airingAt
             }
           }
-        : { disconnect: true },
+        : { delete: true },
 
       last_airing_episode: lastEpisode
         ? {
@@ -426,7 +426,7 @@ class AnimePrismaModule extends Module {
               airing_at: lastEpisode.airingAt
             }
           }
-        : { disconnect: true },
+        : { delete: true },
 
       airing_schedule: anilist.airingSchedule?.edges?.length
         ? {
