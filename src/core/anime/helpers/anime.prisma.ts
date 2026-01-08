@@ -397,51 +397,33 @@ class AnimePrismaModule extends Module {
 
       latest_airing_episode: latestEpisode
         ? {
-            upsert: {
-              where: { anime_id: anilist.id },
-              update: {
-                episode: latestEpisode.episode,
-                airing_at: latestEpisode.airingAt
-              },
-              create: {
-                id: latestEpisode.id,
-                episode: latestEpisode.episode,
-                airing_at: latestEpisode.airingAt
-              }
+            delete: true,
+            create: {
+              id: latestEpisode.id,
+              episode: latestEpisode.episode,
+              airing_at: latestEpisode.airingAt
             }
           }
         : { disconnect: true },
 
       next_airing_episode: nextEpisode
         ? {
-            upsert: {
-              where: { anime_id: anilist.id },
-              update: {
-                episode: nextEpisode.episode,
-                airing_at: nextEpisode.airingAt
-              },
-              create: {
-                id: nextEpisode.id,
-                episode: nextEpisode.episode,
-                airing_at: nextEpisode.airingAt
-              }
+            delete: true,
+            create: {
+              id: nextEpisode.id,
+              episode: nextEpisode.episode,
+              airing_at: nextEpisode.airingAt
             }
           }
         : { disconnect: true },
 
       last_airing_episode: lastEpisode
         ? {
-            upsert: {
-              where: { anime_id: anilist.id },
-              update: {
-                episode: lastEpisode.episode,
-                airing_at: lastEpisode.airingAt
-              },
-              create: {
-                id: lastEpisode.id,
-                episode: lastEpisode.episode,
-                airing_at: lastEpisode.airingAt
-              }
+            delete: true,
+            create: {
+              id: lastEpisode.id,
+              episode: lastEpisode.episode,
+              airing_at: lastEpisode.airingAt
             }
           }
         : { disconnect: true },
