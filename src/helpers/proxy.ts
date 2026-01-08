@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as http from 'http';
 import * as https from 'https';
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import { Readable } from 'stream';
 
 const httpAgent = new http.Agent({ keepAlive: true });
@@ -51,7 +51,7 @@ class Proxy {
         .map((line) => {
           if (line.trim().startsWith('#') || line.trim() === '') return line;
           const full = new URL(line.trim(), baseUrl).toString();
-          return `${env.PROXY_URL}${encodeURIComponent(full)}`;
+          return `${Config.proxy_url}${encodeURIComponent(full)}`;
         })
         .join('\n');
 

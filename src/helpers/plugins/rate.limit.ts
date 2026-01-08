@@ -1,6 +1,6 @@
 import redis from 'src/lib/redis';
 import { ForbiddenError, RateLimitExceededError } from '../errors';
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import { ApiKeys } from 'src/core';
 import Elysia from 'elysia';
 
@@ -15,8 +15,8 @@ const rateLimit = (limit: number, windowSec: number, skip: (request: Request) =>
         if (await ApiKeys.validate(apiKey)) return;
 
         if (
-          apiKey.length === env.ADMIN_KEY.length &&
-          crypto.timingSafeEqual(Buffer.from(apiKey), Buffer.from(env.ADMIN_KEY))
+          apiKey.length === Config.admin_key.length &&
+          crypto.timingSafeEqual(Buffer.from(apiKey), Buffer.from(Config.admin_key))
         )
           return;
       }

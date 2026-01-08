@@ -1,7 +1,7 @@
 import logger from 'src/helpers/logger';
 import { prisma } from 'src/lib/prisma';
 import { sleep } from 'bun';
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import lock from 'src/helpers/lock';
 import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
 import { AnimeUpdateFetch } from './anime.update.fetch';
@@ -349,7 +349,7 @@ class AnimeUpdateModule extends Module {
   }
 
   async processQueue() {
-    if (!env.ANIME_UPDATE_ENABLED) {
+    if (!Config.anime_update_enabled) {
       logger.log('Updates disabled. Skipping queue processing.');
       return;
     }

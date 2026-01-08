@@ -1,11 +1,11 @@
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import { ANILIST_INFO } from '../graphql';
 import { AnilistMedia, AnilistMediaResponse } from '../types';
 import { KurojiClient } from 'src/lib/http';
 import { ClientModule } from 'src/helpers/client';
 
 class AnilistFetchModule extends ClientModule {
-  protected override readonly client = new KurojiClient(env.ANILIST);
+  protected override readonly client = new KurojiClient(Config.anilist);
 
   async fetchInfo(id: number): Promise<AnilistMedia> {
     const { data, error } = await this.client.post<AnilistMediaResponse>(``, {
@@ -50,7 +50,7 @@ class AnilistFetchModule extends ClientModule {
                 lastPage
                 hasNextPage
               }
-              media(type: ANIME, sort: [POPULARITY_DESC], popularity_greater: ${env.ANIME_POPULARITY_THRESHOLD}) {
+              media(type: ANIME, sort: [POPULARITY_DESC], popularity_greater: ${Config.anime_popularity_threshold}) {
                 id
               }
             }
@@ -98,7 +98,7 @@ class AnilistFetchModule extends ClientModule {
                 lastPage
                 hasNextPage
               }
-              media(type: ANIME, sort: [POPULARITY_DESC], popularity_greater: ${env.ANIME_POPULARITY_THRESHOLD}, status: ${status}) {
+              media(type: ANIME, sort: [POPULARITY_DESC], popularity_greater: ${Config.anime_popularity_threshold}, status: ${status}) {
                 id
               }
             }
@@ -135,7 +135,7 @@ class AnilistFetchModule extends ClientModule {
               pageInfo {
                 lastPage
               },
-              media(type: ANIME, popularity_greater: ${env.ANIME_POPULARITY_THRESHOLD}) {
+              media(type: ANIME, popularity_greater: ${Config.anime_popularity_threshold}) {
                 id
               }
             }

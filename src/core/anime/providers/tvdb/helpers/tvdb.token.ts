@@ -1,4 +1,4 @@
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import { prisma, TvdbLogin } from 'src/lib/prisma';
 import { LoginResponse } from '../types';
 import logger from 'src/helpers/logger';
@@ -7,7 +7,7 @@ import { TvdbPrisma } from './tvdb.prisma';
 import { ClientModule } from 'src/helpers/client';
 
 class TvdbTokenModule extends ClientModule {
-  protected override readonly client = new KurojiClient(env.TVDB);
+  protected override readonly client = new KurojiClient(Config.TVDB);
 
   async getToken(): Promise<string> {
     await this.check();
@@ -56,7 +56,7 @@ class TvdbTokenModule extends ClientModule {
   async createToken(): Promise<void> {
     const { data, error } = await this.client.post<LoginResponse>('login', {
       json: {
-        apikey: env.TVDB_API_KEY ?? this.getRandomKey()
+        apikey: Config.tvdb_api_key ?? this.getRandomKey()
       }
     });
 

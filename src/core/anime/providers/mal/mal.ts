@@ -5,7 +5,7 @@ import { Anilist } from '../anilist';
 import { Meta, VideoEntry } from '../../meta';
 import { ProviderModule } from 'src/helpers/module';
 import { Meta as CryMeta } from '@crysoline/lib';
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import { Info } from '@crysoline/lib/dist/core/types';
 import { MInfoMeta } from '@crysoline/lib/dist/core/meta/myanimelist';
 
@@ -14,7 +14,7 @@ type MALInfo = Info<MInfoMeta>;
 class MyAnimeListModule extends ProviderModule<MALInfo> {
   override readonly name = 'MyAnimeList';
 
-  private fetch = CryMeta.MyAnimeList(env.CRYSOLINE_API_KEY);
+  private fetch = CryMeta.MyAnimeList(Config.crysoline_api_key);
 
   override async getInfo(id: number, idMal?: number): Promise<MALInfo> {
     const key = getKey(this.name, 'info', id);

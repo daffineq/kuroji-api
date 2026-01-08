@@ -1,13 +1,13 @@
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import { SeasonTmdb, TmdbImage, TmdbInfoResult, TmdbSearchResult, TmdbTranslation } from '../types';
 import { KurojiClient } from 'src/lib/http';
 import { ClientModule } from 'src/helpers/client';
 
 class TmdbFetchModule extends ClientModule {
-  protected override readonly client = new KurojiClient(env.TMDB);
+  protected override readonly client = new KurojiClient(Config.tmdb);
 
   async fetchSeries(id: number): Promise<TmdbInfoResult> {
-    const { data, error } = await this.client.get<TmdbInfoResult>(`tv/${id}?api_key=${env.TMDB_AP_KEY}`);
+    const { data, error } = await this.client.get<TmdbInfoResult>(`tv/${id}?api_key=${Config.tmdb_api_key}`);
 
     if (error) {
       throw error;
@@ -22,7 +22,7 @@ class TmdbFetchModule extends ClientModule {
 
   async fetchSeason(id: number, season: number): Promise<SeasonTmdb> {
     const { data, error } = await this.client.get<SeasonTmdb>(
-      `tv/${id}/season/${season}?api_key=${env.TMDB_AP_KEY}`
+      `tv/${id}/season/${season}?api_key=${Config.tmdb_api_key}`
     );
 
     if (error) {
@@ -37,7 +37,7 @@ class TmdbFetchModule extends ClientModule {
   }
 
   async fetchMovie(id: number): Promise<TmdbInfoResult> {
-    const { data, error } = await this.client.get<TmdbInfoResult>(`movie/${id}?api_key=${env.TMDB_AP_KEY}`);
+    const { data, error } = await this.client.get<TmdbInfoResult>(`movie/${id}?api_key=${Config.tmdb_api_key}`);
 
     if (error) {
       throw error;
@@ -52,7 +52,7 @@ class TmdbFetchModule extends ClientModule {
 
   async searchSeries(q: string): Promise<Array<TmdbSearchResult>> {
     const { data, error } = await this.client.get<Array<TmdbSearchResult>>(
-      `search/tv?api_key=${env.TMDB_AP_KEY}&query=${q}`,
+      `search/tv?api_key=${Config.tmdb_api_key}&query=${q}`,
       {
         jsonPath: 'results'
       }
@@ -71,7 +71,7 @@ class TmdbFetchModule extends ClientModule {
 
   async searchMovie(q: string): Promise<Array<TmdbSearchResult>> {
     const { data, error } = await this.client.get<Array<TmdbSearchResult>>(
-      `search/movie?api_key=${env.TMDB_AP_KEY}&query=${q}`,
+      `search/movie?api_key=${Config.tmdb_api_key}&query=${q}`,
       {
         jsonPath: 'results'
       }
@@ -93,7 +93,7 @@ class TmdbFetchModule extends ClientModule {
       backdrops: TmdbImage[];
       logos: TmdbImage[];
       posters: TmdbImage[];
-    }>(`movie/${id}/images?api_key=${env.TMDB_AP_KEY}`);
+    }>(`movie/${id}/images?api_key=${Config.tmdb_api_key}`);
 
     if (error) {
       throw error;
@@ -115,7 +115,7 @@ class TmdbFetchModule extends ClientModule {
       backdrops: TmdbImage[];
       logos: TmdbImage[];
       posters: TmdbImage[];
-    }>(`tv/${id}/images?api_key=${env.TMDB_AP_KEY}`);
+    }>(`tv/${id}/images?api_key=${Config.tmdb_api_key}`);
 
     if (error) {
       throw error;
@@ -134,7 +134,7 @@ class TmdbFetchModule extends ClientModule {
 
   async fetchEpisodeImages(id: number, season: number, episode: number): Promise<TmdbImage[]> {
     const { data, error } = await this.client.get<TmdbImage[]>(
-      `tv/${id}/season/${season}/episode/${episode}/images?api_key=${env.TMDB_AP_KEY}`,
+      `tv/${id}/season/${season}/episode/${episode}/images?api_key=${Config.tmdb_api_key}`,
       {
         jsonPath: 'stills'
       }
@@ -153,7 +153,7 @@ class TmdbFetchModule extends ClientModule {
 
   async fetchMovieTranslations(id: number): Promise<TmdbTranslation[]> {
     const { data, error } = await this.client.get<TmdbTranslation[]>(
-      `movie/${id}/translations?api_key=${env.TMDB_AP_KEY}`,
+      `movie/${id}/translations?api_key=${Config.tmdb_api_key}`,
       {
         jsonPath: 'translations'
       }
@@ -172,7 +172,7 @@ class TmdbFetchModule extends ClientModule {
 
   async fetchSeriesTranslations(id: number): Promise<TmdbTranslation[]> {
     const { data, error } = await this.client.get<TmdbTranslation[]>(
-      `tv/${id}/translations?api_key=${env.TMDB_AP_KEY}`,
+      `tv/${id}/translations?api_key=${Config.tmdb_api_key}`,
       {
         jsonPath: 'translations'
       }
@@ -191,7 +191,7 @@ class TmdbFetchModule extends ClientModule {
 
   async fetchSeasonTranslations(id: number, season: number): Promise<TmdbTranslation[]> {
     const { data, error } = await this.client.get<TmdbTranslation[]>(
-      `tv/${id}/season/${season}/translations?api_key=${env.TMDB_AP_KEY}`,
+      `tv/${id}/season/${season}/translations?api_key=${Config.tmdb_api_key}`,
       {
         jsonPath: 'translations'
       }
@@ -210,7 +210,7 @@ class TmdbFetchModule extends ClientModule {
 
   async fetchEpisodeTranslations(id: number, season: number, episode: number): Promise<TmdbTranslation[]> {
     const { data, error } = await this.client.get<TmdbTranslation[]>(
-      `tv/${id}/season/${season}/episode/${episode}/translations?api_key=${env.TMDB_AP_KEY}`,
+      `tv/${id}/season/${season}/episode/${episode}/translations?api_key=${Config.tmdb_api_key}`,
       {
         jsonPath: 'translations'
       }

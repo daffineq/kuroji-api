@@ -2,6 +2,7 @@ import { parseString } from 'src/helpers/parsers';
 import { MetaPayload } from './meta.dto';
 import { prisma, Prisma } from 'src/lib/prisma';
 import { Module } from 'src/helpers/module';
+import { Config } from 'src/config/config';
 
 class MetaPrismaModule extends Module {
   override readonly name = 'MetaPrisma';
@@ -34,103 +35,113 @@ class MetaPrismaModule extends Module {
       const screenshots = normalize(payload.screenshots);
       const videos = normalize(payload.videos);
 
+      const ops: Promise<any>[] = [];
+
       for (const a of artworks) {
-        await tx.artwork.upsert({
-          where: { url_type_source: { url: a.url, source: a.source.toLowerCase(), type: a.type } },
-          update: {
-            url: a.url,
-            height: a.height,
-            image: a.image,
-            iso_639_1: a.iso_639_1,
-            thumbnail: a.thumbnail,
-            type: a.type,
-            width: a.width,
-            source: a.source.toLowerCase()
-          },
-          create: {
-            url: a.url,
-            height: a.height,
-            image: a.image,
-            iso_639_1: a.iso_639_1,
-            thumbnail: a.thumbnail,
-            type: a.type,
-            width: a.width,
-            source: a.source.toLowerCase()
-          }
-        });
+        ops.push(
+          tx.artwork.upsert({
+            where: { url_type_source: { url: a.url, source: a.source.toLowerCase(), type: a.type } },
+            update: {
+              url: a.url,
+              height: a.height,
+              image: a.image,
+              iso_639_1: a.iso_639_1,
+              thumbnail: a.thumbnail,
+              type: a.type,
+              width: a.width,
+              source: a.source.toLowerCase()
+            },
+            create: {
+              url: a.url,
+              height: a.height,
+              image: a.image,
+              iso_639_1: a.iso_639_1,
+              thumbnail: a.thumbnail,
+              type: a.type,
+              width: a.width,
+              source: a.source.toLowerCase()
+            }
+          })
+        );
       }
 
       for (const i of images) {
-        await tx.image.upsert({
-          where: {
-            url_type_source: {
+        ops.push(
+          tx.image.upsert({
+            where: {
+              url_type_source: {
+                url: i.url,
+                type: i.type,
+                source: i.source.toLowerCase()
+              }
+            },
+            update: {
+              small: i.small,
+              medium: i.medium,
+              large: i.large
+            },
+            create: {
               url: i.url,
+              small: i.small,
+              medium: i.medium,
+              large: i.large,
               type: i.type,
               source: i.source.toLowerCase()
             }
-          },
-          update: {
-            small: i.small,
-            medium: i.medium,
-            large: i.large
-          },
-          create: {
-            url: i.url,
-            small: i.small,
-            medium: i.medium,
-            large: i.large,
-            type: i.type,
-            source: i.source.toLowerCase()
-          }
-        });
+          })
+        );
       }
 
       for (const s of screenshots) {
-        await tx.screenshot.upsert({
-          where: {
-            url_source: {
+        ops.push(
+          tx.screenshot.upsert({
+            where: {
+              url_source: {
+                url: s.url,
+                source: s.source.toLowerCase()
+              }
+            },
+            update: {
+              small: s.small,
+              medium: s.medium,
+              large: s.large
+            },
+            create: {
               url: s.url,
+              small: s.small,
+              medium: s.medium,
+              large: s.large,
               source: s.source.toLowerCase()
             }
-          },
-          update: {
-            small: s.small,
-            medium: s.medium,
-            large: s.large
-          },
-          create: {
-            url: s.url,
-            small: s.small,
-            medium: s.medium,
-            large: s.large,
-            source: s.source.toLowerCase()
-          }
-        });
+          })
+        );
       }
 
       for (const v of videos) {
-        await tx.video.upsert({
-          where: {
-            url_source: {
+        ops.push(
+          tx.video.upsert({
+            where: {
+              url_source: {
+                url: v.url,
+                source: v.source.toLowerCase()
+              }
+            },
+            update: {
+              title: v.title,
+              thumbnail: v.thumbnail,
+              artist: v.artist,
+              type: v.type
+            },
+            create: {
               url: v.url,
+              title: v.title,
+              thumbnail: v.thumbnail,
+              artist: v.artist,
+              type: v.type,
               source: v.source.toLowerCase()
             }
-          },
-          update: {
-            title: v.title,
-            thumbnail: v.thumbnail,
-            artist: v.artist,
-            type: v.type
-          },
-          create: {
-            url: v.url,
-            title: v.title,
-            thumbnail: v.thumbnail,
-            artist: v.artist,
-            type: v.type,
-            source: v.source.toLowerCase()
-          }
-        });
+          })
+        );
       }
 
       if (artworks.length) {
@@ -255,6 +266,10 @@ class MetaPrismaModule extends Module {
             }
           }))
         };
+      }
+
+      for (let i = 0; i < ops.length; i += Config.transaction_batch) {
+        await Promise.all(ops.slice(i, i + Config.transaction_batch));
       }
 
       await tx.meta.update({

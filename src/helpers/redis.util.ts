@@ -1,10 +1,10 @@
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import { providers } from 'src/core/anime/types';
 import redis from 'src/lib/redis';
 
 export const Redis = {
-  async set(key: string, value: any, ttlSeconds: number = env.REDIS_TTL) {
-    if (!env.REDIS_ENABLED) return;
+  async set(key: string, value: any, ttlSeconds: number = Config.redis_ttl) {
+    if (!Config.redis_enabled) return;
 
     const data = typeof value === 'string' ? value : JSON.stringify(value);
     if (ttlSeconds) {
@@ -15,7 +15,7 @@ export const Redis = {
   },
 
   async get<T = any>(key: string): Promise<T | null> {
-    if (!env.REDIS_ENABLED) return null;
+    if (!Config.redis_enabled) return null;
 
     const data = await redis.get(key);
     if (!data) return null;

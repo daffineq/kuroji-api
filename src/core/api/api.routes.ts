@@ -1,4 +1,4 @@
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import { UnauthorizedError } from 'src/helpers/errors';
 import { ApiKeys } from './api.keys';
 import { createSuccessResponse } from 'src/helpers/response';
@@ -18,8 +18,8 @@ const apiRoute = () => {
             }
 
             const isValid =
-              adminKey.length === env.ADMIN_KEY.length &&
-              crypto.timingSafeEqual(Buffer.from(adminKey), Buffer.from(env.ADMIN_KEY));
+              adminKey.length === Config.admin_key.length &&
+              crypto.timingSafeEqual(Buffer.from(adminKey), Buffer.from(Config.admin_key));
 
             if (!isValid) {
               throw new UnauthorizedError('Unauthorized');

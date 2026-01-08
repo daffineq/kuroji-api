@@ -1,11 +1,11 @@
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import { KitsuAnime } from '../types';
 import { KurojiClient } from 'src/lib/http';
 import logger from 'src/helpers/logger';
 import { ClientModule } from 'src/helpers/client';
 
 class KitsuFetchModule extends ClientModule {
-  protected override readonly client = new KurojiClient(env.KITSU);
+  protected override readonly client = new KurojiClient(Config.kitsu);
 
   async fetchInfo(id: string): Promise<KitsuAnime> {
     const { data, error } = await this.client.get<KitsuAnime>(`anime/${id}`, {

@@ -1,11 +1,11 @@
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import { TvdbInfoResult, TvdbSearchResult } from '../types';
 import { KurojiClient } from 'src/lib/http';
 import { TvdbToken } from './tvdb.token';
 import { ClientModule } from 'src/helpers/client';
 
 class TvdbFetchModule extends ClientModule {
-  protected override readonly client = new KurojiClient(env.TVDB);
+  protected override readonly client = new KurojiClient(Config.TVDB);
 
   async fetchSeries(id: string): Promise<TvdbInfoResult> {
     const token = await TvdbToken.getToken();

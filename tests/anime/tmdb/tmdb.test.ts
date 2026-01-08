@@ -11,7 +11,7 @@ describe('TMDB Test', () => {
   });
 
   it('Get Episodes', async () => {
-    const episodes = (await TmdbSeasons.getSeason(id)).episodes;
+    const episodes = await TmdbSeasons.getEpisodes(id);
 
     expect(episodes).not.toBeEmpty();
   });

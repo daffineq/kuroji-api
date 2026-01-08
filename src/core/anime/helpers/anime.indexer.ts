@@ -3,7 +3,7 @@ import { prisma } from 'src/lib/prisma';
 import { sleep } from 'bun';
 import logger from 'src/helpers/logger';
 import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import { AnilistFetch } from '../providers';
 import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';
@@ -105,7 +105,7 @@ class AnimeIndexerModule extends Module {
     strategies: [ScheduleStrategies.EVERY_OTHER_WEEK]
   })
   async scheduleIndex() {
-    if (!env.ANIME_INDEXER_UPDATE_ENABLED) {
+    if (!Config.anime_indexer_update_enabled) {
       logger.log('Anime indexer updates disabled. Skipping scheduled indexing.');
       return;
     }
@@ -117,7 +117,7 @@ class AnimeIndexerModule extends Module {
     strategies: [ScheduleStrategies.EVERY_OTHER_DAY, ScheduleStrategies.EVERY_DAY_23]
   })
   async scheduleIndexReleasing() {
-    if (!env.ANIME_INDEXER_UPDATE_ENABLED) {
+    if (!Config.anime_indexer_update_enabled) {
       logger.log('Anime indexer updates disabled. Skipping scheduled releasing indexing.');
       return;
     }
@@ -129,7 +129,7 @@ class AnimeIndexerModule extends Module {
     strategies: [ScheduleStrategies.EVERY_WEEK, ScheduleStrategies.EVERY_DAY_23]
   })
   async scheduleIndexUpcoming() {
-    if (!env.ANIME_INDEXER_UPDATE_ENABLED) {
+    if (!Config.anime_indexer_update_enabled) {
       logger.log('Anime indexer updates disabled. Skipping scheduled upcoming indexing.');
       return;
     }

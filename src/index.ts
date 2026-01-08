@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { createErrorResponse, createSuccessResponse } from './helpers/response';
 import { HttpError } from './helpers/errors';
-import env from './config/env';
+import { Config } from './config/config';
 import rateLimit from './helpers/plugins/rate.limit';
 import protectRoute from './helpers/plugins/protect.route';
 import { animeRoute, apiRoute, proxyRoute, yoga } from './core';
@@ -15,7 +15,7 @@ import { prisma } from './lib/prisma';
 const app = new Elysia()
   .use(
     cors({
-      origin: env.CORS,
+      origin: Config.cors,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: false
@@ -25,18 +25,18 @@ const app = new Elysia()
     protectRoute((request) => {
       const path = new URL(request.url).pathname;
 
-      if (env.ROUTES_WHITELIST.includes(path)) return true;
-      if (env.ROUTES_BLACKLIST.includes(path)) return false;
+      if (Config.routes_whitelist.includes(path)) return true;
+      if (Config.routes_blacklist.includes(path)) return false;
 
-      return env.API_STRATEGY === 'not_required';
+      return Config.api_strategy === 'not_required';
     })
   )
   .use(
-    rateLimit(env.RATE_LIMIT, env.RATE_LIMIT_TTL, (request) => {
+    rateLimit(Config.rate_limit, Config.rate_limit_ttl, (request) => {
       const path = new URL(request.url).pathname;
 
-      if (env.ROUTES_WHITELIST.includes(path)) return true;
-      if (env.ROUTES_BLACKLIST.includes(path)) return false;
+      if (Config.routes_whitelist.includes(path)) return true;
+      if (Config.routes_blacklist.includes(path)) return false;
 
       return true;
     })
@@ -53,7 +53,7 @@ const app = new Elysia()
         },
         servers: [
           {
-            url: env.PUBLIC_URL,
+            url: Config.public_url,
             description: 'Production server'
           }
         ],
@@ -97,7 +97,7 @@ const app = new Elysia()
     if (error instanceof NotFoundError) {
       set.status = 404;
       return createErrorResponse({
-        error: { status: 404, message: 'Route not found', details: `Docs: ${env.PUBLIC_URL}/docs` }
+        error: { status: 404, message: 'Route not found', details: `Docs: ${Config.public_url}/docs` }
       });
     }
 

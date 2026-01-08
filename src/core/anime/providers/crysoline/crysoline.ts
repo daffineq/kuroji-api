@@ -1,5 +1,5 @@
 import { Anime, Mapper } from '@crysoline/lib';
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 import { Module } from 'src/helpers/module';
 import { Meta, metaSelect } from '../../meta';
 import logger from 'src/helpers/logger';
@@ -11,12 +11,12 @@ class CrysolineModule extends Module {
   override readonly name = 'Crysoline';
 
   private providers = [
-    Anime.AnimePahe(env.CRYSOLINE_API_KEY),
-    Anime.AnimeKai(env.CRYSOLINE_API_KEY),
-    Anime.HiAnime(env.CRYSOLINE_API_KEY)
+    Anime.AnimePahe(Config.crysoline_api_key),
+    Anime.AnimeKai(Config.crysoline_api_key),
+    Anime.HiAnime(Config.crysoline_api_key)
   ];
 
-  private mapper = Mapper(env.CRYSOLINE_API_KEY);
+  private mapper = Mapper(Config.crysoline_api_key);
 
   async map(id: number) {
     await Promise.all(

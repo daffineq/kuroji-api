@@ -1,4 +1,4 @@
-import env from 'src/config/env';
+import { Config } from 'src/config/config';
 
 const getTmdbTypeByAl = (format: string | null | undefined): 'MOVIE' | 'SERIES' => {
   switch (format) {
@@ -16,7 +16,7 @@ const getTmdbTypeByAl = (format: string | null | undefined): 'MOVIE' | 'SERIES' 
 };
 
 const getImage = (size: 'w300' | 'w500' | 'w780' | 'w1280' | 'original', image: string | null): string | null => {
-  return image ? `${env.TMDB_IMAGE}${size}${image}` : null;
+  return image ? `${Config.tmdb_image}${size}${image}` : null;
 };
 
 const TmdbUtils = {
