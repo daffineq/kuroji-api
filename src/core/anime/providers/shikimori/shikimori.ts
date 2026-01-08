@@ -24,7 +24,8 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     if (idMal) {
       fetched = await ShikimoriFetch.fetchInfo(parseString(idMal)!);
 
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         mappings: {
           id: idMal,
           name: this.name
@@ -46,7 +47,8 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
 
         fetched = await ShikimoriFetch.fetchInfo(parseString(al.idMal)!);
 
-        await Meta.update(id, {
+        await Meta.update({
+          id,
           mappings: {
             id: al.idMal,
             name: this.name
@@ -66,7 +68,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
         };
       });
 
-      await Meta.update(id, { videos });
+      await Meta.update({ id, videos });
     }
 
     if (fetched.screenshots) {
@@ -78,11 +80,12 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
         source: this.name
       }));
 
-      await Meta.update(id, { screenshots });
+      await Meta.update({ id, screenshots });
     }
 
     if (fetched.russian) {
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         titles: {
           title: fetched.russian,
           source: this.name,
@@ -92,7 +95,8 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (fetched.description) {
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         descriptions: {
           description: fetched.description,
           source: this.name,
@@ -102,7 +106,8 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (fetched.poster) {
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         images: {
           url: fetched.poster.originalUrl!,
           medium: fetched.poster.mainUrl!,
@@ -114,19 +119,19 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (fetched.franchise) {
-      await Meta.update(id, { franchise: fetched.franchise });
+      await Meta.update({ id, franchise: fetched.franchise });
     }
 
     if (fetched.rating) {
-      await Meta.update(id, { rating: fetched.rating });
+      await Meta.update({ id, rating: fetched.rating });
     }
 
     if (fetched.episodesAired) {
-      await Meta.update(id, { episodes_aired: fetched.episodesAired });
+      await Meta.update({ id, episodes_aired: fetched.episodesAired });
     }
 
     if (fetched.episodes) {
-      await Meta.update(id, { episodes_total: fetched.episodes });
+      await Meta.update({ id, episodes_total: fetched.episodes });
     }
 
     if (fetched.chronology) {
@@ -137,7 +142,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
           order: i
         };
       });
-      await Meta.update(id, { chronologies: chronology });
+      await Meta.update({ id, chronologies: chronology });
     }
 
     await Redis.set(key, fetched);

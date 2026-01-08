@@ -21,9 +21,9 @@ class AnimeModule extends Module {
       return existing as Prisma.AnimeGetPayload<T>;
     }
 
-    const al = await Anilist.getInfo(id);
+    const anilist = await Anilist.getInfo(id);
 
-    return this.save(al, args);
+    return this.save(anilist, args);
   }
 
   async updateOrCreate<T extends Prisma.AnimeDefaultArgs>(
@@ -37,25 +37,21 @@ class AnimeModule extends Module {
     id: number,
     args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
   ): Promise<Prisma.AnimeGetPayload<T>> {
-    const al = await Anilist.getInfo(id);
+    const anilist = await Anilist.getInfo(id);
 
-    return this.save(al, args);
+    return this.save(anilist, args);
   }
 
   async save<T extends Prisma.AnimeDefaultArgs>(
-    al: AnilistMedia,
+    anilist: AnilistMedia,
     args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
   ): Promise<Prisma.AnimeGetPayload<T>> {
-    await prisma.anime.upsert({
-      where: { id: al.id },
-      update: await AnimePrisma.getAnimeUpdate(al),
-      create: await AnimePrisma.getAnimeCreate(al)
-    });
+    await AnimePrisma.upsert(anilist);
 
-    await this.initProviders(al.id, al.idMal);
+    await this.initProviders(anilist.id, anilist.idMal);
 
     return prisma.anime.findUnique({
-      where: { id: al.id },
+      where: { id: anilist.id },
       ...(args as Prisma.AnimeDefaultArgs)
     }) as unknown as Promise<Prisma.AnimeGetPayload<T>>;
   }
@@ -71,7 +67,7 @@ class AnimeModule extends Module {
       Tmdb.getInfo(id).catch(() => null)
     ]);
 
-    await Promise.all([Tvdb.getInfo(id)]);
+    await Promise.all([Tvdb.getInfo(id).catch(() => null)]);
   }
 }
 

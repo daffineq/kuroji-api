@@ -1,9 +1,9 @@
 import { NotFoundError } from 'src/helpers/errors';
-import { getTypeNameById, TvdbInfoResult } from './types';
+import { TvdbInfoResult } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { parseString } from 'src/helpers/parsers';
 import { metaSelect } from '../../meta/types';
-import { ArtworkEntry } from '../../meta/helpers/meta.dto';
+import { ArtworkEntry, unifyArtworkType } from '../../meta/helpers/meta.dto';
 import { Anilist } from '../anilist';
 import { TvdbUtils } from './helpers/tvdb.utils';
 import { TvdbFetch } from './helpers/tvdb.fetch';
@@ -49,7 +49,8 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
 
       tvdb = type === 'movie' ? await TvdbFetch.fetchMovie(search.id) : await TvdbFetch.fetchSeries(search.id);
 
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         mappings: {
           id: parseString(tvdb.id)!,
           name: this.name
@@ -70,12 +71,12 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
           height: a.height,
           iso_639_1: normalize_iso_639_1(a.language) ?? undefined,
           thumbnail: a.thumbnail,
-          type: getTypeNameById(a.type ?? 27).toLocaleLowerCase(),
+          type: unifyArtworkType(a.type),
           source: this.name
         };
       });
 
-      await Meta.update(id, { artworks });
+      await Meta.update({ id, artworks });
     }
 
     await Redis.set(key, tvdb);

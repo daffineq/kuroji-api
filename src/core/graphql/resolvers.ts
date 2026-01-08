@@ -1020,14 +1020,18 @@ export const resolvers = {
     },
 
     artworks: async (parent: any, args: ArtworksArgs) => {
-      const { page = 1, per_page = 20, iso_639_1 } = args;
+      const { page, per_page, iso_639_1 } = args;
       return prisma.artwork.findMany({
         where: {
           parent: { some: { id: parent.id } },
           ...(iso_639_1 ? { iso_639_1 } : {})
         },
-        skip: (page - 1) * per_page,
-        take: per_page
+        ...(page && per_page
+          ? {
+              skip: (page - 1) * per_page,
+              take: per_page
+            }
+          : {})
       });
     },
 

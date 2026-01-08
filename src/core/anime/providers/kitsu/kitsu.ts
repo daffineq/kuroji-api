@@ -32,7 +32,8 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     } else {
       kitsu = await this.find(id);
 
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         mappings: {
           id: kitsu.id,
           name: 'kitsu'
@@ -41,7 +42,8 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     }
 
     if (kitsu.attributes.posterImage) {
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         images: {
           url: kitsu.attributes.posterImage.original,
           small: kitsu.attributes.posterImage.small,
@@ -54,7 +56,8 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     }
 
     if (kitsu.attributes.coverImage) {
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         images: {
           url: kitsu.attributes.coverImage.original,
           small: kitsu.attributes.coverImage.small,
@@ -66,7 +69,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
       });
     }
 
-    await Meta.update(id, { nsfw: kitsu.attributes.nsfw });
+    await Meta.update({ id, nsfw: kitsu.attributes.nsfw });
 
     await Redis.set(key, kitsu);
 

@@ -239,6 +239,8 @@ model AnimeScoreDistribution {
   anime_id Int    @map("anime_id")
 
   anime Anime @relation("AnimeScoreDistribution", fields: [anime_id], references: [id])
+
+  @@unique([anime_id, score])
 }
 
 model AnimeStatusDistribution {
@@ -248,4 +250,6 @@ model AnimeStatusDistribution {
   anime_id Int    @map("anime_id")
 
   anime Anime @relation("AnimeStatusDistribution", fields: [anime_id], references: [id])
+
+  @@unique([anime_id, status])
 }

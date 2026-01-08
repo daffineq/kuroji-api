@@ -4,7 +4,7 @@ import { TmdbImage, TmdbInfoResult, TmdbTranslation } from './types';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { NotFoundError } from 'src/helpers/errors';
 import { getKey, Redis } from 'src/helpers/redis.util';
-import { ArtworkEntry } from '../../meta/helpers/meta.dto';
+import { ArtworkEntry, unifyArtworkType } from '../../meta/helpers/meta.dto';
 import { Anilist } from '../anilist';
 import { TmdbUtils } from './helpers/tmdb.utils';
 import { TmdbFetch } from './helpers/tmdb.fetch';
@@ -39,7 +39,8 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     } else {
       tmdb = await this.find(id);
 
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         mappings: {
           id: parseString(tmdb.id)!,
           name: this.name
@@ -58,17 +59,18 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
         width: i.width,
         iso_639_1: normalize_iso_639_1(i.iso_639_1) ?? undefined,
         thumbnail: TmdbUtils.getImage('w780', i.file_path) ?? undefined,
-        type: i.type,
+        type: unifyArtworkType(i.type),
         source: this.name
       };
     });
 
     if (artworks) {
-      await Meta.update(id, { artworks });
+      await Meta.update({ id, artworks });
     }
 
     if (tmdb.poster_path) {
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         images: {
           url: tmdb.poster_path,
           small: TmdbUtils.getImage('w300', tmdb.poster_path),
@@ -81,7 +83,8 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     }
 
     if (tmdb.backdrop_path) {
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         images: {
           url: tmdb.backdrop_path,
           small: TmdbUtils.getImage('w300', tmdb.backdrop_path),

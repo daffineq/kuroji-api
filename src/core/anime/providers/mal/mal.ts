@@ -30,7 +30,8 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
     if (idMal) {
       fetched = await this.fetch.info(idMal);
 
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         mappings: {
           id: idMal,
           name: this.name
@@ -52,7 +53,8 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
 
         fetched = await this.fetch.info(al.idMal);
 
-        await Meta.update(id, {
+        await Meta.update({
+          id,
           mappings: {
             id: al.idMal,
             name: this.name
@@ -73,11 +75,12 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
         };
       });
 
-      await Meta.update(id, { videos });
+      await Meta.update({ id, videos });
     }
 
     if (fetched.image) {
-      await Meta.update(id, {
+      await Meta.update({
+        id,
         images: {
           url: fetched.image.large,
           large: fetched.image.large,
@@ -88,11 +91,11 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
     }
 
     if (fetched.metadata?.moreInfo) {
-      await Meta.update(id, { moreinfo: fetched.metadata?.moreInfo });
+      await Meta.update({ id, moreinfo: fetched.metadata?.moreInfo });
     }
 
     if (fetched.metadata?.broadcast) {
-      await Meta.update(id, { broadcast: fetched.metadata?.broadcast });
+      await Meta.update({ id, broadcast: fetched.metadata?.broadcast });
     }
 
     await Redis.set(key, fetched);

@@ -6,15 +6,7 @@ import { Module } from 'src/helpers/module';
 class AnimePrismaModule extends Module {
   override readonly name = 'AnimePrisma';
 
-  async getAnimeCreate(anilist: AnilistMedia): Promise<Prisma.AnimeCreateInput> {
-    const isMalExists = anilist.idMal
-      ? (await prisma.anime.findUnique({
-          where: {
-            id_mal: anilist.idMal
-          }
-        })) != null
-      : false;
-
+  async upsert(anilist: AnilistMedia) {
     const airedEpisodes = anilist.airingSchedule?.edges
       .filter((schedule) => DateUtils.isPast(schedule.node.airingAt))
       .sort((a, b) => b.node.airingAt - a.node.airingAt);
@@ -29,484 +21,422 @@ class AnimePrismaModule extends Module {
       (a, b) => (b.node.episode ?? 0) - (a.node.episode ?? 0)
     )[0]?.node;
 
-    return {
-      id: anilist.id,
-      id_mal: isMalExists ? undefined : anilist.idMal,
-      title: anilist.title
-        ? {
-            create: {
-              romaji: anilist.title.romaji,
-              english: anilist.title.english,
-              native: anilist.title.native
-            }
+    await prisma.$transaction(async (tx) => {
+      await tx.anime.upsert({
+        where: { id: anilist.id },
+        update: {
+          id_mal: anilist.idMal,
+          background: anilist.bannerImage,
+          synonyms: anilist.synonyms ?? [],
+          description: anilist.description,
+          status: anilist.status,
+          type: anilist.type,
+          format: anilist.format,
+          updated_at: Math.floor(Date.now() / 1000),
+          season: anilist.season,
+          season_year: anilist.seasonYear,
+          episodes: anilist.episodes,
+          duration: anilist.duration,
+          country_of_origin: anilist.countryOfOrigin,
+          is_licensed: anilist.isLicensed,
+          source: anilist.source,
+          hashtag: anilist.hashtag,
+          is_adult: anilist.isAdult,
+          score: anilist.meanScore,
+          popularity: anilist.popularity,
+          trending: anilist.trending,
+          favorites: anilist.favourites,
+          latest_airing_episode: latestEpisode?.airingAt,
+          next_airing_episode: nextEpisode?.airingAt,
+          last_airing_episode: lastEpisode?.airingAt
+        },
+        create: {
+          id: anilist.id,
+          id_mal: anilist.idMal,
+          background: anilist.bannerImage,
+          synonyms: anilist.synonyms ?? [],
+          description: anilist.description,
+          status: anilist.status,
+          type: anilist.type,
+          format: anilist.format,
+          updated_at: Math.floor(Date.now() / 1000),
+          season: anilist.season,
+          season_year: anilist.seasonYear,
+          episodes: anilist.episodes,
+          duration: anilist.duration,
+          country_of_origin: anilist.countryOfOrigin,
+          is_licensed: anilist.isLicensed,
+          source: anilist.source,
+          hashtag: anilist.hashtag,
+          is_adult: anilist.isAdult,
+          score: anilist.meanScore,
+          popularity: anilist.popularity,
+          trending: anilist.trending,
+          favorites: anilist.favourites,
+          latest_airing_episode: latestEpisode?.airingAt,
+          next_airing_episode: nextEpisode?.airingAt,
+          last_airing_episode: lastEpisode?.airingAt,
+          meta: {
+            create: { id: anilist.id }
           }
-        : undefined,
-      poster: anilist.coverImage
-        ? {
-            create: {
-              color: anilist.coverImage.color,
-              medium: anilist.coverImage.medium,
-              large: anilist.coverImage.large,
-              extra_large: anilist.coverImage.extraLarge
-            }
-          }
-        : undefined,
-      background: anilist.bannerImage,
-      synonyms: anilist.synonyms ?? [],
-      description: anilist.description,
-      status: anilist.status,
-      type: anilist.type,
-      format: anilist.format,
-      updated_at: Math.floor(Date.now() / 1000),
-      start_date: anilist.startDate
-        ? {
-            create: {
-              year: anilist.startDate.year,
-              month: anilist.startDate.month,
-              day: anilist.startDate.day
-            }
-          }
-        : undefined,
-      end_date: anilist.endDate
-        ? {
-            create: {
-              year: anilist.endDate.year,
-              month: anilist.endDate.month,
-              day: anilist.endDate.day
-            }
-          }
-        : undefined,
-      season: anilist.season,
-      season_year: anilist.seasonYear,
-      episodes: anilist.episodes,
-      duration: anilist.duration,
-      country_of_origin: anilist.countryOfOrigin,
-      is_licensed: anilist.isLicensed,
-      source: anilist.source,
-      hashtag: anilist.hashtag,
-      is_adult: anilist.isAdult,
-      score: anilist.meanScore,
-      popularity: anilist.popularity,
-      trending: anilist.trending,
-      favorites: anilist.favourites,
-      genres: anilist.genres?.length
-        ? {
-            connectOrCreate: anilist.genres.map((genre) => ({
-              where: { name: genre },
-              create: { name: genre }
-            }))
-          }
-        : undefined,
+        }
+      });
 
-      latest_airing_episode: latestEpisode?.airingAt,
-      next_airing_episode: nextEpisode?.airingAt,
-      last_airing_episode: lastEpisode?.airingAt,
+      // Title
+      if (anilist.title) {
+        await tx.animeTitle.upsert({
+          where: { anime_id: anilist.id },
+          update: {
+            romaji: anilist.title.romaji,
+            english: anilist.title.english,
+            native: anilist.title.native
+          },
+          create: {
+            anime_id: anilist.id,
+            romaji: anilist.title.romaji,
+            english: anilist.title.english,
+            native: anilist.title.native
+          }
+        });
+      }
 
-      airing_schedule: anilist.airingSchedule?.edges?.length
-        ? {
-            create: anilist.airingSchedule.edges.map((edge) => ({
+      // Poster
+      if (anilist.coverImage) {
+        await tx.animePoster.upsert({
+          where: { anime_id: anilist.id },
+          update: {
+            color: anilist.coverImage.color,
+            medium: anilist.coverImage.medium,
+            large: anilist.coverImage.large,
+            extra_large: anilist.coverImage.extraLarge
+          },
+          create: {
+            anime_id: anilist.id,
+            color: anilist.coverImage.color,
+            medium: anilist.coverImage.medium,
+            large: anilist.coverImage.large,
+            extra_large: anilist.coverImage.extraLarge
+          }
+        });
+      }
+
+      // Start Date
+      if (anilist.startDate) {
+        await tx.animeStartDate.upsert({
+          where: { anime_id: anilist.id },
+          update: {
+            year: anilist.startDate.year,
+            month: anilist.startDate.month,
+            day: anilist.startDate.day
+          },
+          create: {
+            anime_id: anilist.id,
+            year: anilist.startDate.year,
+            month: anilist.startDate.month,
+            day: anilist.startDate.day
+          }
+        });
+      }
+
+      // End Date
+      if (anilist.endDate) {
+        await tx.animeEndDate.upsert({
+          where: { anime_id: anilist.id },
+          update: {
+            year: anilist.endDate.year,
+            month: anilist.endDate.month,
+            day: anilist.endDate.day
+          },
+          create: {
+            anime_id: anilist.id,
+            year: anilist.endDate.year,
+            month: anilist.endDate.month,
+            day: anilist.endDate.day
+          }
+        });
+      }
+
+      // Genres
+      if (anilist.genres?.length) {
+        await tx.anime.update({
+          where: { id: anilist.id },
+          data: {
+            genres: {
+              set: [],
+              connectOrCreate: anilist.genres.map((genre) => ({
+                where: { name: genre },
+                create: { name: genre }
+              }))
+            }
+          }
+        });
+      }
+
+      // Airing Schedule
+      if (anilist.airingSchedule?.edges?.length) {
+        for (const edge of anilist.airingSchedule.edges) {
+          await tx.animeAiringSchedule.upsert({
+            where: { id: edge.node.id },
+            update: {
+              episode: edge.node.episode,
+              airing_at: edge.node.airingAt,
+              anime_id: anilist.id
+            },
+            create: {
               id: edge.node.id,
               episode: edge.node.episode,
-              airing_at: edge.node.airingAt
-            }))
-          }
-        : undefined,
-      characters: anilist.characters?.edges?.length
-        ? {
-            create: anilist.characters.edges.map((edge) => ({
-              id: edge.id,
-              role: edge.role,
-              character: {
-                connectOrCreate: {
-                  where: { id: edge.node.id },
-                  create: {
-                    id: edge.node.id,
-                    name: edge.node.name
-                      ? {
-                          create: {
-                            full: edge.node.name.full,
-                            native: edge.node.name.native,
-                            alternative: edge.node.name.alternative || []
-                          }
-                        }
-                      : undefined,
-                    image: edge.node.image
-                      ? {
-                          create: {
-                            large: edge.node.image.large,
-                            medium: edge.node.image.medium
-                          }
-                        }
-                      : undefined
-                  }
-                }
-              },
-              voice_actors: edge.voiceActors?.length
-                ? {
-                    connectOrCreate: edge.voiceActors.map((va) => ({
-                      where: { id: va.id },
-                      create: {
-                        id: va.id,
-                        language: va.languageV2,
-                        name: va.name
-                          ? {
-                              create: {
-                                full: va.name.full,
-                                native: va.name.native,
-                                alternative: va.name.alternative || []
-                              }
-                            }
-                          : undefined,
-                        image: va.image
-                          ? {
-                              create: {
-                                large: va.image.large,
-                                medium: va.image.medium
-                              }
-                            }
-                          : undefined
-                      }
-                    }))
-                  }
-                : undefined
-            }))
-          }
-        : undefined,
-      studios: anilist.studios?.edges?.length
-        ? {
-            create: anilist.studios.edges.map((edge) => ({
-              id: edge.id,
-              is_main: edge.isMain,
-              studio: {
-                connectOrCreate: {
-                  where: { id: edge.node.id },
-                  create: {
-                    id: edge.node.id,
-                    name: edge.node.name
-                  }
-                }
-              }
-            }))
-          }
-        : undefined,
-      tags: anilist.tags?.length
-        ? {
-            create: anilist.tags.map((tag) => ({
-              rank: tag.rank,
-              is_media_spoiler: tag.isMediaSpoiler,
-              tag: {
-                connectOrCreate: {
-                  where: { id: tag.id },
-                  create: {
-                    id: tag.id,
-                    name: tag.name,
-                    description: tag.description,
-                    category: tag.category,
-                    is_general_spoiler: tag.isGeneralSpoiler,
-                    is_adult: tag.isAdult
-                  }
-                }
-              }
-            }))
-          }
-        : undefined,
-      external_links: anilist.externalLinks?.length
-        ? {
-            create: anilist.externalLinks.map((link) => ({
-              id: link.id,
-              url: link.url,
-              site: link.site,
-              site_id: link.siteId,
-              type: link.type,
-              language: link.language,
-              color: link.color,
-              icon: link.icon,
-              notes: link.notes,
-              is_disabled: link.isDisabled
-            }))
-          }
-        : undefined,
-      score_distribution: anilist.stats?.scoreDistribution?.length
-        ? {
-            create: anilist.stats.scoreDistribution.map((dist) => ({
-              score: dist.score,
-              amount: dist.amount
-            }))
-          }
-        : undefined,
-      status_distribution: anilist.stats?.statusDistribution?.length
-        ? {
-            create: anilist.stats.statusDistribution.map((dist) => ({
-              status: dist.status,
-              amount: dist.amount
-            }))
-          }
-        : undefined,
-
-      meta: {
-        create: {
-          id: anilist.id
+              airing_at: edge.node.airingAt,
+              anime_id: anilist.id
+            }
+          });
         }
       }
-    };
-  }
 
-  async getAnimeUpdate(anilist: AnilistMedia): Promise<Prisma.AnimeUpdateInput> {
-    const airedEpisodes = anilist.airingSchedule?.edges
-      .filter((schedule) => DateUtils.isPast(schedule.node.airingAt))
-      .sort((a, b) => b.node.airingAt - a.node.airingAt);
-
-    const futureEpisodes = anilist.airingSchedule?.edges
-      .filter((schedule) => DateUtils.isFuture(schedule.node.airingAt))
-      .sort((a, b) => a.node.airingAt - b.node.airingAt);
-
-    const latestEpisode = airedEpisodes?.[0]?.node;
-    const nextEpisode = futureEpisodes?.[0]?.node;
-    const lastEpisode = [...(anilist.airingSchedule?.edges ?? [])].sort(
-      (a, b) => (b.node.episode ?? 0) - (a.node.episode ?? 0)
-    )[0]?.node;
-
-    return {
-      id_mal: anilist.idMal,
-      background: anilist.bannerImage,
-      synonyms: anilist.synonyms ?? [],
-      description: anilist.description,
-      status: anilist.status,
-      type: anilist.type,
-      format: anilist.format,
-      updated_at: Math.floor(Date.now() / 1000),
-      season: anilist.season,
-      season_year: anilist.seasonYear,
-      episodes: anilist.episodes,
-      duration: anilist.duration,
-      country_of_origin: anilist.countryOfOrigin,
-      is_licensed: anilist.isLicensed,
-      source: anilist.source,
-      hashtag: anilist.hashtag,
-      is_adult: anilist.isAdult,
-      score: anilist.meanScore,
-      popularity: anilist.popularity,
-      trending: anilist.trending,
-      favorites: anilist.favourites,
-
-      title: anilist.title
-        ? {
-            upsert: {
-              where: { anime_id: anilist.id },
-              update: {
-                romaji: anilist.title.romaji,
-                english: anilist.title.english,
-                native: anilist.title.native
-              },
-              create: {
-                romaji: anilist.title.romaji,
-                english: anilist.title.english,
-                native: anilist.title.native
-              }
-            }
-          }
-        : undefined,
-
-      poster: anilist.coverImage
-        ? {
-            upsert: {
-              where: { anime_id: anilist.id },
-              update: {
-                color: anilist.coverImage.color,
-                medium: anilist.coverImage.medium,
-                large: anilist.coverImage.large,
-                extra_large: anilist.coverImage.extraLarge
-              },
-              create: {
-                color: anilist.coverImage.color,
-                medium: anilist.coverImage.medium,
-                large: anilist.coverImage.large,
-                extra_large: anilist.coverImage.extraLarge
-              }
-            }
-          }
-        : undefined,
-
-      start_date: anilist.startDate
-        ? {
-            upsert: {
-              where: { anime_id: anilist.id },
-              update: {
-                year: anilist.startDate.year,
-                month: anilist.startDate.month,
-                day: anilist.startDate.day
-              },
-              create: {
-                year: anilist.startDate.year,
-                month: anilist.startDate.month,
-                day: anilist.startDate.day
-              }
-            }
-          }
-        : undefined,
-
-      end_date: anilist.endDate
-        ? {
-            upsert: {
-              where: { anime_id: anilist.id },
-              update: {
-                year: anilist.endDate.year,
-                month: anilist.endDate.month,
-                day: anilist.endDate.day
-              },
-              create: {
-                year: anilist.endDate.year,
-                month: anilist.endDate.month,
-                day: anilist.endDate.day
-              }
-            }
-          }
-        : undefined,
-
-      genres: anilist.genres?.length
-        ? {
-            set: [],
-            connectOrCreate: anilist.genres.map((genre) => ({
-              where: { name: genre },
-              create: { name: genre }
-            }))
-          }
-        : undefined,
-
-      latest_airing_episode: latestEpisode?.airingAt,
-      next_airing_episode: nextEpisode?.airingAt,
-      last_airing_episode: lastEpisode?.airingAt,
-
-      airing_schedule: anilist.airingSchedule?.edges?.length
-        ? {
-            deleteMany: {
-              anime_id: anilist.id
-            },
-            create: anilist.airingSchedule.edges.map((edge) => ({
-              id: edge.node.id,
-              episode: edge.node.episode,
-              airing_at: edge.node.airingAt
-            }))
-          }
-        : { deleteMany: { anime_id: anilist.id } },
-
-      characters: anilist.characters?.edges?.length
-        ? {
-            deleteMany: {
-              anime_id: anilist.id
-            },
-            create: anilist.characters.edges.map((edge) => ({
-              id: edge.id,
-              role: edge.role,
-              character: {
-                connectOrCreate: {
-                  where: { id: edge.node.id },
-                  create: {
-                    id: edge.node.id,
-                    name: edge.node.name
-                      ? {
-                          create: {
-                            full: edge.node.name.full,
-                            native: edge.node.name.native,
-                            alternative: edge.node.name.alternative || []
-                          }
-                        }
-                      : undefined,
-                    image: edge.node.image
-                      ? {
+      // Characters
+      if (anilist.characters?.edges?.length) {
+        for (const edge of anilist.characters.edges) {
+          await tx.animeCharacter.upsert({
+            where: { id: edge.node.id },
+            update: edge.node.name
+              ? {
+                  name: {
+                    upsert: {
+                      where: { character_id: edge.node.id },
+                      update: {
+                        full: edge.node.name.full,
+                        native: edge.node.name.native,
+                        alternative: edge.node.name.alternative || []
+                      },
+                      create: {
+                        full: edge.node.name.full,
+                        native: edge.node.name.native,
+                        alternative: edge.node.name.alternative || []
+                      }
+                    }
+                  },
+                  image: edge.node.image
+                    ? {
+                        upsert: {
+                          where: { character_id: edge.node.id },
+                          update: {
+                            large: edge.node.image.large,
+                            medium: edge.node.image.medium
+                          },
                           create: {
                             large: edge.node.image.large,
                             medium: edge.node.image.medium
                           }
                         }
-                      : undefined
-                  }
-                }
-              },
-              voice_actors: edge.voiceActors?.length
-                ? {
-                    connectOrCreate: edge.voiceActors.map((va) => ({
-                      where: { id: va.id },
-                      create: {
-                        id: va.id,
-                        language: va.languageV2,
-                        name: va.name
-                          ? {
-                              create: {
-                                full: va.name.full,
-                                native: va.name.native,
-                                alternative: va.name.alternative || []
-                              }
-                            }
-                          : undefined,
-                        image: va.image
-                          ? {
-                              create: {
-                                large: va.image.large,
-                                medium: va.image.medium
-                              }
-                            }
-                          : undefined
                       }
-                    }))
+                    : undefined
+                }
+              : {},
+            create: {
+              id: edge.node.id,
+              name: edge.node.name
+                ? {
+                    create: {
+                      full: edge.node.name.full,
+                      native: edge.node.name.native,
+                      alternative: edge.node.name.alternative || []
+                    }
+                  }
+                : undefined,
+              image: edge.node.image
+                ? {
+                    create: {
+                      large: edge.node.image.large,
+                      medium: edge.node.image.medium
+                    }
                   }
                 : undefined
-            }))
-          }
-        : { deleteMany: { anime_id: anilist.id } },
+            }
+          });
 
-      studios: anilist.studios?.edges?.length
-        ? {
-            deleteMany: {
-              anime_id: anilist.id
+          // Voice Actors
+          if (edge.voiceActors?.length) {
+            for (const va of edge.voiceActors) {
+              await tx.animeVoiceActor.upsert({
+                where: { id: va.id },
+                update: {
+                  language: va.languageV2,
+                  name: va.name
+                    ? {
+                        upsert: {
+                          where: { voice_actor_id: va.id },
+                          update: {
+                            full: va.name.full,
+                            native: va.name.native,
+                            alternative: va.name.alternative || []
+                          },
+                          create: {
+                            full: va.name.full,
+                            native: va.name.native,
+                            alternative: va.name.alternative || []
+                          }
+                        }
+                      }
+                    : undefined,
+                  image: va.image
+                    ? {
+                        upsert: {
+                          where: { voice_actor_id: va.id },
+                          update: {
+                            large: va.image.large,
+                            medium: va.image.medium
+                          },
+                          create: {
+                            large: va.image.large,
+                            medium: va.image.medium
+                          }
+                        }
+                      }
+                    : undefined
+                },
+                create: {
+                  id: va.id,
+                  language: va.languageV2,
+                  name: va.name
+                    ? {
+                        create: {
+                          full: va.name.full,
+                          native: va.name.native,
+                          alternative: va.name.alternative || []
+                        }
+                      }
+                    : undefined,
+                  image: va.image
+                    ? {
+                        create: {
+                          large: va.image.large,
+                          medium: va.image.medium
+                        }
+                      }
+                    : undefined
+                }
+              });
+            }
+          }
+
+          // Character Edge (connects character to anime)
+          await tx.animeCharacterEdge.upsert({
+            where: { id: edge.id },
+            update: {
+              role: edge.role,
+              anime_id: anilist.id,
+              character_id: edge.node.id,
+              voice_actors: edge.voiceActors?.length
+                ? {
+                    set: [],
+                    connect: edge.voiceActors.map((va) => ({ id: va.id }))
+                  }
+                : undefined
             },
-            create: anilist.studios.edges.map((edge) => ({
+            create: {
+              id: edge.id,
+              role: edge.role,
+              anime_id: anilist.id,
+              character_id: edge.node.id,
+              voice_actors: edge.voiceActors?.length
+                ? {
+                    connect: edge.voiceActors.map((va) => ({ id: va.id }))
+                  }
+                : undefined
+            }
+          });
+        }
+      }
+
+      // Studios
+      if (anilist.studios?.edges?.length) {
+        for (const edge of anilist.studios.edges) {
+          await tx.animeStudio.upsert({
+            where: { id: edge.node.id },
+            update: { name: edge.node.name },
+            create: {
+              id: edge.node.id,
+              name: edge.node.name
+            }
+          });
+
+          await tx.animeStudioEdge.upsert({
+            where: { id: edge.id },
+            update: {
+              is_main: edge.isMain,
+              anime_id: anilist.id,
+              studio_id: edge.node.id
+            },
+            create: {
               id: edge.id,
               is_main: edge.isMain,
-              studio: {
-                connectOrCreate: {
-                  where: { id: edge.node.id },
-                  create: {
-                    id: edge.node.id,
-                    name: edge.node.name
-                  }
-                }
-              }
-            }))
-          }
-        : { deleteMany: { anime_id: anilist.id } },
+              anime_id: anilist.id,
+              studio_id: edge.node.id
+            }
+          });
+        }
+      }
 
-      tags: anilist.tags?.length
-        ? {
-            deleteMany: {
-              anime_id: anilist.id
+      // Tags
+      if (anilist.tags?.length) {
+        for (const tag of anilist.tags) {
+          await tx.animeTag.upsert({
+            where: { id: tag.id },
+            update: {
+              name: tag.name,
+              description: tag.description,
+              category: tag.category,
+              is_general_spoiler: tag.isGeneralSpoiler,
+              is_adult: tag.isAdult
             },
-            create: anilist.tags.map((tag) => ({
+            create: {
+              id: tag.id,
+              name: tag.name,
+              description: tag.description,
+              category: tag.category,
+              is_general_spoiler: tag.isGeneralSpoiler,
+              is_adult: tag.isAdult
+            }
+          });
+
+          await tx.animeTagEdge.upsert({
+            where: {
+              anime_id_tag_id: {
+                anime_id: anilist.id,
+                tag_id: tag.id
+              }
+            },
+            update: {
               rank: tag.rank,
-              is_media_spoiler: tag.isMediaSpoiler,
-              tag: {
-                connectOrCreate: {
-                  where: { id: tag.id },
-                  create: {
-                    id: tag.id,
-                    name: tag.name,
-                    description: tag.description,
-                    category: tag.category,
-                    is_general_spoiler: tag.isGeneralSpoiler,
-                    is_adult: tag.isAdult
-                  }
-                }
-              }
-            }))
-          }
-        : { deleteMany: { anime_id: anilist.id } },
+              is_media_spoiler: tag.isMediaSpoiler
+            },
+            create: {
+              anime_id: anilist.id,
+              tag_id: tag.id,
+              rank: tag.rank,
+              is_media_spoiler: tag.isMediaSpoiler
+            }
+          });
+        }
+      }
 
-      external_links: anilist.externalLinks?.length
-        ? {
-            deleteMany: {
+      // External Links
+      if (anilist.externalLinks?.length) {
+        for (const link of anilist.externalLinks) {
+          await tx.animeExternalLink.upsert({
+            where: { id: link.id },
+            update: {
+              url: link.url,
+              site: link.site,
+              site_id: link.siteId,
+              type: link.type,
+              language: link.language,
+              color: link.color,
+              icon: link.icon,
+              notes: link.notes,
+              is_disabled: link.isDisabled,
               anime_id: anilist.id
             },
-            create: anilist.externalLinks.map((link) => ({
+            create: {
               id: link.id,
               url: link.url,
               site: link.site,
@@ -516,35 +446,53 @@ class AnimePrismaModule extends Module {
               color: link.color,
               icon: link.icon,
               notes: link.notes,
-              is_disabled: link.isDisabled
-            }))
-          }
-        : { deleteMany: { anime_id: anilist.id } },
-
-      score_distribution: anilist.stats?.scoreDistribution?.length
-        ? {
-            deleteMany: {
+              is_disabled: link.isDisabled,
               anime_id: anilist.id
+            }
+          });
+        }
+      }
+
+      // Score Distribution
+      if (anilist.stats?.scoreDistribution?.length) {
+        for (const dist of anilist.stats.scoreDistribution) {
+          await tx.animeScoreDistribution.upsert({
+            where: {
+              anime_id_score: {
+                anime_id: anilist.id,
+                score: dist.score
+              }
             },
-            create: anilist.stats.scoreDistribution.map((dist) => ({
+            update: { amount: dist.amount },
+            create: {
+              anime_id: anilist.id,
               score: dist.score,
               amount: dist.amount
-            }))
-          }
-        : { deleteMany: { anime_id: anilist.id } },
+            }
+          });
+        }
+      }
 
-      status_distribution: anilist.stats?.statusDistribution?.length
-        ? {
-            deleteMany: {
-              anime_id: anilist.id
+      // Status Distribution
+      if (anilist.stats?.statusDistribution?.length) {
+        for (const dist of anilist.stats.statusDistribution) {
+          await tx.animeStatusDistribution.upsert({
+            where: {
+              anime_id_status: {
+                anime_id: anilist.id,
+                status: dist.status
+              }
             },
-            create: anilist.stats.statusDistribution.map((dist) => ({
+            update: { amount: dist.amount },
+            create: {
+              anime_id: anilist.id,
               status: dist.status,
               amount: dist.amount
-            }))
-          }
-        : { deleteMany: { anime_id: anilist.id } }
-    };
+            }
+          });
+        }
+      }
+    });
   }
 }
 

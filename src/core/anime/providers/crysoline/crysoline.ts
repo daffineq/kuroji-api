@@ -37,7 +37,8 @@ class CrysolineModule extends Module {
             return;
           }
 
-          await Meta.update(id, {
+          await Meta.update({
+            id,
             mappings: {
               id: info.id,
               name: p.name
