@@ -18,7 +18,7 @@ class AnimeIndexerModule extends Module {
     const { fetchLastPage = true, status } = options;
 
     try {
-      let page = fetchLastPage ? await this.getLastFetchedPage() : 1;
+      let page = fetchLastPage ? await this.getLastFetchedPage(status) : 1;
       let hasNextPage = true;
       const perPage = 50;
 
@@ -55,14 +55,14 @@ class AnimeIndexerModule extends Module {
         }
 
         if (fetchLastPage) {
-          await this.setLastFetchedPage(page);
+          await this.setLastFetchedPage(page, status);
         }
 
         page++;
       }
 
       if (!hasNextPage) {
-        await this.setLastFetchedPage(1);
+        await this.setLastFetchedPage(1, status);
       }
 
       logger.log('Indexing complete. All done');
@@ -151,18 +151,18 @@ class AnimeIndexerModule extends Module {
     return `${timeD} days, ${timeH % 24} hours, ${timeM % 60} minutes, ${timeS % 60} seconds`;
   }
 
-  async getLastFetchedPage(): Promise<number> {
+  async getLastFetchedPage(status?: string): Promise<number> {
     const state = await prisma.indexerState.findUnique({
-      where: { id: 'anime' }
+      where: { id: `anime-${status ? status : 'all'}` }
     });
     return state?.last_page ?? 1;
   }
 
-  async setLastFetchedPage(page: number): Promise<void> {
+  async setLastFetchedPage(page: number, status?: string): Promise<void> {
     await prisma.indexerState.upsert({
-      where: { id: 'anime' },
+      where: { id: `anime-${status ? status : 'all'}` },
       update: { last_page: page },
-      create: { id: 'anime', last_page: page }
+      create: { id: `anime-${status ? status : 'all'}`, last_page: page }
     });
   }
 }
