@@ -1,6 +1,5 @@
 type Query {
   anime(id: Int!): Anime
-  anime_by_mal_id(mal_id: Int!): Anime
   animes(
     page: Int = 1
     per_page: Int = 20

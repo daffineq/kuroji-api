@@ -208,7 +208,7 @@ model Chronology {
 // Anime.prisma
 model Anime {
   id     Int  @id
-  id_mal Int? @unique @map("id_mal")
+  id_mal Int? @map("id_mal")
 
   title      AnimeTitle?  @relation("AnimeTitle")
   poster     AnimePoster? @relation("AnimePoster")

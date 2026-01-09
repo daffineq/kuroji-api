@@ -555,12 +555,6 @@ export const resolvers = {
       return Anime.fetchOrCreate(id);
     },
 
-    anime_by_mal_id: async (_: any, { mal_id }: { mal_id: number }) => {
-      return prisma.anime.findUnique({
-        where: { id_mal: mal_id }
-      });
-    },
-
     animes: async (_: any, args: AnimeArgs) => {
       const { where, orderBy, skip, take, page } = filterAnime(args);
 
