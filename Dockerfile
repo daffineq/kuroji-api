@@ -10,4 +10,4 @@ COPY . .
 
 RUN bun install
 
-CMD ["./entrypoint.sh"]
+CMD ["sh", "./entrypoint.sh"]
