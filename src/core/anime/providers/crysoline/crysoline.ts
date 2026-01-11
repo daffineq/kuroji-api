@@ -1,7 +1,7 @@
 import { Anime, Mapper } from '@crysoline/lib';
 import { Config } from 'src/config/config';
 import { Module } from 'src/helpers/module';
-import { Meta, metaSelect } from '../../meta';
+import { Meta } from '../../meta';
 import logger from 'src/helpers/logger';
 import { Episode } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
@@ -63,7 +63,7 @@ class CrysolineModule extends Module {
     const episodesArrays = await Promise.all(
       this.providers.map(async (p) => {
         try {
-          const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
+          const meta = await Meta.fetchOrCreate(id).catch(() => null);
           const idMap = meta?.mappings.find((m) => m.source_name === p.name)?.source_id;
 
           if (!idMap) return;
@@ -75,6 +75,7 @@ class CrysolineModule extends Module {
             image: ep.image,
             description: ep.description,
             number: i + 1,
+            filler: ep.isFiller ?? false,
             providers: [
               {
                 name: p.name,
@@ -110,6 +111,7 @@ class CrysolineModule extends Module {
             image: episode.image ?? existing.image,
             description: episode.description ?? existing.description,
             number,
+            is_filler: episode.is_filler ?? existing.is_filler,
             providers: [
               ...existing.providers,
               ...episode.providers.filter((p) => !existing.providers.some((e) => e.name === p.name))
@@ -147,7 +149,7 @@ class CrysolineModule extends Module {
       return null;
     }
 
-    const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
+    const meta = await Meta.fetchOrCreate(id).catch(() => null);
     const idMap = meta?.mappings.find((m) => m.source_name === provider.name)?.source_id;
 
     if (!idMap) {

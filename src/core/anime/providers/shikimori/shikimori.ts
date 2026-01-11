@@ -1,7 +1,6 @@
 import { parseNumber, parseString } from 'src/helpers/parsers';
 import { ShikimoriAnime } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
-import { metaSelect } from '../../meta/types';
 import { ShikimoriFetch } from './helpers/shikimori.fetch';
 import { Anilist } from '../anilist';
 import { ChronologyEntry, Meta, ScreenshotEntry, VideoEntry } from '../../meta';
@@ -32,7 +31,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
         }
       });
     } else {
-      const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
+      const meta = await Meta.fetchOrCreate(id).catch(() => null);
 
       const shikId = meta?.mappings.find((m) => m.source_name === this.name)?.source_id;
 

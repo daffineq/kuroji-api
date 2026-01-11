@@ -1,4 +1,3 @@
-import { prisma, Prisma } from 'src/lib/prisma';
 import { Anime, Crysoline, Episode, Tmdb, TmdbSeasons, TmdbUtils } from '../anime';
 import {
   AnimeArgs,
@@ -10,12 +9,74 @@ import {
   MergedEpisode,
   SourcesArgs
 } from './types';
+import {
+  db,
+  anime,
+  animeTitle,
+  animeStartDate,
+  animeEndDate,
+  animeGenre,
+  animeToGenre,
+  animeAiringSchedule,
+  animeCharacter,
+  animeCharacterName,
+  animeCharacterImage,
+  animeCharacterEdge,
+  characterToVoiceActor,
+  animeVoiceActor,
+  animeVoiceName,
+  animeVoiceImage,
+  animeStudio,
+  animeStudioEdge,
+  animeTag,
+  animeTagEdge,
+  animeExternalLink,
+  animeScoreDistribution,
+  animeStatusDistribution,
+  meta,
+  metaMapping,
+  metaToTitle,
+  metaToDescription,
+  metaToImage,
+  metaToVideo,
+  metaToScreenshot,
+  metaToArtwork,
+  metaChronology,
+  metaTitle,
+  metaDescription,
+  metaImage,
+  metaVideo,
+  metaScreenshot,
+  metaArtwork
+} from 'src/db';
+import {
+  eq,
+  and,
+  or,
+  inArray,
+  gte,
+  lte,
+  gt,
+  lt,
+  sql,
+  desc,
+  asc,
+  count,
+  SQL,
+  ilike,
+  arrayContains,
+  exists,
+  notInArray,
+  not,
+  isNotNull,
+  isNull
+} from 'drizzle-orm';
 
 const filterAnime = (
   args: AnimeArgs
 ): {
-  where: Prisma.AnimeWhereInput;
-  orderBy: Prisma.AnimeOrderByWithRelationInput[];
+  where: SQL | undefined;
+  orderBy: SQL[];
   take: number;
   skip: number;
   page: number;
@@ -54,7 +115,6 @@ const filterAnime = (
     tags,
     tags_in,
     tags_not_in,
-    minimum_tag_rank,
     studios,
     studios_in,
     score_greater,
@@ -77,463 +137,397 @@ const filterAnime = (
   } = args;
 
   const skip = (page - 1) * per_page;
-  const where: Prisma.AnimeWhereInput = {};
+  const conditions: SQL[] = [];
 
+  // Search
   if (search) {
     const tokens = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
     if (tokens.length > 0) {
-      where.AND = tokens.map((token) => ({
-        OR: [
-          { title: { romaji: { contains: token, mode: 'insensitive' } } },
-          { title: { english: { contains: token, mode: 'insensitive' } } },
-          { title: { native: { contains: token, mode: 'insensitive' } } },
-          { synonyms: { hasSome: tokens } },
-          { meta: { titles: { some: { title: { contains: token, mode: 'insensitive' } } } } }
-        ]
-      }));
+      const searchConditions = tokens.map((token) =>
+        or(
+          exists(
+            db
+              .select()
+              .from(animeTitle)
+              .where(
+                and(
+                  eq(animeTitle.anime_id, anime.id),
+                  or(
+                    ilike(animeTitle.romaji, `%${token}%`),
+                    ilike(animeTitle.english, `%${token}%`),
+                    ilike(animeTitle.native, `%${token}%`)
+                  )
+                )
+              )
+          ),
+          arrayContains(anime.synonyms, [token])
+        )
+      );
+      conditions.push(and(...searchConditions)!);
     }
   }
 
   // ID filters
+  if (id) conditions.push(eq(anime.id, id));
+  if (id_in?.length) conditions.push(inArray(anime.id, id_in));
+  if (id_not) conditions.push(not(eq(anime.id, id_not)));
+  if (id_not_in?.length) conditions.push(notInArray(anime.id, id_not_in));
 
-  if (id) where.id = id;
-  if (id_in && id_in.length) where.id = { in: id_in };
-  if (id_not) where.id = { ...(where.id as any), not: id_not };
-  if (id_not_in && id_not_in.length) where.id = { ...(where.id as any), notIn: id_not_in };
-
-  if (id_mal) where.id_mal = id_mal;
-  if (id_mal_in && id_mal_in.length) where.id_mal = { in: id_mal_in };
-  if (id_mal_not) where.id_mal = { ...(where.id_mal as any), not: id_mal_not };
-  if (id_mal_not_in && id_mal_not_in.length) where.id_mal = { ...(where.id_mal as any), notIn: id_mal_not_in };
+  if (id_mal) conditions.push(eq(anime.id_mal, id_mal));
+  if (id_mal_in?.length) conditions.push(inArray(anime.id_mal, id_mal_in));
+  if (id_mal_not) conditions.push(not(eq(anime.id_mal, id_mal_not)));
+  if (id_mal_not_in?.length) conditions.push(notInArray(anime.id_mal, id_mal_not_in));
 
   // Season filters
-  if (season) where.season = season;
-  if (season_year) where.season_year = season_year;
-  if (season_year_greater) {
-    where.season_year = { ...(where.season_year as any), gte: season_year_greater };
-  }
-  if (season_year_lesser) {
-    where.season_year = { ...(where.season_year as any), lte: season_year_lesser };
-  }
+  if (season) conditions.push(eq(anime.season, season));
+  if (season_year) conditions.push(eq(anime.season_year, season_year));
+  if (season_year_greater) conditions.push(gte(anime.season_year, season_year_greater));
+  if (season_year_lesser) conditions.push(lte(anime.season_year, season_year_lesser));
 
   // Format filters
-  if (format) where.format = format;
-  if (format_in && format_in.length > 0) {
-    where.format = { in: format_in };
-  }
-  if (format_not_in && format_not_in.length > 0) {
-    where.format = { ...(where.format as any), notIn: format_not_in };
-  }
+  if (format) conditions.push(eq(anime.format, format));
+  if (format_in?.length) conditions.push(inArray(anime.format, format_in));
+  if (format_not_in?.length) conditions.push(notInArray(anime.format, format_not_in));
 
   // Status filters
-  if (status) where.status = status;
-  if (status_in && status_in.length > 0) {
-    where.status = { in: status_in };
-  }
-  if (status_not_in && status_not_in.length > 0) {
-    where.status = { ...(where.status as any), notIn: status_not_in };
-  }
+  if (status) conditions.push(eq(anime.status, status));
+  if (status_in?.length) conditions.push(inArray(anime.status, status_in));
+  if (status_not_in?.length) conditions.push(notInArray(anime.status, status_not_in));
 
   // Type and source filters
-  if (type) where.type = type;
-  if (source) where.source = source;
-  if (source_in && source_in.length > 0) {
-    where.source = { in: source_in };
-  }
-  if (country_of_origin) where.country_of_origin = country_of_origin;
+  if (type) conditions.push(eq(anime.type, type));
+  if (source) conditions.push(eq(anime.source, source));
+  if (source_in?.length) conditions.push(inArray(anime.source, source_in));
+  if (country_of_origin) conditions.push(eq(anime.country_of_origin, country_of_origin));
 
   // Boolean filters
-  if (is_licensed !== undefined) where.is_licensed = is_licensed;
-  if (is_adult !== undefined) where.is_adult = is_adult;
+  if (is_licensed !== undefined) conditions.push(eq(anime.is_licensed, is_licensed));
+  if (is_adult !== undefined) conditions.push(eq(anime.is_adult, is_adult));
   if (has_next_episode !== undefined) {
     if (has_next_episode) {
-      where.next_airing_episode = { not: null };
+      conditions.push(isNotNull(anime.next_airing_episode));
     } else {
-      where.next_airing_episode = null;
+      conditions.push(isNull(anime.next_airing_episode));
     }
   }
 
   // Genre filters
-  if (genres && genres.length > 0) {
-    where.genres = {
-      some: { name: { in: genres } }
-    };
+  if (genres) {
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeToGenre)
+          .innerJoin(animeGenre, eq(animeGenre.id, animeToGenre.B))
+          .where(and(eq(animeToGenre.A, anime.id), eq(animeGenre.name, genres)))
+      )
+    );
   }
-  if (genres_in && genres_in.length > 0) {
-    where.genres = {
-      some: { name: { in: genres_in } }
-    };
+
+  if (genres_in?.length) {
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeToGenre)
+          .innerJoin(animeGenre, eq(animeGenre.id, animeToGenre.B))
+          .where(and(eq(animeToGenre.A, anime.id), inArray(animeGenre.name, genres_in)))
+      )
+    );
   }
-  if (genres_not_in && genres_not_in.length > 0) {
-    where.genres = {
-      none: { name: { in: genres_not_in } }
-    };
+
+  if (genres_not_in?.length) {
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeToGenre)
+          .innerJoin(animeGenre, eq(animeGenre.id, animeToGenre.B))
+          .where(and(eq(animeToGenre.A, anime.id), notInArray(animeGenre.name, genres_not_in)))
+      )
+    );
   }
 
   // Tag filters
-  if (tags && tags.length > 0) {
-    where.tags = {
-      some: {
-        tag: { name: { in: tags } },
-        ...(minimum_tag_rank ? { rank: { gte: minimum_tag_rank } } : {})
-      }
-    };
+  if (tags) {
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeTagEdge)
+          .innerJoin(animeTag, eq(animeTag.id, animeTagEdge.tag_id))
+          .where(and(eq(animeTagEdge.anime_id, anime.id), eq(animeTag.name, tags)))
+      )
+    );
   }
-  if (tags_in && tags_in.length > 0) {
-    where.tags = {
-      some: {
-        tag: { name: { in: tags_in } },
-        ...(minimum_tag_rank ? { rank: { gte: minimum_tag_rank } } : {})
-      }
-    };
+
+  if (tags_in?.length) {
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeTagEdge)
+          .innerJoin(animeTag, eq(animeTag.id, animeTagEdge.tag_id))
+          .where(and(eq(animeTagEdge.anime_id, anime.id), inArray(animeTag.name, tags_in)))
+      )
+    );
   }
-  if (tags_not_in && tags_not_in.length > 0) {
-    where.tags = {
-      ...(where.tags as any),
-      none: {
-        tag: { name: { in: tags_not_in } }
-      }
-    };
+
+  if (tags_not_in?.length) {
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeTagEdge)
+          .innerJoin(animeTag, eq(animeTag.id, animeTagEdge.tag_id))
+          .where(and(eq(animeTagEdge.anime_id, anime.id), notInArray(animeTag.name, tags_not_in)))
+      )
+    );
   }
 
   // Studio filters
-  if (studios && studios.length > 0) {
-    where.studios = {
-      some: {
-        studio: { name: { in: studios } }
-      }
-    };
+  if (studios) {
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeStudioEdge)
+          .innerJoin(animeStudio, eq(animeStudio.id, animeStudioEdge.studio_id))
+          .where(and(eq(animeStudioEdge.anime_id, anime.id), eq(animeStudio.name, studios)))
+      )
+    );
   }
-  if (studios_in && studios_in.length > 0) {
-    where.studios = {
-      some: {
-        studio: { name: { in: studios_in } }
-      }
-    };
+
+  if (studios_in?.length) {
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeStudioEdge)
+          .innerJoin(animeStudio, eq(animeStudio.id, animeStudioEdge.studio_id))
+          .where(and(eq(animeStudioEdge.anime_id, anime.id), inArray(animeStudio.name, studios_in)))
+      )
+    );
   }
 
   // Score filters
-  if (score_greater !== undefined) {
-    where.score = { gte: score_greater };
-  }
-  if (score_lesser !== undefined) {
-    where.score = { ...(where.score as any), lte: score_lesser };
-  }
+  if (score_greater !== undefined) conditions.push(gte(anime.score, score_greater));
+  if (score_lesser !== undefined) conditions.push(lte(anime.score, score_lesser));
 
   // Popularity filters
-  if (popularity_greater !== undefined) {
-    where.popularity = { gte: popularity_greater };
-  }
-  if (popularity_lesser !== undefined) {
-    where.popularity = { ...(where.popularity as any), lte: popularity_lesser };
-  }
+  if (popularity_greater !== undefined) conditions.push(gte(anime.popularity, popularity_greater));
+  if (popularity_lesser !== undefined) conditions.push(lte(anime.popularity, popularity_lesser));
 
   // Episode filters
-  if (episodes_greater !== undefined) {
-    where.episodes = { gte: episodes_greater };
-  }
-  if (episodes_lesser !== undefined) {
-    where.episodes = { ...(where.episodes as any), lte: episodes_lesser };
-  }
+  if (episodes_greater !== undefined) conditions.push(gte(anime.episodes, episodes_greater));
+  if (episodes_lesser !== undefined) conditions.push(lte(anime.episodes, episodes_lesser));
 
   // Duration filters
-  if (duration_greater !== undefined) {
-    where.duration = { gte: duration_greater };
-  }
-  if (duration_lesser !== undefined) {
-    where.duration = { ...(where.duration as any), lte: duration_lesser };
-  }
+  if (duration_greater !== undefined) conditions.push(gte(anime.duration, duration_greater));
+  if (duration_lesser !== undefined) conditions.push(lte(anime.duration, duration_lesser));
 
-  // Date filters (format: YYYY, YYYY-MM, or YYYY-MM-DD)
+  // Date filters
   if (start_date_greater) {
     const parts = start_date_greater.split('-').map(Number);
-    where.start_date = {
-      OR: [
-        { year: { gt: parts[0] } },
-        {
-          AND: [{ year: parts[0] }, parts[1] ? { month: { gte: parts[1] } } : {}]
-        }
-      ]
-    };
+    conditions.push(
+      or(
+        gt(sql`${animeStartDate.year}`, parts[0]),
+        and(eq(animeStartDate.year, parts[0]!), parts[1] ? gte(animeStartDate.month, parts[1]) : sql`true`)
+      )!
+    );
   }
   if (start_date_lesser) {
     const parts = start_date_lesser.split('-').map(Number);
-    where.start_date = {
-      ...(where.start_date as any),
-      OR: [
-        { year: { lt: parts[0] } },
-        {
-          AND: [{ year: parts[0] }, parts[1] ? { month: { lte: parts[1] } } : {}]
-        }
-      ]
-    };
+    conditions.push(
+      or(
+        lt(sql`${animeStartDate.year}`, parts[0]),
+        and(eq(animeStartDate.year, parts[0]!), parts[1] ? lte(animeStartDate.month, parts[1]) : sql`true`)
+      )!
+    );
   }
   if (start_date_like) {
     const parts = start_date_like.split('-').map(Number);
-    where.start_date = {
-      year: parts[0],
-      ...(parts[1] ? { month: parts[1] } : {}),
-      ...(parts[2] ? { day: parts[2] } : {})
-    };
+    const dateConds = [eq(animeStartDate.year, parts[0]!)];
+    if (parts[1]) dateConds.push(eq(animeStartDate.month, parts[1]));
+    if (parts[2]) dateConds.push(eq(animeStartDate.day, parts[2]));
+    conditions.push(and(...dateConds)!);
   }
 
   if (end_date_greater) {
     const parts = end_date_greater.split('-').map(Number);
-    where.end_date = {
-      OR: [
-        { year: { gt: parts[0] } },
-        {
-          AND: [{ year: parts[0] }, parts[1] ? { month: { gte: parts[1] } } : {}]
-        }
-      ]
-    };
+    conditions.push(
+      or(
+        gt(sql`${animeEndDate.year}`, parts[0]),
+        and(eq(animeEndDate.year, parts[0]!), parts[1] ? gte(animeEndDate.month, parts[1]) : sql`true`)
+      )!
+    );
   }
   if (end_date_lesser) {
     const parts = end_date_lesser.split('-').map(Number);
-    where.end_date = {
-      ...(where.end_date as any),
-      OR: [
-        { year: { lt: parts[0] } },
-        {
-          AND: [{ year: parts[0] }, parts[1] ? { month: { lte: parts[1] } } : {}]
-        }
-      ]
-    };
+    conditions.push(
+      or(
+        lt(sql`${animeEndDate.year}`, parts[0]),
+        and(eq(animeEndDate.year, parts[0]!), parts[1] ? lte(animeEndDate.month, parts[1]) : sql`true`)
+      )!
+    );
   }
   if (end_date_like) {
     const parts = end_date_like.split('-').map(Number);
-    where.end_date = {
-      year: parts[0],
-      ...(parts[1] ? { month: parts[1] } : {}),
-      ...(parts[2] ? { day: parts[2] } : {})
-    };
+    const dateConds = [eq(animeEndDate.year, parts[0]!)];
+    if (parts[1]) dateConds.push(eq(animeEndDate.month, parts[1]));
+    if (parts[2]) dateConds.push(eq(animeEndDate.day, parts[2]));
+    conditions.push(and(...dateConds)!);
   }
 
   if (franchise) {
-    where.meta = {
-      franchise
-    };
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(meta)
+          .where(and(eq(meta.anime_id, anime.id), eq(meta.franchise, franchise)))
+      )
+    );
   }
 
-  const orderBy: Prisma.AnimeOrderByWithRelationInput[] = [];
+  const orderBy: SQL[] = [];
 
   sort.forEach((s) => {
     switch (s) {
-      // ID Sorting
       case 'ID_DESC':
-        orderBy.push({ id: 'desc' });
+        orderBy.push(desc(anime.id));
         break;
       case 'ID_ASC':
-        orderBy.push({ id: 'asc' });
+        orderBy.push(asc(anime.id));
         break;
-
-      // Title Sorting
       case 'TITLE_ROMAJI':
-        orderBy.push({ title: { romaji: 'asc' } });
+        orderBy.push(asc(animeTitle.romaji));
         break;
       case 'TITLE_ROMAJI_DESC':
-        orderBy.push({ title: { romaji: 'desc' } });
+        orderBy.push(desc(animeTitle.romaji));
         break;
       case 'TITLE_ENGLISH':
-        orderBy.push({ title: { english: 'asc' } });
+        orderBy.push(asc(animeTitle.english));
         break;
       case 'TITLE_ENGLISH_DESC':
-        orderBy.push({ title: { english: 'desc' } });
+        orderBy.push(desc(animeTitle.english));
         break;
       case 'TITLE_NATIVE':
-        orderBy.push({ title: { native: 'asc' } });
+        orderBy.push(asc(animeTitle.native));
         break;
       case 'TITLE_NATIVE_DESC':
-        orderBy.push({ title: { native: 'desc' } });
+        orderBy.push(desc(animeTitle.native));
         break;
-
-      // Score & Stats Sorting
       case 'SCORE_DESC':
-        orderBy.push({ score: { sort: 'desc', nulls: 'last' } });
+        orderBy.push(sql`${anime.score} DESC NULLS LAST`);
         break;
       case 'SCORE_ASC':
-        orderBy.push({ score: { sort: 'asc', nulls: 'last' } });
+        orderBy.push(sql`${anime.score} ASC NULLS LAST`);
         break;
       case 'POPULARITY_DESC':
-        orderBy.push({ popularity: { sort: 'desc', nulls: 'last' } });
+        orderBy.push(sql`${anime.popularity} DESC NULLS LAST`);
         break;
       case 'POPULARITY_ASC':
-        orderBy.push({ popularity: { sort: 'asc', nulls: 'last' } });
+        orderBy.push(sql`${anime.popularity} ASC NULLS LAST`);
         break;
       case 'TRENDING_DESC':
-        orderBy.push({ trending: { sort: 'desc', nulls: 'last' } });
+        orderBy.push(sql`${anime.trending} DESC NULLS LAST`);
         break;
       case 'TRENDING_ASC':
-        orderBy.push({ trending: { sort: 'asc', nulls: 'last' } });
+        orderBy.push(sql`${anime.trending} ASC NULLS LAST`);
         break;
       case 'FAVORITES_DESC':
-        orderBy.push({ favorites: { sort: 'desc', nulls: 'last' } });
+        orderBy.push(sql`${anime.favorites} DESC NULLS LAST`);
         break;
       case 'FAVORITES_ASC':
-        orderBy.push({ favorites: { sort: 'asc', nulls: 'last' } });
+        orderBy.push(sql`${anime.favorites} ASC NULLS LAST`);
         break;
-
-      // Date Sorting
       case 'START_DATE_DESC':
-        orderBy.push({
-          start_date: {
-            year: { sort: 'desc', nulls: 'last' }
-          }
-        });
-        orderBy.push({
-          start_date: {
-            month: { sort: 'desc', nulls: 'last' }
-          }
-        });
-        orderBy.push({
-          start_date: {
-            day: { sort: 'desc', nulls: 'last' }
-          }
-        });
+        orderBy.push(sql`${animeStartDate.year} DESC NULLS LAST`);
+        orderBy.push(sql`${animeStartDate.month} DESC NULLS LAST`);
+        orderBy.push(sql`${animeStartDate.day} DESC NULLS LAST`);
         break;
       case 'START_DATE_ASC':
-        orderBy.push({
-          start_date: {
-            year: { sort: 'asc', nulls: 'last' }
-          }
-        });
-        orderBy.push({
-          start_date: {
-            month: { sort: 'asc', nulls: 'last' }
-          }
-        });
-        orderBy.push({
-          start_date: {
-            day: { sort: 'asc', nulls: 'last' }
-          }
-        });
+        orderBy.push(sql`${animeStartDate.year} ASC NULLS LAST`);
+        orderBy.push(sql`${animeStartDate.month} ASC NULLS LAST`);
+        orderBy.push(sql`${animeStartDate.day} ASC NULLS LAST`);
         break;
       case 'END_DATE_DESC':
-        orderBy.push({
-          end_date: {
-            year: { sort: 'desc', nulls: 'last' }
-          }
-        });
-        orderBy.push({
-          end_date: {
-            month: { sort: 'desc', nulls: 'last' }
-          }
-        });
-        orderBy.push({
-          end_date: {
-            day: { sort: 'desc', nulls: 'last' }
-          }
-        });
+        orderBy.push(sql`${animeEndDate.year} DESC NULLS LAST`);
+        orderBy.push(sql`${animeEndDate.month} DESC NULLS LAST`);
+        orderBy.push(sql`${animeEndDate.day} DESC NULLS LAST`);
         break;
       case 'END_DATE_ASC':
-        orderBy.push({
-          end_date: {
-            year: { sort: 'asc', nulls: 'last' }
-          }
-        });
-        orderBy.push({
-          end_date: {
-            month: { sort: 'asc', nulls: 'last' }
-          }
-        });
-        orderBy.push({
-          end_date: {
-            day: { sort: 'asc', nulls: 'last' }
-          }
-        });
+        orderBy.push(sql`${animeEndDate.year} ASC NULLS LAST`);
+        orderBy.push(sql`${animeEndDate.month} ASC NULLS LAST`);
+        orderBy.push(sql`${animeEndDate.day} ASC NULLS LAST`);
         break;
       case 'UPDATED_AT_DESC':
-        orderBy.push({ updated_at: 'desc' });
+        orderBy.push(desc(anime.updated_at));
         break;
       case 'UPDATED_AT_ASC':
-        orderBy.push({ updated_at: 'asc' });
+        orderBy.push(asc(anime.updated_at));
         break;
-
-      // Episode Sorting
       case 'EPISODES_DESC':
-        orderBy.push({ episodes: { sort: 'desc', nulls: 'last' } });
+        orderBy.push(sql`${anime.episodes} DESC NULLS LAST`);
         break;
       case 'EPISODES_ASC':
-        orderBy.push({ episodes: { sort: 'asc', nulls: 'last' } });
+        orderBy.push(sql`${anime.episodes} ASC NULLS LAST`);
         break;
       case 'DURATION_DESC':
-        orderBy.push({ duration: { sort: 'desc', nulls: 'last' } });
+        orderBy.push(sql`${anime.duration} DESC NULLS LAST`);
         break;
       case 'DURATION_ASC':
-        orderBy.push({ duration: { sort: 'asc', nulls: 'last' } });
+        orderBy.push(sql`${anime.duration} ASC NULLS LAST`);
         break;
-
-      // Latest Episode Sorting
       case 'LATEST_EPISODE_DESC':
-        orderBy.push({
-          latest_airing_episode: { sort: 'desc', nulls: 'last' }
-        });
+        orderBy.push(sql`${anime.latest_airing_episode} DESC NULLS LAST`);
         break;
       case 'LATEST_EPISODE_ASC':
-        orderBy.push({
-          latest_airing_episode: { sort: 'asc', nulls: 'last' }
-        });
+        orderBy.push(sql`${anime.latest_airing_episode} ASC NULLS LAST`);
         break;
-
-      // Next Episode Sorting
       case 'NEXT_EPISODE_DESC':
-        orderBy.push({
-          next_airing_episode: { sort: 'desc', nulls: 'last' }
-        });
+        orderBy.push(sql`${anime.next_airing_episode} DESC NULLS LAST`);
         break;
       case 'NEXT_EPISODE_ASC':
-        orderBy.push({
-          next_airing_episode: { sort: 'asc', nulls: 'last' }
-        });
+        orderBy.push(sql`${anime.next_airing_episode} ASC NULLS LAST`);
         break;
-
-      // Last Episode Sorting
       case 'LAST_EPISODE_DESC':
-        orderBy.push({
-          last_airing_episode: { sort: 'desc', nulls: 'last' }
-        });
+        orderBy.push(sql`${anime.last_airing_episode} DESC NULLS LAST`);
         break;
       case 'LAST_EPISODE_ASC':
-        orderBy.push({
-          last_airing_episode: { sort: 'asc', nulls: 'last' }
-        });
+        orderBy.push(sql`${anime.last_airing_episode} ASC NULLS LAST`);
         break;
-
-      // Season Sorting
       case 'SEASON_YEAR_DESC':
-        orderBy.push({ season_year: { sort: 'desc', nulls: 'last' } });
+        orderBy.push(sql`${anime.season_year} DESC NULLS LAST`);
         break;
       case 'SEASON_YEAR_ASC':
-        orderBy.push({ season_year: { sort: 'asc', nulls: 'last' } });
+        orderBy.push(sql`${anime.season_year} ASC NULLS LAST`);
         break;
-
-      // Format & Type Sorting
       case 'FORMAT_ASC':
-        orderBy.push({ format: { sort: 'asc', nulls: 'last' } });
+        orderBy.push(sql`${anime.format} ASC NULLS LAST`);
         break;
       case 'FORMAT_DESC':
-        orderBy.push({ format: { sort: 'desc', nulls: 'last' } });
+        orderBy.push(sql`${anime.format} DESC NULLS LAST`);
         break;
       case 'TYPE_ASC':
-        orderBy.push({ type: { sort: 'asc', nulls: 'last' } });
+        orderBy.push(sql`${anime.type} ASC NULLS LAST`);
         break;
       case 'TYPE_DESC':
-        orderBy.push({ type: { sort: 'desc', nulls: 'last' } });
+        orderBy.push(sql`${anime.type} DESC NULLS LAST`);
         break;
-
-      // Status Sorting
       case 'STATUS_ASC':
-        orderBy.push({ status: { sort: 'asc', nulls: 'last' } });
+        orderBy.push(sql`${anime.status} ASC NULLS LAST`);
         break;
       case 'STATUS_DESC':
-        orderBy.push({ status: { sort: 'desc', nulls: 'last' } });
+        orderBy.push(sql`${anime.status} DESC NULLS LAST`);
         break;
     }
   });
 
   return {
-    where,
+    where: conditions.length ? and(...conditions) : undefined,
     orderBy,
     take: per_page,
     skip,
@@ -544,8 +538,10 @@ const filterAnime = (
 export const resolvers = {
   Query: {
     anime: async (_: any, { id }: { id: number }) => {
-      const release = await prisma.anime.findUnique({
-        where: { id }
+      const release = await db.query.anime.findFirst({
+        where: {
+          id
+        }
       });
 
       if (release) {
@@ -558,16 +554,25 @@ export const resolvers = {
     animes: async (_: any, args: AnimeArgs) => {
       const { where, orderBy, skip, take, page } = filterAnime(args);
 
-      const [data, total] = await Promise.all([
-        prisma.anime.findMany({
-          where,
-          orderBy,
-          skip,
-          take
-        }),
-        prisma.anime.count({ where })
+      const query = db.select().from(anime).$dynamic();
+
+      if (where) {
+        query.where(where);
+      }
+
+      if (orderBy.length) {
+        query.orderBy(...orderBy);
+      }
+
+      const [data, totalResult] = await Promise.all([
+        query.limit(take).offset(skip),
+        db
+          .select({ count: count() })
+          .from(anime)
+          .where(where || sql`true`)
       ]);
 
+      const total = totalResult[0]?.count || 0;
       const last_page = Math.ceil(total / take);
 
       return {
@@ -583,9 +588,11 @@ export const resolvers = {
     },
 
     character: async (_: any, { id }: { id: number }) => {
-      return await prisma.animeCharacter.findUnique({
-        where: { id },
-        include: {
+      return await db.query.animeCharacter.findFirst({
+        where: {
+          id
+        },
+        with: {
           name: true,
           image: true
         }
@@ -593,53 +600,52 @@ export const resolvers = {
     },
 
     studio: async (_: any, { id }: { id: number }) => {
-      return await prisma.animeStudio.findUnique({
-        where: { id }
+      return await db.query.animeStudio.findFirst({
+        where: {
+          id
+        }
       });
     },
 
     tag: async (_: any, { id }: { id: number }) => {
-      return await prisma.animeTag.findUnique({
-        where: { id }
+      return await db.query.animeTag.findFirst({
+        where: {
+          id
+        }
       });
     },
 
     genres: async () => {
-      return await prisma.animeGenre.findMany({
-        orderBy: { name: 'asc' }
-      });
+      return await db.select().from(animeGenre).orderBy(asc(animeGenre.name));
     },
 
     tags: async (_: any, args: { search?: string; category?: string; is_adult?: boolean }) => {
-      const where: Prisma.AnimeTagWhereInput = {};
+      const conditions: SQL[] = [];
 
       if (args.search) {
-        where.OR = [
-          { name: { contains: args.search, mode: 'insensitive' } },
-          { description: { contains: args.search, mode: 'insensitive' } }
-        ];
+        conditions.push(
+          or(
+            sql`lower(${animeTag.name}) like ${`%${args.search.toLowerCase()}%`}`,
+            sql`lower(${animeTag.description}) like ${`%${args.search.toLowerCase()}%`}`
+          )!
+        );
       }
-      if (args.category) where.category = args.category;
-      if (args.is_adult !== undefined) where.is_adult = args.is_adult;
+      if (args.category) conditions.push(eq(animeTag.category, args.category));
+      if (args.is_adult !== undefined) conditions.push(eq(animeTag.is_adult, args.is_adult));
 
-      return await prisma.animeTag.findMany({
-        where,
-        orderBy: { name: 'asc' }
-      });
+      return await db
+        .select()
+        .from(animeTag)
+        .where(conditions.length ? and(...conditions) : undefined)
+        .orderBy(asc(animeTag.name));
     },
 
     studios: async (_: any, args: { search?: string }) => {
-      const where: Prisma.AnimeStudioWhereInput = {};
+      const where = args.search
+        ? sql`lower(${animeStudio.name}) like ${`%${args.search.toLowerCase()}%`}`
+        : undefined;
 
-      if (args.search) {
-        where.name = { contains: args.search, mode: 'insensitive' };
-      }
-
-      return await prisma.animeStudio.findMany({
-        where,
-        orderBy: { name: 'asc' },
-        take: 50
-      });
+      return await db.select().from(animeStudio).where(where).orderBy(asc(animeStudio.name)).limit(50);
     },
 
     episode_info: async (_: any, args: EpisodeArgs) => {
@@ -683,15 +689,17 @@ export const resolvers = {
         image: baseData.image ?? providerEp?.image ?? null,
         runtime: baseData.runtime ?? null,
         air_date: baseData.air_date ?? null,
+        is_filler: providerEp?.is_filler ?? false,
         providers: providerEp?.providers ?? []
       };
     },
 
     chronology: async (_: any, args: ChronologyArgs) => {
-      const chronologyEntries = await prisma.chronology.findMany({
-        where: { meta_id: args.parent_id },
-        orderBy: { order: 'asc' }
-      });
+      const chronologyEntries = await db
+        .select()
+        .from(metaChronology)
+        .where(eq(metaChronology.meta_id, args.parent_id))
+        .orderBy(asc(metaChronology.order));
 
       const animeIds = chronologyEntries.map((c) => c.related_id);
 
@@ -701,16 +709,25 @@ export const resolvers = {
 
       const { where, orderBy, skip, take, page } = filterAnime(args);
 
-      const [data, total] = await Promise.all([
-        prisma.anime.findMany({
-          where,
-          orderBy,
-          skip,
-          take
-        }),
-        prisma.anime.count({ where })
+      const query = db.select().from(anime).$dynamic();
+
+      if (where) {
+        query.where(where);
+      }
+
+      if (orderBy.length) {
+        query.orderBy(...orderBy);
+      }
+
+      const [data, totalResult] = await Promise.all([
+        query.limit(take).offset(skip),
+        db
+          .select({ count: count() })
+          .from(anime)
+          .where(where || sql`true`)
       ]);
 
+      const total = totalResult[0]?.count || 0;
       const last_page = Math.ceil(total / take);
 
       return {
@@ -746,68 +763,105 @@ export const resolvers = {
 
   Anime: {
     poster: async (parent: any) => {
-      return prisma.animePoster.findUnique({
-        where: { anime_id: parent.id }
+      return await db.query.animePoster.findFirst({
+        where: {
+          anime_id: parent.id
+        }
       });
     },
 
     title: async (parent: any) => {
-      return prisma.animeTitle.findUnique({
-        where: { anime_id: parent.id }
+      return await db.query.animeTitle.findFirst({
+        where: {
+          anime_id: parent.id
+        }
       });
     },
 
     start_date: async (parent: any) => {
-      return prisma.animeStartDate.findUnique({
-        where: { anime_id: parent.id }
+      return await db.query.animeStartDate.findFirst({
+        where: {
+          anime_id: parent.id
+        }
       });
     },
 
     end_date: async (parent: any) => {
-      return prisma.animeEndDate.findUnique({
-        where: { anime_id: parent.id }
+      return await db.query.animeEndDate.findFirst({
+        where: {
+          anime_id: parent.id
+        }
       });
     },
 
     genres: async (parent: any) => {
-      return prisma.animeGenre.findMany({
-        where: { anime: { some: { id: parent.id } } }
-      });
+      const result = await db
+        .select({ genre: animeGenre })
+        .from(animeToGenre)
+        .innerJoin(animeGenre, eq(animeToGenre.B, animeGenre.id))
+        .where(eq(animeToGenre.A, parent.id));
+
+      return result.map((r) => r.genre);
     },
 
     characters: async (parent: any, args: CharacterArgs) => {
       const { page = 1, per_page = 25 } = args;
       const skip = (page - 1) * per_page;
 
-      const [edges, total] = await Promise.all([
-        prisma.animeCharacterEdge.findMany({
-          where: { anime_id: parent.id },
-          skip,
-          take: per_page,
-          include: {
-            character: {
-              include: {
-                name: true,
-                image: true
-              }
-            },
-            voice_actors: {
-              include: {
-                name: true,
-                image: true
-              }
-            }
-          }
-        }),
-        prisma.animeCharacterEdge.count({
-          where: { anime_id: parent.id }
-        })
+      const [edges, totalResult] = await Promise.all([
+        db
+          .select({
+            edge: animeCharacterEdge,
+            character: animeCharacter,
+            characterName: animeCharacterName,
+            characterImage: animeCharacterImage
+          })
+          .from(animeCharacterEdge)
+          .innerJoin(animeCharacter, eq(animeCharacterEdge.character_id, animeCharacter.id))
+          .leftJoin(animeCharacterName, eq(animeCharacter.id, animeCharacterName.character_id))
+          .leftJoin(animeCharacterImage, eq(animeCharacter.id, animeCharacterImage.character_id))
+          .where(eq(animeCharacterEdge.anime_id, parent.id))
+          .limit(per_page)
+          .offset(skip),
+        db.select({ count: count() }).from(animeCharacterEdge).where(eq(animeCharacterEdge.anime_id, parent.id))
       ]);
+
+      const total = totalResult[0]?.count || 0;
+
+      const edgesWithVoiceActors = await Promise.all(
+        edges.map(async (e) => {
+          const voiceActorResults = await db
+            .select({
+              voiceActor: animeVoiceActor,
+              voiceName: animeVoiceName,
+              voiceImage: animeVoiceImage
+            })
+            .from(characterToVoiceActor)
+            .innerJoin(animeVoiceActor, eq(characterToVoiceActor.B, animeVoiceActor.id))
+            .leftJoin(animeVoiceName, eq(animeVoiceActor.id, animeVoiceName.voice_actor_id))
+            .leftJoin(animeVoiceImage, eq(animeVoiceActor.id, animeVoiceImage.voice_actor_id))
+            .where(eq(characterToVoiceActor.A, e.edge.id));
+
+          return {
+            ...e.edge,
+            character: {
+              ...e.character,
+              name: e.characterName,
+              image: e.characterImage
+            },
+            voice_actors: voiceActorResults.map((v) => ({
+              ...v.voiceActor,
+              name: v.voiceName,
+              image: v.voiceImage
+            }))
+          };
+        })
+      );
 
       const last_page = Math.ceil(total / per_page);
 
       return {
-        edges,
+        edges: edgesWithVoiceActors,
         page_info: {
           total,
           per_page,
@@ -819,56 +873,60 @@ export const resolvers = {
     },
 
     studios: async (parent: any, args: { only_main?: boolean }) => {
-      const where: any = { anime_id: parent.id };
-
+      const conditions = [eq(animeStudioEdge.anime_id, parent.id)];
       if (args.only_main) {
-        where.is_main = true;
+        conditions.push(eq(animeStudioEdge.is_main, true));
       }
 
-      return prisma.animeStudioEdge.findMany({
-        where,
-        include: {
-          studio: true
-        }
-      });
+      const result = await db
+        .select({
+          edge: animeStudioEdge,
+          studio: animeStudio
+        })
+        .from(animeStudioEdge)
+        .innerJoin(animeStudio, eq(animeStudioEdge.studio_id, animeStudio.id))
+        .where(and(...conditions));
+
+      return result.map((r) => ({ ...r.edge, studio: r.studio }));
     },
 
     tags: async (parent: any) => {
-      return prisma.animeTagEdge.findMany({
-        where: { anime_id: parent.id },
-        include: {
-          tag: true
-        }
-      });
+      const result = await db
+        .select({
+          edge: animeTagEdge,
+          tag: animeTag
+        })
+        .from(animeTagEdge)
+        .innerJoin(animeTag, eq(animeTagEdge.tag_id, animeTag.id))
+        .where(eq(animeTagEdge.anime_id, parent.id));
+
+      return result.map((r) => ({ ...r.edge, tag: r.tag }));
     },
 
     external_links: async (parent: any) => {
-      return prisma.animeExternalLink.findMany({
-        where: { anime_id: parent.id }
-      });
+      return await db.select().from(animeExternalLink).where(eq(animeExternalLink.anime_id, parent.id));
     },
 
     score_distribution: async (parent: any) => {
-      return prisma.animeScoreDistribution.findMany({
-        where: { anime_id: parent.id }
-      });
+      return await db.select().from(animeScoreDistribution).where(eq(animeScoreDistribution.anime_id, parent.id));
     },
 
     status_distribution: async (parent: any) => {
-      return prisma.animeStatusDistribution.findMany({
-        where: { anime_id: parent.id }
-      });
+      return await db
+        .select()
+        .from(animeStatusDistribution)
+        .where(eq(animeStatusDistribution.anime_id, parent.id));
     },
 
     airing_schedule: async (parent: any) => {
-      return prisma.animeAiringSchedule.findMany({
-        where: { anime_id: parent.id }
-      });
+      return await db.select().from(animeAiringSchedule).where(eq(animeAiringSchedule.anime_id, parent.id));
     },
 
     meta: async (parent: any) => {
-      return prisma.meta.findUnique({
-        where: { id: parent.id }
+      return await db.query.meta.findFirst({
+        where: {
+          id: parent.id
+        }
       });
     }
   },
@@ -898,45 +956,37 @@ export const resolvers = {
 
   Meta: {
     titles: async (parent: any) => {
-      return prisma.title.findMany({
-        where: {
-          parent: {
-            some: {
-              id: parent.id
-            }
-          }
-        }
-      });
+      const result = await db
+        .select({ title: metaTitle })
+        .from(metaToTitle)
+        .innerJoin(metaTitle, eq(metaToTitle.B, metaTitle.id))
+        .where(eq(metaToTitle.A, parent.id));
+
+      return result.map((r) => r.title);
     },
 
     descriptions: async (parent: any) => {
-      return prisma.description.findMany({
-        where: {
-          parent: {
-            some: {
-              id: parent.id
-            }
-          }
-        }
-      });
+      const result = await db
+        .select({ description: metaDescription })
+        .from(metaToDescription)
+        .innerJoin(metaDescription, eq(metaToDescription.B, metaDescription.id))
+        .where(eq(metaToDescription.A, parent.id));
+
+      return result.map((r) => r.description);
     },
 
     images: async (parent: any) => {
-      return prisma.image.findMany({
-        where: {
-          parent: {
-            some: {
-              id: parent.id
-            }
-          }
-        }
-      });
+      const result = await db
+        .select({ image: metaImage })
+        .from(metaToImage)
+        .innerJoin(metaImage, eq(metaToImage.B, metaImage.id))
+        .where(eq(metaToImage.A, parent.id));
+
+      return result.map((r) => r.image);
     },
 
     mappings: async (parent: any) => {
-      return prisma.mapping.findMany({
-        where: { meta_id: parent.id }
-      });
+      return await db.select().from(metaMapping).where(eq(metaMapping.meta_id, parent.id));
     },
 
     episodes: async (parent: any) => {
@@ -946,6 +996,7 @@ export const resolvers = {
 
       const tmdbEpisodesFormatted: MergedEpisode[] = tmdbEpisodes.map((e) => ({
         ...formatEpisodeData(e),
+        is_filler: false,
         providers: []
       }));
 
@@ -970,6 +1021,7 @@ export const resolvers = {
           image: tmdbEp.image ?? providerEp?.image ?? null,
           runtime: tmdbEp.runtime ?? null,
           air_date: tmdbEp.air_date ?? null,
+          is_filler: providerEp?.is_filler ?? false,
           providers: providerEp?.providers ?? []
         };
       });
@@ -982,6 +1034,7 @@ export const resolvers = {
           image: providerEp.image ?? null,
           runtime: null,
           air_date: null,
+          is_filler: providerEp?.is_filler ?? false,
           providers: providerEp.providers
         });
       }
@@ -990,60 +1043,60 @@ export const resolvers = {
     },
 
     videos: async (parent: any) => {
-      return prisma.video.findMany({
-        where: {
-          parent: {
-            some: {
-              id: parent.id
-            }
-          }
-        }
-      });
+      const result = await db
+        .select({ video: metaVideo })
+        .from(metaToVideo)
+        .innerJoin(metaVideo, eq(metaToVideo.B, metaVideo.id))
+        .where(eq(metaToVideo.A, parent.id));
+
+      return result.map((r) => r.video);
     },
 
     screenshots: async (parent: any) => {
-      return prisma.screenshot.findMany({
-        where: {
-          parent: {
-            some: {
-              id: parent.id
-            }
-          }
-        }
-      });
+      const result = await db
+        .select({ screenshot: metaScreenshot })
+        .from(metaToScreenshot)
+        .innerJoin(metaScreenshot, eq(metaToScreenshot.B, metaScreenshot.id))
+        .where(eq(metaToScreenshot.A, parent.id));
+
+      return result.map((r) => r.screenshot);
     },
 
     artworks: async (parent: any, args: ArtworksArgs) => {
       const { page, per_page, iso_639_1 } = args;
-      return prisma.artwork.findMany({
-        where: {
-          parent: { some: { id: parent.id } },
-          ...(iso_639_1 ? { iso_639_1 } : {})
-        },
-        ...(page && per_page
-          ? {
-              skip: (page - 1) * per_page,
-              take: per_page
-            }
-          : {})
-      });
+
+      const conditions = [eq(metaToArtwork.A, parent.id)];
+      if (iso_639_1) {
+        conditions.push(eq(metaArtwork.iso_639_1, iso_639_1));
+      }
+
+      const query = db
+        .select({ artwork: metaArtwork })
+        .from(metaToArtwork)
+        .innerJoin(metaArtwork, eq(metaToArtwork.B, metaArtwork.id))
+        .where(and(...conditions))
+        .$dynamic();
+
+      if (page && per_page) {
+        query.limit(per_page).offset((page - 1) * per_page);
+      }
+
+      const result = await query;
+      return result.map((r) => r.artwork);
     },
 
     chronology: async (parent: any) => {
-      const chronologyEntries = await prisma.chronology.findMany({
-        where: { meta_id: parent.id },
-        orderBy: { order: 'asc' }
-      });
+      const chronologyEntries = await db
+        .select()
+        .from(metaChronology)
+        .where(eq(metaChronology.meta_id, parent.id))
+        .orderBy(asc(metaChronology.order));
 
       const animeIds = chronologyEntries.map((c) => c.related_id);
 
       if (animeIds.length === 0) return [];
 
-      return prisma.anime.findMany({
-        where: {
-          id_mal: { in: animeIds }
-        }
-      });
+      return await db.select().from(anime).where(inArray(anime.id_mal, animeIds));
     }
   },
 

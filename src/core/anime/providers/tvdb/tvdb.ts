@@ -2,7 +2,6 @@ import { NotFoundError } from 'src/helpers/errors';
 import { TvdbInfoResult } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { parseString } from 'src/helpers/parsers';
-import { metaSelect } from '../../meta/types';
 import { ArtworkEntry, unifyArtworkType } from '../../meta/helpers/meta.dto';
 import { Anilist } from '../anilist';
 import { TvdbUtils } from './helpers/tvdb.utils';
@@ -31,10 +30,10 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
 
     const type = TvdbUtils.getTvdbTypeByAl(al.format);
 
-    const meta = await Meta.fetchOrCreate(id, metaSelect);
+    const meta = await Meta.fetchOrCreate(id);
 
-    const tvdbId = meta.mappings.find((m) => m.source_name === 'tvdb')?.source_id;
-    const tmdbId = meta.mappings.find((m) => m.source_name === 'tmdb')?.source_id;
+    const tvdbId = meta?.mappings.find((m) => m.source_name === 'tvdb')?.source_id;
+    const tmdbId = meta?.mappings.find((m) => m.source_name === 'tmdb')?.source_id;
 
     let tvdb: TvdbInfoResult | undefined = undefined;
 

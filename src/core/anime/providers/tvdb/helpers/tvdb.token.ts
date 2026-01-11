@@ -1,10 +1,10 @@
 import { Config } from 'src/config/config';
-import { prisma, TvdbLogin } from 'src/lib/prisma';
 import { LoginResponse } from '../types';
 import logger from 'src/helpers/logger';
 import { KurojiClient } from 'src/lib/http';
-import { TvdbPrisma } from './tvdb.prisma';
 import { ClientModule } from 'src/helpers/client';
+import { db, tvdbLogin } from 'src/db';
+import { count, eq } from 'drizzle-orm';
 
 class TvdbTokenModule extends ClientModule {
   protected override readonly client = new KurojiClient(Config.TVDB);
@@ -12,9 +12,13 @@ class TvdbTokenModule extends ClientModule {
   async getToken(): Promise<string> {
     await this.check();
 
-    const login = await prisma.tvdbLogin.findFirst({
-      where: { expired: false },
-      orderBy: { created_at: 'desc' }
+    const login = await db.query.tvdbLogin.findFirst({
+      where: {
+        expired: false
+      },
+      orderBy: {
+        created_at: 'desc'
+      }
     });
 
     if (!login) {
@@ -25,26 +29,32 @@ class TvdbTokenModule extends ClientModule {
   }
 
   async check(): Promise<void> {
-    const count = await prisma.tvdbLogin.count();
-    if (count === 0) {
+    const loginCount = (await db.select({ count: count() }).from(tvdbLogin))[0]?.count ?? 0;
+    if (loginCount === 0) {
       logger.log('No tokens found');
       await this.createToken();
       return;
     }
 
-    const login = await prisma.tvdbLogin.findFirst({
-      where: { expired: false },
-      orderBy: { created_at: 'desc' }
+    const login = await db.query.tvdbLogin.findFirst({
+      where: {
+        expired: false
+      },
+      orderBy: {
+        created_at: 'desc'
+      }
     });
 
     if (login) {
       const expiryDate = new Date(login.created_at);
       expiryDate.setMonth(expiryDate.getMonth() + 1);
       if (new Date() > expiryDate) {
-        await prisma.tvdbLogin.update({
-          where: { id: login.id },
-          data: { expired: true }
-        });
+        await db
+          .update(tvdbLogin)
+          .set({
+            expired: true
+          })
+          .where(eq(tvdbLogin.id, login.id));
         logger.log('Token expired');
         await this.createToken();
       }
@@ -72,26 +82,11 @@ class TvdbTokenModule extends ClientModule {
 
     logger.log(`TVDB token: ${token}`);
 
-    const tokenData = TvdbPrisma.getTvdbLogin({
+    await db.insert(tvdbLogin).values({
       token,
       created_at: new Date(),
       expired: false
-    } as TvdbLogin);
-
-    const existingLogin = await prisma.tvdbLogin.findFirst({
-      where: { token }
     });
-
-    if (existingLogin) {
-      await prisma.tvdbLogin.update({
-        where: { id: existingLogin.id },
-        data: tokenData
-      });
-    } else {
-      await prisma.tvdbLogin.create({
-        data: tokenData
-      });
-    }
   }
 
   getRandomKey = () => {

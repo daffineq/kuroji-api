@@ -29,14 +29,14 @@ export interface AnimeArgs {
   country_of_origin?: string;
   is_licensed?: boolean;
   is_adult?: boolean;
-  genres?: string[];
+  genres?: string;
   genres_in?: string[];
   genres_not_in?: string[];
-  tags?: string[];
+  tags?: string;
   tags_in?: string[];
   tags_not_in?: string[];
   minimum_tag_rank?: number;
-  studios?: string[];
+  studios?: string;
   studios_in?: string[];
   score_greater?: number;
   score_lesser?: number;
@@ -89,6 +89,7 @@ export interface MergedEpisode {
   image: Image | string | null;
   runtime: number | null;
   air_date: string | null;
+  is_filler: boolean | false;
   providers: EpisodeProvider[];
 }
 

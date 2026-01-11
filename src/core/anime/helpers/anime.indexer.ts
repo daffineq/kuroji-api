@@ -1,5 +1,4 @@
 import lock from 'src/helpers/lock';
-import { prisma } from 'src/lib/prisma';
 import { sleep } from 'bun';
 import logger from 'src/helpers/logger';
 import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
@@ -7,6 +6,7 @@ import { Config } from 'src/config/config';
 import { AnilistFetch } from '../providers';
 import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';
+import { db, indexerState } from 'src/db';
 
 @EnableSchedule
 class AnimeIndexerModule extends Module {
@@ -14,11 +14,11 @@ class AnimeIndexerModule extends Module {
 
   private delay: number = 5;
 
-  private async index(options: { fetchLastPage?: boolean; status?: string } = {}): Promise<void> {
-    const { fetchLastPage = true, status } = options;
+  private async index(options: { status?: string } = {}): Promise<void> {
+    const { status } = options;
 
     try {
-      let page = fetchLastPage ? await this.getLastFetchedPage(status) : 1;
+      let page = await this.getLastFetchedPage(status);
       let hasNextPage = true;
       const perPage = 50;
 
@@ -54,9 +54,7 @@ class AnimeIndexerModule extends Module {
           await sleep(this.delay * 1000);
         }
 
-        if (fetchLastPage) {
-          await this.setLastFetchedPage(page, status);
-        }
+        await this.setLastFetchedPage(page, status);
 
         page++;
       }
@@ -110,7 +108,7 @@ class AnimeIndexerModule extends Module {
       return;
     }
 
-    await this.index({ fetchLastPage: false });
+    await this.index();
   }
 
   @Scheduled({
@@ -122,7 +120,7 @@ class AnimeIndexerModule extends Module {
       return;
     }
 
-    await this.index({ fetchLastPage: false, status: 'RELEASING' });
+    await this.index({ status: 'RELEASING' });
   }
 
   @Scheduled({
@@ -134,14 +132,18 @@ class AnimeIndexerModule extends Module {
       return;
     }
 
-    await this.index({ fetchLastPage: false, status: 'NOT_YET_RELEASED' });
+    await this.index({ status: 'NOT_YET_RELEASED' });
   }
 
   public async calculateEstimatedTime(): Promise<string> {
-    const totalFetched = await prisma.anime.count();
-    const total = await AnilistFetch.getTotal();
+    const fetched = (await this.getLastFetchedPage()) * 50;
 
-    const remaining = Math.max(total - totalFetched, 0);
+    // No longer working
+    // const total = await AnilistFetch.getTotal();
+
+    const total = 22000;
+
+    const remaining = Math.max(total - fetched, 0);
 
     const timeS = remaining * (this.delay + 10);
     const timeM = Math.floor(timeS / 60);
@@ -152,18 +154,27 @@ class AnimeIndexerModule extends Module {
   }
 
   async getLastFetchedPage(status?: string): Promise<number> {
-    const state = await prisma.indexerState.findUnique({
-      where: { id: `anime-${status ? status : 'all'}` }
+    const state = await db.query.indexerState.findFirst({
+      where: {
+        id: `anime-${status ? status.toLowerCase() : 'all'}`
+      }
     });
     return state?.last_page ?? 1;
   }
 
   async setLastFetchedPage(page: number, status?: string): Promise<void> {
-    await prisma.indexerState.upsert({
-      where: { id: `anime-${status ? status : 'all'}` },
-      update: { last_page: page },
-      create: { id: `anime-${status ? status : 'all'}`, last_page: page }
-    });
+    await db
+      .insert(indexerState)
+      .values({
+        id: `anime-${status ? status.toLowerCase() : 'all'}`,
+        last_page: page
+      })
+      .onConflictDoUpdate({
+        target: indexerState.id,
+        set: {
+          last_page: page
+        }
+      });
   }
 }
 

@@ -1,38 +1,41 @@
-import { prisma, Prisma } from 'src/lib/prisma';
 import { MetaPayload } from './helpers/meta.dto';
-import { MetaPrisma, MetaFetch, MetaUtils } from './helpers';
+import { MetaDb, MetaFetch, MetaUtils } from './helpers';
 import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';
+import { db, meta } from 'src/db';
+import { eq } from 'drizzle-orm';
 
 class MetaModule extends Module {
   override readonly name = 'Meta';
 
-  async fetchOrCreate<T extends Prisma.MetaDefaultArgs>(
-    id: number,
-    args?: Prisma.SelectSubset<T, Prisma.MetaDefaultArgs>
-  ): Promise<Prisma.MetaGetPayload<T>> {
-    const existing = await prisma.meta.findUnique({
-      where: { id },
-      ...(args as Prisma.MetaDefaultArgs)
+  async fetchOrCreate(id: number) {
+    const existing = await db.query.meta.findFirst({
+      where: {
+        id
+      },
+      with: {
+        mappings: true
+      }
     });
 
-    if (existing) return existing as Prisma.MetaGetPayload<T>;
+    if (existing) return existing;
 
     await Anime.fetchOrCreate(id);
 
-    return this.save(id, args);
+    return this.save(id);
   }
 
-  async save<T extends Prisma.MetaDefaultArgs>(
-    id: number,
-    args?: Prisma.SelectSubset<T, Prisma.MetaDefaultArgs>
-  ): Promise<Prisma.MetaGetPayload<T>> {
-    return prisma.meta.upsert({
-      where: { id },
-      update: MetaPrisma.getMeta(id),
-      create: MetaPrisma.getMeta(id),
-      ...(args as Prisma.MetaDefaultArgs)
-    }) as unknown as Prisma.MetaGetPayload<T>;
+  async save(id: number) {
+    await MetaDb.upsert(id);
+
+    return db.query.meta.findFirst({
+      where: {
+        id
+      },
+      with: {
+        mappings: true
+      }
+    });
   }
 
   async loadMappings(id: number) {
@@ -44,17 +47,17 @@ class MetaModule extends Module {
 
   async update(payload: MetaPayload) {
     await this.fetchOrCreate(payload.id);
-    await MetaPrisma.update(payload);
+    await MetaDb.update(payload);
   }
 
   async remove(payload: Partial<Record<Exclude<keyof MetaPayload, 'id'>, true>> & { id: number }) {
     await this.fetchOrCreate(payload.id);
-    await MetaPrisma.remove(payload);
+    await MetaDb.remove(payload);
   }
 
   async forceUpdate(payload: MetaPayload) {
     await this.fetchOrCreate(payload.id);
-    await MetaPrisma.forceUpdate(payload);
+    await MetaDb.forceUpdate(payload);
   }
 }
 

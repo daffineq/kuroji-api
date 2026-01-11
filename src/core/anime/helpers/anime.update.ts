@@ -1,5 +1,4 @@
 import logger from 'src/helpers/logger';
-import { prisma } from 'src/lib/prisma';
 import { sleep } from 'bun';
 import { Config } from 'src/config/config';
 import lock from 'src/helpers/lock';
@@ -7,6 +6,8 @@ import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/sched
 import { AnimeUpdateFetch } from './anime.update.fetch';
 import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';
+import { db, updateQueue } from 'src/db';
+import { count, eq, lt } from 'drizzle-orm';
 
 export interface QueueItem {
   animeId: number;
@@ -36,13 +37,7 @@ class AnimeUpdateModule extends Module {
   private async cleanupOldQueueItems() {
     try {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      await prisma.updateQueue.deleteMany({
-        where: {
-          added_at: {
-            lt: oneDayAgo
-          }
-        }
-      });
+      await db.delete(updateQueue).where(lt(updateQueue.added_at, oneDayAgo));
     } catch (e) {
       logger.error('Failed to cleanup old queue items:', e);
     }
@@ -54,48 +49,51 @@ class AnimeUpdateModule extends Module {
     reason: QueueItem['reason']
   ) {
     try {
-      const existing = await prisma.updateQueue.findUnique({
-        where: { anime_id: anime.id }
+      const existing = await db.query.updateQueue.findFirst({
+        where: {
+          anime_id: anime.id
+        }
       });
 
       if (
         existing &&
         this.getReasonWeight(reason) > this.getReasonWeight(existing.reason as QueueItem['reason'])
       ) {
-        await prisma.updateQueue.update({
-          where: { anime_id: anime.id },
-          data: {
+        await db
+          .update(updateQueue)
+          .set({
             priority,
             reason,
             added_at: new Date(),
             updated_at: new Date()
-          }
-        });
+          })
+          .where(eq(updateQueue.anime_id, anime.id));
       } else if (
         existing &&
         this.getReasonWeight(reason) === this.getReasonWeight(existing.reason as QueueItem['reason']) &&
         this.getPriorityWeight(priority) > this.getPriorityWeight(existing.priority as QueueItem['priority'])
       ) {
-        await prisma.updateQueue.update({
-          where: { anime_id: anime.id },
-          data: {
+        await db
+          .update(updateQueue)
+          .set({
             priority,
             added_at: new Date(),
             updated_at: new Date()
-          }
-        });
+          })
+          .where(eq(updateQueue.anime_id, anime.id));
       } else if (!existing) {
-        const queueCount = await prisma.updateQueue.count();
+        const queueCount = (await db.select({ count: count() }).from(updateQueue))[0]?.count ?? 0;
         if (queueCount < MAX_QUEUE_SIZE) {
-          await prisma.updateQueue.create({
-            data: {
+          await db
+            .insert(updateQueue)
+            .values({
               anime_id: anime.id,
               mal_id: anime.id_mal ?? null,
               priority,
               reason,
               added_at: new Date()
-            }
-          });
+            })
+            .onConflictDoNothing({ target: updateQueue.anime_id });
         } else {
           logger.warn(`Queue is full (${MAX_QUEUE_SIZE}), dropping anime ${anime.id}`);
         }
@@ -107,12 +105,12 @@ class AnimeUpdateModule extends Module {
 
   private async updateQueueItem(animeId: number) {
     try {
-      await prisma.updateQueue.update({
-        where: { anime_id: animeId },
-        data: {
+      await db
+        .update(updateQueue)
+        .set({
           updated_at: new Date()
-        }
-      });
+        })
+        .where(eq(updateQueue.anime_id, animeId));
     } catch (error) {
       logger.error(`Failed to update queue item ${animeId} in database:`, error);
     }
@@ -120,9 +118,7 @@ class AnimeUpdateModule extends Module {
 
   private async removeFromQueue(animeId: number) {
     try {
-      await prisma.updateQueue.delete({
-        where: { anime_id: animeId }
-      });
+      await db.delete(updateQueue).where(eq(updateQueue.anime_id, animeId));
     } catch (error) {
       logger.error(`Failed to remove queue item ${animeId} from database:`, error);
     }
@@ -130,7 +126,7 @@ class AnimeUpdateModule extends Module {
 
   async clearQueue() {
     try {
-      await prisma.updateQueue.deleteMany({});
+      await db.delete(updateQueue);
       logger.log('Queue cleared manually');
     } catch (e) {
       logger.error('Failed to clear queue:', e);
@@ -173,8 +169,8 @@ class AnimeUpdateModule extends Module {
 
   private async getNextFromQueue(): Promise<QueueItem | null> {
     try {
-      const queueItems = await prisma.updateQueue.findMany({
-        orderBy: [{ priority: 'desc' }, { added_at: 'asc' }]
+      const queueItems = await db.query.updateQueue.findMany({
+        orderBy: (updateQueue, { desc, asc }) => [desc(updateQueue.priority), asc(updateQueue.added_at)]
       });
 
       if (queueItems.length === 0) return null;
@@ -260,94 +256,6 @@ class AnimeUpdateModule extends Module {
     }
   }
 
-  async queueFinishedAnime() {
-    const BATCH_SIZE = 100;
-    const DELAY_BETWEEN_PAGES = 30;
-
-    const totalCount = await AnimeUpdateFetch.getTotalFinishedAnimeCount();
-    const totalPages = Math.ceil(totalCount / BATCH_SIZE);
-
-    logger.log(`Processing ${totalCount} finished anime across ${totalPages} pages`);
-
-    let currentOffset = 0;
-    let pageNumber = 1;
-
-    while (true) {
-      logger.log(`Fetching page ${pageNumber}/${totalPages} (offset: ${currentOffset})`);
-
-      const finishedAnime = await AnimeUpdateFetch.getFinishedAnime(BATCH_SIZE, currentOffset);
-
-      if (finishedAnime.length === 0) {
-        logger.log('No more finished anime found, done!');
-        break;
-      }
-
-      logger.log(`Adding ${finishedAnime.length} finished anime to queue`);
-
-      for (const anime of finishedAnime) {
-        if (AnimeUpdateFetch.shouldUpdateBasedOnPopularity(anime.popularity)) {
-          const priority = AnimeUpdateFetch.getPopularityPriority(anime.popularity);
-          await this.addToQueue(anime, priority, 'finished_monthly');
-        }
-      }
-
-      currentOffset += BATCH_SIZE;
-      pageNumber++;
-
-      if (finishedAnime.length < BATCH_SIZE) {
-        logger.log('Reached end of finished anime');
-        break;
-      }
-
-      logger.log(`Waiting ${DELAY_BETWEEN_PAGES} seconds before next page...`);
-      await sleep(DELAY_BETWEEN_PAGES * 1000);
-    }
-  }
-
-  async queueUpcomingAnime() {
-    const BATCH_SIZE = 50;
-    const DELAY_BETWEEN_PAGES = 30;
-
-    const totalCount = await AnimeUpdateFetch.getTotalUpcomingAnimeCount();
-    const totalPages = Math.ceil(totalCount / BATCH_SIZE);
-
-    logger.log(`Processing ${totalCount} upcoming anime across ${totalPages} pages`);
-
-    let currentOffset = 0;
-    let pageNumber = 1;
-
-    while (true) {
-      logger.log(`Fetching page ${pageNumber}/${totalPages} (offset: ${currentOffset})`);
-
-      const upcomingAnime = await AnimeUpdateFetch.getUpcomingAnime(BATCH_SIZE, currentOffset);
-
-      if (upcomingAnime.length === 0) {
-        logger.log('No more upcoming anime found, done!');
-        break;
-      }
-
-      logger.log(`Adding ${upcomingAnime.length} upcoming anime to queue`);
-
-      for (const anime of upcomingAnime) {
-        if (AnimeUpdateFetch.shouldUpdateBasedOnPopularity(anime.popularity)) {
-          const priority = AnimeUpdateFetch.getPopularityPriority(anime.popularity);
-          await this.addToQueue(anime, priority, 'upcoming_weekly');
-        }
-      }
-
-      currentOffset += BATCH_SIZE;
-      pageNumber++;
-
-      if (upcomingAnime.length < BATCH_SIZE) {
-        logger.log('Reached end of upcoming anime');
-        break;
-      }
-
-      logger.log(`Waiting ${DELAY_BETWEEN_PAGES} seconds before next page...`);
-      await sleep(DELAY_BETWEEN_PAGES * 1000);
-    }
-  }
-
   async processQueue() {
     if (!Config.anime_update_enabled) {
       logger.log('Updates disabled. Skipping queue processing.');
@@ -361,7 +269,7 @@ class AnimeUpdateModule extends Module {
 
     await this.cleanupOldQueueItems();
 
-    const queueCount = await prisma.updateQueue.count();
+    const queueCount = (await db.select({ count: count() }).from(updateQueue))[0]?.count ?? 0;
     logger.log(`Processing queue with ${queueCount} items...`);
 
     try {
@@ -385,7 +293,7 @@ class AnimeUpdateModule extends Module {
         await sleep(SLEEP_BETWEEN_UPDATES);
       }
 
-      const remainingCount = await prisma.updateQueue.count();
+      const remainingCount = (await db.select({ count: count() }).from(updateQueue))[0]?.count ?? 0;
       logger.log(`Processed ${processed} anime from queue. ${remainingCount} remaining.`);
     } catch (e) {
       logger.error('Failed during queue processing:', e);

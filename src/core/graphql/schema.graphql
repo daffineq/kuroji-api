@@ -409,6 +409,7 @@ type Episode {
   image: EpisodeImage
   runtime: Int
   air_date: String
+  is_filler: Boolean
   providers: [EpisodeProvider!]!
 }
 
@@ -419,6 +420,7 @@ type EpisodeInfo {
   image: EpisodeImage
   runtime: Int
   air_date: String
+  is_filler: Boolean
   translation: [Translation!]!
   images: [EpisodeImages!]!
   providers: [EpisodeProvider!]!

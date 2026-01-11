@@ -1,4 +1,5 @@
 import 'dotenv/config';
+
 import { parseBoolean, parseNumber, parseString } from 'src/helpers/parsers';
 
 type ApiStrategy = 'all_routes' | 'not_required';

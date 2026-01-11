@@ -10,5 +10,8 @@ export interface Episode {
   image?: Image | string | null;
   description?: string | null;
   number?: number | null;
+  sub?: boolean | false;
+  dub?: boolean | false;
+  is_filler?: boolean | false;
   providers: EpisodeProvider[];
 }

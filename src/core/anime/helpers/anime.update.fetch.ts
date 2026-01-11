@@ -1,8 +1,9 @@
 import { DateUtils } from 'src/helpers/date';
 import { QueueItem } from './anime.update';
-import { prisma } from 'src/lib/prisma';
 import logger from 'src/helpers/logger';
 import { Module } from 'src/helpers/module';
+import { db, anime, animeAiringSchedule, animeStartDate } from 'src/db';
+import { eq, gte, lte, and, sql } from 'drizzle-orm';
 
 const POPULARITY_THRESHOLDS = {
   HIGH: 100 * 1000,
@@ -60,22 +61,35 @@ class AnimeUpdateFetchModule extends Module {
         throw new Error('Invalid timestamp range calculated');
       }
 
-      const recentAired = await prisma.anime.findMany({
+      const recentAired = await db.query.anime.findMany({
         where: {
           airing_schedule: {
-            some: { airing_at: { gte: startTimestamp, lte: endTimestamp } }
+            airing_at: {
+              gte: startTimestamp,
+              lte: endTimestamp
+            }
           }
         },
-        select: {
+        columns: {
           id: true,
           id_mal: true,
-          popularity: true,
+          popularity: true
+        },
+        with: {
           airing_schedule: {
-            select: { airing_at: true, episode: true },
-            where: { airing_at: { gte: startTimestamp, lte: endTimestamp } }
+            where: {
+              airing_at: {
+                gte: startTimestamp,
+                lte: endTimestamp
+              }
+            },
+            columns: {
+              airing_at: true,
+              episode: true
+            }
           }
         },
-        orderBy: { trending: 'desc' }
+        orderBy: (anime, { desc }) => [desc(anime.trending)]
       });
 
       logger.log(
@@ -102,22 +116,37 @@ class AnimeUpdateFetchModule extends Module {
         throw new Error('Invalid timestamp range for today');
       }
 
-      const todayAired = await prisma.anime.findMany({
+      const todayAired = await db.query.anime.findMany({
         where: {
           airing_schedule: {
-            some: { airing_at: { gte: bufferedStart, lte: bufferedEnd } }
+            airing_at: {
+              gte: bufferedStart,
+              lte: bufferedEnd
+            }
           }
         },
-        select: {
+        columns: {
           id: true,
           id_mal: true,
-          popularity: true,
+          popularity: true
+        },
+        with: {
           airing_schedule: {
-            select: { airing_at: true, episode: true },
-            where: { airing_at: { gte: bufferedStart, lte: bufferedEnd } }
+            where: {
+              airing_at: {
+                gte: bufferedStart,
+                lte: bufferedEnd
+              }
+            },
+            columns: {
+              airing_at: true,
+              episode: true
+            }
           }
         },
-        orderBy: { trending: 'desc' }
+        orderBy: {
+          trending: 'desc'
+        }
       });
 
       logger.log(
@@ -147,22 +176,37 @@ class AnimeUpdateFetchModule extends Module {
         throw new Error('Invalid timestamp range for week ago');
       }
 
-      const weekAgoAired = await prisma.anime.findMany({
+      const weekAgoAired = await db.query.anime.findMany({
         where: {
           airing_schedule: {
-            some: { airing_at: { gte: bufferedStart, lte: bufferedEnd } }
+            airing_at: {
+              gte: bufferedStart,
+              lte: bufferedEnd
+            }
           }
         },
-        select: {
+        columns: {
           id: true,
           id_mal: true,
-          popularity: true,
+          popularity: true
+        },
+        with: {
           airing_schedule: {
-            select: { airing_at: true, episode: true },
-            where: { airing_at: { gte: bufferedStart, lte: bufferedEnd } }
+            where: {
+              airing_at: {
+                gte: bufferedStart,
+                lte: bufferedEnd
+              }
+            },
+            columns: {
+              airing_at: true,
+              episode: true
+            }
           }
         },
-        orderBy: { trending: 'desc' }
+        orderBy: {
+          trending: 'desc'
+        }
       });
 
       logger.log(
@@ -172,81 +216,6 @@ class AnimeUpdateFetchModule extends Module {
       return weekAgoAired;
     } catch (error) {
       logger.error('Error fetching last week aired anime:', error);
-      return [];
-    }
-  }
-
-  async getFinishedAnime(limit: number = 100, offset: number = 0) {
-    const validatedLimit = this.validateLimit(limit, 100);
-    const validatedOffset = this.validateOffset(offset);
-
-    try {
-      const finishedAnime = await prisma.anime.findMany({
-        where: {
-          status: 'FINISHED',
-          popularity: { gte: POPULARITY_THRESHOLDS.TRASH }
-        },
-        select: {
-          id: true,
-          id_mal: true,
-          popularity: true,
-          score: true
-        },
-        orderBy: [{ popularity: 'desc' }, { score: 'desc' }],
-        take: validatedLimit,
-        skip: validatedOffset
-      });
-
-      logger.log(`Found ${finishedAnime.length} finished anime (offset: ${validatedOffset})`);
-
-      return finishedAnime;
-    } catch (error) {
-      logger.error('Error fetching finished anime:', error);
-      return [];
-    }
-  }
-
-  async getUpcomingAnime(limit: number = 50, offset: number = 0) {
-    const validatedLimit = this.validateLimit(limit, 50);
-    const validatedOffset = this.validateOffset(offset);
-
-    try {
-      const now = DateUtils.getCurrentTimestamp();
-      const futureDate = DateUtils.getFutureTimestamp(30);
-
-      if (!DateUtils.isValidTimestamp(now) || !DateUtils.isValidTimestamp(futureDate)) {
-        throw new Error('Invalid timestamp range for upcoming anime');
-      }
-
-      const upcomingAnime = await prisma.anime.findMany({
-        where: {
-          status: 'NOT_YET_RELEASED',
-          popularity: { gte: POPULARITY_THRESHOLDS.TRASH },
-          start_date: { year: { gte: DateUtils.getCurrentDate().getFullYear() } }
-        },
-        select: {
-          id: true,
-          id_mal: true,
-          popularity: true,
-          start_date: true,
-          status: true,
-          airing_schedule: {
-            select: { airing_at: true, episode: true },
-            where: { airing_at: { gte: now, lte: futureDate } },
-            orderBy: { airing_at: 'asc' },
-            take: 3
-          }
-        },
-        orderBy: [{ popularity: 'desc' }, { start_date: { year: 'asc' } }],
-        take: validatedLimit,
-        skip: validatedOffset
-      });
-
-      logger.log(`Found ${upcomingAnime.length} upcoming anime (offset: ${validatedOffset})`);
-
-      return upcomingAnime;
-    } catch (error) {
-      logger.error('Error fetching upcoming anime:', error);
       return [];
     }
   }
@@ -265,22 +234,37 @@ class AnimeUpdateFetchModule extends Module {
         throw new Error('Invalid timestamp range');
       }
 
-      const aired = await prisma.anime.findMany({
+      const aired = await db.query.anime.findMany({
         where: {
           airing_schedule: {
-            some: { airing_at: { gte: bufferedStart, lte: bufferedEnd } }
+            airing_at: {
+              gte: bufferedStart,
+              lte: bufferedEnd
+            }
           }
         },
-        select: {
+        columns: {
           id: true,
           id_mal: true,
-          popularity: true,
+          popularity: true
+        },
+        with: {
           airing_schedule: {
-            select: { airing_at: true, episode: true },
-            where: { airing_at: { gte: bufferedStart, lte: bufferedEnd } }
+            where: {
+              airing_at: {
+                gte: bufferedStart,
+                lte: bufferedEnd
+              }
+            },
+            columns: {
+              airing_at: true,
+              episode: true
+            }
           }
         },
-        orderBy: { trending: 'desc' }
+        orderBy: {
+          trending: 'desc'
+        }
       });
 
       logger.log(
@@ -291,35 +275,6 @@ class AnimeUpdateFetchModule extends Module {
     } catch (error) {
       logger.error('Error fetching anime from days ago:', error);
       return [];
-    }
-  }
-
-  async getTotalFinishedAnimeCount(): Promise<number> {
-    try {
-      return await prisma.anime.count({
-        where: {
-          status: 'FINISHED',
-          popularity: { gte: POPULARITY_THRESHOLDS.TRASH }
-        }
-      });
-    } catch (error) {
-      logger.error('Error counting finished anime:', error);
-      return 0;
-    }
-  }
-
-  async getTotalUpcomingAnimeCount(): Promise<number> {
-    try {
-      return await prisma.anime.count({
-        where: {
-          status: 'NOT_YET_RELEASED',
-          popularity: { gte: POPULARITY_THRESHOLDS.TRASH },
-          start_date: { year: { gte: DateUtils.getCurrentDate().getFullYear() } }
-        }
-      });
-    } catch (error) {
-      logger.error('Error counting upcoming anime:', error);
-      return 0;
     }
   }
 }

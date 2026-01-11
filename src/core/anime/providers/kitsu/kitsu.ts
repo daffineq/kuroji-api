@@ -2,7 +2,6 @@ import { KitsuAnime } from './types';
 import { NotFoundError } from 'src/helpers/errors';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { parseNumber } from 'src/helpers/parsers';
-import { metaSelect } from '../../meta/types';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { KitsuFetch } from './helpers/kitsu.fetch';
 import { Anilist, AnilistUtils } from '../anilist';
@@ -21,7 +20,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
       return cached;
     }
 
-    const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
+    const meta = await Meta.fetchOrCreate(id).catch(() => null);
 
     const kitsuId = meta?.mappings.find((m) => m.source_name === 'kitsu')?.source_id;
 

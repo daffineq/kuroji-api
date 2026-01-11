@@ -1,59 +1,49 @@
 import { AnilistMedia } from './providers/anilist/types';
-import { prisma, Prisma } from 'src/lib/prisma';
-import { Anilist, Crysoline, Kitsu, MyAnimeList, Shikimori, Tmdb, TmdbSeasons, Tvdb } from './providers';
-import { AnimePrisma } from './helpers/anime.prisma';
+import { Anilist, Crysoline, Kitsu, MyAnimeList, Shikimori, Tmdb, Tvdb } from './providers';
+import { AnimeDb } from './helpers/anime.db';
 import { Meta } from './meta';
 import { Module } from 'src/helpers/module';
+import { db } from 'src/db';
 
 class AnimeModule extends Module {
   override readonly name = 'Anime';
 
-  async fetchOrCreate<T extends Prisma.AnimeDefaultArgs>(
-    id: number,
-    args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
-  ): Promise<Prisma.AnimeGetPayload<T>> {
-    const existing = await prisma.anime.findUnique({
-      where: { id },
-      ...(args as Prisma.AnimeDefaultArgs)
+  async fetchOrCreate(id: number) {
+    const existing = await db.query.anime.findFirst({
+      where: {
+        id
+      }
     });
 
     if (existing) {
-      return existing as Prisma.AnimeGetPayload<T>;
+      return existing;
     }
 
     const anilist = await Anilist.getInfo(id);
 
-    return this.save(anilist, args);
+    return this.save(anilist);
   }
 
-  async updateOrCreate<T extends Prisma.AnimeDefaultArgs>(
-    id: number,
-    args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
-  ): Promise<Prisma.AnimeGetPayload<T>> {
-    return this.update(id, args);
+  async updateOrCreate(id: number) {
+    return this.update(id);
   }
 
-  async update<T extends Prisma.AnimeDefaultArgs>(
-    id: number,
-    args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
-  ): Promise<Prisma.AnimeGetPayload<T>> {
+  async update(id: number) {
     const anilist = await Anilist.getInfo(id);
 
-    return this.save(anilist, args);
+    return this.save(anilist);
   }
 
-  async save<T extends Prisma.AnimeDefaultArgs>(
-    anilist: AnilistMedia,
-    args?: Prisma.SelectSubset<T, Prisma.AnimeDefaultArgs>
-  ): Promise<Prisma.AnimeGetPayload<T>> {
-    await AnimePrisma.upsert(anilist);
+  async save(anilist: AnilistMedia) {
+    await AnimeDb.upsert(anilist);
 
     await this.initProviders(anilist.id, anilist.idMal);
 
-    return prisma.anime.findUnique({
-      where: { id: anilist.id },
-      ...(args as Prisma.AnimeDefaultArgs)
-    }) as unknown as Promise<Prisma.AnimeGetPayload<T>>;
+    return db.query.anime.findFirst({
+      where: {
+        id: anilist.id
+      }
+    });
   }
 
   async initProviders(id: number, idMal: number | undefined) {

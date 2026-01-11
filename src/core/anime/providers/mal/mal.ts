@@ -1,6 +1,5 @@
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { parseNumber } from 'src/helpers/parsers';
-import { metaSelect } from '../../meta/types';
 import { Anilist } from '../anilist';
 import { Meta, VideoEntry } from '../../meta';
 import { ProviderModule } from 'src/helpers/module';
@@ -38,7 +37,7 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
         }
       });
     } else {
-      const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
+      const meta = await Meta.fetchOrCreate(id).catch(() => null);
 
       const malId = parseNumber(meta?.mappings.find((m) => m.source_name === this.name.toLowerCase())?.source_id);
 

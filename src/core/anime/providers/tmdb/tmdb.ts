@@ -1,4 +1,3 @@
-import { metaSelect } from '../../meta/types';
 import { parseNumber, parseString } from 'src/helpers/parsers';
 import { TmdbImage, TmdbInfoResult, TmdbTranslation } from './types';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
@@ -10,7 +9,6 @@ import { TmdbUtils } from './helpers/tmdb.utils';
 import { TmdbFetch } from './helpers/tmdb.fetch';
 import { Meta } from '../../meta';
 import { normalize_iso_639_1 } from 'src/helpers/languages';
-import { prisma } from 'src/lib/prisma';
 import { ProviderModule } from 'src/helpers/module';
 
 class TmdbModule extends ProviderModule<TmdbInfoResult> {
@@ -25,7 +23,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       return cached;
     }
 
-    const meta = await Meta.fetchOrCreate(id, metaSelect).catch(() => null);
+    const meta = await Meta.fetchOrCreate(id).catch(() => null);
 
     const tmdbId = parseNumber(meta?.mappings.find((m) => m.source_name === this.name)?.source_id);
 

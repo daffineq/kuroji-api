@@ -6,6 +6,8 @@ while ! nc -z postgres 5432; do
 done
 echo "✅ Database is live!"
 
-bun run migrate
+# Run Drizzle migrations
+bun db:migrate
 
+# Start app
 bun run prod

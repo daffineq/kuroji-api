@@ -1,5 +1,3 @@
-import { Prisma } from 'src/lib/prisma';
-
 export interface AniZipMappings {
   animeplanet_id?: string;
   kitsu_id?: number;
@@ -20,9 +18,3 @@ export interface AniZipData {
   specialCount: number;
   mappings: AniZipMappings;
 }
-
-export const metaSelect = {
-  include: {
-    mappings: true
-  }
-} satisfies Prisma.MetaDefaultArgs;

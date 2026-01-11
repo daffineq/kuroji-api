@@ -3,7 +3,6 @@ import { AnimeIndexer } from './helpers/anime.indexer';
 import { AnimeUpdate } from './helpers/anime.update';
 import logger from 'src/helpers/logger';
 import Elysia, { t } from 'elysia';
-import { Prisma, prisma } from 'src/lib/prisma';
 import { Anime } from './anime';
 
 const animeRoute = () => {

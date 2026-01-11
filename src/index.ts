@@ -10,7 +10,8 @@ import { HTTPError } from 'ky';
 import Elysia, { NotFoundError, t } from 'elysia';
 import { cors } from '@elysiajs/cors';
 import swagger from '@elysiajs/swagger';
-import { prisma } from './lib/prisma';
+import { db } from './db';
+import { sql } from 'drizzle-orm';
 
 const app = new Elysia()
   .use(
@@ -178,14 +179,13 @@ app.get(
       return `${hours}h ${minutes}m ${seconds}s`;
     };
 
-    const size =
-      (await prisma.$queryRaw`SELECT pg_size_pretty(pg_database_size(current_database())) AS size;`) as {
-        size: string;
-      }[];
+    const size = (await db.execute(sql`SELECT pg_size_pretty(pg_database_size(current_database())) AS size;`)) as {
+      size: string;
+    }[];
 
     const memory = process.memoryUsage();
 
-    const dbHealthy = await prisma.$queryRaw`SELECT 1`;
+    const dbHealthy = await db.execute(sql`SELECT 1`);
 
     return createSuccessResponse({
       message: 'State of API',

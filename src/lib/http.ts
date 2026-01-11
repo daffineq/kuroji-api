@@ -1,5 +1,6 @@
 import { sleep } from 'bun';
 import ky, { HTTPError, type Options as KyOptions } from 'ky';
+import logger from 'src/helpers/logger';
 
 /**
  * Represents rate limit information.
@@ -321,7 +322,7 @@ export class KurojiClient {
         if (this.rateLimitInfo.remaining <= 0) {
           const now = Math.floor(Date.now() / 1000);
           const waitTime = Math.max(this.rateLimitInfo.reset - now, 0);
-          console.warn(`[rate-limit] sleeping ${waitTime}s due to 0 remaining`);
+          logger.warn(`[rate-limit] sleeping ${waitTime}s due to 0 remaining`);
           await sleep(waitTime * 1000);
         }
 
@@ -374,7 +375,7 @@ export class KurojiClient {
           if (err instanceof HTTPError && err.response.status === 429) {
             const retryAfter = Number.parseInt(err.response.headers.get('retry-after') || '60');
             response.isOnRateLimit = true;
-            console.warn(`[429] Rate limit hit. Sleeping for ${retryAfter}s and retrying...`);
+            logger.warn(`[429] Rate limit hit. Sleeping for ${retryAfter}s and retrying...`);
             await sleep(retryAfter * 1000);
             attempt++;
             continue;
