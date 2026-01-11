@@ -34,6 +34,7 @@ const apiRoute = () => {
           },
           {
             detail: {
+              summary: 'Generate Api Key',
               description: 'Generates a new api key, requires admin key from .env in x-api-key header'
             },
             headers: t.Object({
@@ -60,6 +61,7 @@ const apiRoute = () => {
           },
           {
             detail: {
+              summary: 'Api Key Details',
               description: 'Returns details about api key passed in x-api-key header'
             },
             headers: t.Object({

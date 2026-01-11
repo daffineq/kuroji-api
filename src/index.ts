@@ -137,6 +137,7 @@ app.use(proxyRoute());
 app.get('/graphql', ({ request }) => yoga.handle(request), {
   tags: ['GraphQL'],
   detail: {
+    summary: 'GraphQL Playground',
     description: 'GraphiQL UI for graphql'
   }
 });
@@ -144,6 +145,7 @@ app.get('/graphql', ({ request }) => yoga.handle(request), {
 app.post('/graphql', ({ request }) => yoga.handle(request), {
   tags: ['GraphQL'],
   detail: {
+    summary: 'GraphQL',
     description: 'The graphql'
   }
 });
@@ -162,6 +164,7 @@ app.get(
       per_page: t.Optional(t.Number({ default: 50, maximum: 100 }))
     }),
     detail: {
+      summary: 'Logs',
       description: 'Returns logs from logger'
     }
   }
@@ -207,6 +210,7 @@ app.get(
   {
     tags: ['System'],
     detail: {
+      summary: 'State',
       description: 'Returns system state'
     }
   }

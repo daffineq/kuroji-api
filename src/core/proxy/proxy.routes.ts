@@ -42,6 +42,7 @@ const proxyRoute = () => {
         {
           query: t.Object({ url: t.String(), referer: t.String() }),
           detail: {
+            summary: 'Proxy',
             description: 'A proxy for streaming sources, i honestly dont even know if it works at all, but anyways'
           }
         }
