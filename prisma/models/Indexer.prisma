@@ -1,5 +1,0 @@
-model IndexerState {
-  id        String   @id @default("anime")
-  last_page Int      @map("last_page")
-  updatedAt DateTime @updatedAt
-}
