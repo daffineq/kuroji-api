@@ -31,7 +31,7 @@ services:
       - REDIS_PASSWORD=
       - DATABASE_URL=postgresql://prisma:postgres@postgres:5432/kuroji
     ports:
-      - '${PORT}:3000'
+      - '${PORT:-3000}:${PORT:-3000}'
     depends_on:
       - postgres
       - redis
