@@ -1,11 +1,10 @@
-import { Anime, Mapper } from '@crysoline/lib';
+import { Anime, Mapper, Source } from '@crysoline/lib';
 import { Config } from 'src/config/config';
 import { Module } from 'src/helpers/module';
 import { Meta } from '../../meta';
 import logger from 'src/helpers/logger';
 import { Episode } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
-import { Source } from '@crysoline/lib/dist/core/types';
 
 class CrysolineModule extends Module {
   override readonly name = 'Crysoline';

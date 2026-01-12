@@ -30,6 +30,7 @@ import {
   upsertWithExcluded
 } from 'src/db';
 import { eq, sql } from 'drizzle-orm';
+import { uniqueBy } from 'src/helpers/utils';
 
 class AnimeDbModule extends Module {
   override readonly name = 'AnimeDB';
@@ -180,7 +181,7 @@ class AnimeDbModule extends Module {
           Promise.resolve().then(async () => {
             const inserted = await tx
               .insert(animeGenre)
-              .values(anilist.genres.map((name) => ({ name })))
+              .values(uniqueBy(anilist.genres, (g) => g).map((name) => ({ name })))
               .onConflictDoUpdate({ target: animeGenre.name, set: { name: sql`excluded.name` } })
               .returning({ id: animeGenre.id, name: animeGenre.name });
 
@@ -205,7 +206,7 @@ class AnimeDbModule extends Module {
           tx
             .insert(animeAiringSchedule)
             .values(
-              anilist.airingSchedule.edges.map((edge) => ({
+              uniqueBy(anilist.airingSchedule.edges, (e) => e.node.id).map((edge) => ({
                 id: edge.node.id,
                 episode: edge.node.episode,
                 airing_at: edge.node.airingAt,
@@ -230,11 +231,11 @@ class AnimeDbModule extends Module {
             // Insert all characters
             await tx
               .insert(animeCharacter)
-              .values(anilist.characters.edges.map((edge) => ({ id: edge.node.id })))
+              .values(uniqueBy(anilist.characters.edges, (e) => e.node.id).map((edge) => ({ id: edge.node.id })))
               .onConflictDoNothing({ target: animeCharacter.id });
 
             // Insert character names
-            const characterNames = anilist.characters.edges
+            const characterNames = uniqueBy(anilist.characters.edges, (e) => e.node.id)
               .filter((edge) => edge.node.name)
               .map((edge) => ({
                 character_id: edge.node.id,
@@ -258,7 +259,7 @@ class AnimeDbModule extends Module {
             }
 
             // Insert character images
-            const characterImages = anilist.characters.edges
+            const characterImages = uniqueBy(anilist.characters.edges, (e) => e.node.id)
               .filter((edge) => edge.node.image)
               .map((edge) => ({
                 character_id: edge.node.id,
@@ -280,15 +281,15 @@ class AnimeDbModule extends Module {
             }
 
             // Insert voice actors
-            const allVoiceActors = anilist.characters.edges.flatMap((edge) => edge.voiceActors || []);
+            const allVoiceActors = uniqueBy(anilist.characters.edges, (e) => e.node.id).flatMap(
+              (edge) => edge.voiceActors ?? []
+            );
 
-            const uniqueVoiceActors = Array.from(new Map(allVoiceActors.map((va) => [va.id, va])).values());
-
-            if (uniqueVoiceActors.length) {
+            if (allVoiceActors.length) {
               await tx
                 .insert(animeVoiceActor)
                 .values(
-                  uniqueVoiceActors.map((va) => ({
+                  uniqueBy(allVoiceActors, (a) => a.id).map((va) => ({
                     id: va.id,
                     language: va.languageV2
                   }))
@@ -299,7 +300,7 @@ class AnimeDbModule extends Module {
                 });
 
               // Insert voice actor names
-              const voiceNames = uniqueVoiceActors
+              const voiceNames = uniqueBy(allVoiceActors, (a) => a.id)
                 .filter((va) => va.name)
                 .map((va) => ({
                   voice_actor_id: va.id,
@@ -323,7 +324,7 @@ class AnimeDbModule extends Module {
               }
 
               // Insert voice actor images
-              const voiceImages = uniqueVoiceActors
+              const voiceImages = uniqueBy(allVoiceActors, (a) => a.id)
                 .filter((va) => va.image)
                 .map((va) => ({
                   voice_actor_id: va.id,
@@ -349,7 +350,7 @@ class AnimeDbModule extends Module {
             await tx
               .insert(animeCharacterEdge)
               .values(
-                anilist.characters.edges.map((edge) => ({
+                uniqueBy(anilist.characters.edges, (e) => e.id).map((edge) => ({
                   id: edge.id,
                   role: edge.role,
                   anime_id: anilist.id,
@@ -374,7 +375,7 @@ class AnimeDbModule extends Module {
               await tx
                 .insert(characterToVoiceActor)
                 .values(
-                  edge.voiceActors?.map((va) => ({
+                  uniqueBy(edge.voiceActors ?? [], (a) => a.id).map((va) => ({
                     A: edge.id,
                     B: va.id
                   })) ?? []
@@ -389,14 +390,12 @@ class AnimeDbModule extends Module {
       if (anilist.studios?.edges?.length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const studios = Array.from(new Map(anilist.studios.edges.map((e) => [e.node.id, e.node])).values());
-
             await tx
               .insert(animeStudio)
               .values(
-                studios.map((s) => ({
-                  id: s.id,
-                  name: s.name
+                uniqueBy(anilist.studios.edges, (e) => e.node.id).map((s) => ({
+                  id: s.node.id,
+                  name: s.node.name
                 }))
               )
               .onConflictDoUpdate({
@@ -407,7 +406,7 @@ class AnimeDbModule extends Module {
             await tx
               .insert(animeStudioEdge)
               .values(
-                anilist.studios.edges.map((edge) => ({
+                uniqueBy(anilist.studios.edges, (e) => e.id).map((edge) => ({
                   id: edge.id,
                   is_main: edge.isMain,
                   anime_id: anilist.id,
@@ -433,7 +432,7 @@ class AnimeDbModule extends Module {
             await tx
               .insert(animeTag)
               .values(
-                anilist.tags.map((tag) => ({
+                uniqueBy(anilist.tags, (t) => t.id).map((tag) => ({
                   id: tag.id,
                   name: tag.name,
                   description: tag.description,
@@ -456,7 +455,7 @@ class AnimeDbModule extends Module {
             await tx
               .insert(animeTagEdge)
               .values(
-                anilist.tags.map((tag) => ({
+                uniqueBy(anilist.tags, (t) => t.id).map((tag) => ({
                   anime_id: anilist.id,
                   tag_id: tag.id,
                   rank: tag.rank,
@@ -480,7 +479,7 @@ class AnimeDbModule extends Module {
           tx
             .insert(animeExternalLink)
             .values(
-              anilist.externalLinks.map((link) => ({
+              uniqueBy(anilist.externalLinks, (e) => e.id).map((link) => ({
                 id: link.id,
                 url: link.url,
                 site: link.site,

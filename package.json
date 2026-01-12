@@ -15,7 +15,7 @@
     "tsc": "tsc --noEmit --watch"
   },
   "dependencies": {
-    "@crysoline/lib": "^0.1.5",
+    "@crysoline/lib": "^0.1.6",
     "@elysiajs/cors": "^1.2.1",
     "@elysiajs/openapi": "^1.4.12",
     "@elysiajs/swagger": "^1.3.1",
