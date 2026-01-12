@@ -322,7 +322,7 @@ export class KurojiClient {
         if (this.rateLimitInfo.remaining <= 0) {
           const now = Math.floor(Date.now() / 1000);
           const waitTime = Math.max(this.rateLimitInfo.reset - now, 0);
-          logger.warn(`[rate-limit] sleeping ${waitTime}s due to 0 remaining`);
+          logger.warn(`[rate-limit] sleeping ${waitTime}s due to 0 remaining [${transformedUrl}]`);
           await sleep(waitTime * 1000);
         }
 
@@ -376,7 +376,7 @@ export class KurojiClient {
             const retryAfter = Number.parseInt(err.response.headers.get('retry-after') || '60');
             response.isOnRateLimit = true;
             logger.warn(
-              `[429] Rate limit hit. Sleeping for ${retryAfter === 0 ? 60 : retryAfter}s and retrying...`
+              `[429] Rate limit hit. Sleeping for ${retryAfter === 0 ? 60 : retryAfter}s and retrying... [${transformedUrl}]`
             );
             await sleep(retryAfter * 1000);
             attempt++;
