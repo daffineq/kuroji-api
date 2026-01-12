@@ -74,7 +74,7 @@ class CrysolineModule extends Module {
             image: ep.image,
             description: ep.description,
             number: i + 1,
-            filler: ep.isFiller ?? false,
+            is_filler: ep.isFiller ?? false,
             providers: [
               {
                 name: p.name,

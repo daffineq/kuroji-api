@@ -7,8 +7,6 @@ services:
       POSTGRES_USER: prisma
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: kuroji
-    #ports:             # Don't publish these ports in prod
-    #  - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql
 
@@ -16,8 +14,6 @@ services:
     image: redis:latest
     container_name: redis
     restart: always
-    #ports:             # Don't publish these ports in prod
-    #  - '6379:6379'
 
   app:
     build:
@@ -35,7 +31,7 @@ services:
       - REDIS_PASSWORD=
       - DATABASE_URL=postgresql://prisma:postgres@postgres:5432/kuroji
     ports:
-      - '3000:3000'
+      - '${PORT}:3000'
     depends_on:
       - postgres
       - redis
