@@ -48,10 +48,7 @@ const Config = {
   // Redis Config
   redis_enabled: process.env.REDIS_ENABLED !== 'false',
   redis_ttl: parseNumber(process.env.REDIS_TTL) ?? 900,
-  redis_username: process.env.REDIS_USERNAME ?? '',
-  redis_host: process.env.REDIS_HOST ?? 'localhost',
-  redis_port: parseNumber(process.env.REDIS_PORT) ?? 6379,
-  redis_password: process.env.REDIS_PASSWORD ?? '',
+  redis_url: process.env.REDIS_URL ?? '',
 
   // Rate Limiting
   rate_limit: parseNumber(process.env.RATE_LIMIT) ?? 0,
@@ -68,7 +65,10 @@ const Config = {
   transaction_batch: parseNumber(process.env.TRANSACTION_BATCH) ?? 10,
 
   // Database
-  database_url: process.env.DATABASE_URL ?? ''
+  database_url: process.env.DATABASE_URL ?? '',
+
+  // Vercel
+  vercel: parseBoolean(process.env.VERCEL) ?? false
 };
 
 export { Config };

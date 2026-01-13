@@ -1,0 +1,38 @@
+{
+  "version": 2,
+  "functions": {
+    "api/*": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/anime/update/process",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/anime/update/recent",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/anime/update/today",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/anime/update/two-days-ago",
+      "schedule": "0 */12 * * *"
+    },
+    {
+      "path": "/api/anime/indexer/start",
+      "schedule": "0 0 */14 * *"
+    },
+    {
+      "path": "/api/anime/indexer/start?status=RELEASING",
+      "schedule": "0 23 */2 * *"
+    },
+    {
+      "path": "/api/anime/indexer/start?status=NOT_YET_RELEASED",
+      "schedule": "0 23 * * 0"
+    }
+  ]
+}

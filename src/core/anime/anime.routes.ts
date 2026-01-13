@@ -16,7 +16,10 @@ const animeRoute = () => {
               message: await AnimeIndexer.start(query.delay)
             }),
           {
-            query: t.Object({ delay: t.Optional(t.Number({ default: 5 })) }),
+            query: t.Object({
+              delay: t.Optional(t.Number({ default: 5 })),
+              status: t.Optional(t.String({ description: 'Anime status from anilist' }))
+            }),
             detail: {
               summary: 'Start Indexer',
               description: 'Starts indexing animes'
@@ -68,8 +71,58 @@ const animeRoute = () => {
           {
             detail: {
               summary: 'Process Update',
-              description:
-                'Not really necessary, just a way to manually process the update queue, scheduler does it as well'
+              description: 'Process items in update queue'
+            }
+          }
+        )
+
+        .put(
+          '/update/recent',
+          () => {
+            AnimeUpdate.queueRecentAnime().catch((error) => {
+              logger.error('Error queuing:', error);
+            });
+
+            return createSuccessResponse({ message: 'Queuing' });
+          },
+          {
+            detail: {
+              summary: 'Update Recent',
+              description: 'Updates recent aired anime (2 hours +-)'
+            }
+          }
+        )
+
+        .put(
+          '/update/today',
+          () => {
+            AnimeUpdate.queueTodayAnime().catch((error) => {
+              logger.error('Error queuing:', error);
+            });
+
+            return createSuccessResponse({ message: 'Queuing' });
+          },
+          {
+            detail: {
+              summary: 'Update Today',
+              description: 'Updates today aired anime'
+            }
+          }
+        )
+
+        .put(
+          '/update/two-days-ago',
+          () => {
+            AnimeUpdate.queueTwoDaysAgoAnime().catch((error) => {
+              logger.error('Error queuing:', error);
+            });
+
+            return createSuccessResponse({ message: 'Queuing' });
+          },
+          {
+            detail: {
+              summary: 'Update Two Days Ago',
+              description: 'Updates 2 days ago aired anime'
             }
           }
         )

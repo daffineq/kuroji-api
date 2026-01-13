@@ -1,5 +1,5 @@
 class Lock {
-  private locks: Set<'indexer' | 'update'> = new Set();
+  private locks: Set<string> = new Set();
 
   acquire(name: 'indexer' | 'update'): boolean {
     if (this.locks.has(name)) return false;

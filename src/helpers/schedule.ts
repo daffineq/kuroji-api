@@ -1,3 +1,4 @@
+import { Config } from 'src/config/config';
 import { CLASS_SCHEDULES, GLOBAL_SCHEDULES } from './global';
 import logger from './logger';
 import {
@@ -127,6 +128,11 @@ function EnableSchedule<T extends new (...args: any[]) => any>(constructor: T): 
   return class extends constructor {
     constructor(...args: any[]) {
       super(...args);
+
+      // Vercel doesnt support setInterval :(
+      if (Config.vercel) {
+        return;
+      }
 
       const schedules = CLASS_SCHEDULES.classes.get(constructor.prototype);
       if (schedules) {

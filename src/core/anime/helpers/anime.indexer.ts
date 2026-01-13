@@ -71,7 +71,7 @@ class AnimeIndexerModule extends Module {
     }
   }
 
-  public async start(delay: number = 5): Promise<string> {
+  public async start(delay: number = 5, status?: string): Promise<string> {
     if (!lock.acquire('indexer')) {
       logger.log('Indexer already running, skipping new run.');
       return 'Indexer already running, skipping new run.';
@@ -80,7 +80,7 @@ class AnimeIndexerModule extends Module {
     this.delay = delay;
 
     logger.log('Starting indexing...');
-    this.index().catch((err) => {
+    this.index({ status }).catch((err) => {
       logger.error('Error during indexing:', err);
     });
     return `Indexing started, estimated time: ${await this.calculateEstimatedTime()}`;
@@ -92,10 +92,10 @@ class AnimeIndexerModule extends Module {
     return 'Indexing stopped';
   }
 
-  public reset(): string {
+  public reset(status?: string): string {
     logger.log('Indexer had been reseted');
     lock.release('indexer');
-    this.setLastFetchedPage(1);
+    this.setLastFetchedPage(1, status);
     return 'Reseted indexer';
   }
 

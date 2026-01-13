@@ -59,3 +59,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 bun.lock
 
 *src/prisma
+.vercel
