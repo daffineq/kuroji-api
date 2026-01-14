@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Checkouts repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Conventional changelog action
         id: changelog
