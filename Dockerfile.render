@@ -11,11 +11,6 @@ COPY . .
 RUN bun install
 
 CMD sh -c "
-  if [ -z \"$DATABASE_URL\" ]; then
-    echo 'DATABASE_URL is not set!'
-    exit 1
-  fi
-
   echo 'Running migrations...'
   bun db:migrate
 
