@@ -10,10 +10,4 @@ COPY . .
 
 RUN bun install
 
-CMD sh -c "
-  echo 'Running migrations...'
-  bun db:migrate
-
-  echo 'Starting app...'
-  bun run prod
-"
+CMD ["sh", "-c", "echo 'Running migrations...' && bun db:migrate && echo 'Starting app...' && bun run prod"]
