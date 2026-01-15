@@ -10,6 +10,15 @@ COPY . .
 
 RUN bun install
 
-RUN bun db:migrate
+CMD sh -c "
+  if [ -z \"$DATABASE_URL\" ]; then
+    echo 'DATABASE_URL is not set!'
+    exit 1
+  fi
 
-RUN bun prod
+  echo 'Running migrations...'
+  bun db:migrate
+
+  echo 'Starting app...'
+  bun run prod
+"
