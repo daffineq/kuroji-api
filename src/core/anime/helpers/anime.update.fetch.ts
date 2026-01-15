@@ -15,13 +15,6 @@ const POPULARITY_THRESHOLDS = {
 class AnimeUpdateFetchModule extends Module {
   override readonly name = 'AnimeUpdateFetch';
 
-  getPopularityPriority(popularity: number | null): QueueItem['priority'] {
-    if (!popularity || popularity < 0) return 'low';
-    if (popularity >= POPULARITY_THRESHOLDS.HIGH) return 'high';
-    if (popularity >= POPULARITY_THRESHOLDS.MEDIUM) return 'medium';
-    return 'low';
-  }
-
   shouldUpdateBasedOnPopularity(popularity: number | null): boolean {
     if (!popularity || popularity < 0) return false;
     return popularity >= POPULARITY_THRESHOLDS.TRASH;

@@ -9,5 +9,3 @@ RUN apk add --no-cache git netcat-openbsd
 COPY . .
 
 RUN bun install
-
-CMD ["sh", "./entrypoint.sh"]

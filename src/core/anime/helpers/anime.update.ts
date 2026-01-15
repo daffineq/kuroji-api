@@ -7,28 +7,15 @@ import { AnimeUpdateFetch } from './anime.update.fetch';
 import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';
 import { db, updateQueue } from 'src/db';
-import { count, eq, lt } from 'drizzle-orm';
+import { count, eq, lt, sql } from 'drizzle-orm';
 
 export interface QueueItem {
   animeId: number;
   malId: number | null | undefined;
-  priority: 'high' | 'medium' | 'low';
   addedAt: number;
-  reason:
-    | 'recent'
-    | 'today'
-    | 'two_days_ago'
-    | 'three_days_ago'
-    | 'week_ago'
-    | 'missed'
-    | 'finished_monthly'
-    | 'upcoming_weekly'
-    | 'status_change'
-    | 'retry';
 }
 
 const SLEEP_BETWEEN_UPDATES = 10;
-const MAX_QUEUE_SIZE = 1000;
 
 @EnableSchedule
 class AnimeUpdateModule extends Module {
@@ -43,11 +30,7 @@ class AnimeUpdateModule extends Module {
     }
   }
 
-  private async addToQueue(
-    anime: { id: number; id_mal: number | null | undefined },
-    priority: QueueItem['priority'],
-    reason: QueueItem['reason']
-  ) {
+  private async addToQueue(anime: { id: number; id_mal: number | null | undefined }) {
     try {
       const existing = await db.query.updateQueue.findFirst({
         where: {
@@ -55,49 +38,20 @@ class AnimeUpdateModule extends Module {
         }
       });
 
-      if (
-        existing &&
-        this.getReasonWeight(reason) > this.getReasonWeight(existing.reason as QueueItem['reason'])
-      ) {
-        await db
-          .update(updateQueue)
-          .set({
-            priority,
-            reason,
-            added_at: new Date(),
-            updated_at: new Date()
-          })
-          .where(eq(updateQueue.anime_id, anime.id));
-      } else if (
-        existing &&
-        this.getReasonWeight(reason) === this.getReasonWeight(existing.reason as QueueItem['reason']) &&
-        this.getPriorityWeight(priority) > this.getPriorityWeight(existing.priority as QueueItem['priority'])
-      ) {
-        await db
-          .update(updateQueue)
-          .set({
-            priority,
-            added_at: new Date(),
-            updated_at: new Date()
-          })
-          .where(eq(updateQueue.anime_id, anime.id));
-      } else if (!existing) {
-        const queueCount = (await db.select({ count: count() }).from(updateQueue))[0]?.count ?? 0;
-        if (queueCount < MAX_QUEUE_SIZE) {
-          await db
-            .insert(updateQueue)
-            .values({
-              anime_id: anime.id,
-              mal_id: anime.id_mal ?? null,
-              priority,
-              reason,
-              added_at: new Date()
-            })
-            .onConflictDoNothing({ target: updateQueue.anime_id });
-        } else {
-          logger.warn(`Queue is full (${MAX_QUEUE_SIZE}), dropping anime ${anime.id}`);
-        }
-      }
+      await db
+        .insert(updateQueue)
+        .values({
+          anime_id: anime.id,
+          mal_id: anime.id_mal,
+          added_at: new Date(),
+          updated_at: new Date()
+        })
+        .onConflictDoUpdate({
+          target: updateQueue.anime_id,
+          set: {
+            updated_at: sql`excluded.updated_at`
+          }
+        });
     } catch (e) {
       logger.error(`Failed to add anime ${anime.id} to queue:`, e);
     }
@@ -133,72 +87,22 @@ class AnimeUpdateModule extends Module {
     }
   }
 
-  private getPriorityWeight(priority: QueueItem['priority']): number {
-    switch (priority) {
-      case 'high':
-        return 3;
-      case 'medium':
-        return 2;
-      case 'low':
-        return 1;
-      default:
-        return 0;
-    }
-  }
-
-  private getReasonWeight(reason: QueueItem['reason']): number {
-    switch (reason) {
-      case 'recent':
-        return 7; // Highest priority - just aired within hours
-      case 'today':
-        return 6; // High priority - aired today
-      case 'upcoming_weekly':
-        return 5; // Weekly upcoming anime updates
-      case 'status_change':
-        return 4; // Status changes (released, finished, etc.)
-      case 'week_ago':
-        return 3; // Medium priority - aired a week ago
-      case 'finished_monthly':
-        return 2; // Monthly finished anime updates
-      case 'missed':
-        return 1; // Low priority - failed updates or manual additions
-      default:
-        return 0;
-    }
-  }
-
   private async getNextFromQueue(): Promise<QueueItem | null> {
     try {
-      const queueItems = await db.query.updateQueue.findMany({
-        orderBy: (updateQueue, { desc, asc }) => [desc(updateQueue.priority), asc(updateQueue.added_at)]
+      const next = await db.query.updateQueue.findFirst({
+        orderBy: {
+          updated_at: 'desc'
+        }
       });
 
-      if (queueItems.length === 0) return null;
-
-      const sorted = queueItems.sort((a, b) => {
-        const reasonDiff =
-          this.getReasonWeight(b.reason as QueueItem['reason']) -
-          this.getReasonWeight(a.reason as QueueItem['reason']);
-        if (reasonDiff !== 0) return reasonDiff;
-
-        const priorityDiff =
-          this.getPriorityWeight(b.priority as QueueItem['priority']) -
-          this.getPriorityWeight(a.priority as QueueItem['priority']);
-        if (priorityDiff !== 0) return priorityDiff;
-
-        return a.added_at.getTime() - b.added_at.getTime();
-      });
-
-      const next = sorted[0];
-
-      if (!next) return null;
+      if (!next) {
+        return null;
+      }
 
       return {
         animeId: next.anime_id,
         malId: next.mal_id ?? undefined,
-        priority: next.priority as QueueItem['priority'],
-        addedAt: next.added_at.getTime(),
-        reason: next.reason as QueueItem['reason']
+        addedAt: next.added_at.getTime()
       };
     } catch (e) {
       logger.error('Failed to get next queue item:', e);
@@ -216,7 +120,7 @@ class AnimeUpdateModule extends Module {
     }
 
     for (const anime of recentAnime) {
-      await this.addToQueue(anime, 'high', 'recent');
+      await this.addToQueue(anime);
     }
   }
 
@@ -225,7 +129,7 @@ class AnimeUpdateModule extends Module {
     logger.log(`Adding ${todayAnime.length} today aired anime to queue`);
 
     for (const anime of todayAnime) {
-      await this.addToQueue(anime, 'high', 'today');
+      await this.addToQueue(anime);
     }
   }
 
@@ -234,7 +138,7 @@ class AnimeUpdateModule extends Module {
     logger.log(`Adding ${weekAgoAnime.length} last week aired anime to queue`);
 
     for (const anime of weekAgoAnime) {
-      await this.addToQueue(anime, 'medium', 'week_ago');
+      await this.addToQueue(anime);
     }
   }
 
@@ -243,7 +147,7 @@ class AnimeUpdateModule extends Module {
     logger.log(`Adding ${twoDaysAgoAnime.length} two days ago aired anime to queue`);
 
     for (const anime of twoDaysAgoAnime) {
-      await this.addToQueue(anime, 'medium', 'two_days_ago');
+      await this.addToQueue(anime);
     }
   }
 
@@ -252,7 +156,7 @@ class AnimeUpdateModule extends Module {
     logger.log(`Adding ${threeDaysAgoAnime.length} three days ago aired anime to queue`);
 
     for (const anime of threeDaysAgoAnime) {
-      await this.addToQueue(anime, 'medium', 'three_days_ago');
+      await this.addToQueue(anime);
     }
   }
 
@@ -280,9 +184,7 @@ class AnimeUpdateModule extends Module {
         const queueItem = await this.getNextFromQueue();
         if (!queueItem) break;
 
-        logger.log(
-          `Processing anime ID ${queueItem.animeId} (${queueItem.reason}, ${queueItem.priority} priority)`
-        );
+        logger.log(`Processing anime ID ${queueItem.animeId})`);
 
         const success = await this.processQueueItem(queueItem);
         if (success) {

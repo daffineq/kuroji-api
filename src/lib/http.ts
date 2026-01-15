@@ -376,7 +376,8 @@ export class KurojiClient {
             const retryAfter = Number.parseInt(err.response.headers.get('retry-after') || '60');
             response.isOnRateLimit = true;
             logger.warn(
-              `[429] Rate limit hit. Sleeping for ${retryAfter === 0 ? 60 : retryAfter}s and retrying... [${this.baseUrl}${url}]`
+              `[429] Rate limit hit. Sleeping for ${retryAfter === 0 ? 60 : retryAfter}s and retrying... [${this.baseUrl}${url}]`,
+              err.response.json()
             );
             await sleep(retryAfter * 1000);
             attempt++;

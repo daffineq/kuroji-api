@@ -4,7 +4,7 @@ services:
     container_name: postgres
     restart: always
     environment:
-      POSTGRES_USER: prisma
+      POSTGRES_USER: drizzle
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: kuroji
     volumes:
@@ -26,12 +26,23 @@ services:
       - .env
     environment:
       - REDIS_URL=redis://:@redis:6379
-      - DATABASE_URL=postgresql://prisma:postgres@postgres:5432/kuroji
+      - DATABASE_URL=postgresql://drizzle:postgres@postgres:5432/kuroji
     ports:
       - '${PORT:-3000}:${PORT:-3000}'
     depends_on:
       - postgres
       - redis
+    command: >
+      sh -c "
+        echo 'Waiting for Postgres...';
+        until nc -z postgres 5432; do sleep 1; done;
+        echo 'Postgres ready!';
+        echo 'Waiting for Redis...';
+        until nc -z redis 6379; do sleep 1; done;
+        echo 'Redis ready!';
+        bun db:migrate;
+        bun run prod
+      "
 
 volumes:
   postgres_data:
