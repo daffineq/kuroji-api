@@ -1,24 +1,10 @@
 import { DateUtils } from 'src/helpers/date';
-import { QueueItem } from './anime.update';
 import logger from 'src/helpers/logger';
 import { Module } from 'src/helpers/module';
-import { db, anime, animeAiringSchedule, animeStartDate } from 'src/db';
-import { eq, gte, lte, and, sql } from 'drizzle-orm';
-
-const POPULARITY_THRESHOLDS = {
-  HIGH: 100 * 1000,
-  MEDIUM: 30 * 1000,
-  LOW: 10 * 1000,
-  TRASH: 3 * 1000
-};
+import { db } from 'src/db';
 
 class AnimeUpdateFetchModule extends Module {
   override readonly name = 'AnimeUpdateFetch';
-
-  shouldUpdateBasedOnPopularity(popularity: number | null): boolean {
-    if (!popularity || popularity < 0) return false;
-    return popularity >= POPULARITY_THRESHOLDS.TRASH;
-  }
 
   validateOffset(offset: number): number {
     if (offset < 0) {
