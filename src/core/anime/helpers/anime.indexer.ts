@@ -1,7 +1,7 @@
 import lock from 'src/helpers/lock';
 import { sleep } from 'bun';
 import logger from 'src/helpers/logger';
-import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
+import { EnableSchedule, Scheduled, Schedule } from 'src/helpers/schedule';
 import { Config } from 'src/config/config';
 import { AnilistFetch } from '../providers';
 import { Anime } from '../anime';
@@ -99,9 +99,7 @@ class AnimeIndexerModule extends Module {
     return 'Reseted indexer';
   }
 
-  @Scheduled({
-    strategies: [ScheduleStrategies.EVERY_OTHER_WEEK]
-  })
+  @Scheduled(Schedule.everyOtherWeek())
   async scheduleIndex() {
     if (!Config.anime_indexer_update_enabled) {
       logger.log('Anime indexer updates disabled. Skipping scheduled indexing.');
@@ -111,9 +109,7 @@ class AnimeIndexerModule extends Module {
     await this.index();
   }
 
-  @Scheduled({
-    strategies: [ScheduleStrategies.EVERY_OTHER_DAY, ScheduleStrategies.EVERY_DAY_23]
-  })
+  @Scheduled(Schedule.everyOtherDay())
   async scheduleIndexReleasing() {
     if (!Config.anime_indexer_update_enabled) {
       logger.log('Anime indexer updates disabled. Skipping scheduled releasing indexing.');
@@ -123,9 +119,7 @@ class AnimeIndexerModule extends Module {
     await this.index({ status: 'RELEASING' });
   }
 
-  @Scheduled({
-    strategies: [ScheduleStrategies.EVERY_WEEK, ScheduleStrategies.EVERY_DAY_23]
-  })
+  @Scheduled(Schedule.weeklyOn(0))
   async scheduleIndexUpcoming() {
     if (!Config.anime_indexer_update_enabled) {
       logger.log('Anime indexer updates disabled. Skipping scheduled upcoming indexing.');

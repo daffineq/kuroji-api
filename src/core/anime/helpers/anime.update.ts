@@ -2,7 +2,7 @@ import logger from 'src/helpers/logger';
 import { sleep } from 'bun';
 import { Config } from 'src/config/config';
 import lock from 'src/helpers/lock';
-import { EnableSchedule, Scheduled, ScheduleStrategies } from 'src/helpers/schedule';
+import { EnableSchedule, Scheduled, Schedule } from 'src/helpers/schedule';
 import { AnimeUpdateFetch } from './anime.update.fetch';
 import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';
@@ -220,30 +220,22 @@ class AnimeUpdateModule extends Module {
     return success;
   }
 
-  @Scheduled({
-    strategies: [ScheduleStrategies.EVERY_30_MINUTES]
-  })
+  @Scheduled(Schedule.every30Minutes())
   async scheduleProcessQueue() {
     await this.processQueue();
   }
 
-  @Scheduled({
-    strategies: [ScheduleStrategies.EVERY_HOUR]
-  })
+  @Scheduled(Schedule.everyHour())
   async scheduleRecentAnime() {
     await this.queueRecentAnime();
   }
 
-  @Scheduled({
-    strategies: [ScheduleStrategies.EVERY_6_HOURS]
-  })
+  @Scheduled(Schedule.every6Hours())
   async scheduleTodayAnime() {
     await this.queueTodayAnime();
   }
 
-  @Scheduled({
-    strategies: [ScheduleStrategies.EVERY_12_HOURS]
-  })
+  @Scheduled(Schedule.every12Hours())
   async scheduleTwoDaysAgoAnime() {
     await this.queueTwoDaysAgoAnime();
   }

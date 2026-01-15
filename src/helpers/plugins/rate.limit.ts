@@ -1,8 +1,8 @@
-import redis from 'src/lib/redis';
 import { ForbiddenError, RateLimitExceededError } from '../errors';
 import { Config } from 'src/config/config';
 import { ApiKeys } from 'src/core';
 import Elysia from 'elysia';
+import { Redis } from '../redis.util';
 
 const rateLimit = (limit: number, windowSec: number, skip: (request: Request) => boolean) => {
   return (app: Elysia) =>
@@ -32,13 +32,13 @@ const rateLimit = (limit: number, windowSec: number, skip: (request: Request) =>
       const key = `ratelimit:${ip}`;
       const ttlKey = `${key}:ttl`;
 
-      const count = await redis.incr(key);
+      const count = await Redis.incr(key);
       if (count === 1) {
-        await redis.expire(key, windowSec);
-        await redis.set(ttlKey, Date.now() + windowSec * 1000, 'EX', windowSec);
+        await Redis.expire(key, windowSec);
+        await Redis.set(ttlKey, Date.now() + windowSec * 1000, windowSec);
       }
 
-      const ttlMs = await redis.get(ttlKey);
+      const ttlMs = await Redis.get(ttlKey);
       const reset = ttlMs ? Number(ttlMs) : Date.now() + windowSec * 1000;
       const remaining = Math.max(0, limit - count);
 

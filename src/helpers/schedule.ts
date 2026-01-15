@@ -1,111 +1,102 @@
 import { Config } from 'src/config/config';
 import { CLASS_SCHEDULES, GLOBAL_SCHEDULES } from './global';
 import logger from './logger';
-import {
-  hoursToMilliseconds,
-  minutesToMilliseconds,
-  monthsSinceEpoch,
-  secondsToMilliseconds,
-  weeksSinceEpoch
-} from './time';
 
-type ScheduleStrategyConfig = Partial<Omit<ScheduleOptions, 'strategies'>>;
-
-const ScheduleStrategies = {
-  EVERY_MINUTE: { everyMs: minutesToMilliseconds(1) },
-  EVERY_5_MINUTES: { everyMs: minutesToMilliseconds(5) },
-  EVERY_15_MINUTES: { everyMs: minutesToMilliseconds(15) },
-  EVERY_30_MINUTES: { everyMs: minutesToMilliseconds(30) },
-
-  EVERY_HOUR: { everyMs: hoursToMilliseconds(1) },
-  EVERY_2_HOURS: { everyMs: hoursToMilliseconds(2) },
-  EVERY_6_HOURS: { everyMs: hoursToMilliseconds(6) },
-  EVERY_12_HOURS: { everyMs: hoursToMilliseconds(12) },
-
-  EVERY_DAY_MIDNIGHT: {
-    hour: 0,
-    minute: 0,
-    delay: minutesToMilliseconds(1)
+const Schedule = {
+  everyMinute(): ScheduleOptions {
+    return {};
   },
 
-  EVERY_DAY_23: {
-    hour: 23,
-    minute: 0,
-    delay: minutesToMilliseconds(10)
+  every5Minutes(): ScheduleOptions {
+    return { minute: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55] };
   },
 
-  EVERY_OTHER_DAY: {
-    days: [1, 3, 5],
-    delay: minutesToMilliseconds(30)
+  every15Minutes(): ScheduleOptions {
+    return { minute: [0, 15, 30, 45] };
   },
 
-  WEEKDAYS: {
-    days: [1, 2, 3, 4, 5],
-    delay: minutesToMilliseconds(30)
+  every30Minutes(): ScheduleOptions {
+    return { minute: [0, 30] };
   },
 
-  WEEKENDS: {
-    days: [0, 6],
-    delay: minutesToMilliseconds(30)
+  everyHour(): ScheduleOptions {
+    return {
+      hour: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+      minute: [0]
+    };
   },
 
-  EVERY_WEEK: {
-    days: [1],
-    delay: hoursToMilliseconds(1)
+  every6Hours(): ScheduleOptions {
+    return {
+      hour: [0, 6, 12, 18],
+      minute: [0]
+    };
   },
 
-  EVERY_OTHER_WEEK: {
-    delay: hoursToMilliseconds(1),
-    shouldRun: (now) => weeksSinceEpoch(now) % 2 === 0 && now.getDay() === 1 && now.getHours() === 0
+  every12Hours(): ScheduleOptions {
+    return {
+      hour: [0, 12],
+      minute: [0]
+    };
   },
 
-  EVERY_MONTH_START: {
-    delay: hoursToMilliseconds(1),
-    shouldRun: (now) => now.getDate() === 1 && now.getDay() === 1 && now.getHours() === 0
+  dailyAt(hour: number, minute = 0): ScheduleOptions {
+    return { hour: [hour], minute: [minute] };
   },
 
-  EVERY_OTHER_MONTH: {
-    delay: hoursToMilliseconds(1),
-    shouldRun: (now) =>
-      monthsSinceEpoch(now) % 2 === 0 && now.getDate() === 1 && now.getDay() === 1 && now.getHours() === 0
+  weekdaysAt(hour: number, minute = 0): ScheduleOptions {
+    return {
+      weekday: [1, 2, 3, 4, 5],
+      hour: [hour],
+      minute: [minute]
+    };
+  },
+
+  weeklyOn(day: number, hour = 0, minute = 0): ScheduleOptions {
+    return {
+      weekday: [day],
+      hour: [hour],
+      minute: [minute]
+    };
+  },
+
+  everyOtherDay(hour = 0, minute = 0): ScheduleOptions {
+    return {
+      weekday: [2, 4, 6],
+      hour: [hour],
+      minute: [minute]
+    };
+  },
+
+  everyOtherWeek(hour = 0, minute = 0): ScheduleOptions {
+    return {
+      day: [7, 21],
+      hour: [hour],
+      minute: [minute]
+    };
   }
-} as const satisfies Record<string, ScheduleStrategyConfig>;
-
-type ScheduleOptions = {
-  strategies?: ScheduleStrategyConfig[];
-  days?: number[]; // 0 = Sun ... 6 = Sat
-  hour?: number;
-  minute?: number;
-  everyMs?: number;
-  delay?: number;
-  shouldRun?: (now: Date, lastRun: number) => boolean;
 };
 
-function mergeStrategies(strategies?: ScheduleStrategyConfig[]): Partial<ScheduleOptions> {
-  if (!strategies?.length) return {};
-  const merged: Partial<ScheduleOptions> = {
-    days: [0, 1, 2, 3, 4, 5, 6],
-    delay: secondsToMilliseconds(1)
-  };
+type ScheduleField = number[] | '*';
 
-  for (const s of strategies) {
-    if (s.days) merged.days = s.days;
-    if (s.everyMs !== undefined) merged.everyMs = s.everyMs;
-    if (s.delay !== undefined) merged.delay = s.delay;
-    if (s.hour !== undefined) merged.hour = s.hour;
-    if (s.minute !== undefined) merged.minute = s.minute;
+type ScheduleOptions = {
+  minute?: ScheduleField;
+  hour?: ScheduleField;
+  day?: ScheduleField;
+  month?: ScheduleField;
+  weekday?: ScheduleField;
+};
 
-    if (s.shouldRun) {
-      const prev = merged.shouldRun;
-      merged.shouldRun = prev ? (now, lastRun) => prev(now, lastRun) || s.shouldRun!(now, lastRun) : s.shouldRun;
-    }
-  }
-
-  return merged;
+function fieldMatch(value: number, rule?: ScheduleField) {
+  return !rule || rule === '*' || rule.includes(value);
 }
 
-function Scheduled(options: ScheduleOptions) {
+function Scheduled(options: ScheduleOptions, enabled: boolean = true) {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    if (!enabled) {
+      return;
+    }
+
     const original = descriptor.value;
     const id = `${target.constructor.name}.${propertyKey}`;
 
@@ -129,7 +120,6 @@ function EnableSchedule<T extends new (...args: any[]) => any>(constructor: T): 
     constructor(...args: any[]) {
       super(...args);
 
-      // Vercel doesnt support setInterval :(
       if (Config.vercel) {
         return;
       }
@@ -137,61 +127,42 @@ function EnableSchedule<T extends new (...args: any[]) => any>(constructor: T): 
       const schedules = CLASS_SCHEDULES.classes.get(constructor.prototype);
       if (schedules) {
         for (const { method, options } of schedules) {
-          const merged = { ...mergeStrategies(options.strategies), ...options };
+          const { minute, hour, day, month, weekday } = options as ScheduleOptions;
 
-          const {
-            days = [0, 1, 2, 3, 4, 5, 6],
-            hour,
-            minute,
-            everyMs,
-            delay = secondsToMilliseconds(1),
-            shouldRun
-          } = merged;
-
-          let lastRun = new Date().getTime();
+          const lastRun = { minute: -1, hour: -1, day: -1 };
 
           setInterval(async () => {
             const now = new Date();
-            const day = now.getDay();
-            const currentTime = now.getTime();
+            const currentMinute = now.getMinutes();
+            const currentHour = now.getHours();
+            const currentDay = now.getDate();
 
-            const target = new Date();
-            if (hour !== undefined || minute !== undefined) {
-              if (hour !== undefined) target.setHours(hour);
-              if (minute !== undefined) target.setMinutes(minute);
-              target.setSeconds(0);
-              target.setMilliseconds(0);
-            }
+            const shouldRun =
+              fieldMatch(currentMinute, minute) &&
+              fieldMatch(currentHour, hour) &&
+              fieldMatch(currentDay, day) &&
+              fieldMatch(now.getMonth() + 1, month) &&
+              fieldMatch(now.getDay(), weekday);
 
-            if (!days.includes(day)) return;
+            const alreadyRan =
+              lastRun.minute === currentMinute && lastRun.hour === currentHour && lastRun.day === currentDay;
 
-            let run = false;
+            if (shouldRun && !alreadyRan) {
+              lastRun.minute = currentMinute;
+              lastRun.hour = currentHour;
+              lastRun.day = currentDay;
 
-            if (shouldRun) {
-              run = shouldRun(now, lastRun);
-            } else if (everyMs) {
-              run = currentTime - lastRun >= everyMs;
-            } else if (
-              currentTime > target.getTime() &&
-              lastRun < target.getTime() &&
-              (hour !== undefined || minute !== undefined)
-            ) {
-              run = true;
-            }
-
-            if (run) {
-              lastRun = currentTime;
               try {
                 await method.call(this);
               } catch (err) {
                 logger.error(`Scheduled method failed:`, err);
               }
             }
-          }, delay);
+          }, 5000);
         }
       }
     }
   };
 }
 
-export { EnableSchedule, Scheduled, ScheduleStrategies, type ScheduleOptions };
+export { EnableSchedule, Scheduled, Schedule, type ScheduleOptions };

@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+import './helpers/self.poll';
+
 import { createErrorResponse, createSuccessResponse } from './helpers/response';
 import { HttpError } from './helpers/errors';
 import { Config } from './config/config';

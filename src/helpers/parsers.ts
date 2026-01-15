@@ -20,11 +20,25 @@ const parseNumber = (value: unknown): number | undefined => {
 };
 
 const parseBoolean = (value: unknown): boolean | undefined => {
-  if (value == null) {
+  if (value == null || value === undefined) {
     return undefined;
   }
-  const boolean_ = Boolean(value);
-  return boolean_ === true || boolean_ === false ? boolean_ : undefined;
+
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  const stringValue = String(value).toLowerCase().trim();
+
+  if (stringValue === 'true' || stringValue === '1' || stringValue === 'yes') {
+    return true;
+  }
+
+  if (stringValue === 'false' || stringValue === '0' || stringValue === 'no' || stringValue === '') {
+    return false;
+  }
+
+  return undefined;
 };
 
 const parseReleaseDate = (date: { year: number; month: number; day: number }): ReleaseDate => {
