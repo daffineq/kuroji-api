@@ -12,20 +12,20 @@ type Query {
     id_mal_in: [Int!]
     id_mal_not: Int
     id_mal_not_in: [Int!]
-    season: String
+    season: MediaSeason
     season_year: Int
     season_year_greater: Int
     season_year_lesser: Int
-    format: String
-    format_in: [String!]
-    format_not_in: [String!]
-    status: String
-    status_in: [String!]
-    status_not_in: [String!]
-    type: String
-    source: String
-    source_in: [String!]
-    country_of_origin: String
+    format: MediaFormat
+    format_in: [MediaFormat!]
+    format_not_in: [MediaFormat!]
+    status: MediaStatus
+    status_in: [MediaStatus!]
+    status_not_in: [MediaStatus!]
+    type: MediaType
+    source: MediaSource
+    source_in: [MediaSource!]
+    country_of_origin: CountryCode
     is_licensed: Boolean
     is_adult: Boolean
     genres: [String!]
@@ -75,20 +75,20 @@ type Query {
     id_mal_in: [Int!]
     id_mal_not: Int
     id_mal_not_in: [Int!]
-    season: String
+    season: MediaSeason
     season_year: Int
     season_year_greater: Int
     season_year_lesser: Int
-    format: String
-    format_in: [String!]
-    format_not_in: [String!]
-    status: String
-    status_in: [String!]
-    status_not_in: [String!]
-    type: String
-    source: String
-    source_in: [String!]
-    country_of_origin: String
+    format: MediaFormat
+    format_in: [MediaFormat!]
+    format_not_in: [MediaFormat!]
+    status: MediaStatus
+    status_in: [MediaStatus!]
+    status_not_in: [MediaStatus!]
+    type: MediaType
+    source: MediaSource
+    source_in: [MediaSource!]
+    country_of_origin: CountryCode
     is_licensed: Boolean
     is_adult: Boolean
     genres: [String!]
@@ -192,6 +192,87 @@ enum AnimeSort {
   STATUS_DESC
 }
 
+enum MediaType {
+  ANIME
+  MANGA
+}
+
+enum MediaFormat {
+  TV
+  TV_SHORT
+  MOVIE
+  SPECIAL
+  OVA
+  ONA
+  MUSIC
+  MANGA
+  NOVEL
+  ONE_SHOT
+}
+
+enum MediaStatus {
+  FINISHED
+  RELEASING
+  NOT_YET_RELEASED
+  CANCELLED
+  HIATUS
+}
+
+enum MediaSeason {
+  WINTER
+  SPRING
+  SUMMER
+  FALL
+}
+
+enum MediaSource {
+  ORIGINAL
+  MANGA
+  LIGHT_NOVEL
+  VISUAL_NOVEL
+  VIDEO_GAME
+  OTHER
+  NOVEL
+  DOUJINSHI
+  ANIME
+  WEB_NOVEL
+  LIVE_ACTION
+  GAME
+  COMIC
+  MULTIMEDIA_PROJECT
+  PICTURE_BOOK
+}
+
+enum CharacterRole {
+  MAIN
+  SUPPORTING
+  BACKGROUND
+}
+
+enum MediaRelation {
+  ADAPTATION
+  PREQUEL
+  SEQUEL
+  PARENT
+  SIDE_STORY
+  CHARACTER
+  SUMMARY
+  ALTERNATIVE
+  SPIN_OFF
+  OTHER
+  SOURCE
+  COMPILATION
+  CONTAINS
+}
+
+enum ExternalLinkType {
+  INFO
+  STREAMING
+  SOCIAL
+}
+
+scalar CountryCode
+
 type Anime {
   id: Int!
   id_mal: Int
@@ -200,19 +281,19 @@ type Anime {
   background: String
   synonyms: [String!]!
   description: String
-  status: String
-  type: String
-  format: String
+  status: MediaStatus
+  type: MediaType
+  format: MediaFormat
   updated_at: Int!
   start_date: AnimeDate
   end_date: AnimeDate
-  season: String
+  season: MediaSeason
   season_year: Int
   episodes: Int
   duration: Int
-  country_of_origin: String
+  country_of_origin: CountryCode
   is_licensed: Boolean
-  source: String
+  source: MediaSource
   hashtag: String
   is_adult: Boolean
   score: Int
@@ -267,7 +348,7 @@ type CharacterConnection {
 
 type CharacterEdge {
   id: Int!
-  role: String
+  role: CharacterRole
   character: AnimeCharacter!
   voice_actors: [VoiceActor!]!
 }
@@ -338,7 +419,7 @@ type ExternalLink {
   url: String
   site: String
   site_id: Int
-  type: String
+  type: ExternalLinkType
   language: String
   color: String
   icon: String
