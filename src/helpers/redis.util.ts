@@ -5,7 +5,7 @@ import { localStore } from './local.store';
 
 class RedisModule {
   async set(key: string, value: any, ttlSeconds: number = Config.redis_ttl) {
-    if (Config.caching_enabled) return;
+    if (!Config.caching_enabled) return;
 
     const data = typeof value === 'string' ? value : JSON.stringify(value);
 
@@ -22,7 +22,7 @@ class RedisModule {
   }
 
   async get<T = any>(key: string): Promise<T | null> {
-    if (Config.caching_enabled) return null;
+    if (!Config.caching_enabled) return null;
 
     let data: string | null = null;
 
@@ -42,7 +42,7 @@ class RedisModule {
   }
 
   async del(key: string) {
-    if (Config.caching_enabled) return;
+    if (!Config.caching_enabled) return;
 
     if (redis) {
       await redis.del(key);
@@ -52,7 +52,7 @@ class RedisModule {
   }
 
   async incr(key: string) {
-    if (Config.caching_enabled) return;
+    if (!Config.caching_enabled) return;
 
     if (redis) {
       return await redis.incr(key);
@@ -62,7 +62,7 @@ class RedisModule {
   }
 
   async expire(key: string, ttlSeconds: number) {
-    if (Config.caching_enabled) return;
+    if (!Config.caching_enabled) return;
 
     if (redis) {
       return await redis.expire(key, ttlSeconds);
@@ -72,7 +72,7 @@ class RedisModule {
   }
 
   async ttl(key: string) {
-    if (Config.caching_enabled) return;
+    if (!Config.caching_enabled) return;
 
     if (redis) {
       return await redis.ttl(key);

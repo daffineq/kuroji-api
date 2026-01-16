@@ -5,11 +5,9 @@ import Elysia from 'elysia';
 import { Redis } from '../redis.util';
 import { getApiKey } from '../utils';
 
-const rateLimit = (limit: number, windowSec: number, skip: (request: Request) => boolean) => {
+const rateLimit = (limit: number, windowSec: number) => {
   return (app: Elysia) =>
     app.onBeforeHandle(async ({ request, set }) => {
-      if (skip(request)) return;
-
       const apiKey = getApiKey(request);
 
       if (apiKey) {

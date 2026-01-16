@@ -34,16 +34,7 @@ const app = new Elysia()
       return Config.api_strategy === 'not_required';
     })
   )
-  .use(
-    rateLimit(Config.rate_limit, Config.rate_limit_ttl, (request) => {
-      const path = new URL(request.url).pathname;
-
-      if (Config.routes_whitelist.includes(path)) return true;
-      if (Config.routes_blacklist.includes(path)) return false;
-
-      return true;
-    })
-  )
+  .use(rateLimit(Config.rate_limit, Config.rate_limit_ttl))
   .use(
     swagger({
       path: '/docs',
