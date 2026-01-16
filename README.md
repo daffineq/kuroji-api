@@ -14,10 +14,35 @@
   <a href="#"><img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white" alt="TypeScript"></a>
   <a href="#"><img src="https://img.shields.io/badge/Bun-000000?style=flat&logo=bun&logoColor=white" alt="Bun"></a>
   <a href="#"><img src="https://img.shields.io/badge/Elysia-FD4F00?style=flat&logo=elysia&logoColor=white" alt="Elysia"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Prisma-3982CE?style=flat&logo=Prisma&logoColor=white" alt="Prisma"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Drizzle-C5F74F?style=flat&logo=drizzle&logoColor=black" alt="Drizzle"></a>
   <a href="#"><img src="https://img.shields.io/badge/GraphQL-E10098?style=flat&logo=graphql&logoColor=white" alt="GraphQL"></a>
   <a href="#"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
 </p>
+
+---
+
+## Try It Out - Public Demo Instance
+
+Want to test the API without setting anything up? I've got a demo instance running:
+
+**Base URL:** `https://kuroji-api-j4mh.onrender.com`
+
+**IMPORTANT - READ THIS:**
+- **Rate Limit:** 10 requests per minute (be respectful!)
+- **Purpose:** This is ONLY for testing and playing around
+- **NOT for production:** Don't build real apps on this instance
+- **Please be cool:** If you abuse it, I'll have to take it down for everyone
+
+**Quick Start:**
+```bash
+# Browse the docs
+open https://kuroji-api-j4mh.onrender.com/docs
+
+# Try GraphQL playground
+open https://kuroji-api-j4mh.onrender.com/graphql
+```
+
+**Want your own instance?** Follow the [Free Hosting](#free-hosting-) guide below to deploy your own!
 
 ---
 
@@ -80,11 +105,11 @@ bun install
 cp .env.example .env
 # Edit .env with your config (database, API keys, etc.)
 
-# Generate Prisma client
-bun run generate
+# Generate Drizzle types
+bun run db:generate
 
 # Run migrations
-bun run migrate
+bun run db:migrate
 ```
 
 ### Running the Server
@@ -395,15 +420,17 @@ Configure endpoints and API keys for:
 bun run dev              # Start with hot reload
 bun run prod             # Production mode
 
-# Database
-bun run migrate          # Deploy migrations
-bun run migrate:dev      # Create and apply new migration
-bun run reset            # Reset database (⚠️ destructive)
+# Database (Drizzle)
+bun run db:generate      # Generate migrations from schema
+bun run db:migrate       # Apply pending migrations
+bun run db:push          # Push schema changes directly (dev only)
+bun run db:pull          # Pull schema from database
+bun run db:up            # Check migration status
+bun run db:studio        # Open Drizzle Studio (database GUI)
 
-# Prisma
-bun run generate         # Generate Prisma client
-bun run merge            # Merge Prisma schemas
-bun run mrgn             # Merge and generate
+# Database Management
+bun run db:truncate      # Clear all data (keeps schema)
+bun run db:drop          # Drop all tables (⚠️ destructive)
 
 # Type checking
 bun run tsc              # Watch mode type checking
