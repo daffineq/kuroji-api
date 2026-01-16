@@ -100,6 +100,127 @@ Server runs at `http://localhost:3000` by default (or whatever PORT you set)
 
 ---
 
+## Free Hosting 🚀
+
+Want to host this for FREE? Here's the setup that actually works.
+
+### Hosting on Render (Recommended)
+
+After testing multiple free hosting platforms, Render is the most reliable option for this project.
+
+#### Prerequisites
+
+Before deploying to Render, you'll need a database and optionally Redis:
+
+**1. Database - Neon (Required)**
+- Sign up at [Neon](https://neon.tech)
+- Free tier includes 500MB PostgreSQL database (sufficient for most use cases)
+- Create a new project and copy your connection string
+- Format: `postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require`
+
+**2. Redis - Upstash (Optional)**
+- Create account at [Upstash](https://upstash.com)
+- Set up a new Redis database (free tier available)
+- Copy your connection URL
+- Format: `redis://default:password@xxx.upstash.io:6379`
+- Note: Redis is optional but recommended for better rate limiting and caching
+
+#### Deployment Steps
+
+1. **Create Render Account**
+   - Go to [Render](https://render.com) and sign up
+   - Connect your GitHub account
+
+2. **Create New Web Service**
+   - Click "New +" → "Web Service"
+   - Connect your Kuroji API repository
+   - Choose a service name
+
+3. **Configure Build Settings**
+   - **Environment:** Select `Docker`
+   - **Dockerfile Path:** `./Dockerfile.render` ⚠️ Important: Use the `.render` variant, not the standard Dockerfile
+   - **Region:** Choose closest to your location
+   - **Instance Type:** Free
+
+4. **Environment Variables**
+   
+   Click "Advanced" and add these environment variables:
+
+   **Required:**
+   ```
+   DATABASE_URL=your_neon_connection_string
+   PORT=3000
+   NODE_ENV=production
+   RENDER=true
+   ANIME_POPULARITY_THRESHOLD=3000
+   ```
+
+   **Recommended:**
+   ```
+   REDIS_URL=your_upstash_redis_url
+   CACHING_ENABLED=true
+   REDIS_TTL=900
+   RATE_LIMIT=100
+   RATE_LIMIT_TTL=60
+   ADMIN_KEY=create_a_secure_admin_key
+   API_KEY_STRATEGY=not_required
+   ```
+
+   **Optional API Keys:**
+   ```
+   TMDB_API_KEY=your_tmdb_key
+   TVDB_API_KEY=your_tvdb_key
+   CRYSOLINE_API_KEY=your_crysoline_key
+   ```
+
+   See the `.env.example` file in the repository for complete configuration options.
+
+5. **Deploy**
+   - Click "Create Web Service"
+   - Initial build takes 5-10 minutes
+   - You'll receive a URL: `https://your-service-name.onrender.com`
+
+#### Post-Deployment Setup
+
+After successful deployment, initialize your anime database:
+
+```bash
+# Start the indexer (use your Render URL)
+curl -X POST "https://your-service-name.onrender.com/api/anime/indexer/start?delay=5"
+
+# Access documentation at
+https://your-service-name.onrender.com/docs
+
+# GraphQL playground at
+https://your-service-name.onrender.com/graphql
+```
+
+### Important Considerations
+
+- **Free Tier Limitations:** Services spin down after 15 minutes of inactivity. First request after spindown takes 30-60 seconds to wake up. Setting `RENDER=true` enables self-polling to keep the service active.
+- **Build Timeouts:** If builds timeout, try deploying during off-peak hours
+- **Database Limits:** Monitor Neon's 500MB limit. Adjust `ANIME_POPULARITY_THRESHOLD` higher (e.g., 3000-5000) to index fewer anime and stay within limits
+- **Memory Constraints:** Free tier provides 512MB RAM. Set `ANIME_POPULARITY_THRESHOLD` appropriately to avoid memory issues
+
+### Troubleshooting
+
+**Build Failures:**
+- Verify you selected `./Dockerfile.render` (not `Dockerfile`)
+- Confirm `DATABASE_URL` is correctly formatted
+- Check Render build logs for specific errors
+
+**Runtime Crashes:**
+- Review application logs in Render dashboard
+- Verify all required environment variables are set
+- Ensure `DATABASE_URL` is accessible from Render
+
+**Slow Indexing:**
+- Expected on free tier due to resource constraints
+- Increase `delay` parameter (e.g., `delay=10`) to reduce rate limiting
+- Consider higher `ANIME_POPULARITY_THRESHOLD` to index fewer anime
+
+---
+
 ## How It Works
 
 ### Step 1: Index Your Anime 📚
@@ -209,7 +330,41 @@ Check out the interactive documentation for all available endpoints:
 
 ## Configuration
 
-Check `.env.example` for all available settings
+Check `.env.example` for all available settings. Key configuration options:
+
+### App Settings
+- `PORT` - Server port (default: 3000)
+- `PUBLIC_URL` - Public API URL for external access
+- `CORS` - Allowed origins (comma-separated or `*` for all)
+
+### Indexing & Updates
+- `ANIME_POPULARITY_THRESHOLD` - Skip anime below this popularity count (default: 1500)
+- `ANIME_UPDATE_ENABLED` - Enable automatic anime updates
+- `ANIME_INDEXER_UPDATE_ENABLED` - Enable indexer updates
+
+### External APIs
+Configure endpoints and API keys for:
+- AniList, Shikimori, Kitsu, TMDB, TVDB, Crysoline API
+- Most services work without API keys, but keys provide higher rate limits
+
+### Security & Rate Limiting
+- `API_KEY_STRATEGY` - `all_routes` (require keys) or `not_required` (default)
+- `ADMIN_KEY` - Master key with full API access
+- `RATE_LIMIT` - Requests per window (0 = disabled)
+- `RATE_LIMIT_TTL` - Time window in seconds
+
+### Caching
+- `CACHING_ENABLED` - Enable Redis caching
+- `REDIS_URL` - Redis connection string
+- `REDIS_TTL` - Cache duration in seconds (default: 900)
+
+### Database
+- `DATABASE_URL` - PostgreSQL connection string
+- `TRANSACTION_BATCH` - Operations per batch (default: 10)
+
+### Hosting Flags
+- `VERCEL` - Set to `true` if deploying on Vercel
+- `RENDER` - Set to `true` if deploying on Render (enables self-polling)
 
 ---
 
@@ -228,7 +383,7 @@ Check `.env.example` for all available settings
 - **[Elysia](https://elysiajs.com/)** - Fast, modern web framework
 - **[Bun](https://bun.sh/)** - High-performance JavaScript runtime
 - **[TypeScript](https://www.typescriptlang.org/)** - Type-safe development
-- **[Prisma](https://www.prisma.io/)** - Modern database ORM
+- **[Drizzle](https://orm.drizzle.team/)** - Modern database ORM
 - **[GraphQL Yoga](https://the-guild.dev/graphql/yoga-server)** - Flexible GraphQL server
 - **[Scalar](https://github.com/scalar/scalar)** - Beautiful API documentation
 

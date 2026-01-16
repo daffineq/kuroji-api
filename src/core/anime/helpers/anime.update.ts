@@ -32,12 +32,6 @@ class AnimeUpdateModule extends Module {
 
   private async addToQueue(anime: { id: number; id_mal: number | null | undefined }) {
     try {
-      const existing = await db.query.updateQueue.findFirst({
-        where: {
-          anime_id: anime.id
-        }
-      });
-
       await db
         .insert(updateQueue)
         .values({
