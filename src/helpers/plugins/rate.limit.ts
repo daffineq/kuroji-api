@@ -3,13 +3,14 @@ import { Config } from 'src/config/config';
 import { ApiKeys } from 'src/core';
 import Elysia from 'elysia';
 import { Redis } from '../redis.util';
+import { getApiKey } from '../utils';
 
 const rateLimit = (limit: number, windowSec: number, skip: (request: Request) => boolean) => {
   return (app: Elysia) =>
     app.onBeforeHandle(async ({ request, set }) => {
       if (skip(request)) return;
 
-      const apiKey = request.headers.get('x-api-key');
+      const apiKey = getApiKey(request);
 
       if (apiKey) {
         if (await ApiKeys.validate(apiKey)) return;
@@ -32,7 +33,7 @@ const rateLimit = (limit: number, windowSec: number, skip: (request: Request) =>
       const key = `ratelimit:${ip}`;
       const ttlKey = `${key}:ttl`;
 
-      const count = await Redis.incr(key);
+      const count = (await Redis.incr(key)) ?? 0;
       if (count === 1) {
         await Redis.expire(key, windowSec);
         await Redis.set(ttlKey, Date.now() + windowSec * 1000, windowSec);

@@ -3,6 +3,7 @@ import { UnauthorizedError } from 'src/helpers/errors';
 import { ApiKeys } from './api.keys';
 import { createSuccessResponse } from 'src/helpers/response';
 import Elysia, { t } from 'elysia';
+import { getApiKey } from 'src/helpers/utils';
 
 const apiRoute = () => {
   return (app: Elysia) =>
@@ -11,7 +12,7 @@ const apiRoute = () => {
         .post(
           '/api-key/generate',
           async ({ request }) => {
-            const adminKey = request.headers.get('x-api-key');
+            const adminKey = getApiKey(request);
 
             if (!adminKey) {
               throw new UnauthorizedError('Unauthorized');
@@ -46,7 +47,7 @@ const apiRoute = () => {
         .get(
           '/api-key',
           async ({ request }) => {
-            const apiKey = request.headers.get('x-api-key');
+            const apiKey = getApiKey(request);
 
             if (!apiKey) {
               throw new UnauthorizedError('Unauthorized');

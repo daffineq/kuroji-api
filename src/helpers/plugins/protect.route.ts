@@ -2,13 +2,14 @@ import { UnauthorizedError } from '../errors';
 import { Config } from 'src/config/config';
 import { ApiKeys } from 'src/core';
 import Elysia from 'elysia';
+import { getApiKey } from '../utils';
 
 const protectRoute = (skip: (request: Request) => boolean) => {
   return (app: Elysia) =>
     app.onBeforeHandle(async ({ request }) => {
       if (skip(request)) return;
 
-      const apiKey = request.headers.get('x-api-key');
+      const apiKey = getApiKey(request);
       if (!apiKey) throw new UnauthorizedError('Api key required');
 
       if (await ApiKeys.validate(apiKey)) return;
