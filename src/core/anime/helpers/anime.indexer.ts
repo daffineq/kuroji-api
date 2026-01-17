@@ -15,6 +15,11 @@ class AnimeIndexerModule extends Module {
   private delay: number = 5;
 
   private async index(options: { status?: string } = {}): Promise<void> {
+    if (!lock.acquire('indexer')) {
+      logger.log('Indexer already running, skipping new run.');
+      return;
+    }
+
     const { status } = options;
 
     try {
@@ -34,11 +39,9 @@ class AnimeIndexerModule extends Module {
         const ids = response.media.map((m) => m.id);
         hasNextPage = response.pageInfo.hasNextPage;
 
-        logger.log(`Fetched ${ids.length} IDs`);
-
         for (const id of ids) {
           if (!lock.isLocked('indexer')) {
-            logger.log('Indexing stopped manually. Exiting...');
+            logger.log('Indexing stopped.');
             return;
           }
 
@@ -74,7 +77,7 @@ class AnimeIndexerModule extends Module {
   public async start(delay: number = 5, status?: string): Promise<string> {
     if (!lock.acquire('indexer')) {
       logger.log('Indexer already running, skipping new run.');
-      return 'Indexer already running, skipping new run.';
+      return 'Indexer already running';
     }
 
     this.delay = delay;
@@ -87,9 +90,13 @@ class AnimeIndexerModule extends Module {
   }
 
   public stop(): string {
-    logger.log('Indexing stopped by request.');
-    lock.release('indexer');
-    return 'Indexing stopped';
+    if (lock.isLocked('indexer')) {
+      logger.log('Indexing stopped by request.');
+      lock.release('indexer');
+      return 'Indexing stopped';
+    }
+
+    return 'Nothing to stop';
   }
 
   public reset(status?: string): string {
