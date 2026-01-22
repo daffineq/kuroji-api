@@ -88,11 +88,11 @@ export interface VideoEntry {
 export interface ArtworkEntry {
   url: string;
   height?: number;
-  image?: string;
-  iso_639_1?: string;
-  thumbnail?: string;
-  type: ArtworkType;
   width?: number;
+  large?: string;
+  medium?: string;
+  iso_639_1?: string;
+  type: ArtworkType;
   source: string;
 }
 

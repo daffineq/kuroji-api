@@ -114,9 +114,9 @@ export const metaArtwork = pgTable(
     url: varchar('url', { length: 255 }).notNull(),
     height: integer('height'),
     width: integer('width'),
-    image: varchar('image', { length: 255 }),
+    large: varchar('large', { length: 255 }),
+    medium: varchar('medium', { length: 255 }),
     iso_639_1: varchar('iso_639_1', { length: 255 }),
-    thumbnail: varchar('thumbnail', { length: 255 }),
     type: varchar('type', { length: 255 }).notNull(),
     source: varchar('source', { length: 255 }).notNull()
   },
@@ -145,10 +145,10 @@ export const metaToTitle = pgTable(
   {
     A: integer('A')
       .notNull()
-      .references(() => meta.id),
+      .references(() => meta.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => metaTitle.id)
+      .references(() => metaTitle.id, { onDelete: 'cascade' })
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );
@@ -159,10 +159,10 @@ export const metaToDescription = pgTable(
   {
     A: integer('A')
       .notNull()
-      .references(() => meta.id),
+      .references(() => meta.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => metaDescription.id)
+      .references(() => metaDescription.id, { onDelete: 'cascade' })
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );
@@ -172,10 +172,10 @@ export const metaToImage = pgTable(
   {
     A: integer('A')
       .notNull()
-      .references(() => meta.id),
+      .references(() => meta.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => metaImage.id)
+      .references(() => metaImage.id, { onDelete: 'cascade' })
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );
@@ -185,10 +185,10 @@ export const metaToVideo = pgTable(
   {
     A: integer('A')
       .notNull()
-      .references(() => meta.id),
+      .references(() => meta.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => metaVideo.id)
+      .references(() => metaVideo.id, { onDelete: 'cascade' })
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );
@@ -198,10 +198,10 @@ export const metaToScreenshot = pgTable(
   {
     A: integer('A')
       .notNull()
-      .references(() => meta.id),
+      .references(() => meta.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => metaScreenshot.id)
+      .references(() => metaScreenshot.id, { onDelete: 'cascade' })
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );
@@ -211,10 +211,10 @@ export const metaToArtwork = pgTable(
   {
     A: integer('A')
       .notNull()
-      .references(() => meta.id),
+      .references(() => meta.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => metaArtwork.id)
+      .references(() => metaArtwork.id, { onDelete: 'cascade' })
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );

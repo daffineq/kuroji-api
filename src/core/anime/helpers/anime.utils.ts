@@ -33,8 +33,13 @@ const getEpisodesCount = (
   return total ?? aired ?? null;
 };
 
+const pickBestTitle = (a: AnilistMedia): string | null => {
+  return a.title.english ?? a.title.romaji ?? a.title.native ?? null;
+};
+
 const AnimeUtils = {
-  getEpisodesCount
+  getEpisodesCount,
+  pickBestTitle
 };
 
 export { AnimeUtils };

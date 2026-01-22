@@ -80,9 +80,9 @@ class MetaDbModule extends Module {
                 artworks.map((a) => ({
                   url: a.url,
                   height: a.height,
-                  image: a.image,
+                  large: a.large,
                   iso_639_1: a.iso_639_1,
-                  thumbnail: a.thumbnail,
+                  medium: a.medium,
                   type: a.type,
                   width: a.width,
                   source: a.source.toLowerCase()
@@ -92,10 +92,10 @@ class MetaDbModule extends Module {
                 target: [metaArtwork.url, metaArtwork.type, metaArtwork.source],
                 set: {
                   height: sql`excluded.height`,
-                  image: sql`excluded.image`,
-                  iso_639_1: sql`excluded.iso_639_1`,
-                  thumbnail: sql`excluded.thumbnail`,
-                  width: sql`excluded.width`
+                  width: sql`excluded.width`,
+                  large: sql`excluded.large`,
+                  medium: sql`excluded.medium`,
+                  iso_639_1: sql`excluded.iso_639_1`
                 }
               })
               .returning({ id: metaArtwork.id });
@@ -664,9 +664,9 @@ class MetaDbModule extends Module {
                 artworks.map((a) => ({
                   url: a.url,
                   height: a.height,
-                  image: a.image,
+                  large: a.large,
                   iso_639_1: a.iso_639_1,
-                  thumbnail: a.thumbnail,
+                  medium: a.medium,
                   type: a.type,
                   width: a.width,
                   source: a.source.toLowerCase()
@@ -676,10 +676,10 @@ class MetaDbModule extends Module {
                 target: [metaArtwork.url, metaArtwork.type, metaArtwork.source],
                 set: {
                   height: sql`excluded.height`,
-                  image: sql`excluded.image`,
-                  iso_639_1: sql`excluded.iso_639_1`,
-                  thumbnail: sql`excluded.thumbnail`,
-                  width: sql`excluded.width`
+                  width: sql`excluded.width`,
+                  large: sql`excluded.large`,
+                  medium: sql`excluded.medium`,
+                  iso_639_1: sql`excluded.iso_639_1`
                 }
               })
               .returning({ id: metaArtwork.id });

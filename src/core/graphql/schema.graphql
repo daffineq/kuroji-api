@@ -470,7 +470,6 @@ type Description {
 }
 
 type Image {
-  url: String!
   small: String
   medium: String
   large: String
@@ -546,7 +545,6 @@ type Video {
 }
 
 type Screenshot {
-  url: String!
   small: String
   medium: String
   large: String
@@ -554,13 +552,12 @@ type Screenshot {
 }
 
 type Artwork {
-  url: String
   height: Int
-  image: String
-  iso_639_1: String
-  thumbnail: String
-  type: String
   width: Int
+  large: String
+  medium: String
+  iso_639_1: String
+  type: String
   source: String
 }
 

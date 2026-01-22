@@ -10,6 +10,7 @@ import { TmdbFetch } from './helpers/tmdb.fetch';
 import { Meta } from '../../meta';
 import { normalize_iso_639_1 } from 'src/helpers/languages';
 import { ProviderModule } from 'src/helpers/module';
+import { AnimeUtils } from '../../helpers';
 
 class TmdbModule extends ProviderModule<TmdbInfoResult> {
   override readonly name = 'TMDB';
@@ -172,10 +173,16 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
 
     const type = TmdbUtils.getTmdbTypeByAl(al.format);
 
+    const title = AnimeUtils.pickBestTitle(al);
+
+    if (!title) {
+      throw new Error('No title found');
+    }
+
     const search =
       type === 'MOVIE'
-        ? await TmdbFetch.searchMovie(deepCleanTitle(al.title?.native ?? ''))
-        : await TmdbFetch.searchSeries(deepCleanTitle(al.title?.native ?? ''));
+        ? await TmdbFetch.searchMovie(deepCleanTitle(title))
+        : await TmdbFetch.searchSeries(deepCleanTitle(title));
 
     const results = search.map((result) => {
       return {

@@ -650,8 +650,8 @@ export const resolvers = {
 
     episode_info: async (_: any, args: EpisodeArgs) => {
       const [tmdbEpisodes, providerEpisodes] = await Promise.all([
-        TmdbSeasons.getEpisodes(args.id),
-        Crysoline.episodes(args.id)
+        TmdbSeasons.getEpisodes(args.id).catch(() => []),
+        Crysoline.episodes(args.id).catch(() => [])
       ]);
 
       const episode = tmdbEpisodes.find((e) => e.episode_number === args.number);
@@ -990,9 +990,9 @@ export const resolvers = {
     },
 
     episodes: async (parent: any) => {
-      const providerEpisodes = await Crysoline.episodes(parent.id);
+      const providerEpisodes = await Crysoline.episodes(parent.id).catch(() => []);
 
-      const tmdbEpisodes = await TmdbSeasons.getEpisodes(parent.id);
+      const tmdbEpisodes = await TmdbSeasons.getEpisodes(parent.id).catch(() => []);
 
       const tmdbEpisodesFormatted: MergedEpisode[] = tmdbEpisodes.map((e) => ({
         ...formatEpisodeData(e),

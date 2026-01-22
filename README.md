@@ -182,6 +182,7 @@ Before deploying to Render, you'll need a database and optionally Redis:
 
    **Recommended:**
    ```
+   ANIME_POPULARITY_THRESHOLD=7500 ## unless you have a bigger database than 500mb
    REDIS_URL=your_upstash_redis_url
    CACHING_ENABLED=true
    REDIS_TTL=900
