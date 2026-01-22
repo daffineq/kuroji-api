@@ -91,7 +91,7 @@ export const animeGenre = pgTable('anime_genre', {
 
 // Many-to-many for Anime and Genre
 export const animeToGenre = pgTable(
-  '_anime_genres',
+  '_anime_to_genre',
   {
     A: integer('A')
       .notNull()
@@ -239,7 +239,7 @@ export const animeExternalLink = pgTable('anime_external_link', {
   id: integer('id').primaryKey(),
   anime_id: integer('anime_id')
     .notNull()
-    .references(() => anime.id),
+    .references(() => anime.id, { onDelete: 'cascade' }),
   url: varchar('url', { length: 255 }),
   site: varchar('site', { length: 255 }),
   site_id: integer('site_id'),

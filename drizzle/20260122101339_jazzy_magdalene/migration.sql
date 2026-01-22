@@ -1,0 +1,1 @@
+ALTER TABLE "anime_external_link" DROP CONSTRAINT "anime_external_link_anime_id_anime_id_fkey", ADD CONSTRAINT "anime_external_link_anime_id_anime_id_fkey" FOREIGN KEY ("anime_id") REFERENCES "anime"("id") ON DELETE CASCADE;
