@@ -1,0 +1,8 @@
+ALTER TABLE "_anime_genres" DROP CONSTRAINT "_anime_genres_A_anime_id_fkey", ADD CONSTRAINT "_anime_genres_A_anime_id_fkey" FOREIGN KEY ("A") REFERENCES "anime"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "_character_to_voice_actor" DROP CONSTRAINT "_character_to_voice_actor_A_anime_character_edge_id_fkey", ADD CONSTRAINT "_character_to_voice_actor_A_anime_character_edge_id_fkey" FOREIGN KEY ("A") REFERENCES "anime_character_edge"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "_meta_to_artwork" DROP CONSTRAINT "_meta_to_artwork_A_meta_id_fkey", ADD CONSTRAINT "_meta_to_artwork_A_meta_id_fkey" FOREIGN KEY ("A") REFERENCES "meta"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "_meta_to_description" DROP CONSTRAINT "_meta_to_description_A_meta_id_fkey", ADD CONSTRAINT "_meta_to_description_A_meta_id_fkey" FOREIGN KEY ("A") REFERENCES "meta"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "_meta_to_image" DROP CONSTRAINT "_meta_to_image_A_meta_id_fkey", ADD CONSTRAINT "_meta_to_image_A_meta_id_fkey" FOREIGN KEY ("A") REFERENCES "meta"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "_meta_to_screenshot" DROP CONSTRAINT "_meta_to_screenshot_A_meta_id_fkey", ADD CONSTRAINT "_meta_to_screenshot_A_meta_id_fkey" FOREIGN KEY ("A") REFERENCES "meta"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "_meta_to_title" DROP CONSTRAINT "_meta_to_title_A_meta_id_fkey", ADD CONSTRAINT "_meta_to_title_A_meta_id_fkey" FOREIGN KEY ("A") REFERENCES "meta"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "_meta_to_video" DROP CONSTRAINT "_meta_to_video_A_meta_id_fkey", ADD CONSTRAINT "_meta_to_video_A_meta_id_fkey" FOREIGN KEY ("A") REFERENCES "meta"("id") ON DELETE CASCADE;

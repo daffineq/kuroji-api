@@ -98,7 +98,7 @@ export const animeToGenre = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => animeGenre.id, { onDelete: 'cascade' })
+      .references(() => animeGenre.id)
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );
@@ -141,7 +141,7 @@ export const characterToVoiceActor = pgTable(
       .references(() => animeCharacterEdge.id, { onDelete: 'cascade' }),
     B: integer('B')
       .notNull()
-      .references(() => animeVoiceActor.id, { onDelete: 'cascade' })
+      .references(() => animeVoiceActor.id)
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );

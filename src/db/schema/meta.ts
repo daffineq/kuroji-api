@@ -148,7 +148,7 @@ export const metaToTitle = pgTable(
       .references(() => meta.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => metaTitle.id, { onDelete: 'cascade' })
+      .references(() => metaTitle.id)
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );
@@ -162,7 +162,7 @@ export const metaToDescription = pgTable(
       .references(() => meta.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => metaDescription.id, { onDelete: 'cascade' })
+      .references(() => metaDescription.id)
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );
@@ -175,7 +175,7 @@ export const metaToImage = pgTable(
       .references(() => meta.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => metaImage.id, { onDelete: 'cascade' })
+      .references(() => metaImage.id)
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );
@@ -188,7 +188,7 @@ export const metaToVideo = pgTable(
       .references(() => meta.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => metaVideo.id, { onDelete: 'cascade' })
+      .references(() => metaVideo.id)
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );
@@ -201,7 +201,7 @@ export const metaToScreenshot = pgTable(
       .references(() => meta.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => metaScreenshot.id, { onDelete: 'cascade' })
+      .references(() => metaScreenshot.id)
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );
@@ -214,7 +214,7 @@ export const metaToArtwork = pgTable(
       .references(() => meta.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => metaArtwork.id, { onDelete: 'cascade' })
+      .references(() => metaArtwork.id)
   },
   (t) => [primaryKey({ columns: [t.A, t.B] })]
 );
