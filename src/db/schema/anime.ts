@@ -107,7 +107,7 @@ export const animeAiringSchedule = pgTable('anime_airing_schedule', {
   id: integer('id').primaryKey(),
   anime_id: integer('anime_id')
     .notNull()
-    .references(() => anime.id),
+    .references(() => anime.id, { onDelete: 'cascade' }),
   episode: integer('episode'),
   airing_at: integer('airing_at')
 });
