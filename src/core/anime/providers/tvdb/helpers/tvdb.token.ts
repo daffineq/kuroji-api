@@ -7,7 +7,7 @@ import { db, tvdbLogin } from 'src/db';
 import { count, eq } from 'drizzle-orm';
 
 class TvdbTokenModule extends ClientModule {
-  protected override readonly client = new KurojiClient(Config.TVDB);
+  protected override readonly client = new KurojiClient(Config.tvdb);
 
   async getToken(): Promise<string> {
     await this.check();
@@ -66,7 +66,7 @@ class TvdbTokenModule extends ClientModule {
   async createToken(): Promise<void> {
     const { data, error } = await this.client.post<LoginResponse>('login', {
       json: {
-        apikey: Config.tvdb_api_key ?? this.getRandomKey()
+        apikey: Config.has_tvdb_api_key ? Config.tvdb_api_key : this.getRandomKey()
       }
     });
 

@@ -18,6 +18,10 @@ class CrysolineModule extends Module {
   private mapper = Mapper(Config.crysoline_api_key);
 
   async map(id: number) {
+    if (!Config.has_crysoline_api_key) {
+      return;
+    }
+
     await Promise.all(
       this.providers.map(async (p) => {
         try {
@@ -30,16 +34,10 @@ class CrysolineModule extends Module {
             return;
           }
 
-          const info = await p.info(map.idMap);
-
-          if (!info.id) {
-            return;
-          }
-
           await Meta.update({
             id,
             mappings: {
-              id: info.id,
+              id: map.idMap,
               name: p.name
             }
           });
@@ -51,6 +49,10 @@ class CrysolineModule extends Module {
   }
 
   async episodes(id: number) {
+    if (!Config.has_crysoline_api_key) {
+      return [];
+    }
+
     const key = getKey(this.name, 'episodes', id);
 
     const cached = await Redis.get<Episode[]>(key);
@@ -63,9 +65,28 @@ class CrysolineModule extends Module {
       this.providers.map(async (p) => {
         try {
           const meta = await Meta.fetchOrCreate(id).catch(() => null);
-          const idMap = meta?.mappings.find((m) => m.source_name === p.name)?.source_id;
+          let idMap = meta?.mappings.find((m) => m.source_name === p.name)?.source_id ?? null;
 
-          if (!idMap) return;
+          if (!idMap) {
+            const map = await this.mapper.map({
+              id,
+              provider: p.name
+            });
+
+            if (!map.idMap) {
+              return [];
+            }
+
+            await Meta.update({
+              id,
+              mappings: {
+                id: map.idMap,
+                name: p.name
+              }
+            });
+
+            idMap = map.idMap;
+          }
 
           const episodes = await p.episodes(idMap);
 
@@ -86,16 +107,14 @@ class CrysolineModule extends Module {
           return results;
         } catch (e) {
           logger.error(`${p.name} episodes failed ${e}`);
-          return;
+          return [];
         }
       })
     );
 
-    const validEpisodes = episodesArrays.filter((e) => e !== undefined && e !== null);
-
     const mergedMap = new Map<number, Episode>();
 
-    for (const episodeArray of validEpisodes) {
+    for (const episodeArray of episodesArrays) {
       for (const episode of episodeArray) {
         const number = episode.number;
         if (number == null) continue;
@@ -128,6 +147,10 @@ class CrysolineModule extends Module {
   }
 
   async sources(id: number, idEp: string) {
+    if (!Config.has_crysoline_api_key) {
+      return null;
+    }
+
     const key = getKey('crysoline', 'sources', id, idEp);
 
     const cached = await Redis.get<Source>(key);

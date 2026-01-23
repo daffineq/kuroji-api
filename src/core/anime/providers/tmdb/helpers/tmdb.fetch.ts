@@ -7,6 +7,10 @@ class TmdbFetchModule extends ClientModule {
   protected override readonly client = new KurojiClient(Config.tmdb);
 
   async fetchSeries(id: number): Promise<TmdbInfoResult> {
+    if (!Config.has_tmdb_api_key) {
+      throw new Error('No tmdb api key provided');
+    }
+
     const { data, error } = await this.client.get<TmdbInfoResult>(`tv/${id}?api_key=${Config.tmdb_api_key}`);
 
     if (error) {
@@ -21,6 +25,10 @@ class TmdbFetchModule extends ClientModule {
   }
 
   async fetchSeason(id: number, season: number): Promise<SeasonTmdb> {
+    if (!Config.has_tmdb_api_key) {
+      throw new Error('No tmdb api key provided');
+    }
+
     const { data, error } = await this.client.get<SeasonTmdb>(
       `tv/${id}/season/${season}?api_key=${Config.tmdb_api_key}`
     );
@@ -37,6 +45,10 @@ class TmdbFetchModule extends ClientModule {
   }
 
   async fetchMovie(id: number): Promise<TmdbInfoResult> {
+    if (!Config.has_tmdb_api_key) {
+      throw new Error('No tmdb api key provided');
+    }
+
     const { data, error } = await this.client.get<TmdbInfoResult>(`movie/${id}?api_key=${Config.tmdb_api_key}`);
 
     if (error) {
@@ -51,6 +63,10 @@ class TmdbFetchModule extends ClientModule {
   }
 
   async searchSeries(q: string): Promise<Array<TmdbSearchResult>> {
+    if (!Config.has_tmdb_api_key) {
+      throw new Error('No tmdb api key provided');
+    }
+
     const { data, error } = await this.client.get<Array<TmdbSearchResult>>(
       `search/tv?api_key=${Config.tmdb_api_key}&query=${q}`,
       {
@@ -70,6 +86,10 @@ class TmdbFetchModule extends ClientModule {
   }
 
   async searchMovie(q: string): Promise<Array<TmdbSearchResult>> {
+    if (!Config.has_tmdb_api_key) {
+      throw new Error('No tmdb api key provided');
+    }
+
     const { data, error } = await this.client.get<Array<TmdbSearchResult>>(
       `search/movie?api_key=${Config.tmdb_api_key}&query=${q}`,
       {
@@ -89,6 +109,10 @@ class TmdbFetchModule extends ClientModule {
   }
 
   async getMovieImages(id: number): Promise<TmdbImage[]> {
+    if (!Config.has_tmdb_api_key) {
+      throw new Error('No tmdb api key provided');
+    }
+
     const { data, error } = await this.client.get<{
       backdrops: TmdbImage[];
       logos: TmdbImage[];
@@ -111,6 +135,10 @@ class TmdbFetchModule extends ClientModule {
   }
 
   async getSeriesImages(id: number): Promise<TmdbImage[]> {
+    if (!Config.has_tmdb_api_key) {
+      throw new Error('No tmdb api key provided');
+    }
+
     const { data, error } = await this.client.get<{
       backdrops: TmdbImage[];
       logos: TmdbImage[];
@@ -133,6 +161,10 @@ class TmdbFetchModule extends ClientModule {
   }
 
   async fetchEpisodeImages(id: number, season: number, episode: number): Promise<TmdbImage[]> {
+    if (!Config.has_tmdb_api_key) {
+      throw new Error('No tmdb api key provided');
+    }
+
     const { data, error } = await this.client.get<TmdbImage[]>(
       `tv/${id}/season/${season}/episode/${episode}/images?api_key=${Config.tmdb_api_key}`,
       {
@@ -152,6 +184,10 @@ class TmdbFetchModule extends ClientModule {
   }
 
   async fetchMovieTranslations(id: number): Promise<TmdbTranslation[]> {
+    if (!Config.has_tmdb_api_key) {
+      throw new Error('No tmdb api key provided');
+    }
+
     const { data, error } = await this.client.get<TmdbTranslation[]>(
       `movie/${id}/translations?api_key=${Config.tmdb_api_key}`,
       {
@@ -171,6 +207,10 @@ class TmdbFetchModule extends ClientModule {
   }
 
   async fetchSeriesTranslations(id: number): Promise<TmdbTranslation[]> {
+    if (!Config.has_tmdb_api_key) {
+      throw new Error('No tmdb api key provided');
+    }
+
     const { data, error } = await this.client.get<TmdbTranslation[]>(
       `tv/${id}/translations?api_key=${Config.tmdb_api_key}`,
       {
@@ -190,6 +230,10 @@ class TmdbFetchModule extends ClientModule {
   }
 
   async fetchSeasonTranslations(id: number, season: number): Promise<TmdbTranslation[]> {
+    if (!Config.has_tmdb_api_key) {
+      throw new Error('No tmdb api key provided');
+    }
+
     const { data, error } = await this.client.get<TmdbTranslation[]>(
       `tv/${id}/season/${season}/translations?api_key=${Config.tmdb_api_key}`,
       {
@@ -209,6 +253,10 @@ class TmdbFetchModule extends ClientModule {
   }
 
   async fetchEpisodeTranslations(id: number, season: number, episode: number): Promise<TmdbTranslation[]> {
+    if (!Config.has_tmdb_api_key) {
+      throw new Error('No tmdb api key provided');
+    }
+
     const { data, error } = await this.client.get<TmdbTranslation[]>(
       `tv/${id}/season/${season}/episode/${episode}/translations?api_key=${Config.tmdb_api_key}`,
       {

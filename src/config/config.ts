@@ -36,13 +36,16 @@ class ConfigModule {
   readonly kitsu = process.env.KITSU ?? 'https://kitsu.io/api/edge';
   readonly tmdb = process.env.TMDB ?? 'https://api.themoviedb.org/3';
   readonly tmdb_image = process.env.TMDB_IMAGE ?? 'https://image.tmdb.org/t/p/';
-  readonly TVDB = process.env.TVDB ?? 'https://api4.thetvdb.com/v4';
-  readonly JIKAN = process.env.JIKAN ?? 'https://api.jikan.moe/v4';
+  readonly tvdb = process.env.TVDB ?? 'https://api4.thetvdb.com/v4';
 
   // Keys
   readonly crysoline_api_key = process.env.CRYSOLINE_API_KEY ?? '';
   readonly tmdb_api_key = process.env.TMDB_API_KEY ?? '';
-  readonly tvdb_api_key = process.env.TVDB_API_KEY === '' ? null : process.env.TVDB_API_KEY;
+  readonly tvdb_api_key = process.env.TVDB_API_KEY ?? '';
+
+  readonly has_crysoline_api_key = this.crysoline_api_key !== '';
+  readonly has_tmdb_api_key = this.tmdb_api_key !== '';
+  readonly has_tvdb_api_key = this.tvdb_api_key !== '';
 
   // Redis
   readonly caching_enabled = parseBoolean(process.env.CACHING_ENABLED) ?? true;

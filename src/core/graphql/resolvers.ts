@@ -990,9 +990,10 @@ export const resolvers = {
     },
 
     episodes: async (parent: any) => {
-      const providerEpisodes = await Crysoline.episodes(parent.id).catch(() => []);
-
-      const tmdbEpisodes = await TmdbSeasons.getEpisodes(parent.id).catch(() => []);
+      const [providerEpisodes, tmdbEpisodes] = await Promise.all([
+        Crysoline.episodes(parent.id).catch(() => []),
+        TmdbSeasons.getEpisodes(parent.id).catch(() => [])
+      ]);
 
       const tmdbEpisodesFormatted: MergedEpisode[] = tmdbEpisodes.map((e) => ({
         ...formatEpisodeData(e),
