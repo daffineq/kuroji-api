@@ -193,7 +193,7 @@ Fork it, branch it, commit it, push it, PR it.
 
 ## License
 
-MIT - do whatever you want
+**[MIT](LICENSE)** - do whatever you want
 
 ---
 
