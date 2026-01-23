@@ -75,7 +75,7 @@ class AnimeIndexerModule extends Module {
   }
 
   public async start(delay: number = 5, status?: string): Promise<string> {
-    if (!lock.acquire('indexer')) {
+    if (lock.isLocked('indexer')) {
       logger.log('Indexer already running, skipping new run.');
       return 'Indexer already running';
     }
