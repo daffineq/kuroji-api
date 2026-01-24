@@ -31,12 +31,10 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
         }
       });
     } else {
-      const meta = await Meta.fetchOrCreate(id).catch(() => null);
+      const idMap = await Meta.map(id, this.name);
 
-      const shikId = meta?.mappings.find((m) => m.source_name === this.name)?.source_id;
-
-      if (shikId) {
-        info = await ShikimoriFetch.fetchInfo(shikId);
+      if (idMap) {
+        info = await ShikimoriFetch.fetchInfo(idMap);
       } else {
         const al = await Anilist.getInfo(id);
 

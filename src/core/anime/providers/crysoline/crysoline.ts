@@ -64,8 +64,7 @@ class CrysolineModule extends Module {
     const episodesArrays = await Promise.all(
       this.providers.map(async (p) => {
         try {
-          const meta = await Meta.fetchOrCreate(id).catch(() => null);
-          let idMap = meta?.mappings.find((m) => m.source_name === p.name)?.source_id ?? null;
+          let idMap = await Meta.map(id, p.name);
 
           if (!idMap) {
             const map = await this.mapper.map({
@@ -171,8 +170,7 @@ class CrysolineModule extends Module {
       return null;
     }
 
-    const meta = await Meta.fetchOrCreate(id).catch(() => null);
-    const idMap = meta?.mappings.find((m) => m.source_name === provider.name)?.source_id;
+    const idMap = await Meta.map(id, provider.name);
 
     if (!idMap) {
       return null;

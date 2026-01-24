@@ -25,8 +25,9 @@ class MetaModule extends Module {
     return this.save(id);
   }
 
-  async mappings(id: number) {
-    return db.select().from(metaMapping).where(eq(metaMapping.meta_id, id));
+  async map(id: number, name: string) {
+    const meta = await this.fetchOrCreate(id).catch(() => null);
+    return meta?.mappings.find((m) => m.source_name.toLowerCase() === name.toLowerCase())?.source_id ?? null;
   }
 
   async save(id: number) {

@@ -9,6 +9,7 @@ import { TvdbFetch } from './helpers/tvdb.fetch';
 import { Meta } from '../../meta';
 import { normalize_iso_639_1 } from 'src/helpers/languages';
 import { ProviderModule } from 'src/helpers/module';
+import { Tmdb } from '../tmdb';
 
 class TvdbModule extends ProviderModule<TvdbInfoResult> {
   override readonly name = 'TVDB';
@@ -30,10 +31,8 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
 
     const type = TvdbUtils.getTvdbTypeByAl(al.format);
 
-    const meta = await Meta.fetchOrCreate(id);
-
-    const tvdbId = meta?.mappings.find((m) => m.source_name === 'tvdb')?.source_id;
-    const tmdbId = meta?.mappings.find((m) => m.source_name === 'tmdb')?.source_id;
+    const tvdbId = await Meta.map(id, this.name);
+    const tmdbId = await Meta.map(id, Tmdb.name);
 
     let info: TvdbInfoResult | undefined = undefined;
 

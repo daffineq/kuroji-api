@@ -24,17 +24,15 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       return cached;
     }
 
-    const meta = await Meta.fetchOrCreate(id).catch(() => null);
-
-    const tmdbId = parseNumber(meta?.mappings.find((m) => m.source_name === this.name.toLowerCase())?.source_id);
+    const idMap = parseNumber(await Meta.map(id, this.name));
 
     let info: TmdbInfoResult;
 
     const al = await Anilist.getInfo(id);
     const type = TmdbUtils.getTmdbTypeByAl(al.format);
 
-    if (tmdbId) {
-      info = type === 'MOVIE' ? await TmdbFetch.fetchMovie(tmdbId) : await TmdbFetch.fetchSeries(tmdbId);
+    if (idMap) {
+      info = type === 'MOVIE' ? await TmdbFetch.fetchMovie(idMap) : await TmdbFetch.fetchSeries(idMap);
     } else {
       info = await this.find(id);
 

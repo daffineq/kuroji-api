@@ -37,12 +37,10 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
         }
       });
     } else {
-      const meta = await Meta.fetchOrCreate(id).catch(() => null);
+      const idMap = await Meta.map(id, this.name);
 
-      const malId = parseNumber(meta?.mappings.find((m) => m.source_name === this.name.toLowerCase())?.source_id);
-
-      if (malId) {
-        info = await this.fetch.info(malId);
+      if (idMap) {
+        info = await this.fetch.info(idMap);
       } else {
         const al = await Anilist.getInfo(id);
 

@@ -20,14 +20,12 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
       return cached;
     }
 
-    const meta = await Meta.fetchOrCreate(id).catch(() => null);
-
-    const kitsuId = meta?.mappings.find((m) => m.source_name === this.name.toLowerCase())?.source_id;
+    const idMap = await Meta.map(id, this.name);
 
     let info: KitsuAnime;
 
-    if (kitsuId) {
-      info = await KitsuFetch.fetchInfo(kitsuId);
+    if (idMap) {
+      info = await KitsuFetch.fetchInfo(idMap);
     } else {
       info = await this.find(id);
 
