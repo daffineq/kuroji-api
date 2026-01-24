@@ -62,16 +62,18 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
     }
 
     if (tvdb.artworks) {
-      const artworks: ArtworkEntry[] = tvdb.artworks.map((a) => ({
-        url: a.image!,
-        large: a.image,
-        width: a.width,
-        height: a.height,
-        iso_639_1: normalize_iso_639_1(a.language) ?? undefined,
-        medium: a.thumbnail,
-        type: unifyArtworkType(a.type),
-        source: this.name
-      }));
+      const artworks: ArtworkEntry[] = tvdb.artworks.map((a) => {
+        return {
+          url: a.image!,
+          large: a.image,
+          width: a.width,
+          height: a.height,
+          iso_639_1: normalize_iso_639_1(a.language) ?? undefined,
+          medium: a.thumbnail,
+          type: unifyArtworkType(a.type),
+          source: this.name
+        } satisfies ArtworkEntry;
+      });
 
       await Meta.update({ id, artworks });
     }

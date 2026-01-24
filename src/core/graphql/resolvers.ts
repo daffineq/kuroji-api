@@ -995,11 +995,7 @@ export const resolvers = {
         TmdbSeasons.getEpisodes(parent.id).catch(() => [])
       ]);
 
-      const tmdbEpisodesFormatted: MergedEpisode[] = tmdbEpisodes.map((e) => ({
-        ...formatEpisodeData(e),
-        is_filler: false,
-        providers: []
-      }));
+      const tmdbEpisodesFormatted: MergedEpisode[] = tmdbEpisodes.map((e) => formatEpisodeData(e));
 
       const providerMap = new Map<number, Episode>();
       for (const ep of providerEpisodes) {

@@ -64,20 +64,22 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
           thumbnail: v.imageUrl,
           type: v.kind,
           source: this.name
-        };
+        } satisfies VideoEntry;
       });
 
       await Meta.update({ id, videos });
     }
 
     if (fetched.screenshots) {
-      const screenshots: ScreenshotEntry[] = fetched.screenshots.map((s) => ({
-        url: s.originalUrl!!,
-        small: s.x166Url,
-        medium: s.x332Url,
-        large: s.originalUrl,
-        source: this.name
-      }));
+      const screenshots: ScreenshotEntry[] = fetched.screenshots.map((s) => {
+        return {
+          url: s.originalUrl!!,
+          small: s.x166Url,
+          medium: s.x332Url,
+          large: s.originalUrl,
+          source: this.name
+        } satisfies ScreenshotEntry;
+      });
 
       await Meta.update({ id, screenshots });
     }
@@ -139,7 +141,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
           parentId: parseNumber(fetched.id)!,
           relatedId: parseNumber(c.id)!,
           order: i
-        };
+        } satisfies ChronologyEntry;
       });
       await Meta.update({ id, chronologies: chronology });
     }

@@ -50,16 +50,18 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     const images =
       type === 'MOVIE' ? await TmdbFetch.getMovieImages(tmdb.id) : await TmdbFetch.getSeriesImages(tmdb.id);
 
-    const artworks: ArtworkEntry[] = images.map((i) => ({
-      url: i.file_path,
-      large: TmdbUtils.getImage('original', i.file_path) ?? undefined,
-      height: i.height,
-      width: i.width,
-      iso_639_1: normalize_iso_639_1(i.iso_639_1) ?? undefined,
-      medium: TmdbUtils.getImage('w780', i.file_path) ?? undefined,
-      type: unifyArtworkType(i.type),
-      source: this.name
-    }));
+    const artworks: ArtworkEntry[] = images.map((i) => {
+      return {
+        url: i.file_path,
+        large: TmdbUtils.getImage('original', i.file_path) ?? undefined,
+        height: i.height,
+        width: i.width,
+        iso_639_1: normalize_iso_639_1(i.iso_639_1) ?? undefined,
+        medium: TmdbUtils.getImage('w780', i.file_path) ?? undefined,
+        type: unifyArtworkType(i.type),
+        source: this.name
+      } satisfies ArtworkEntry;
+    });
 
     if (artworks) {
       await Meta.update({ id, artworks });

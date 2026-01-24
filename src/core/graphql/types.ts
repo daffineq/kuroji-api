@@ -89,8 +89,8 @@ export interface MergedEpisode {
   image: Image | string | null;
   runtime: number | null;
   air_date: string | null;
-  is_filler: boolean | false;
-  providers: EpisodeProvider[];
+  is_filler?: boolean | false;
+  providers?: EpisodeProvider[];
 }
 
 export const formatEpisodeData = (episode: TmdbEpisode) => ({
