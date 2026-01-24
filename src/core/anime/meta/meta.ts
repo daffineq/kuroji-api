@@ -2,7 +2,7 @@ import { MetaPayload } from './helpers/meta.dto';
 import { MetaDb, MetaFetch, MetaUtils } from './helpers';
 import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';
-import { db, meta } from 'src/db';
+import { db, metaMapping } from 'src/db';
 import { eq } from 'drizzle-orm';
 
 class MetaModule extends Module {
@@ -23,6 +23,10 @@ class MetaModule extends Module {
     await Anime.fetchOrCreate(id);
 
     return this.save(id);
+  }
+
+  async mappings(id: number) {
+    return db.select().from(metaMapping).where(eq(metaMapping.meta_id, id));
   }
 
   async save(id: number) {

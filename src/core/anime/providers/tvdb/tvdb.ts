@@ -35,10 +35,10 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
     const tvdbId = meta?.mappings.find((m) => m.source_name === 'tvdb')?.source_id;
     const tmdbId = meta?.mappings.find((m) => m.source_name === 'tmdb')?.source_id;
 
-    let tvdb: TvdbInfoResult | undefined = undefined;
+    let info: TvdbInfoResult | undefined = undefined;
 
     if (tvdbId) {
-      tvdb = type === 'movie' ? await TvdbFetch.fetchMovie(tvdbId) : await TvdbFetch.fetchSeries(tvdbId);
+      info = type === 'movie' ? await TvdbFetch.fetchMovie(tvdbId) : await TvdbFetch.fetchSeries(tvdbId);
     } else if (tmdbId) {
       const search = await TvdbFetch.searchByRemote(
         tmdbId,
@@ -46,23 +46,23 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
         al.title.romaji ?? al.title.native ?? al.title.english ?? ''
       );
 
-      tvdb = type === 'movie' ? await TvdbFetch.fetchMovie(search.id) : await TvdbFetch.fetchSeries(search.id);
+      info = type === 'movie' ? await TvdbFetch.fetchMovie(search.id) : await TvdbFetch.fetchSeries(search.id);
 
       await Meta.update({
         id,
         mappings: {
-          id: parseString(tvdb.id)!,
+          id: parseString(info.id)!,
           name: this.name
         }
       });
     }
 
-    if (!tvdb) {
+    if (!info) {
       throw new NotFoundError('TVDB not found');
     }
 
-    if (tvdb.artworks) {
-      const artworks: ArtworkEntry[] = tvdb.artworks.map((a) => {
+    if (info.artworks) {
+      const artworks: ArtworkEntry[] = info.artworks.map((a) => {
         return {
           url: a.image!,
           large: a.image,
@@ -78,9 +78,9 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
       await Meta.update({ id, artworks });
     }
 
-    await Redis.set(key, tvdb);
+    await Redis.set(key, info);
 
-    return tvdb;
+    return info;
   }
 }
 

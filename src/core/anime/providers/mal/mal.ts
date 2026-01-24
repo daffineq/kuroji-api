@@ -24,10 +24,10 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
       return cached;
     }
 
-    let fetched: MALInfo;
+    let info: MALInfo;
 
     if (idMal) {
-      fetched = await this.fetch.info(idMal);
+      info = await this.fetch.info(idMal);
 
       await Meta.update({
         id,
@@ -42,7 +42,7 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
       const malId = parseNumber(meta?.mappings.find((m) => m.source_name === this.name.toLowerCase())?.source_id);
 
       if (malId) {
-        fetched = await this.fetch.info(malId);
+        info = await this.fetch.info(malId);
       } else {
         const al = await Anilist.getInfo(id);
 
@@ -50,7 +50,7 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
           throw new Error('No MAL ID found');
         }
 
-        fetched = await this.fetch.info(al.idMal);
+        info = await this.fetch.info(al.idMal);
 
         await Meta.update({
           id,
@@ -62,8 +62,8 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
       }
     }
 
-    if (fetched.metadata?.videos) {
-      const videos: VideoEntry[] = fetched.metadata.videos.map((v) => {
+    if (info.metadata?.videos) {
+      const videos: VideoEntry[] = info.metadata.videos.map((v) => {
         return {
           url: v.url,
           title: v.title,
@@ -77,29 +77,29 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
       await Meta.update({ id, videos });
     }
 
-    if (fetched.image) {
+    if (info.image) {
       await Meta.update({
         id,
         images: {
-          url: fetched.image.large,
-          large: fetched.image.large,
+          url: info.image.large,
+          large: info.image.large,
           type: 'poster',
           source: this.name
         }
       });
     }
 
-    if (fetched.metadata?.moreInfo) {
-      await Meta.update({ id, moreinfo: fetched.metadata?.moreInfo });
+    if (info.metadata?.moreInfo) {
+      await Meta.update({ id, moreinfo: info.metadata?.moreInfo });
     }
 
-    if (fetched.metadata?.broadcast) {
-      await Meta.update({ id, broadcast: fetched.metadata?.broadcast });
+    if (info.metadata?.broadcast) {
+      await Meta.update({ id, broadcast: info.metadata?.broadcast });
     }
 
-    await Redis.set(key, fetched);
+    await Redis.set(key, info);
 
-    return fetched;
+    return info;
   }
 }
 

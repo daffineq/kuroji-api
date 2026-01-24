@@ -26,29 +26,29 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
 
     const meta = await Meta.fetchOrCreate(id).catch(() => null);
 
-    const tmdbId = parseNumber(meta?.mappings.find((m) => m.source_name === this.name)?.source_id);
+    const tmdbId = parseNumber(meta?.mappings.find((m) => m.source_name === this.name.toLowerCase())?.source_id);
 
-    let tmdb: TmdbInfoResult;
+    let info: TmdbInfoResult;
 
     const al = await Anilist.getInfo(id);
     const type = TmdbUtils.getTmdbTypeByAl(al.format);
 
     if (tmdbId) {
-      tmdb = type === 'MOVIE' ? await TmdbFetch.fetchMovie(tmdbId) : await TmdbFetch.fetchSeries(tmdbId);
+      info = type === 'MOVIE' ? await TmdbFetch.fetchMovie(tmdbId) : await TmdbFetch.fetchSeries(tmdbId);
     } else {
-      tmdb = await this.find(id);
+      info = await this.find(id);
 
       await Meta.update({
         id,
         mappings: {
-          id: parseString(tmdb.id)!,
+          id: parseString(info.id)!,
           name: this.name
         }
       });
     }
 
     const images =
-      type === 'MOVIE' ? await TmdbFetch.getMovieImages(tmdb.id) : await TmdbFetch.getSeriesImages(tmdb.id);
+      type === 'MOVIE' ? await TmdbFetch.getMovieImages(info.id) : await TmdbFetch.getSeriesImages(info.id);
 
     const artworks: ArtworkEntry[] = images.map((i) => {
       return {
@@ -67,37 +67,37 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       await Meta.update({ id, artworks });
     }
 
-    if (tmdb.poster_path) {
+    if (info.poster_path) {
       await Meta.update({
         id,
         images: {
-          url: tmdb.poster_path,
-          small: TmdbUtils.getImage('w300', tmdb.poster_path),
-          medium: TmdbUtils.getImage('w780', tmdb.poster_path),
-          large: TmdbUtils.getImage('original', tmdb.poster_path),
+          url: info.poster_path,
+          small: TmdbUtils.getImage('w300', info.poster_path),
+          medium: TmdbUtils.getImage('w780', info.poster_path),
+          large: TmdbUtils.getImage('original', info.poster_path),
           type: 'poster',
           source: this.name
         }
       });
     }
 
-    if (tmdb.backdrop_path) {
+    if (info.backdrop_path) {
       await Meta.update({
         id,
         images: {
-          url: tmdb.backdrop_path,
-          small: TmdbUtils.getImage('w300', tmdb.backdrop_path),
-          medium: TmdbUtils.getImage('w780', tmdb.backdrop_path),
-          large: TmdbUtils.getImage('original', tmdb.backdrop_path),
+          url: info.backdrop_path,
+          small: TmdbUtils.getImage('w300', info.backdrop_path),
+          medium: TmdbUtils.getImage('w780', info.backdrop_path),
+          large: TmdbUtils.getImage('original', info.backdrop_path),
           type: 'background',
           source: this.name
         }
       });
     }
 
-    await Redis.set(key, tmdb);
+    await Redis.set(key, info);
 
-    return tmdb;
+    return info;
   }
 
   async getTranslations(id: number): Promise<TmdbTranslation[]> {

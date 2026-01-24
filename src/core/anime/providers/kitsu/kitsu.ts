@@ -12,7 +12,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
   override readonly name = 'Kitsu';
 
   override async getInfo(id: number): Promise<KitsuAnime> {
-    const key = getKey('kitsu', 'info', id);
+    const key = getKey(this.name, 'info', id);
 
     const cached = await Redis.get<KitsuAnime>(key);
 
@@ -22,57 +22,57 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
 
     const meta = await Meta.fetchOrCreate(id).catch(() => null);
 
-    const kitsuId = meta?.mappings.find((m) => m.source_name === 'kitsu')?.source_id;
+    const kitsuId = meta?.mappings.find((m) => m.source_name === this.name.toLowerCase())?.source_id;
 
-    let kitsu: KitsuAnime;
+    let info: KitsuAnime;
 
     if (kitsuId) {
-      kitsu = await KitsuFetch.fetchInfo(kitsuId);
+      info = await KitsuFetch.fetchInfo(kitsuId);
     } else {
-      kitsu = await this.find(id);
+      info = await this.find(id);
 
       await Meta.update({
         id,
         mappings: {
-          id: kitsu.id,
-          name: 'kitsu'
+          id: info.id,
+          name: this.name
         }
       });
     }
 
-    if (kitsu.attributes.posterImage) {
+    if (info.attributes.posterImage) {
       await Meta.update({
         id,
         images: {
-          url: kitsu.attributes.posterImage.original,
-          small: kitsu.attributes.posterImage.small,
-          medium: kitsu.attributes.posterImage.medium,
-          large: kitsu.attributes.posterImage.large,
+          url: info.attributes.posterImage.original,
+          small: info.attributes.posterImage.small,
+          medium: info.attributes.posterImage.medium,
+          large: info.attributes.posterImage.large,
           type: 'poster',
-          source: 'kitsu'
+          source: this.name
         }
       });
     }
 
-    if (kitsu.attributes.coverImage) {
+    if (info.attributes.coverImage) {
       await Meta.update({
         id,
         images: {
-          url: kitsu.attributes.coverImage.original,
-          small: kitsu.attributes.coverImage.small,
-          medium: kitsu.attributes.coverImage.medium,
-          large: kitsu.attributes.coverImage.large,
+          url: info.attributes.coverImage.original,
+          small: info.attributes.coverImage.small,
+          medium: info.attributes.coverImage.medium,
+          large: info.attributes.coverImage.large,
           type: 'background',
-          source: 'kitsu'
+          source: this.name
         }
       });
     }
 
-    await Meta.update({ id, nsfw: kitsu.attributes.nsfw });
+    await Meta.update({ id, nsfw: info.attributes.nsfw });
 
-    await Redis.set(key, kitsu);
+    await Redis.set(key, info);
 
-    return kitsu;
+    return info;
   }
 
   async find(id: number): Promise<KitsuAnime> {

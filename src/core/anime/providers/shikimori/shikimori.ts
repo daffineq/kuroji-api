@@ -18,10 +18,10 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
       return cached;
     }
 
-    let fetched: ShikimoriAnime;
+    let info: ShikimoriAnime;
 
     if (idMal) {
-      fetched = await ShikimoriFetch.fetchInfo(parseString(idMal)!);
+      info = await ShikimoriFetch.fetchInfo(parseString(idMal)!);
 
       await Meta.update({
         id,
@@ -36,7 +36,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
       const shikId = meta?.mappings.find((m) => m.source_name === this.name)?.source_id;
 
       if (shikId) {
-        fetched = await ShikimoriFetch.fetchInfo(shikId);
+        info = await ShikimoriFetch.fetchInfo(shikId);
       } else {
         const al = await Anilist.getInfo(id);
 
@@ -44,7 +44,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
           throw new Error('Anime not found');
         }
 
-        fetched = await ShikimoriFetch.fetchInfo(parseString(al.idMal)!);
+        info = await ShikimoriFetch.fetchInfo(parseString(al.idMal)!);
 
         await Meta.update({
           id,
@@ -56,8 +56,8 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
       }
     }
 
-    if (fetched.videos) {
-      const videos: VideoEntry[] = fetched.videos.map((v) => {
+    if (info.videos) {
+      const videos: VideoEntry[] = info.videos.map((v) => {
         return {
           url: v.url!,
           title: v.name,
@@ -70,8 +70,8 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
       await Meta.update({ id, videos });
     }
 
-    if (fetched.screenshots) {
-      const screenshots: ScreenshotEntry[] = fetched.screenshots.map((s) => {
+    if (info.screenshots) {
+      const screenshots: ScreenshotEntry[] = info.screenshots.map((s) => {
         return {
           url: s.originalUrl!!,
           small: s.x166Url,
@@ -84,61 +84,61 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
       await Meta.update({ id, screenshots });
     }
 
-    if (fetched.russian) {
+    if (info.russian) {
       await Meta.update({
         id,
         titles: {
-          title: fetched.russian,
+          title: info.russian,
           source: this.name,
           language: 'russian'
         }
       });
     }
 
-    if (fetched.description) {
+    if (info.description) {
       await Meta.update({
         id,
         descriptions: {
-          description: fetched.description,
+          description: info.description,
           source: this.name,
           language: 'russian'
         }
       });
     }
 
-    if (fetched.poster) {
+    if (info.poster) {
       await Meta.update({
         id,
         images: {
-          url: fetched.poster.originalUrl!,
-          medium: fetched.poster.mainUrl!,
-          large: fetched.poster.originalUrl!,
+          url: info.poster.originalUrl!,
+          medium: info.poster.mainUrl!,
+          large: info.poster.originalUrl!,
           type: 'poster',
           source: this.name
         }
       });
     }
 
-    if (fetched.franchise) {
-      await Meta.update({ id, franchise: fetched.franchise });
+    if (info.franchise) {
+      await Meta.update({ id, franchise: info.franchise });
     }
 
-    if (fetched.rating) {
-      await Meta.update({ id, rating: fetched.rating });
+    if (info.rating) {
+      await Meta.update({ id, rating: info.rating });
     }
 
-    if (fetched.episodesAired) {
-      await Meta.update({ id, episodes_aired: fetched.episodesAired });
+    if (info.episodesAired) {
+      await Meta.update({ id, episodes_aired: info.episodesAired });
     }
 
-    if (fetched.episodes) {
-      await Meta.update({ id, episodes_total: fetched.episodes });
+    if (info.episodes) {
+      await Meta.update({ id, episodes_total: info.episodes });
     }
 
-    if (fetched.chronology) {
-      const chronology: ChronologyEntry[] = fetched.chronology.reverse().map((c, i) => {
+    if (info.chronology) {
+      const chronology: ChronologyEntry[] = info.chronology.reverse().map((c, i) => {
         return {
-          parentId: parseNumber(fetched.id)!,
+          parentId: parseNumber(info.id)!,
           relatedId: parseNumber(c.id)!,
           order: i
         } satisfies ChronologyEntry;
@@ -146,9 +146,9 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
       await Meta.update({ id, chronologies: chronology });
     }
 
-    await Redis.set(key, fetched);
+    await Redis.set(key, info);
 
-    return fetched;
+    return info;
   }
 }
 
