@@ -209,4 +209,6 @@ app.get(
   }
 );
 
-export default app;
+app.listen({ port: Config.port });
+
+logger.log(`Server listening on port ${Config.port}, at ${Config.public_url}`);

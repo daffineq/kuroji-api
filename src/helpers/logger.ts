@@ -46,22 +46,22 @@ class Logger {
     this.logs = [];
   }
 
-  log(message?: any, ...optionalParams: any[]) {
+  log(...messages: any[]) {
     const caller = this.getCaller();
-    console.log(`[LOG ${new Date().toISOString()}] ${caller}:`, message, ...optionalParams);
-    this.save('LOG', [message, ...optionalParams], caller);
+    console.log(`[LOG ${new Date().toISOString()}] ${caller}:`, ...messages);
+    this.save('LOG', messages, caller);
   }
 
-  error(message?: any, ...optionalParams: any[]) {
+  error(...messages: any[]) {
     const caller = this.getCaller();
-    console.error(`[ERROR ${new Date().toISOString()}] ${caller}:`, message, ...optionalParams);
-    this.save('ERROR', [message, ...optionalParams], caller);
+    console.error(`[ERROR ${new Date().toISOString()}] ${caller}:`, ...messages);
+    this.save('ERROR', messages, caller);
   }
 
-  warn(message?: any, ...optionalParams: any[]) {
+  warn(...messages: any[]) {
     const caller = this.getCaller();
-    console.warn(`[WARN ${new Date().toISOString()}] ${caller}:`, message, ...optionalParams);
-    this.save('WARN', [message, ...optionalParams], caller);
+    console.warn(`[WARN ${new Date().toISOString()}] ${caller}:`, ...messages);
+    this.save('WARN', messages, caller);
   }
 }
 
