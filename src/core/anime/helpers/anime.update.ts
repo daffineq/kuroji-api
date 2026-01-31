@@ -171,26 +171,22 @@ class AnimeUpdateModule extends Module {
     logger.log(`Processing queue with ${queueCount} items...`);
 
     try {
-      let processed = 0;
-      const maxProcessPerRun = 50;
+      const items = await db.query.updateQueue.findMany({
+        orderBy: {
+          updated_at: 'desc'
+        },
+        limit: 50
+      });
 
-      while (processed < maxProcessPerRun) {
-        const queueItem = await this.getNextFromQueue();
-        if (!queueItem) break;
+      for (const item of items) {
+        logger.log(`Processing anime ID ${item.anime_id})`);
 
-        logger.log(`Processing anime ID ${queueItem.animeId})`);
-
-        const success = await this.processQueueItem(queueItem);
-        if (success) {
-          processed++;
-          await this.removeFromQueue(queueItem.animeId);
-        }
+        await this.processQueueItem(item);
 
         await sleep(SLEEP_BETWEEN_UPDATES);
       }
 
-      const remainingCount = (await db.select({ count: count() }).from(updateQueue))[0]?.count ?? 0;
-      logger.log(`Processed ${processed} anime from queue. ${remainingCount} remaining.`);
+      logger.log(`Processed ${queueCount} anime from queue.`);
     } catch (e) {
       logger.error('Failed during queue processing:', e);
     } finally {
@@ -198,20 +194,21 @@ class AnimeUpdateModule extends Module {
     }
   }
 
-  private async processQueueItem(queueItem: QueueItem): Promise<boolean> {
-    let success = false;
-
+  private async processQueueItem(item: { anime_id: number }) {
     try {
-      await Anime.update(queueItem.animeId);
-      success = true;
-      logger.log(`Successfully updated anime ${queueItem.animeId}`);
+      await Promise.race([
+        Anime.update(item.anime_id),
+        sleep(60000).then(() => {
+          throw new Error('Timed out');
+        })
+      ]);
+      await this.removeFromQueue(item.anime_id);
+      logger.log(`Successfully updated anime ${item.anime_id}`);
     } catch (error) {
-      logger.error(`Failed to update anime ${queueItem.animeId}`, error);
+      logger.error(`Failed to update anime ${item.anime_id}`, error);
     }
 
-    await this.updateQueueItem(queueItem.animeId);
-
-    return success;
+    await this.updateQueueItem(item.anime_id);
   }
 
   @Scheduled(Schedule.every30Minutes())

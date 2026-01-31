@@ -5,7 +5,6 @@ import { TmdbStrategies } from './tmdb.strategies';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import logger from 'src/helpers/logger';
 import { Anilist } from '../../anilist';
-import { TmdbUtils } from './tmdb.utils';
 import { Tmdb } from '../tmdb';
 import { Shikimori } from '../../shikimori';
 import { Kitsu } from '../../kitsu';
@@ -31,7 +30,7 @@ class TmdbSeasonsModule extends Module {
       throw new NotFoundError('Anilist not found');
     }
 
-    if (TmdbUtils.getTmdbTypeByAl(al.format) === 'MOVIE') {
+    if (AnimeUtils.getType(al.format) === 'movie') {
       throw new Error("LMAO, movies can't have seasons, you baka!");
     }
 

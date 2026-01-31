@@ -4,12 +4,12 @@ import { getKey, Redis } from 'src/helpers/redis.util';
 import { parseString } from 'src/helpers/parsers';
 import { ArtworkEntry, unifyArtworkType } from '../../meta/helpers/meta.dto';
 import { Anilist } from '../anilist';
-import { TvdbUtils } from './helpers/tvdb.utils';
 import { TvdbFetch } from './helpers/tvdb.fetch';
 import { Meta } from '../../meta';
 import { normalize_iso_639_1 } from 'src/helpers/languages';
 import { ProviderModule } from 'src/helpers/module';
 import { Tmdb } from '../tmdb';
+import { AnimeUtils } from '../../helpers';
 
 class TvdbModule extends ProviderModule<TvdbInfoResult> {
   override readonly name = 'TVDB';
@@ -29,7 +29,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
       throw new NotFoundError('Anilist not found');
     }
 
-    const type = TvdbUtils.getTvdbTypeByAl(al.format);
+    const type = AnimeUtils.getType(al.format);
 
     const tvdbId = await Meta.map(id, this.name);
     const tmdbId = await Meta.map(id, Tmdb.name);

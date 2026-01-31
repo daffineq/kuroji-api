@@ -37,9 +37,25 @@ const pickBestTitle = (a: AnilistMedia): string | null => {
   return a.title.english ?? a.title.romaji ?? a.title.native ?? null;
 };
 
+const getType = (format: string | null | undefined): 'movie' | 'series' => {
+  switch (format) {
+    case 'MOVIE':
+      return 'movie';
+    case 'TV':
+    case 'ONA':
+    case 'OVA':
+    case 'SPECIAL':
+    case 'TV_SHORT':
+      return 'series';
+    default:
+      return 'series';
+  }
+};
+
 const AnimeUtils = {
   getEpisodesCount,
-  pickBestTitle
+  pickBestTitle,
+  getType
 };
 
 export { AnimeUtils };

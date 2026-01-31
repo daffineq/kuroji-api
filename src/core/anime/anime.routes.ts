@@ -126,6 +126,22 @@ const animeRoute = () => {
             }
           }
         )
+
+        .delete(
+          '/update/queue/clear',
+          async () => {
+            await AnimeUpdate.clearQueue();
+
+            return createSuccessResponse({ message: 'Cleared the queue' });
+          },
+          {
+            query: t.Object({ id: t.Number() }),
+            detail: {
+              summary: 'Clear Queue',
+              description: 'Clears the anime update queue'
+            }
+          }
+        )
     );
 };
 

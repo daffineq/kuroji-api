@@ -29,10 +29,10 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     let info: TmdbInfoResult;
 
     const al = await Anilist.getInfo(id);
-    const type = TmdbUtils.getTmdbTypeByAl(al.format);
+    const type = AnimeUtils.getType(al.format);
 
     if (idMap) {
-      info = type === 'MOVIE' ? await TmdbFetch.fetchMovie(idMap) : await TmdbFetch.fetchSeries(idMap);
+      info = type === 'movie' ? await TmdbFetch.fetchMovie(idMap) : await TmdbFetch.fetchSeries(idMap);
     } else {
       info = await this.find(id);
 
@@ -46,7 +46,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     }
 
     const images =
-      type === 'MOVIE' ? await TmdbFetch.getMovieImages(info.id) : await TmdbFetch.getSeriesImages(info.id);
+      type === 'movie' ? await TmdbFetch.getMovieImages(info.id) : await TmdbFetch.getSeriesImages(info.id);
 
     const artworks: ArtworkEntry[] = images.map((i) => {
       return {
@@ -110,10 +110,10 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     const tmdb = await this.getInfo(id);
 
     const al = await Anilist.getInfo(id);
-    const type = TmdbUtils.getTmdbTypeByAl(al.format);
+    const type = AnimeUtils.getType(al.format);
 
     const translations =
-      type == 'MOVIE'
+      type == 'movie'
         ? await TmdbFetch.fetchMovieTranslations(tmdb.id)
         : await TmdbFetch.fetchSeriesTranslations(tmdb.id);
 
@@ -169,7 +169,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       throw new Error('Anilist not found');
     }
 
-    const type = TmdbUtils.getTmdbTypeByAl(al.format);
+    const type = AnimeUtils.getType(al.format);
 
     const title = AnimeUtils.pickBestTitle(al);
 
@@ -178,7 +178,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     }
 
     const search =
-      type === 'MOVIE'
+      type === 'movie'
         ? await TmdbFetch.searchMovie(deepCleanTitle(title))
         : await TmdbFetch.searchSeries(deepCleanTitle(title));
 
@@ -197,7 +197,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
 
     if (bestMatch) {
       const data =
-        type === 'MOVIE'
+        type === 'movie'
           ? await TmdbFetch.fetchMovie(bestMatch.result.id)
           : await TmdbFetch.fetchSeries(bestMatch.result.id);
       return data;

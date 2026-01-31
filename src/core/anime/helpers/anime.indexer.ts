@@ -48,7 +48,12 @@ class AnimeIndexerModule extends Module {
           logger.log(`Indexing release ID: ${id}...`);
 
           try {
-            await Anime.updateOrCreate(id);
+            await Promise.race([
+              Anime.updateOrCreate(id),
+              sleep(60000).then(() => {
+                throw new Error('Timed out');
+              })
+            ]);
           } catch (err) {
             logger.error(`Failed to index release ${id}:`, err);
             return;
