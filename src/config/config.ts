@@ -27,7 +27,12 @@ class ConfigModule {
   readonly anime_indexer_update_enabled = parseBoolean(process.env.ANIME_INDEXER_UPDATE_ENABLED) ?? true;
 
   // Indexer
-  readonly anime_popularity_threshold = parseNumber(process.env.ANIME_POPULARITY_THRESHOLD) ?? 1500;
+  readonly anime_indexer_default_popularity_threshold =
+    parseNumber(process.env.ANIME_INDEXER_DEFAULT_POPULARITY_THRESHOLD) ??
+    parseNumber(process.env.ANIME_POPULARITY_THRESHOLD) ??
+    1500;
+
+  readonly anime_indexer_default_delay = parseNumber(process.env.ANIME_INDEXER_DEFAULT_DELAY) ?? 5;
 
   // API Base URLs
   readonly anilist = process.env.ANILIST ?? 'https://graphql.anilist.co';

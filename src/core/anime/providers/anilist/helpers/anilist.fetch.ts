@@ -30,59 +30,14 @@ class AnilistFetchModule extends ClientModule {
 
   async fetchIds(
     page: number,
-    perPage: number
-  ): Promise<{
-    media: { id: number }[];
-    pageInfo: { hasNextPage: boolean };
-  }> {
-    const { data, error } = await this.client.post<{
-      media: { id: number }[];
-      pageInfo: { hasNextPage: boolean };
-    }>(``, {
-      json: {
-        query: `
-          query ($page: Int, $perPage: Int) {
-            Page(page: $page, perPage: $perPage) {
-              pageInfo {
-                total
-                perPage
-                currentPage
-                lastPage
-                hasNextPage
-              }
-              media(type: ANIME, sort: [POPULARITY_DESC], popularity_greater: ${Config.anime_popularity_threshold}) {
-                id
-              }
-            }
-          }
-        `,
-        variables: {
-          page,
-          perPage
-        }
-      },
-      jsonPath: 'data.Page'
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error(`AnilistFetch.fetchIds: No data found`);
-    }
-
-    return data;
-  }
-
-  async fetchIdsStatus(
-    page: number,
     perPage: number,
-    status: string
+    options: { status?: string; threshold?: number } = {}
   ): Promise<{
     media: { id: number }[];
     pageInfo: { hasNextPage: boolean };
   }> {
+    const { status, threshold = Config.anime_indexer_default_popularity_threshold } = options;
+
     const { data, error } = await this.client.post<{
       media: { id: number }[];
       pageInfo: { hasNextPage: boolean };
@@ -98,7 +53,7 @@ class AnilistFetchModule extends ClientModule {
                 lastPage
                 hasNextPage
               }
-              media(type: ANIME, sort: [POPULARITY_DESC], popularity_greater: ${Config.anime_popularity_threshold}, status: ${status}) {
+              media(type: ANIME, sort: [POPULARITY_DESC], popularity_greater: ${threshold} ${status ? `, status: ${status}` : ''}) {
                 id
               }
             }
@@ -135,7 +90,7 @@ class AnilistFetchModule extends ClientModule {
               pageInfo {
                 lastPage
               },
-              media(type: ANIME, popularity_greater: ${Config.anime_popularity_threshold}) {
+              media(type: ANIME) {
                 id
               }
             }

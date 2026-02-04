@@ -12,15 +12,13 @@ import { db, indexerState } from 'src/db';
 class AnimeIndexerModule extends Module {
   override readonly name = 'AnimeIndexer';
 
-  private delay: number = 5;
-
-  private async index(options: { status?: string } = {}): Promise<void> {
+  private async index(options: { delay?: number; status?: string; threshold?: number } = {}): Promise<void> {
     if (!lock.acquire('indexer')) {
       logger.log('Indexer already running, skipping new run.');
       return;
     }
 
-    const { status } = options;
+    const { delay = Config.anime_indexer_default_delay, status } = options;
 
     try {
       let page = await this.getLastFetchedPage(status);
@@ -32,9 +30,7 @@ class AnimeIndexerModule extends Module {
       while (hasNextPage) {
         logger.log(`Fetching IDs from page ${page}...`);
 
-        const response = status
-          ? await AnilistFetch.fetchIdsStatus(page, perPage, status)
-          : await AnilistFetch.fetchIds(page, perPage);
+        const response = await AnilistFetch.fetchIds(page, perPage, options);
 
         const ids = response.media.map((m) => m.id);
         hasNextPage = response.pageInfo.hasNextPage;
@@ -59,7 +55,7 @@ class AnimeIndexerModule extends Module {
             return;
           }
 
-          await sleep(this.delay * 1000);
+          await sleep(delay * 1000);
         }
 
         await this.setLastFetchedPage(page, status);
@@ -79,19 +75,18 @@ class AnimeIndexerModule extends Module {
     }
   }
 
-  public async start(delay: number = 5, status?: string): Promise<string> {
+  public async start(options: { delay?: number; status?: string; threshold?: number }): Promise<string> {
     if (lock.isLocked('indexer')) {
       logger.log('Indexer already running, skipping new run.');
       return 'Indexer already running';
     }
 
-    this.delay = delay;
-
     logger.log('Starting indexing...');
-    this.index({ status }).catch((err) => {
+    this.index(options).catch((err) => {
       logger.error('Error during indexing:', err);
     });
-    return `Indexing started, estimated time: ${await this.calculateEstimatedTime()}`;
+
+    return `Indexing started, estimated time: ${await this.calculateEstimatedTime(options)}`;
   }
 
   public stop(): string {
@@ -141,22 +136,73 @@ class AnimeIndexerModule extends Module {
     await this.index({ status: 'NOT_YET_RELEASED' });
   }
 
-  public async calculateEstimatedTime(): Promise<string> {
-    const fetched = (await this.getLastFetchedPage()) * 50;
+  public async calculateEstimatedTime(options: {
+    delay?: number;
+    status?: string;
+    threshold?: number;
+  }): Promise<string> {
+    const { delay = Config.anime_indexer_default_delay, status } = options;
 
-    // No longer working
-    // const total = await AnilistFetch.getTotal();
+    const fetched = (await this.getLastFetchedPage(status)) * 50;
 
-    const total = 22000;
+    // Estimating count because anilist fixed the way i used to get count in anilist api
+    const total = this.estimateCount(options);
 
     const remaining = Math.max(total - fetched, 0);
 
-    const timeS = remaining * (this.delay + 10);
+    const timeS = remaining * (delay + 10);
     const timeM = Math.floor(timeS / 60);
     const timeH = Math.floor(timeM / 60);
     const timeD = Math.floor(timeH / 24);
 
     return `${timeD} days, ${timeH % 24} hours, ${timeM % 60} minutes, ${timeS % 60} seconds`;
+  }
+
+  private estimateCount(options: { status?: string; threshold?: number } = {}): number {
+    const { status, threshold = Config.anime_indexer_default_popularity_threshold } = options;
+
+    const buckets: [number, number][] = [
+      [50_000, 300],
+      [30_000, 700],
+      [20_000, 1_400],
+      [10_000, 2_800],
+      [7_500, 4_000],
+      [5_000, 5_800],
+      [2_500, 9_500],
+      [1_000, 14_500],
+      [500, 18_500],
+      [100, 24_000]
+    ];
+
+    const statusRatio: Record<string, number> = {
+      FINISHED: 0.63,
+      RELEASING: 0.13,
+      NOT_YET_RELEASED: 0.09,
+      CANCELLED: 0.07,
+      HIATUS: 0.01
+    };
+
+    if (threshold >= buckets[0]![0]) {
+      return Math.round(buckets[0]![1] * (status ? (statusRatio[status] ?? 1) : 1));
+    }
+
+    if (threshold <= buckets[buckets.length - 1]![0]) {
+      return Math.round(buckets[buckets.length - 1]![1] * (status ? (statusRatio[status] ?? 1) : 1));
+    }
+
+    for (let i = 0; i < buckets.length - 1; i++) {
+      const [p1, c1] = buckets[i] ?? [0, 0];
+      const [p2, c2] = buckets[i + 1] ?? [0, 0];
+
+      if (threshold <= p1 && threshold >= p2) {
+        const t = (threshold - p1) / (p1 - p2);
+        const value = c1 + t * (c1 - c2);
+
+        return Math.round(value * (status ? (statusRatio[status] ?? 1) : 1));
+      }
+    }
+
+    return 0;
   }
 
   async getLastFetchedPage(status?: string): Promise<number> {
