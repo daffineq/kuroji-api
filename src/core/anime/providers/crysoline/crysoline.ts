@@ -187,7 +187,7 @@ class CrysolineModule extends Module {
       });
 
       if (!map.idMap) {
-        return [];
+        return null;
       }
 
       await Anime.upsert({
