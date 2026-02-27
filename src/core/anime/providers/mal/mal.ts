@@ -1,12 +1,13 @@
 import { getKey, Redis } from 'src/helpers/redis.util';
-import { parseNumber } from 'src/helpers/parsers';
+import { parseNumber, parseString } from 'src/helpers/parsers';
 import { Anilist } from '../anilist';
-import { Meta, VideoEntry } from '../../meta';
 import { ProviderModule } from 'src/helpers/module';
 import { Meta as CryMeta } from '@crysoline/lib';
 import { Config } from 'src/config/config';
 import { Info } from '@crysoline/lib/dist/core/types';
 import { MInfoMeta } from '@crysoline/lib/dist/core/meta/myanimelist';
+import { Anime } from '../../anime';
+import { AnimeVideoPayload } from '../../types';
 
 type MALInfo = Info<MInfoMeta>;
 
@@ -29,15 +30,15 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
     if (idMal) {
       info = await this.fetch.info(idMal);
 
-      await Meta.update({
+      await Anime.upsert({
         id,
-        mappings: {
-          id: idMal,
-          name: this.name
+        links: {
+          source_link: parseString(idMal)!,
+          source_name: this.name
         }
       });
     } else {
-      const idMap = await Meta.map(id, this.name);
+      const idMap = await Anime.map(id, this.name);
 
       if (idMap) {
         info = await this.fetch.info(idMap);
@@ -50,18 +51,18 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
 
         info = await this.fetch.info(al.idMal);
 
-        await Meta.update({
+        await Anime.upsert({
           id,
-          mappings: {
-            id: al.idMal,
-            name: this.name
+          links: {
+            source_link: parseString(al.idMal)!,
+            source_name: this.name
           }
         });
       }
     }
 
     if (info.metadata?.videos) {
-      const videos: VideoEntry[] = info.metadata.videos.map((v) => {
+      const videos: AnimeVideoPayload[] = info.metadata.videos.map((v) => {
         return {
           url: v.url,
           title: v.title,
@@ -72,11 +73,11 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
         };
       });
 
-      await Meta.update({ id, videos });
+      await Anime.upsert({ id, videos });
     }
 
     if (info.image) {
-      await Meta.update({
+      await Anime.upsert({
         id,
         images: {
           url: info.image.large,
@@ -88,11 +89,11 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
     }
 
     if (info.metadata?.moreInfo) {
-      await Meta.update({ id, moreinfo: info.metadata?.moreInfo });
+      await Anime.upsert({ id, moreinfo: info.metadata?.moreInfo });
     }
 
     if (info.metadata?.broadcast) {
-      await Meta.update({ id, broadcast: info.metadata?.broadcast });
+      await Anime.upsert({ id, broadcast: info.metadata?.broadcast });
     }
 
     await Redis.set(key, info);

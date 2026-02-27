@@ -212,6 +212,18 @@ export interface AnilistMedia {
     }[];
   };
   siteUrl?: string;
+  recommendations?: {
+    edges: {
+      node: {
+        media: {
+          id: number;
+        };
+        mediaRecommendation: {
+          id: number;
+        };
+      };
+    }[];
+  };
 }
 
 export enum MediaType {

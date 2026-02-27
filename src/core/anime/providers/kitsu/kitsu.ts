@@ -5,8 +5,8 @@ import { parseNumber } from 'src/helpers/parsers';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { KitsuFetch } from './helpers/kitsu.fetch';
 import { Anilist, AnilistUtils } from '../anilist';
-import { Meta } from '../../meta';
 import { ProviderModule } from 'src/helpers/module';
+import { Anime } from '../../anime';
 
 class KitsuModule extends ProviderModule<KitsuAnime> {
   override readonly name = 'Kitsu';
@@ -20,7 +20,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
       return cached;
     }
 
-    const idMap = await Meta.map(id, this.name);
+    const idMap = await Anime.map(id, this.name);
 
     let info: KitsuAnime;
 
@@ -29,17 +29,17 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     } else {
       info = await this.find(id);
 
-      await Meta.update({
+      await Anime.upsert({
         id,
-        mappings: {
-          id: info.id,
-          name: this.name
+        links: {
+          source_link: info.id,
+          source_name: this.name
         }
       });
     }
 
     if (info.attributes.posterImage) {
-      await Meta.update({
+      await Anime.upsert({
         id,
         images: {
           url: info.attributes.posterImage.original,
@@ -53,7 +53,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     }
 
     if (info.attributes.coverImage) {
-      await Meta.update({
+      await Anime.upsert({
         id,
         images: {
           url: info.attributes.coverImage.original,
@@ -66,7 +66,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
       });
     }
 
-    await Meta.update({ id, nsfw: info.attributes.nsfw });
+    await Anime.upsert({ id, nsfw: info.attributes.nsfw });
 
     await Redis.set(key, info);
 

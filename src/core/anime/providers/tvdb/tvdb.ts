@@ -2,14 +2,14 @@ import { NotFoundError } from 'src/helpers/errors';
 import { TvdbInfoResult } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { parseString } from 'src/helpers/parsers';
-import { ArtworkEntry, unifyArtworkType } from '../../meta/helpers/meta.dto';
 import { Anilist } from '../anilist';
 import { TvdbFetch } from './helpers/tvdb.fetch';
-import { Meta } from '../../meta';
 import { normalize_iso_639_1 } from 'src/helpers/languages';
 import { ProviderModule } from 'src/helpers/module';
 import { Tmdb } from '../tmdb';
 import { AnimeUtils } from '../../helpers';
+import { Anime } from '../../anime';
+import { AnimeArtworkPayload } from '../../types';
 
 class TvdbModule extends ProviderModule<TvdbInfoResult> {
   override readonly name = 'TVDB';
@@ -31,8 +31,8 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
 
     const type = AnimeUtils.getType(al.format);
 
-    const tvdbId = await Meta.map(id, this.name);
-    const tmdbId = await Meta.map(id, Tmdb.name);
+    const tvdbId = await Anime.map(id, this.name);
+    const tmdbId = await Anime.map(id, Tmdb.name);
 
     let info: TvdbInfoResult | undefined = undefined;
 
@@ -47,11 +47,11 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
 
       info = type === 'movie' ? await TvdbFetch.fetchMovie(search.id) : await TvdbFetch.fetchSeries(search.id);
 
-      await Meta.update({
+      await Anime.upsert({
         id,
-        mappings: {
-          id: parseString(info.id)!,
-          name: this.name
+        links: {
+          source_link: parseString(info.id)!,
+          source_name: this.name
         }
       });
     }
@@ -61,7 +61,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
     }
 
     if (info.artworks) {
-      const artworks: ArtworkEntry[] = info.artworks.map((a) => {
+      const artworks: AnimeArtworkPayload[] = info.artworks.map((a) => {
         return {
           url: a.image!,
           large: a.image,
@@ -69,12 +69,12 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
           height: a.height,
           iso_639_1: normalize_iso_639_1(a.language) ?? undefined,
           medium: a.thumbnail,
-          type: unifyArtworkType(a.type),
+          type: AnimeUtils.unifyArtworkType(a.type),
           source: this.name
-        } satisfies ArtworkEntry;
+        } satisfies AnimeArtworkPayload;
       });
 
-      await Meta.update({ id, artworks });
+      await Anime.upsert({ id, artworks });
     }
 
     await Redis.set(key, info);

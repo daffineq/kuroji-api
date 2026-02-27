@@ -25,7 +25,7 @@ type Query {
     type: MediaType
     source: MediaSource
     source_in: [MediaSource!]
-    country_of_origin: CountryCode
+    country: CountryCode
     is_licensed: Boolean
     is_adult: Boolean
     genres: [String!]
@@ -88,7 +88,63 @@ type Query {
     type: MediaType
     source: MediaSource
     source_in: [MediaSource!]
-    country_of_origin: CountryCode
+    country: CountryCode
+    is_licensed: Boolean
+    is_adult: Boolean
+    genres: [String!]
+    genres_in: [String!]
+    genres_not_in: [String!]
+    tags: [String!]
+    tags_in: [String!]
+    tags_not_in: [String!]
+    minimum_tag_rank: Int
+    studios: [String!]
+    studios_in: [String!]
+    score_greater: Int
+    score_lesser: Int
+    popularity_greater: Int
+    popularity_lesser: Int
+    episodes_greater: Int
+    episodes_lesser: Int
+    duration_greater: Int
+    duration_lesser: Int
+    start_date_greater: String
+    start_date_lesser: String
+    end_date_greater: String
+    end_date_lesser: String
+    start_date_like: String
+    end_date_like: String
+    has_next_episode: Boolean
+    franchise: String
+    sort: [AnimeSort!]
+  ): AnimePage!
+  recommendations(
+    page: Int = 1
+    per_page: Int = 20
+    search: String
+    parent_id: Int
+    id: Int
+    id_in: [Int!]
+    id_not: Int
+    id_not_in: [Int!]
+    id_mal: Int
+    id_mal_in: [Int!]
+    id_mal_not: Int
+    id_mal_not_in: [Int!]
+    season: MediaSeason
+    season_year: Int
+    season_year_greater: Int
+    season_year_lesser: Int
+    format: MediaFormat
+    format_in: [MediaFormat!]
+    format_not_in: [MediaFormat!]
+    status: MediaStatus
+    status_in: [MediaStatus!]
+    status_not_in: [MediaStatus!]
+    type: MediaType
+    source: MediaSource
+    source_in: [MediaSource!]
+    country: CountryCode
     is_licensed: Boolean
     is_adult: Boolean
     genres: [String!]
@@ -289,9 +345,10 @@ type Anime {
   end_date: AnimeDate
   season: MediaSeason
   season_year: Int
-  episodes: Int
+  episodes_aired: Int
+  episodes_total: Int
   duration: Int
-  country_of_origin: CountryCode
+  country: CountryCode
   is_licensed: Boolean
   source: MediaSource
   hashtag: String
@@ -300,15 +357,29 @@ type Anime {
   popularity: Int
   trending: Int
   favorites: Int
+  color: String
+  franchise: String
+  age_rating: String
+  moreinfo: String
+  broadcast: String
+  nsfw: Boolean
   genres: [AnimeGenre!]!
   airing_schedule: [AiringSchedule!]!
-  characters(page: Int = 1, per_page: Int = 25): CharacterConnection!
-  studios: [StudioEdge!]!
-  tags: [TagEdge!]!
-  external_links: [ExternalLink!]!
+  characters(page: Int, per_page: Int): CharacterPage!
+  studios(only_main: Boolean): [StudioConnection!]!
+  tags: [TagConnection!]!
+  links: [AnimeLink!]!
   score_distribution: [ScoreDistribution!]!
   status_distribution: [StatusDistribution!]!
-  meta: Meta
+  other_titles: [OtherTitle!]!
+  other_descriptions: [OtherDescription!]!
+  images: [AnimeImage!]!
+  videos: [AnimeVideo!]!
+  screenshots: [AnimeScreenshot!]!
+  artworks(iso_639_1: String): [AnimeArtwork!]!
+  chronology: [Anime!]!
+  recommendations: [Anime!]!
+  episodes: [Episode!]!
 }
 
 type AnimeTitle {
@@ -318,10 +389,9 @@ type AnimeTitle {
 }
 
 type AnimePoster {
-  color: String
-  large: String
+  small: String
   medium: String
-  extra_large: String
+  large: String
 }
 
 type AnimeDate {
@@ -341,13 +411,12 @@ type AiringSchedule {
   airing_at: Int
 }
 
-type CharacterConnection {
-  edges: [CharacterEdge!]!
+type CharacterPage {
+  connections: [CharacterConnection!]!
   page_info: PageInfo!
 }
 
-type CharacterEdge {
-  id: Int!
+type CharacterConnection {
   role: CharacterRole
   character: AnimeCharacter!
   voice_actors: [VoiceActor!]!
@@ -388,8 +457,7 @@ type VoiceActorImage {
   medium: String
 }
 
-type StudioEdge {
-  id: Int!
+type StudioConnection {
   is_main: Boolean
   studio: AnimeStudio!
 }
@@ -399,9 +467,9 @@ type AnimeStudio {
   name: String
 }
 
-type TagEdge {
+type TagConnection {
   rank: Int
-  is_media_spoiler: Boolean
+  is_spoiler: Boolean
   tag: AnimeTag!
 }
 
@@ -410,21 +478,12 @@ type AnimeTag {
   name: String
   description: String
   category: String
-  is_general_spoiler: Boolean
   is_adult: Boolean
 }
 
-type ExternalLink {
-  id: Int!
-  url: String
-  site: String
-  site_id: Int
-  type: ExternalLinkType
-  language: String
-  color: String
-  icon: String
-  notes: String
-  is_disabled: Boolean
+type AnimeLink {
+  source_link: String!
+  source_name: String!
 }
 
 type ScoreDistribution {
@@ -437,39 +496,20 @@ type StatusDistribution {
   amount: Int!
 }
 
-type Meta {
-  id: Int!
-  franchise: String
-  rating: String
-  episodes_aired: Int
-  episodes_total: Int
-  moreinfo: String
-  broadcast: String
-  nsfw: Boolean
-  titles: [Title!]!
-  descriptions: [Description!]!
-  images: [Image!]!
-  mappings: [Mapping!]!
-  episodes: [Episode!]!
-  videos: [Video!]!
-  screenshots: [Screenshot!]!
-  artworks(iso_639_1: String): [Artwork!]!
-  chronology: [Anime!]!
-}
-
-type Title {
+type OtherTitle {
   title: String!
   source: String!
   language: String!
 }
 
-type Description {
+type OtherDescription {
   description: String!
   source: String!
   language: String!
 }
 
-type Image {
+type AnimeImage {
+  url: String!
   small: String
   medium: String
   large: String
@@ -477,9 +517,79 @@ type Image {
   source: String!
 }
 
-type Mapping {
-  source_id: String!
-  source_name: String!
+type AnimeVideo {
+  url: String!
+  title: String
+  thumbnail: String
+  artist: String
+  type: String
+}
+
+type AnimeScreenshot {
+  url: String!
+  order: Int!
+  small: String
+  medium: String
+  large: String
+  source: String!
+}
+
+type AnimeArtwork {
+  url: String!
+  height: Int
+  width: Int
+  large: String
+  medium: String
+  iso_639_1: String
+  type: String!
+  source: String!
+}
+
+enum VideoType {
+  HLS
+  DASH
+  MP4
+}
+
+type IntroOutro {
+  start: Float
+  end: Float
+}
+
+type Download {
+  url: String
+  quality: String
+}
+
+type VideoSource {
+  url: String
+  isM3U8: Boolean
+  type: VideoType
+  quality: String
+  isDub: Boolean
+}
+
+type Subtitle {
+  id: String
+  url: String
+  label: String
+  srcLang: String
+}
+
+type Header {
+  key: String!
+  value: String
+}
+
+type Source {
+  headers: [Header!]
+  intro: IntroOutro
+  outro: IntroOutro
+  sources: [VideoSource!]!
+  subtitles: [Subtitle!]
+  download: [Download!]
+  chapters: String
+  thumbnails: String
 }
 
 type Episode {
@@ -534,76 +644,4 @@ type EpisodeImages {
   width: Int
   iso_639_1: String
   image: EpisodeImage
-}
-
-type Video {
-  url: String!
-  title: String
-  thumbnail: String
-  artist: String
-  type: String
-}
-
-type Screenshot {
-  small: String
-  medium: String
-  large: String
-  source: String!
-}
-
-type Artwork {
-  height: Int
-  width: Int
-  large: String
-  medium: String
-  iso_639_1: String
-  type: String
-  source: String
-}
-
-enum VideoType {
-  HLS
-  DASH
-  MP4
-}
-
-type IntroOutro {
-  start: Float
-  end: Float
-}
-
-type Download {
-  url: String
-  quality: String
-}
-
-type VideoSource {
-  url: String
-  isM3U8: Boolean
-  type: VideoType
-  quality: String
-  isDub: Boolean
-}
-
-type Subtitle {
-  id: String
-  url: String
-  label: String
-  srcLang: String
-}
-
-type Header {
-  key: String!
-  value: String
-}
-
-type Source {
-  headers: [Header!]
-  intro: IntroOutro
-  outro: IntroOutro
-  sources: [VideoSource!]!
-  subtitles: [Subtitle!]
-  download: [Download!]
-  chapters: String
-  thumbnails: String
 }

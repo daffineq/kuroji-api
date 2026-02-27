@@ -3,14 +3,14 @@ import { TmdbImage, TmdbInfoResult, TmdbTranslation } from './types';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { NotFoundError } from 'src/helpers/errors';
 import { getKey, Redis } from 'src/helpers/redis.util';
-import { ArtworkEntry, unifyArtworkType } from '../../meta/helpers/meta.dto';
 import { Anilist } from '../anilist';
 import { TmdbUtils } from './helpers/tmdb.utils';
 import { TmdbFetch } from './helpers/tmdb.fetch';
-import { Meta } from '../../meta';
 import { normalize_iso_639_1 } from 'src/helpers/languages';
 import { ProviderModule } from 'src/helpers/module';
 import { AnimeUtils } from '../../helpers';
+import { Anime } from '../../anime';
+import { AnimeArtworkPayload } from '../../types';
 
 class TmdbModule extends ProviderModule<TmdbInfoResult> {
   override readonly name = 'TMDB';
@@ -24,7 +24,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       return cached;
     }
 
-    const idMap = parseNumber(await Meta.map(id, this.name));
+    const idMap = parseNumber(await Anime.map(id, this.name));
 
     let info: TmdbInfoResult;
 
@@ -36,11 +36,11 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     } else {
       info = await this.find(id);
 
-      await Meta.update({
+      await Anime.upsert({
         id,
-        mappings: {
-          id: parseString(info.id)!,
-          name: this.name
+        links: {
+          source_link: parseString(info.id)!,
+          source_name: this.name
         }
       });
     }
@@ -48,7 +48,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     const images =
       type === 'movie' ? await TmdbFetch.getMovieImages(info.id) : await TmdbFetch.getSeriesImages(info.id);
 
-    const artworks: ArtworkEntry[] = images.map((i) => {
+    const artworks: AnimeArtworkPayload[] = images.map((i) => {
       return {
         url: i.file_path,
         large: TmdbUtils.getImage('original', i.file_path) ?? undefined,
@@ -56,17 +56,17 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
         width: i.width,
         iso_639_1: normalize_iso_639_1(i.iso_639_1) ?? undefined,
         medium: TmdbUtils.getImage('w780', i.file_path) ?? undefined,
-        type: unifyArtworkType(i.type),
+        type: AnimeUtils.unifyArtworkType(i.type),
         source: this.name
-      } satisfies ArtworkEntry;
+      } satisfies AnimeArtworkPayload;
     });
 
     if (artworks) {
-      await Meta.update({ id, artworks });
+      await Anime.upsert({ id, artworks });
     }
 
     if (info.poster_path) {
-      await Meta.update({
+      await Anime.upsert({
         id,
         images: {
           url: info.poster_path,
@@ -80,7 +80,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     }
 
     if (info.backdrop_path) {
-      await Meta.update({
+      await Anime.upsert({
         id,
         images: {
           url: info.backdrop_path,

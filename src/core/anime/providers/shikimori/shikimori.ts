@@ -3,8 +3,10 @@ import { ShikimoriAnime } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { ShikimoriFetch } from './helpers/shikimori.fetch';
 import { Anilist } from '../anilist';
-import { ChronologyEntry, Meta, ScreenshotEntry, VideoEntry } from '../../meta';
 import { ProviderModule } from 'src/helpers/module';
+import { Anime } from '../../anime';
+import { AnimeChronologyPayload, AnimeScreenshotPayload, AnimeVideoPayload } from '../../types';
+import { forced } from 'src/helpers/forced';
 
 class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
   override readonly name = 'Shikimori';
@@ -23,15 +25,15 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     if (idMal) {
       info = await ShikimoriFetch.fetchInfo(parseString(idMal)!);
 
-      await Meta.update({
+      await Anime.upsert({
         id,
-        mappings: {
-          id: idMal,
-          name: this.name
+        links: {
+          source_link: parseString(idMal)!,
+          source_name: this.name
         }
       });
     } else {
-      const idMap = await Meta.map(id, this.name);
+      const idMap = await Anime.map(id, this.name);
 
       if (idMap) {
         info = await ShikimoriFetch.fetchInfo(idMap);
@@ -44,48 +46,49 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
 
         info = await ShikimoriFetch.fetchInfo(parseString(al.idMal)!);
 
-        await Meta.update({
+        await Anime.upsert({
           id,
-          mappings: {
-            id: al.idMal,
-            name: this.name
+          links: {
+            source_link: parseString(al.idMal)!,
+            source_name: this.name
           }
         });
       }
     }
 
     if (info.videos) {
-      const videos: VideoEntry[] = info.videos.map((v) => {
+      const videos: AnimeVideoPayload[] = info.videos.map((v) => {
         return {
           url: v.url!,
           title: v.name,
           thumbnail: v.imageUrl,
           type: v.kind,
           source: this.name
-        } satisfies VideoEntry;
+        } satisfies AnimeVideoPayload;
       });
 
-      await Meta.update({ id, videos });
+      await Anime.upsert({ id, videos });
     }
 
     if (info.screenshots) {
-      const screenshots: ScreenshotEntry[] = info.screenshots.map((s) => {
+      const screenshots: AnimeScreenshotPayload[] = info.screenshots.map((s, i) => {
         return {
           url: s.originalUrl!!,
+          order: i,
           small: s.x166Url,
           medium: s.x332Url,
           large: s.originalUrl,
           source: this.name
-        } satisfies ScreenshotEntry;
+        } satisfies AnimeScreenshotPayload;
       });
 
-      await Meta.update({ id, screenshots });
+      await Anime.upsert({ id, screenshots });
     }
 
     if (info.russian) {
-      await Meta.update({
+      await Anime.upsert({
         id,
-        titles: {
+        other_titles: {
           title: info.russian,
           source: this.name,
           language: 'russian'
@@ -94,9 +97,9 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (info.description) {
-      await Meta.update({
+      await Anime.upsert({
         id,
-        descriptions: {
+        other_descriptions: {
           description: info.description,
           source: this.name,
           language: 'russian'
@@ -105,7 +108,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (info.poster) {
-      await Meta.update({
+      await Anime.upsert({
         id,
         images: {
           url: info.poster.originalUrl!,
@@ -118,30 +121,30 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (info.franchise) {
-      await Meta.update({ id, franchise: info.franchise });
+      await Anime.upsert({ id, franchise: info.franchise });
     }
 
     if (info.rating) {
-      await Meta.update({ id, rating: info.rating });
+      await Anime.upsert({ id, age_rating: info.rating });
     }
 
     if (info.episodesAired) {
-      await Meta.update({ id, episodes_aired: info.episodesAired });
+      await Anime.upsert({ id, episodes_aired: info.episodesAired });
     }
 
     if (info.episodes) {
-      await Meta.update({ id, episodes_total: info.episodes });
+      await Anime.upsert({ id, episodes_total: info.episodes });
     }
 
     if (info.chronology) {
-      const chronology: ChronologyEntry[] = info.chronology.reverse().map((c, i) => {
+      const chronology: AnimeChronologyPayload[] = info.chronology.reverse().map((c, i) => {
         return {
-          parentId: parseNumber(info.id)!,
-          relatedId: parseNumber(c.id)!,
+          parent_id: parseNumber(info.id)!,
+          related_id: parseNumber(c.id)!,
           order: i
-        } satisfies ChronologyEntry;
+        } satisfies AnimeChronologyPayload;
       });
-      await Meta.update({ id, chronologies: chronology });
+      await Anime.upsert({ id, chronology: forced(chronology) });
     }
 
     await Redis.set(key, info);

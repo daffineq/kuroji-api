@@ -208,5 +208,17 @@ export const ANILIST_INFO = `
         }
       }
       siteUrl
+      recommendations {
+        edges {
+          node {
+            media {
+              id
+            }
+            mediaRecommendation {
+              id
+            }
+          }
+        }
+      }
     }
   }`;

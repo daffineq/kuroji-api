@@ -3,7 +3,7 @@ import { sql } from 'drizzle-orm';
 import { db } from '.';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 
-export const upsertWithExcluded = <T extends Record<string, any>>(
+export const cleanPayload = <T extends Record<string, any>>(
   payload: T,
   idField: keyof T = 'id' as keyof T
 ): {

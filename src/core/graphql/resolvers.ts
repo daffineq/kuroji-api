@@ -7,6 +7,7 @@ import {
   EpisodeArgs,
   formatEpisodeData,
   MergedEpisode,
+  RecommendationArgs,
   SourcesArgs
 } from './types';
 import {
@@ -18,36 +19,37 @@ import {
   animeGenre,
   animeToGenre,
   animeAiringSchedule,
+  animeToAiringSchedule,
   animeCharacter,
   animeCharacterName,
   animeCharacterImage,
-  animeCharacterEdge,
+  animeToCharacter,
   characterToVoiceActor,
   animeVoiceActor,
   animeVoiceName,
   animeVoiceImage,
   animeStudio,
-  animeStudioEdge,
+  animeToStudio,
   animeTag,
-  animeTagEdge,
-  animeExternalLink,
+  animeToTag,
   animeScoreDistribution,
   animeStatusDistribution,
-  meta,
-  metaMapping,
-  metaToTitle,
-  metaToDescription,
-  metaToImage,
-  metaToVideo,
-  metaToScreenshot,
-  metaToArtwork,
-  metaChronology,
-  metaTitle,
-  metaDescription,
-  metaImage,
-  metaVideo,
-  metaScreenshot,
-  metaArtwork
+  animeLink,
+  animeToLink,
+  animeOtherTitle,
+  animeToOtherTitle,
+  animeOtherDescription,
+  animeToOtherDescription,
+  animeImage,
+  animeToImage,
+  animeVideo,
+  animeToVideo,
+  animeScreenshot,
+  animeToScreenshot,
+  animeArtwork,
+  animeToArtwork,
+  animeChronology,
+  animeRecommendation
 } from 'src/db';
 import {
   eq,
@@ -106,7 +108,7 @@ const filterAnime = (
     type,
     source,
     source_in,
-    country_of_origin,
+    country,
     is_licensed,
     is_adult,
     genres,
@@ -160,8 +162,7 @@ const filterAnime = (
                   )
                 )
               )
-          ),
-          arrayContains(anime.synonyms, [token])
+          )
         )
       );
       conditions.push(and(...searchConditions)!);
@@ -199,7 +200,7 @@ const filterAnime = (
   if (type) conditions.push(eq(anime.type, type));
   if (source) conditions.push(eq(anime.source, source));
   if (source_in?.length) conditions.push(inArray(anime.source, source_in));
-  if (country_of_origin) conditions.push(eq(anime.country_of_origin, country_of_origin));
+  if (country) conditions.push(eq(anime.country, country));
 
   // Boolean filters
   if (is_licensed !== undefined) conditions.push(eq(anime.is_licensed, is_licensed));
@@ -255,9 +256,9 @@ const filterAnime = (
       exists(
         db
           .select()
-          .from(animeTagEdge)
-          .innerJoin(animeTag, eq(animeTag.id, animeTagEdge.tag_id))
-          .where(and(eq(animeTagEdge.anime_id, anime.id), eq(animeTag.name, tags)))
+          .from(animeToTag)
+          .innerJoin(animeTag, eq(animeTag.id, animeToTag.tag_id))
+          .where(and(eq(animeToTag.anime_id, anime.id), eq(animeTag.name, tags)))
       )
     );
   }
@@ -267,9 +268,9 @@ const filterAnime = (
       exists(
         db
           .select()
-          .from(animeTagEdge)
-          .innerJoin(animeTag, eq(animeTag.id, animeTagEdge.tag_id))
-          .where(and(eq(animeTagEdge.anime_id, anime.id), inArray(animeTag.name, tags_in)))
+          .from(animeToTag)
+          .innerJoin(animeTag, eq(animeTag.id, animeToTag.tag_id))
+          .where(and(eq(animeToTag.anime_id, anime.id), inArray(animeTag.name, tags_in)))
       )
     );
   }
@@ -279,9 +280,9 @@ const filterAnime = (
       exists(
         db
           .select()
-          .from(animeTagEdge)
-          .innerJoin(animeTag, eq(animeTag.id, animeTagEdge.tag_id))
-          .where(and(eq(animeTagEdge.anime_id, anime.id), notInArray(animeTag.name, tags_not_in)))
+          .from(animeToTag)
+          .innerJoin(animeTag, eq(animeTag.id, animeToTag.tag_id))
+          .where(and(eq(animeToTag.anime_id, anime.id), notInArray(animeTag.name, tags_not_in)))
       )
     );
   }
@@ -292,9 +293,9 @@ const filterAnime = (
       exists(
         db
           .select()
-          .from(animeStudioEdge)
-          .innerJoin(animeStudio, eq(animeStudio.id, animeStudioEdge.studio_id))
-          .where(and(eq(animeStudioEdge.anime_id, anime.id), eq(animeStudio.name, studios)))
+          .from(animeToStudio)
+          .innerJoin(animeStudio, eq(animeStudio.id, animeToStudio.studio_id))
+          .where(and(eq(animeToStudio.anime_id, anime.id), eq(animeStudio.name, studios)))
       )
     );
   }
@@ -304,9 +305,9 @@ const filterAnime = (
       exists(
         db
           .select()
-          .from(animeStudioEdge)
-          .innerJoin(animeStudio, eq(animeStudio.id, animeStudioEdge.studio_id))
-          .where(and(eq(animeStudioEdge.anime_id, anime.id), inArray(animeStudio.name, studios_in)))
+          .from(animeToStudio)
+          .innerJoin(animeStudio, eq(animeStudio.id, animeToStudio.studio_id))
+          .where(and(eq(animeToStudio.anime_id, anime.id), inArray(animeStudio.name, studios_in)))
       )
     );
   }
@@ -320,8 +321,8 @@ const filterAnime = (
   if (popularity_lesser !== undefined) conditions.push(lte(anime.popularity, popularity_lesser));
 
   // Episode filters
-  if (episodes_greater !== undefined) conditions.push(gte(anime.episodes, episodes_greater));
-  if (episodes_lesser !== undefined) conditions.push(lte(anime.episodes, episodes_lesser));
+  if (episodes_greater !== undefined) conditions.push(gte(anime.episodes_total, episodes_greater));
+  if (episodes_lesser !== undefined) conditions.push(lte(anime.episodes_total, episodes_lesser));
 
   // Duration filters
   if (duration_greater !== undefined) conditions.push(gte(anime.duration, duration_greater));
@@ -381,14 +382,7 @@ const filterAnime = (
   }
 
   if (franchise) {
-    conditions.push(
-      exists(
-        db
-          .select()
-          .from(meta)
-          .where(and(eq(meta.anime_id, anime.id), eq(meta.franchise, franchise)))
-      )
-    );
+    conditions.push(eq(anime.franchise, franchise));
   }
 
   const orderBy: SQL[] = [];
@@ -470,10 +464,10 @@ const filterAnime = (
         orderBy.push(asc(anime.updated_at));
         break;
       case 'EPISODES_DESC':
-        orderBy.push(sql`${anime.episodes} DESC NULLS LAST`);
+        orderBy.push(sql`${anime.episodes_total} DESC NULLS LAST`);
         break;
       case 'EPISODES_ASC':
-        orderBy.push(sql`${anime.episodes} ASC NULLS LAST`);
+        orderBy.push(sql`${anime.episodes_total} ASC NULLS LAST`);
         break;
       case 'DURATION_DESC':
         orderBy.push(sql`${anime.duration} DESC NULLS LAST`);
@@ -539,9 +533,7 @@ export const resolvers = {
   Query: {
     anime: async (_: any, { id }: { id: number }) => {
       const release = await db.query.anime.findFirst({
-        where: {
-          id
-        }
+        where: { id }
       });
 
       if (release) {
@@ -556,13 +548,8 @@ export const resolvers = {
 
       const query = db.select().from(anime).$dynamic();
 
-      if (where) {
-        query.where(where);
-      }
-
-      if (orderBy.length) {
-        query.orderBy(...orderBy);
-      }
+      if (where) query.where(where);
+      if (orderBy.length) query.orderBy(...orderBy);
 
       const [data, totalResult] = await Promise.all([
         query.limit(take).offset(skip),
@@ -589,30 +576,17 @@ export const resolvers = {
 
     character: async (_: any, { id }: { id: number }) => {
       return await db.query.animeCharacter.findFirst({
-        where: {
-          id
-        },
-        with: {
-          name: true,
-          image: true
-        }
+        where: { id },
+        with: { name: true, image: true }
       });
     },
 
     studio: async (_: any, { id }: { id: number }) => {
-      return await db.query.animeStudio.findFirst({
-        where: {
-          id
-        }
-      });
+      return await db.query.animeStudio.findFirst({ where: { id } });
     },
 
     tag: async (_: any, { id }: { id: number }) => {
-      return await db.query.animeTag.findFirst({
-        where: {
-          id
-        }
-      });
+      return await db.query.animeTag.findFirst({ where: { id } });
     },
 
     genres: async () => {
@@ -656,9 +630,7 @@ export const resolvers = {
 
       const episode = tmdbEpisodes.find((e) => e.episode_number === args.number);
 
-      if (!episode) {
-        return null;
-      }
+      if (!episode) return null;
 
       const providerEp = providerEpisodes.find((e) => e.number === args.number);
 
@@ -697,27 +669,31 @@ export const resolvers = {
     chronology: async (_: any, args: ChronologyArgs) => {
       const chronologyEntries = await db
         .select()
-        .from(metaChronology)
-        .where(eq(metaChronology.meta_id, args.parent_id))
-        .orderBy(asc(metaChronology.order));
+        .from(animeChronology)
+        .where(eq(animeChronology.parent_id, args.parent_id))
+        .orderBy(asc(animeChronology.order));
 
       const animeIds = chronologyEntries.map((c) => c.related_id);
 
-      if (animeIds.length === 0) return [];
+      if (animeIds.length === 0)
+        return {
+          data: [],
+          page_info: {
+            total: 0,
+            per_page: args.per_page ?? 20,
+            current_page: 1,
+            last_page: 1,
+            has_next_page: false
+          }
+        };
 
       args.id_mal_in = animeIds;
 
       const { where, orderBy, skip, take, page } = filterAnime(args);
-
       const query = db.select().from(anime).$dynamic();
 
-      if (where) {
-        query.where(where);
-      }
-
-      if (orderBy.length) {
-        query.orderBy(...orderBy);
-      }
+      if (where) query.where(where);
+      if (orderBy.length) query.orderBy(...orderBy);
 
       const [data, totalResult] = await Promise.all([
         query.limit(take).offset(skip),
@@ -732,22 +708,60 @@ export const resolvers = {
 
       return {
         data,
-        page_info: {
-          total,
-          per_page: take,
-          current_page: page,
-          last_page,
-          has_next_page: page < last_page
-        }
+        page_info: { total, per_page: take, current_page: page, last_page, has_next_page: page < last_page }
+      };
+    },
+
+    recommendations: async (_: any, args: RecommendationArgs) => {
+      const recommendationEntries = await db
+        .select()
+        .from(animeRecommendation)
+        .where(eq(animeRecommendation.parent_id, args.parent_id))
+        .orderBy(asc(animeRecommendation.order));
+
+      const animeIds = recommendationEntries.map((c) => c.related_id);
+
+      if (animeIds.length === 0)
+        return {
+          data: [],
+          page_info: {
+            total: 0,
+            per_page: args.per_page ?? 20,
+            current_page: 1,
+            last_page: 1,
+            has_next_page: false
+          }
+        };
+
+      args.id_in = animeIds;
+
+      const { where, orderBy, skip, take, page } = filterAnime(args);
+      const query = db.select().from(anime).$dynamic();
+
+      if (where) query.where(where);
+      if (orderBy.length) query.orderBy(...orderBy);
+
+      const [data, totalResult] = await Promise.all([
+        query.limit(take).offset(skip),
+        db
+          .select({ count: count() })
+          .from(anime)
+          .where(where || sql`true`)
+      ]);
+
+      const total = totalResult[0]?.count || 0;
+      const last_page = Math.ceil(total / take);
+
+      return {
+        data,
+        page_info: { total, per_page: take, current_page: page, last_page, has_next_page: page < last_page }
       };
     },
 
     sources: async (_: any, args: SourcesArgs) => {
       const sources = await Crysoline.sources(args.id, args.ep_id);
 
-      if (!sources) {
-        return null;
-      }
+      if (!sources) return null;
 
       return {
         ...sources,
@@ -763,35 +777,19 @@ export const resolvers = {
 
   Anime: {
     poster: async (parent: any) => {
-      return await db.query.animePoster.findFirst({
-        where: {
-          anime_id: parent.id
-        }
-      });
+      return await db.query.animePoster.findFirst({ where: { anime_id: parent.id } });
     },
 
     title: async (parent: any) => {
-      return await db.query.animeTitle.findFirst({
-        where: {
-          anime_id: parent.id
-        }
-      });
+      return await db.query.animeTitle.findFirst({ where: { anime_id: parent.id } });
     },
 
     start_date: async (parent: any) => {
-      return await db.query.animeStartDate.findFirst({
-        where: {
-          anime_id: parent.id
-        }
-      });
+      return await db.query.animeStartDate.findFirst({ where: { anime_id: parent.id } });
     },
 
     end_date: async (parent: any) => {
-      return await db.query.animeEndDate.findFirst({
-        where: {
-          anime_id: parent.id
-        }
-      });
+      return await db.query.animeEndDate.findFirst({ where: { anime_id: parent.id } });
     },
 
     genres: async (parent: any) => {
@@ -804,6 +802,16 @@ export const resolvers = {
       return result.map((r) => r.genre);
     },
 
+    airing_schedule: async (parent: any) => {
+      const result = await db
+        .select({ schedule: animeAiringSchedule })
+        .from(animeToAiringSchedule)
+        .innerJoin(animeAiringSchedule, eq(animeToAiringSchedule.B, animeAiringSchedule.id))
+        .where(eq(animeToAiringSchedule.A, parent.id));
+
+      return result.map((r) => r.schedule);
+    },
+
     characters: async (parent: any, args: CharacterArgs) => {
       const { page = 1, per_page = 25 } = args;
       const skip = (page - 1) * per_page;
@@ -811,19 +819,19 @@ export const resolvers = {
       const [edges, totalResult] = await Promise.all([
         db
           .select({
-            edge: animeCharacterEdge,
+            edge: animeToCharacter,
             character: animeCharacter,
             characterName: animeCharacterName,
             characterImage: animeCharacterImage
           })
-          .from(animeCharacterEdge)
-          .innerJoin(animeCharacter, eq(animeCharacterEdge.character_id, animeCharacter.id))
+          .from(animeToCharacter)
+          .innerJoin(animeCharacter, eq(animeToCharacter.character_id, animeCharacter.id))
           .leftJoin(animeCharacterName, eq(animeCharacter.id, animeCharacterName.character_id))
           .leftJoin(animeCharacterImage, eq(animeCharacter.id, animeCharacterImage.character_id))
-          .where(eq(animeCharacterEdge.anime_id, parent.id))
+          .where(eq(animeToCharacter.anime_id, parent.id))
           .limit(per_page)
           .offset(skip),
-        db.select({ count: count() }).from(animeCharacterEdge).where(eq(animeCharacterEdge.anime_id, parent.id))
+        db.select({ count: count() }).from(animeToCharacter).where(eq(animeToCharacter.anime_id, parent.id))
       ]);
 
       const total = totalResult[0]?.count || 0;
@@ -861,30 +869,19 @@ export const resolvers = {
       const last_page = Math.ceil(total / per_page);
 
       return {
-        edges: edgesWithVoiceActors,
-        page_info: {
-          total,
-          per_page,
-          current_page: page,
-          last_page,
-          has_next_page: page < last_page
-        }
+        connections: edgesWithVoiceActors,
+        page_info: { total, per_page, current_page: page, last_page, has_next_page: page < last_page }
       };
     },
 
     studios: async (parent: any, args: { only_main?: boolean }) => {
-      const conditions = [eq(animeStudioEdge.anime_id, parent.id)];
-      if (args.only_main) {
-        conditions.push(eq(animeStudioEdge.is_main, true));
-      }
+      const conditions = [eq(animeToStudio.anime_id, parent.id)];
+      if (args.only_main) conditions.push(eq(animeToStudio.is_main, true));
 
       const result = await db
-        .select({
-          edge: animeStudioEdge,
-          studio: animeStudio
-        })
-        .from(animeStudioEdge)
-        .innerJoin(animeStudio, eq(animeStudioEdge.studio_id, animeStudio.id))
+        .select({ edge: animeToStudio, studio: animeStudio })
+        .from(animeToStudio)
+        .innerJoin(animeStudio, eq(animeToStudio.studio_id, animeStudio.id))
         .where(and(...conditions));
 
       return result.map((r) => ({ ...r.edge, studio: r.studio }));
@@ -892,19 +889,22 @@ export const resolvers = {
 
     tags: async (parent: any) => {
       const result = await db
-        .select({
-          edge: animeTagEdge,
-          tag: animeTag
-        })
-        .from(animeTagEdge)
-        .innerJoin(animeTag, eq(animeTagEdge.tag_id, animeTag.id))
-        .where(eq(animeTagEdge.anime_id, parent.id));
+        .select({ edge: animeToTag, tag: animeTag })
+        .from(animeToTag)
+        .innerJoin(animeTag, eq(animeToTag.tag_id, animeTag.id))
+        .where(eq(animeToTag.anime_id, parent.id));
 
       return result.map((r) => ({ ...r.edge, tag: r.tag }));
     },
 
-    external_links: async (parent: any) => {
-      return await db.select().from(animeExternalLink).where(eq(animeExternalLink.anime_id, parent.id));
+    links: async (parent: any) => {
+      const result = await db
+        .select({ link: animeLink })
+        .from(animeToLink)
+        .innerJoin(animeLink, eq(animeToLink.B, animeLink.id))
+        .where(eq(animeToLink.A, parent.id));
+
+      return result.map((r) => r.link);
     },
 
     score_distribution: async (parent: any) => {
@@ -918,75 +918,100 @@ export const resolvers = {
         .where(eq(animeStatusDistribution.anime_id, parent.id));
     },
 
-    airing_schedule: async (parent: any) => {
-      return await db.select().from(animeAiringSchedule).where(eq(animeAiringSchedule.anime_id, parent.id));
-    },
-
-    meta: async (parent: any) => {
-      return await db.query.meta.findFirst({
-        where: {
-          id: parent.id
-        }
-      });
-    }
-  },
-
-  CharacterEdge: {
-    character: (parent: any) => parent.character,
-    voice_actors: (parent: any) => parent.voice_actors
-  },
-
-  StudioEdge: {
-    studio: (parent: any) => parent.studio
-  },
-
-  TagEdge: {
-    tag: (parent: any) => parent.tag
-  },
-
-  AnimeCharacter: {
-    name: (parent: any) => parent.name || null,
-    image: (parent: any) => parent.image || null
-  },
-
-  VoiceActor: {
-    name: (parent: any) => parent.name || null,
-    image: (parent: any) => parent.image || null
-  },
-
-  Meta: {
-    titles: async (parent: any) => {
+    other_titles: async (parent: any) => {
       const result = await db
-        .select({ title: metaTitle })
-        .from(metaToTitle)
-        .innerJoin(metaTitle, eq(metaToTitle.B, metaTitle.id))
-        .where(eq(metaToTitle.A, parent.id));
+        .select({ title: animeOtherTitle })
+        .from(animeToOtherTitle)
+        .innerJoin(animeOtherTitle, eq(animeToOtherTitle.B, animeOtherTitle.id))
+        .where(eq(animeToOtherTitle.A, parent.id));
 
       return result.map((r) => r.title);
     },
 
-    descriptions: async (parent: any) => {
+    other_descriptions: async (parent: any) => {
       const result = await db
-        .select({ description: metaDescription })
-        .from(metaToDescription)
-        .innerJoin(metaDescription, eq(metaToDescription.B, metaDescription.id))
-        .where(eq(metaToDescription.A, parent.id));
+        .select({ description: animeOtherDescription })
+        .from(animeToOtherDescription)
+        .innerJoin(animeOtherDescription, eq(animeToOtherDescription.B, animeOtherDescription.id))
+        .where(eq(animeToOtherDescription.A, parent.id));
 
       return result.map((r) => r.description);
     },
 
     images: async (parent: any) => {
       const result = await db
-        .select({ image: metaImage })
-        .from(metaToImage)
-        .innerJoin(metaImage, eq(metaToImage.B, metaImage.id))
-        .where(eq(metaToImage.A, parent.id));
+        .select({ image: animeImage })
+        .from(animeToImage)
+        .innerJoin(animeImage, eq(animeToImage.B, animeImage.id))
+        .where(eq(animeToImage.A, parent.id));
 
       return result.map((r) => r.image);
     },
 
-    mappings: async (parent: any) => {
-      return await db.select().from(metaMapping).where(eq(metaMapping.meta_id, parent.id));
+    videos: async (parent: any) => {
+      const result = await db
+        .select({ video: animeVideo })
+        .from(animeToVideo)
+        .innerJoin(animeVideo, eq(animeToVideo.B, animeVideo.id))
+        .where(eq(animeToVideo.A, parent.id));
+
+      return result.map((r) => r.video);
+    },
+
+    screenshots: async (parent: any) => {
+      const result = await db
+        .select({ screenshot: animeScreenshot })
+        .from(animeToScreenshot)
+        .innerJoin(animeScreenshot, eq(animeToScreenshot.B, animeScreenshot.id))
+        .where(eq(animeToScreenshot.A, parent.id))
+        .orderBy(asc(animeScreenshot.order));
+
+      return result.map((r) => r.screenshot);
+    },
+
+    artworks: async (parent: any, args: ArtworksArgs) => {
+      const { page, per_page, iso_639_1 } = args;
+
+      const conditions = [eq(animeToArtwork.A, parent.id)];
+      if (iso_639_1) conditions.push(eq(animeArtwork.iso_639_1, iso_639_1));
+
+      const query = db
+        .select({ artwork: animeArtwork })
+        .from(animeToArtwork)
+        .innerJoin(animeArtwork, eq(animeToArtwork.B, animeArtwork.id))
+        .where(and(...conditions))
+        .$dynamic();
+
+      if (page && per_page) query.limit(per_page).offset((page - 1) * per_page);
+
+      const result = await query;
+      return result.map((r) => r.artwork);
+    },
+
+    chronology: async (parent: any) => {
+      const entries = await db
+        .select()
+        .from(animeChronology)
+        .where(eq(animeChronology.anime_id, parent.id))
+        .orderBy(asc(animeChronology.order));
+
+      const ids = entries.map((c) => c.related_id);
+      if (!ids.length) return [];
+
+      return await db.select().from(anime).where(inArray(anime.id_mal, ids));
+    },
+
+    recommendations: async (parent: any) => {
+      const entries = await db
+        .select()
+        .from(animeRecommendation)
+        .where(eq(animeRecommendation.anime_id, parent.id))
+        .orderBy(asc(animeRecommendation.order));
+
+      const ids = entries.map((c) => c.related_id);
+      if (!ids.length) return [];
+
+      return await db.select().from(anime).where(inArray(anime.id, ids));
     },
 
     episodes: async (parent: any) => {
@@ -1037,64 +1062,30 @@ export const resolvers = {
       }
 
       return merged.sort((a, b) => a.number - b.number);
-    },
-
-    videos: async (parent: any) => {
-      const result = await db
-        .select({ video: metaVideo })
-        .from(metaToVideo)
-        .innerJoin(metaVideo, eq(metaToVideo.B, metaVideo.id))
-        .where(eq(metaToVideo.A, parent.id));
-
-      return result.map((r) => r.video);
-    },
-
-    screenshots: async (parent: any) => {
-      const result = await db
-        .select({ screenshot: metaScreenshot })
-        .from(metaToScreenshot)
-        .innerJoin(metaScreenshot, eq(metaToScreenshot.B, metaScreenshot.id))
-        .where(eq(metaToScreenshot.A, parent.id));
-
-      return result.map((r) => r.screenshot);
-    },
-
-    artworks: async (parent: any, args: ArtworksArgs) => {
-      const { page, per_page, iso_639_1 } = args;
-
-      const conditions = [eq(metaToArtwork.A, parent.id)];
-      if (iso_639_1) {
-        conditions.push(eq(metaArtwork.iso_639_1, iso_639_1));
-      }
-
-      const query = db
-        .select({ artwork: metaArtwork })
-        .from(metaToArtwork)
-        .innerJoin(metaArtwork, eq(metaToArtwork.B, metaArtwork.id))
-        .where(and(...conditions))
-        .$dynamic();
-
-      if (page && per_page) {
-        query.limit(per_page).offset((page - 1) * per_page);
-      }
-
-      const result = await query;
-      return result.map((r) => r.artwork);
-    },
-
-    chronology: async (parent: any) => {
-      const chronologyEntries = await db
-        .select()
-        .from(metaChronology)
-        .where(eq(metaChronology.meta_id, parent.id))
-        .orderBy(asc(metaChronology.order));
-
-      const animeIds = chronologyEntries.map((c) => c.related_id);
-
-      if (animeIds.length === 0) return [];
-
-      return await db.select().from(anime).where(inArray(anime.id_mal, animeIds));
     }
+  },
+
+  CharacterConnection: {
+    character: (parent: any) => parent.character,
+    voice_actors: (parent: any) => parent.voice_actors
+  },
+
+  StudioConnection: {
+    studio: (parent: any) => parent.studio
+  },
+
+  TagConnection: {
+    tag: (parent: any) => parent.tag
+  },
+
+  AnimeCharacter: {
+    name: (parent: any) => parent.name || null,
+    image: (parent: any) => parent.image || null
+  },
+
+  VoiceActor: {
+    name: (parent: any) => parent.name || null,
+    image: (parent: any) => parent.image || null
   },
 
   Episode: {

@@ -1,19 +1,27 @@
-import { Anime, Mapper, Source } from '@crysoline/lib';
+import { Anime as CryAnime, Mapper, Source } from '@crysoline/lib';
 import { Config } from 'src/config/config';
 import { Module } from 'src/helpers/module';
-import { Meta } from '../../meta';
 import logger from 'src/helpers/logger';
 import { Episode } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
+import { Anime } from '../../anime';
 
 class CrysolineModule extends Module {
+  constructor() {
+    super();
+
+    for (const [_, factory] of Object.entries(CryAnime)) {
+      const provider = factory(Config.crysoline_api_key);
+
+      if (Config.crysoline_anime_providers.includes(provider.name)) {
+        this.providers.push(provider);
+      }
+    }
+  }
+
   override readonly name = 'Crysoline';
 
-  private providers = [
-    Anime.AnimePahe(Config.crysoline_api_key),
-    Anime.AnimeKai(Config.crysoline_api_key),
-    Anime.HiAnime(Config.crysoline_api_key)
-  ];
+  private providers: ReturnType<(typeof CryAnime)[keyof typeof CryAnime]>[] = [];
 
   private mapper = Mapper(Config.crysoline_api_key);
 
@@ -34,11 +42,11 @@ class CrysolineModule extends Module {
             return;
           }
 
-          await Meta.update({
+          await Anime.upsert({
             id,
-            mappings: {
-              id: map.idMap,
-              name: p.name
+            links: {
+              source_link: map.idMap,
+              source_name: p.name
             }
           });
         } catch (e) {
@@ -64,7 +72,7 @@ class CrysolineModule extends Module {
     const episodesArrays = await Promise.all(
       this.providers.map(async (p) => {
         try {
-          let idMap = await Meta.map(id, p.name);
+          let idMap = await Anime.map(id, p.name);
 
           if (!idMap) {
             const map = await this.mapper.map({
@@ -76,11 +84,11 @@ class CrysolineModule extends Module {
               return [];
             }
 
-            await Meta.update({
+            await Anime.upsert({
               id,
-              mappings: {
-                id: map.idMap,
-                name: p.name
+              links: {
+                source_link: map.idMap,
+                source_name: p.name
               }
             });
 
@@ -170,10 +178,27 @@ class CrysolineModule extends Module {
       return null;
     }
 
-    const idMap = await Meta.map(id, provider.name);
+    let idMap = await Anime.map(id, provider.name);
 
     if (!idMap) {
-      return null;
+      const map = await this.mapper.map({
+        id,
+        provider: provider.name
+      });
+
+      if (!map.idMap) {
+        return [];
+      }
+
+      await Anime.upsert({
+        id,
+        links: {
+          source_link: map.idMap,
+          source_name: provider.name
+        }
+      });
+
+      idMap = map.idMap;
     }
 
     const sources = await provider?.sources({

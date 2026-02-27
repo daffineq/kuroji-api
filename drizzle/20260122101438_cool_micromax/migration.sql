@@ -1,1 +1,0 @@
-ALTER TABLE "_anime_genres" RENAME TO "_anime_to_genre";
