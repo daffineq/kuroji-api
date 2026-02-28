@@ -513,8 +513,6 @@ class AnimeDbModule extends Module {
       if (toArray(payload.links).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            console.log(payload.links);
-
             const links = uniqueBy(toArray(payload.links), (l) => getKey(l.link, l.label))
               .filter((l) => l.link && l.label)
               .map((l) => ({
