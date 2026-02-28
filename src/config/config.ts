@@ -75,7 +75,11 @@ class ConfigModule {
   readonly admin_key = process.env.ADMIN_KEY ?? '';
   readonly api_strategy = parseApiStrategy(process.env.API_KEY_STRATEGY);
 
-  readonly routes_whitelist = parseString(process.env.ROUTES_WHITELIST)?.split(',') ?? ['/docs', '/docs/openapi'];
+  readonly routes_whitelist = parseString(process.env.ROUTES_WHITELIST)?.split(',') ?? [
+    '/docs',
+    '/docs/openapi',
+    '/'
+  ];
 
   readonly routes_blacklist = parseString(process.env.ROUTES_BLACKLIST)?.split(',') ?? [];
 

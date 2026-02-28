@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kuroji API</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'JetBrains Mono', monospace;
+        background: #0f0f0f;
+        color: #e0e0e0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+
+      .container {
+        max-width: 680px;
+        width: 100%;
+      }
+
+      .title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.4rem;
+      }
+
+      .subtitle {
+        color: #666;
+        font-size: 0.85rem;
+        margin-bottom: 3rem;
+      }
+
+      .section-label {
+        font-size: 0.7rem;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.75rem;
+      }
+
+      .section {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 8px;
+        padding: 0.85rem 1.1rem;
+        margin-bottom: 2.5rem;
+      }
+
+      .horizontal-section {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #0f0f0f;
+        background: #7b5cf0;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+      }
+
+      .section-url {
+        color: #ccc;
+        font-size: 0.88rem;
+      }
+
+      .text-input {
+        background: #2a2a2a;
+        border: #1a1a1a;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #ccc;
+        flex: 1;
+        padding: 0.4rem 0.6rem;
+      }
+
+      .anime-section {
+        margin-bottom: 1rem;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+      }
+
+      .anime-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        padding: 0.85rem 0.8rem;
+      }
+
+      .anime-poster {
+        border-radius: 12px;
+        width: 100%;
+      }
+
+      .anime-title {
+        font-size: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      pre {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 8px;
+        padding: 1.25rem;
+        font-size: 0.82rem;
+        line-height: 1.75;
+        overflow-x: auto;
+        margin-bottom: 2.5rem;
+        color: #ccc;
+      }
+
+      .k {
+        color: #c792ea;
+      }
+      .f {
+        color: #82aaff;
+      }
+      .s {
+        color: #c3e88d;
+      }
+      .p {
+        color: #89ddff;
+      }
+
+      .stats {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 2.5rem;
+      }
+
+      .stat {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 8px;
+        padding: 0.85rem 1.25rem;
+        font-size: 0.8rem;
+        color: #888;
+      }
+
+      .stat span {
+        color: #fff;
+        font-weight: 700;
+      }
+
+      #result-box {
+        display: none;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 8px;
+        padding: 1.25rem;
+        font-size: 0.8rem;
+        line-height: 1.7;
+        color: #aaa;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 2.5rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .btn {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 0.65rem 1.4rem;
+        margin-bottom: 0.65rem;
+        border-radius: 6px;
+        border: 1px solid #7b5cf0;
+        background: transparent;
+        color: #7b5cf0;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .btn:hover {
+        background: #7b5cf0;
+        color: #fff;
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      footer {
+        margin-top: 4rem;
+        font-size: 0.72rem;
+        color: #444;
+        text-align: center;
+      }
+
+      footer a {
+        color: #666;
+        text-decoration: none;
+      }
+      footer a:hover {
+        color: #aaa;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="title">Kuroji API</div>
+      <div class="subtitle">Open source anime API</div>
+
+      <div class="section-label">Endpoint</div>
+      <div class="section">
+        <span class="label">POST</span>
+        <span class="section-url">/graphql</span>
+      </div>
+
+      <div class="section-label">Security</div>
+      <div class="section">
+        <span class="label">API KEY</span>
+        <input id="key-input" class="text-input" type="text" placeholder="Your API key (not required)" />
+      </div>
+
+      <div class="section-label">Options</div>
+      <div class="horizontal-section">
+        <div class="section">
+          <span class="label">SEARCH</span>
+          <input id="search-input" class="text-input" type="text" placeholder="Enter the search" value="Naruto" />
+        </div>
+
+        <div class="section">
+          <span class="label">SORT</span>
+          <input
+            id="sort-input"
+            class="text-input"
+            type="text"
+            placeholder="Enter the sort"
+            value="TRENDING_DESC"
+          />
+        </div>
+      </div>
+
+      <div class="section-label">Example Query</div>
+      <pre><span class="k">query</span> Query($search: String, $sort: [AnimeSort!]) {
+  <span class="f">animes</span>(<span class="p">per_page</span>: <span class="s">8</span>, <span class="p">search</span>: <span class="s">$search</span>, <span class="p">sort</span>: <span class="s">$sort</span>) {
+    data {
+      <span class="p">id</span>
+      poster { <span class="p">large</span> }
+      title { <span class="p">english</span> <span class="p">romaji</span> }
+      <span class="p">score</span>
+      <span class="p">status</span>
+      genres { <span class="p">name</span> }
+    }
+  }
+}</pre>
+
+      <button class="btn" id="tryBtn" onclick="runQuery()">▶ Run Example Query</button>
+      <pre id="result-box"></pre>
+
+      <div id="result-items"></div>
+
+      <div class="section-label">Info</div>
+      <div class="stats">
+        <div class="stat">Type <span>GraphQL</span></div>
+        <div class="stat">Method <span>POST</span></div>
+        <div class="stat">Auth <span>None</span></div>
+        <div class="stat">License <span>MIT</span></div>
+      </div>
+
+      <footer>
+        <a href="https://github.com/daffineq/kuroji-api" target="_blank">GitHub</a> &nbsp;·&nbsp;
+        <a href="/docs" target="_blank">Docs</a> &nbsp;·&nbsp; Send requests to
+        <code>/graphql</code>
+      </footer>
+    </div>
+
+    <script>
+      async function runQuery() {
+        const btn = document.getElementById('tryBtn');
+        const box = document.getElementById('result-box');
+        const items = document.getElementById('result-items');
+        const input = document.getElementById('key-input');
+        const searchInput = document.getElementById('search-input');
+        const sortInput = document.getElementById('sort-input');
+        btn.disabled = true;
+        btn.textContent = '⏳ Loading...';
+        box.style.display = 'block';
+        box.textContent = 'Fetching...';
+
+        const query = `query Query($search: String, $sort: [AnimeSort!]) {
+  animes(per_page: 8, search: $search, sort: $sort) {
+    data {
+      id
+      poster { large }
+      title { english romaji }
+      score
+      status
+      genres { name }
+    }
+  }
+}`;
+
+        try {
+          const res = await fetch('/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'api-key': input.value },
+            body: JSON.stringify({
+              query,
+              variables: {
+                search: searchInput.value,
+                sort: sortInput.value
+              }
+            })
+          });
+          const data = await res.json();
+          box.textContent = JSON.stringify(data, null, 2);
+
+          const newContent = document.createElement('div');
+          newContent.innerHTML = `<div class="anime-section">${data.data.animes.data
+            .map((a) => {
+              return `<div class="anime-card">
+            <img src=${a.poster.large} class="anime-poster" />
+            <span class="anime-title">${a.title.english}</span>
+            </div>`;
+            })
+            .join('')}</div>`;
+
+          items.replaceChildren(newContent);
+        } catch (e) {
+          box.textContent = 'Error: ' + e.message;
+        }
+
+        btn.disabled = false;
+        btn.textContent = '▶ Run Example Query';
+      }
+    </script>
+  </body>
+</html>

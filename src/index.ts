@@ -9,11 +9,12 @@ import protectRoute from './helpers/plugins/protect.route';
 import { animeRoute, apiRoute, proxyRoute, yoga } from './core';
 import logger from './helpers/logger';
 import { HTTPError } from 'ky';
-import Elysia, { NotFoundError, t } from 'elysia';
+import Elysia, { file, NotFoundError, t } from 'elysia';
 import { cors } from '@elysiajs/cors';
 import swagger from '@elysiajs/swagger';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
+import staticPlugin from '@elysiajs/static';
 
 const app = new Elysia()
   .use(
@@ -24,6 +25,7 @@ const app = new Elysia()
       credentials: false
     })
   )
+  .use(staticPlugin())
   .use(
     protectRoute((request) => {
       const path = new URL(request.url).pathname;
@@ -140,6 +142,13 @@ app.post('/graphql', ({ request }) => yoga.handle(request), {
   detail: {
     summary: 'GraphQL',
     description: 'The graphql'
+  }
+});
+
+app.get('/', () => file('public/html/index.html'), {
+  detail: {
+    summary: 'Home Page',
+    description: 'The home page of the API'
   }
 });
 
