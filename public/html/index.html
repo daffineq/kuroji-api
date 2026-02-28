@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kuroji API</title>
+    <title>Kuroji</title>
     <link
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
       rel="stylesheet"
@@ -71,6 +71,12 @@
         gap: 0.75rem;
       }
 
+      .grid-section {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+
       .label {
         font-size: 0.7rem;
         font-weight: 700;
@@ -116,6 +122,7 @@
       .anime-poster {
         border-radius: 12px;
         width: 100%;
+        aspect-ratio: calc(2 / 2.9);
       }
 
       .anime-title {
@@ -125,6 +132,7 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
+        width: 100%;
       }
 
       pre {
@@ -247,7 +255,7 @@
       </div>
 
       <div class="section-label">Options</div>
-      <div class="horizontal-section">
+      <div class="grid-section">
         <div class="section">
           <span class="label">SEARCH</span>
           <input id="search-input" class="text-input" type="text" placeholder="Enter the search" value="Naruto" />
@@ -311,6 +319,7 @@
         btn.textContent = '⏳ Loading...';
         box.style.display = 'block';
         box.textContent = 'Fetching...';
+        items.replaceChildren('');
 
         const query = `query Query($search: String, $sort: [AnimeSort!]) {
   animes(per_page: 8, search: $search, sort: $sort) {
