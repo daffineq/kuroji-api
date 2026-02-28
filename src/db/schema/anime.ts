@@ -289,9 +289,9 @@ export const animeLink = pgTable(
       .$defaultFn(() => cuid()),
     link: varchar('link', { length: 255 }).notNull(),
     label: varchar('label', { length: 255 }).notNull(),
-    type: varchar('type', { length: 255 }).notNull()
+    type: varchar('type', { length: 255 })
   },
-  (t) => [uniqueIndex('link_unique').on(t.link, t.label, t.type)]
+  (t) => [uniqueIndex('link_unique').on(t.link, t.label)]
 );
 
 export const animeOtherTitle = pgTable(
@@ -302,9 +302,9 @@ export const animeOtherTitle = pgTable(
       .$defaultFn(() => cuid()),
     title: varchar('title', { length: 255 }).notNull(),
     source: varchar('source', { length: 255 }).notNull(),
-    language: varchar('language', { length: 255 }).notNull()
+    language: varchar('language', { length: 255 })
   },
-  (t) => [uniqueIndex('other_title_unique').on(t.title, t.source, t.language)]
+  (t) => [uniqueIndex('other_title_unique').on(t.title, t.source)]
 );
 
 export const animeOtherDescription = pgTable(
@@ -315,9 +315,9 @@ export const animeOtherDescription = pgTable(
       .$defaultFn(() => cuid()),
     description: text('description').notNull(),
     source: varchar('source', { length: 255 }).notNull(),
-    language: varchar('language', { length: 255 }).notNull()
+    language: varchar('language', { length: 255 })
   },
-  (t) => [uniqueIndex('other_description_unique').on(t.description, t.source, t.language)]
+  (t) => [uniqueIndex('other_description_unique').on(t.description, t.source)]
 );
 
 export const animeImage = pgTable(
@@ -330,10 +330,10 @@ export const animeImage = pgTable(
     small: varchar('small', { length: 255 }),
     medium: varchar('medium', { length: 255 }),
     large: varchar('large', { length: 255 }),
-    type: varchar('type', { length: 255 }).notNull(),
+    type: varchar('type', { length: 255 }),
     source: varchar('source', { length: 255 }).notNull()
   },
-  (t) => [uniqueIndex('anime_image_unique').on(t.url, t.type, t.source)]
+  (t) => [uniqueIndex('anime_image_unique').on(t.url, t.source)]
 );
 
 export const animeVideo = pgTable(
@@ -380,10 +380,10 @@ export const animeArtwork = pgTable(
     large: varchar('large', { length: 255 }),
     medium: varchar('medium', { length: 255 }),
     iso_639_1: varchar('iso_639_1', { length: 255 }),
-    type: varchar('type', { length: 255 }).notNull(),
+    type: varchar('type', { length: 255 }),
     source: varchar('source', { length: 255 }).notNull()
   },
-  (t) => [uniqueIndex('anime_artwork_unique').on(t.url, t.type, t.source)]
+  (t) => [uniqueIndex('anime_artwork_unique').on(t.url, t.source)]
 );
 
 export const animeChronology = pgTable(

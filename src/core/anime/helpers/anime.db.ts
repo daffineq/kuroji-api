@@ -48,6 +48,7 @@ import { eq, sql } from 'drizzle-orm';
 import { toArray, uniqueBy } from 'src/helpers/utils';
 import { AnimePayload } from '../types';
 import { isForced } from 'src/helpers/forced';
+import { getKey } from 'src/helpers/redis.util';
 
 class AnimeDbModule extends Module {
   override readonly name = 'AnimeDB';
@@ -436,7 +437,15 @@ class AnimeDbModule extends Module {
               }));
 
             if (studioConnections.length) {
-              await tx.insert(animeToStudio).values(studioConnections).onConflictDoNothing();
+              await tx
+                .insert(animeToStudio)
+                .values(studioConnections)
+                .onConflictDoUpdate({
+                  target: animeToStudio.id,
+                  set: {
+                    is_main: sql`excluded.is_main`
+                  }
+                });
             }
           })
         );
@@ -485,7 +494,16 @@ class AnimeDbModule extends Module {
               }));
 
             if (tagConnections.length) {
-              await tx.insert(animeToTag).values(tagConnections).onConflictDoNothing();
+              await tx
+                .insert(animeToTag)
+                .values(tagConnections)
+                .onConflictDoUpdate({
+                  target: [animeToTag.anime_id, animeToTag.tag_id],
+                  set: {
+                    rank: sql`excluded.rank`,
+                    is_spoiler: sql`excluded.is_spoiler`
+                  }
+                });
             }
           })
         );
@@ -495,8 +513,10 @@ class AnimeDbModule extends Module {
       if (toArray(payload.links).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const links = uniqueBy(toArray(payload.links), (l) => [l.link, l.label, l.type])
-              .filter((l) => l.link && l.label && l.type)
+            console.log(payload.links);
+
+            const links = uniqueBy(toArray(payload.links), (l) => getKey(l.link, l.label))
+              .filter((l) => l.link && l.label)
               .map((l) => ({
                 link: l?.link!,
                 label: l?.label.toLowerCase(),
@@ -509,7 +529,7 @@ class AnimeDbModule extends Module {
               .insert(animeLink)
               .values(links)
               .onConflictDoUpdate({
-                target: [animeLink.link, animeLink.label, animeLink.type],
+                target: [animeLink.link, animeLink.label],
                 set: {
                   link: sql`excluded.link`,
                   label: sql`excluded.label`,
@@ -590,8 +610,8 @@ class AnimeDbModule extends Module {
       if (toArray(payload.artworks).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const artworks = uniqueBy(toArray(payload.artworks), (a) => [a.url, a.type, a.source])
-              .filter((a) => a.url && a.type && a.source)
+            const artworks = uniqueBy(toArray(payload.artworks), (a) => getKey(a.url, a.source))
+              .filter((a) => a.url && a.source)
               .map((a) => ({
                 url: a.url,
                 height: a.height,
@@ -609,7 +629,7 @@ class AnimeDbModule extends Module {
               .insert(animeArtwork)
               .values(artworks)
               .onConflictDoUpdate({
-                target: [animeArtwork.url, animeArtwork.type, animeArtwork.source],
+                target: [animeArtwork.url, animeArtwork.source],
                 set: {
                   height: sql`excluded.height`,
                   width: sql`excluded.width`,
@@ -638,8 +658,8 @@ class AnimeDbModule extends Module {
       if (toArray(payload.images).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const images = uniqueBy(toArray(payload.images), (i) => [i.url, i.type, i.source])
-              .filter((i) => i.url && i.type && i.source)
+            const images = uniqueBy(toArray(payload.images), (i) => getKey(i.url, i.source))
+              .filter((i) => i.url && i.source)
               .map((i) => ({
                 url: i.url,
                 small: i.small,
@@ -655,7 +675,7 @@ class AnimeDbModule extends Module {
               .insert(animeImage)
               .values(images)
               .onConflictDoUpdate({
-                target: [animeImage.url, animeImage.type, animeImage.source],
+                target: [animeImage.url, animeImage.source],
                 set: {
                   small: sql`excluded.small`,
                   medium: sql`excluded.medium`,
@@ -682,7 +702,7 @@ class AnimeDbModule extends Module {
       if (toArray(payload.screenshots).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const screenshots = uniqueBy(toArray(payload.screenshots), (s) => [s.url, s.source])
+            const screenshots = uniqueBy(toArray(payload.screenshots), (s) => getKey(s.url, s.source))
               .filter((s) => s.url && s.source)
               .map((s) => ({
                 url: s.url,
@@ -727,7 +747,7 @@ class AnimeDbModule extends Module {
       if (toArray(payload.videos).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const videos = uniqueBy(toArray(payload.videos), (v) => [v.url, v.source])
+            const videos = uniqueBy(toArray(payload.videos), (v) => getKey(v.url, v.source))
               .filter((v) => v.url && v.source)
               .map((v) => ({
                 url: v.url,
@@ -772,8 +792,8 @@ class AnimeDbModule extends Module {
       if (toArray(payload.other_titles).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const titles = uniqueBy(toArray(payload.other_titles), (t) => [t.title, t.source, t.language])
-              .filter((t) => t.title && t.source && t.language)
+            const titles = uniqueBy(toArray(payload.other_titles), (t) => getKey(t.title, t.source))
+              .filter((t) => t.title && t.source)
               .map((t) => ({
                 title: t.title,
                 source: t.source.toLowerCase(),
@@ -786,7 +806,7 @@ class AnimeDbModule extends Module {
               .insert(animeOtherTitle)
               .values(titles)
               .onConflictDoNothing({
-                target: [animeOtherTitle.title, animeOtherTitle.source, animeOtherTitle.language]
+                target: [animeOtherTitle.title, animeOtherTitle.source]
               })
               .returning({ id: animeOtherTitle.id });
 
@@ -808,12 +828,10 @@ class AnimeDbModule extends Module {
       if (toArray(payload.other_descriptions).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const descriptions = uniqueBy(toArray(payload.other_descriptions), (d) => [
-              d.description,
-              d.source,
-              d.language
-            ])
-              .filter((d) => d.description && d.source && d.language)
+            const descriptions = uniqueBy(toArray(payload.other_descriptions), (d) =>
+              getKey(d.description, d.source)
+            )
+              .filter((d) => d.description && d.source)
               .map((d) => ({
                 description: d.description,
                 source: d.source.toLowerCase(),
@@ -826,11 +844,7 @@ class AnimeDbModule extends Module {
               .insert(animeOtherDescription)
               .values(descriptions)
               .onConflictDoNothing({
-                target: [
-                  animeOtherDescription.description,
-                  animeOtherDescription.source,
-                  animeOtherDescription.language
-                ]
+                target: [animeOtherDescription.description, animeOtherDescription.source]
               })
               .returning({ id: animeOtherDescription.id });
 
@@ -852,7 +866,7 @@ class AnimeDbModule extends Module {
       if (toArray(payload.chronology).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const chronology = uniqueBy(toArray(payload.chronology), (c) => [c.parent_id, c.related_id])
+            const chronology = uniqueBy(toArray(payload.chronology), (c) => getKey(c.parent_id, c.related_id))
               .filter((c) => c.parent_id && c.related_id)
               .map((c) => ({
                 anime_id: payload.id,
@@ -882,7 +896,9 @@ class AnimeDbModule extends Module {
       if (toArray(payload.recommendations).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const recommendations = uniqueBy(toArray(payload.recommendations), (c) => [c.parent_id, c.related_id])
+            const recommendations = uniqueBy(toArray(payload.recommendations), (c) =>
+              getKey(c.parent_id, c.related_id)
+            )
               .filter((c) => c.parent_id && c.related_id)
               .map((c) => ({
                 anime_id: payload.id,
