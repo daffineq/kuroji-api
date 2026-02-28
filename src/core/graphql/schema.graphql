@@ -482,8 +482,9 @@ type AnimeTag {
 }
 
 type AnimeLink {
-  source_link: String!
-  source_name: String!
+  link: String!
+  label: String!
+  type: String!
 }
 
 type ScoreDistribution {

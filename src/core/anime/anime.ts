@@ -60,7 +60,7 @@ class AnimeModule extends Module {
   }
 
   async initProviders(id: number, idMal?: number | undefined) {
-    await this.loadMappings(id);
+    await this.loadMappings(id).catch(() => null);
 
     await Promise.all([
       Crysoline.map(id).catch(() => null),
@@ -87,7 +87,7 @@ class AnimeModule extends Module {
       .leftJoin(animeLink, eq(animeToLink.B, animeLink.id))
       .where(eq(animeToImage.A, id));
 
-    return links.find((l) => l.link?.source_name.toLowerCase() === name.toLowerCase())?.link?.source_link ?? null;
+    return links.find((l) => l.link?.label.toLowerCase() === name.toLowerCase())?.link?.link ?? null;
   }
 }
 

@@ -78,7 +78,7 @@ const toLinksArray = (mappings: AniZipMappings | undefined): AnimeLinkPayload[] 
   for (const [key, name] of entries) {
     const value = mappings[key];
     if (value !== undefined && value !== null && value !== '') {
-      result.push({ source_link: `${value}`, source_name: name });
+      result.push({ link: `${value}`, label: name, type: 'mapping' });
     }
   }
 

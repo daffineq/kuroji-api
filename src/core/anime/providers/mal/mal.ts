@@ -33,8 +33,9 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
       await Anime.upsert({
         id,
         links: {
-          source_link: parseString(idMal)!,
-          source_name: this.name
+          link: parseString(idMal)!,
+          label: this.name,
+          type: 'mapping'
         }
       });
     } else {
@@ -54,8 +55,9 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
         await Anime.upsert({
           id,
           links: {
-            source_link: parseString(al.idMal)!,
-            source_name: this.name
+            link: parseString(al.idMal)!,
+            label: this.name,
+            type: 'mapping'
           }
         });
       }

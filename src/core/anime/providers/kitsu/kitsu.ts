@@ -32,8 +32,9 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
       await Anime.upsert({
         id,
         links: {
-          source_link: info.id,
-          source_name: this.name
+          link: info.id,
+          label: this.name,
+          type: 'mapping'
         }
       });
     }

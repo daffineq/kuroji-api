@@ -26,7 +26,7 @@ class CrysolineModule extends Module {
   private mapper = Mapper(Config.crysoline_api_key);
 
   async map(id: number) {
-    if (!Config.has_crysoline_api_key) {
+    if (!Config.has_crysoline_api_key && Config.crysoline_should_init_maps) {
       return;
     }
 
@@ -45,8 +45,9 @@ class CrysolineModule extends Module {
           await Anime.upsert({
             id,
             links: {
-              source_link: map.idMap,
-              source_name: p.name
+              link: map.idMap,
+              label: p.name,
+              type: 'mapping'
             }
           });
         } catch (e) {
@@ -87,8 +88,9 @@ class CrysolineModule extends Module {
             await Anime.upsert({
               id,
               links: {
-                source_link: map.idMap,
-                source_name: p.name
+                link: map.idMap,
+                label: p.name,
+                type: 'mapping'
               }
             });
 
@@ -193,8 +195,9 @@ class CrysolineModule extends Module {
       await Anime.upsert({
         id,
         links: {
-          source_link: map.idMap,
-          source_name: provider.name
+          link: map.idMap,
+          label: provider.name,
+          type: 'mapping'
         }
       });
 

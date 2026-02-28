@@ -106,8 +106,9 @@ export interface AnimeStatusDistributionPayload {
 }
 
 export interface AnimeLinkPayload {
-  source_link: string;
-  source_name: string;
+  link: string;
+  label: string;
+  type: 'mapping' | 'website';
 }
 
 export interface AnimeOtherTitlePayload {

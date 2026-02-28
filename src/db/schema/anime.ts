@@ -287,10 +287,11 @@ export const animeLink = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    source_link: varchar('source_link', { length: 255 }).notNull(),
-    source_name: varchar('source_name', { length: 255 }).notNull()
+    link: varchar('link', { length: 255 }).notNull(),
+    label: varchar('label', { length: 255 }).notNull(),
+    type: varchar('type', { length: 255 }).notNull()
   },
-  (t) => [uniqueIndex('link_unique').on(t.source_link, t.source_name)]
+  (t) => [uniqueIndex('link_unique').on(t.link, t.label, t.type)]
 );
 
 export const animeOtherTitle = pgTable(

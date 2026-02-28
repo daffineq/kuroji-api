@@ -50,8 +50,9 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
       await Anime.upsert({
         id,
         links: {
-          source_link: parseString(info.id)!,
-          source_name: this.name
+          link: parseString(info.id)!,
+          label: this.name,
+          type: 'mapping'
         }
       });
     }

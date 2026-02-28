@@ -182,7 +182,9 @@ class AnimeDbModule extends Module {
               .onConflictDoUpdate({ target: animeGenre.name, set: { name: sql`excluded.name` } })
               .returning({ id: animeGenre.id });
 
-            await tx.delete(animeToGenre).where(eq(animeToGenre.A, payload.id));
+            if (isForced(payload.genres)) {
+              await tx.delete(animeToGenre).where(eq(animeToGenre.A, payload.id));
+            }
 
             await tx
               .insert(animeToGenre)
@@ -193,7 +195,6 @@ class AnimeDbModule extends Module {
       }
 
       // Airing Schedule
-      // FIX: was Promise.resolve(async () => ...) which never executed the async fn — changed to .then()
       if (toArray(payload.airing_schedule).length) {
         ops.push(
           Promise.resolve().then(async () => {
@@ -217,7 +218,9 @@ class AnimeDbModule extends Module {
               })
               .returning({ id: animeAiringSchedule.id });
 
-            await tx.delete(animeToAiringSchedule).where(eq(animeToAiringSchedule.A, payload.id));
+            if (isForced(payload.airing_schedule)) {
+              await tx.delete(animeToAiringSchedule).where(eq(animeToAiringSchedule.A, payload.id));
+            }
 
             await tx
               .insert(animeToAiringSchedule)
@@ -404,7 +407,9 @@ class AnimeDbModule extends Module {
                 set: { name: sql`excluded.name` }
               });
 
-            await tx.delete(animeToStudio).where(eq(animeToStudio.anime_id, payload.id));
+            if (isForced(payload.studios)) {
+              await tx.delete(animeToStudio).where(eq(animeToStudio.anime_id, payload.id));
+            }
 
             const studioConnections = uniqueBy(toArray(payload.studios), (c) => c.id)
               .filter((c) => c.studio?.id)
@@ -466,25 +471,26 @@ class AnimeDbModule extends Module {
       }
 
       // Links
-      // FIX: was Promise.resolve(async () => ...) which never executed the async fn — changed to .then()
       if (toArray(payload.links).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const links = uniqueBy(toArray(payload.links), (l) => [l.source_link, l.source_name])
-              .filter((l) => l.source_link && l.source_name)
+            const links = uniqueBy(toArray(payload.links), (l) => [l.link, l.label, l.type])
+              .filter((l) => l.link && l.label && l.type)
               .map((l) => ({
-                source_link: l?.source_link!,
-                source_name: l?.source_name
+                link: l?.link!,
+                label: l?.label.toLowerCase(),
+                type: l?.type
               }));
 
             const inserted = await tx
               .insert(animeLink)
               .values(links)
               .onConflictDoUpdate({
-                target: [animeLink.source_link, animeLink.source_name],
+                target: [animeLink.link, animeLink.label, animeLink.type],
                 set: {
-                  source_link: sql`excluded.source_link`,
-                  source_name: sql`excluded.source_name`
+                  link: sql`excluded.link`,
+                  label: sql`excluded.label`,
+                  type: sql`excluded.type`
                 }
               })
               .returning({ id: animeLink.id });

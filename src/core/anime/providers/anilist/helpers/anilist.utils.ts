@@ -124,7 +124,8 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
     .filter((link) => link?.url && link?.site)
     .map((link) => ({
       source_link: link.url,
-      source_name: link.site
+      source_name: link.site,
+      type: 'website'
     }));
 
   const score_distribution: AnimeScoreDistributionPayload[] = (media.stats?.scoreDistribution ?? [])
