@@ -176,6 +176,8 @@ class AnimeDbModule extends Module {
               .filter((g) => g.name)
               .map((g) => ({ name: g.name! }));
 
+            if (!genres.length) return;
+
             const inserted = await tx
               .insert(animeGenre)
               .values(genres)
@@ -186,10 +188,12 @@ class AnimeDbModule extends Module {
               await tx.delete(animeToGenre).where(eq(animeToGenre.A, payload.id));
             }
 
-            await tx
-              .insert(animeToGenre)
-              .values(inserted.map((genre) => ({ A: payload.id, B: genre.id })))
-              .onConflictDoNothing();
+            if (inserted.length) {
+              await tx
+                .insert(animeToGenre)
+                .values(inserted.map((genre) => ({ A: payload.id, B: genre.id })))
+                .onConflictDoNothing();
+            }
           })
         );
       }
@@ -205,6 +209,8 @@ class AnimeDbModule extends Module {
                 episode: a.episode,
                 airing_at: a.airing_at
               }));
+
+            if (!schedule.length) return;
 
             const inserted = await tx
               .insert(animeAiringSchedule)
@@ -222,10 +228,12 @@ class AnimeDbModule extends Module {
               await tx.delete(animeToAiringSchedule).where(eq(animeToAiringSchedule.A, payload.id));
             }
 
-            await tx
-              .insert(animeToAiringSchedule)
-              .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
-              .onConflictDoNothing();
+            if (inserted.length) {
+              await tx
+                .insert(animeToAiringSchedule)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
           })
         );
       }
@@ -241,6 +249,8 @@ class AnimeDbModule extends Module {
             const characters = uniqueBy(toArray(payload.characters), (e) => e.character?.id)
               .filter((c) => c.character?.id)
               .map((c) => ({ id: c.character?.id! }));
+
+            if (!characters.length) return;
 
             await tx.insert(animeCharacter).values(characters).onConflictDoNothing({ target: animeCharacter.id });
 
@@ -298,13 +308,15 @@ class AnimeDbModule extends Module {
             }));
 
             if (allVoiceActors.length) {
-              await tx
-                .insert(animeVoiceActor)
-                .values(voiceActors)
-                .onConflictDoUpdate({
-                  target: animeVoiceActor.id,
-                  set: { language: sql`excluded.language` }
-                });
+              if (voiceActors.length) {
+                await tx
+                  .insert(animeVoiceActor)
+                  .values(voiceActors)
+                  .onConflictDoUpdate({
+                    target: animeVoiceActor.id,
+                    set: { language: sql`excluded.language` }
+                  });
+              }
 
               const voiceNames = uniqueBy(allVoiceActors, (a) => a.id)
                 .filter((va) => va.name)
@@ -360,13 +372,15 @@ class AnimeDbModule extends Module {
                 character_id: c.character?.id!
               }));
 
-            await tx
-              .insert(animeToCharacter)
-              .values(characterConnections)
-              .onConflictDoUpdate({
-                target: animeToCharacter.id,
-                set: { role: sql`excluded.role` }
-              });
+            if (characterConnections.length) {
+              await tx
+                .insert(animeToCharacter)
+                .values(characterConnections)
+                .onConflictDoUpdate({
+                  target: animeToCharacter.id,
+                  set: { role: sql`excluded.role` }
+                });
+            }
 
             const connectionsWithVoiceActors =
               toArray(payload.characters).filter((c) => c.voice_actors?.length) ?? [];
@@ -374,15 +388,14 @@ class AnimeDbModule extends Module {
             for (const connection of connectionsWithVoiceActors) {
               await tx.delete(characterToVoiceActor).where(eq(characterToVoiceActor.A, connection.id));
 
-              await tx
-                .insert(characterToVoiceActor)
-                .values(
-                  uniqueBy(connection.voice_actors ?? [], (a) => a.id).map((va) => ({
-                    A: connection.id,
-                    B: va.id
-                  })) ?? []
-                )
-                .onConflictDoNothing();
+              const vaValues = uniqueBy(connection.voice_actors ?? [], (a) => a.id).map((va) => ({
+                A: connection.id,
+                B: va.id
+              }));
+
+              if (vaValues.length) {
+                await tx.insert(characterToVoiceActor).values(vaValues).onConflictDoNothing();
+              }
             }
           })
         );
@@ -398,6 +411,8 @@ class AnimeDbModule extends Module {
                 id: c.studio?.id!,
                 name: c.studio?.name
               }));
+
+            if (!studios.length) return;
 
             await tx
               .insert(animeStudio)
@@ -420,7 +435,9 @@ class AnimeDbModule extends Module {
                 studio_id: c.studio?.id!
               }));
 
-            await tx.insert(animeToStudio).values(studioConnections).onConflictDoNothing();
+            if (studioConnections.length) {
+              await tx.insert(animeToStudio).values(studioConnections).onConflictDoNothing();
+            }
           })
         );
       }
@@ -438,6 +455,8 @@ class AnimeDbModule extends Module {
                 category: c.tag?.category,
                 is_adult: c.tag?.is_adult
               }));
+
+            if (!tags.length) return;
 
             await tx
               .insert(animeTag)
@@ -465,7 +484,9 @@ class AnimeDbModule extends Module {
                 is_spoiler: c.is_spoiler
               }));
 
-            await tx.insert(animeToTag).values(tagConnections).onConflictDoNothing();
+            if (tagConnections.length) {
+              await tx.insert(animeToTag).values(tagConnections).onConflictDoNothing();
+            }
           })
         );
       }
@@ -481,6 +502,8 @@ class AnimeDbModule extends Module {
                 label: l?.label.toLowerCase(),
                 type: l?.type
               }));
+
+            if (!links.length) return;
 
             const inserted = await tx
               .insert(animeLink)
@@ -499,10 +522,12 @@ class AnimeDbModule extends Module {
               await tx.delete(animeToLink).where(eq(animeToLink.A, payload.id));
             }
 
-            await tx
-              .insert(animeToLink)
-              .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
-              .onConflictDoNothing();
+            if (inserted.length) {
+              await tx
+                .insert(animeToLink)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
           })
         );
       }
@@ -513,23 +538,25 @@ class AnimeDbModule extends Module {
           await tx.delete(animeScoreDistribution).where(eq(animeScoreDistribution.anime_id, payload.id));
         }
 
-        ops.push(
-          tx
-            .insert(animeScoreDistribution)
-            .values(
-              uniqueBy(toArray(payload.score_distribution), (dist) => dist.score)
-                .filter((dist) => dist.score)
-                .map((dist) => ({
-                  anime_id: payload.id,
-                  score: dist.score,
-                  amount: dist.amount
-                }))
-            )
-            .onConflictDoUpdate({
-              target: [animeScoreDistribution.anime_id, animeScoreDistribution.score],
-              set: { amount: sql`excluded.amount` }
-            })
-        );
+        const scoreDist = uniqueBy(toArray(payload.score_distribution), (dist) => dist.score)
+          .filter((dist) => dist.score)
+          .map((dist) => ({
+            anime_id: payload.id,
+            score: dist.score,
+            amount: dist.amount
+          }));
+
+        if (scoreDist.length) {
+          ops.push(
+            tx
+              .insert(animeScoreDistribution)
+              .values(scoreDist)
+              .onConflictDoUpdate({
+                target: [animeScoreDistribution.anime_id, animeScoreDistribution.score],
+                set: { amount: sql`excluded.amount` }
+              })
+          );
+        }
       }
 
       // Status Distribution
@@ -538,23 +565,25 @@ class AnimeDbModule extends Module {
           await tx.delete(animeStatusDistribution).where(eq(animeStatusDistribution.anime_id, payload.id));
         }
 
-        ops.push(
-          tx
-            .insert(animeStatusDistribution)
-            .values(
-              uniqueBy(toArray(payload.status_distribution), (dist) => dist.status)
-                .filter((dist) => dist.status)
-                .map((dist) => ({
-                  anime_id: payload.id,
-                  status: dist.status,
-                  amount: dist.amount
-                }))
-            )
-            .onConflictDoUpdate({
-              target: [animeStatusDistribution.anime_id, animeStatusDistribution.status],
-              set: { amount: sql`excluded.amount` }
-            })
-        );
+        const statusDist = uniqueBy(toArray(payload.status_distribution), (dist) => dist.status)
+          .filter((dist) => dist.status)
+          .map((dist) => ({
+            anime_id: payload.id,
+            status: dist.status,
+            amount: dist.amount
+          }));
+
+        if (statusDist.length) {
+          ops.push(
+            tx
+              .insert(animeStatusDistribution)
+              .values(statusDist)
+              .onConflictDoUpdate({
+                target: [animeStatusDistribution.anime_id, animeStatusDistribution.status],
+                set: { amount: sql`excluded.amount` }
+              })
+          );
+        }
       }
 
       // Artworks
@@ -573,6 +602,8 @@ class AnimeDbModule extends Module {
                 width: a.width,
                 source: a.source.toLowerCase()
               }));
+
+            if (!artworks.length) return;
 
             const inserted = await tx
               .insert(animeArtwork)
@@ -593,10 +624,12 @@ class AnimeDbModule extends Module {
               await tx.delete(animeToArtwork).where(eq(animeToArtwork.A, payload.id));
             }
 
-            await tx
-              .insert(animeToArtwork)
-              .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
-              .onConflictDoNothing();
+            if (inserted.length) {
+              await tx
+                .insert(animeToArtwork)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
           })
         );
       }
@@ -616,6 +649,8 @@ class AnimeDbModule extends Module {
                 source: i.source.toLowerCase()
               }));
 
+            if (!images.length) return;
+
             const inserted = await tx
               .insert(animeImage)
               .values(images)
@@ -633,10 +668,12 @@ class AnimeDbModule extends Module {
               await tx.delete(animeToImage).where(eq(animeToImage.A, payload.id));
             }
 
-            await tx
-              .insert(animeToImage)
-              .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
-              .onConflictDoNothing();
+            if (inserted.length) {
+              await tx
+                .insert(animeToImage)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
           })
         );
       }
@@ -656,6 +693,8 @@ class AnimeDbModule extends Module {
                 source: s.source.toLowerCase()
               }));
 
+            if (!screenshots.length) return;
+
             const inserted = await tx
               .insert(animeScreenshot)
               .values(screenshots)
@@ -674,10 +713,12 @@ class AnimeDbModule extends Module {
               await tx.delete(animeToScreenshot).where(eq(animeToScreenshot.A, payload.id));
             }
 
-            await tx
-              .insert(animeToScreenshot)
-              .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
-              .onConflictDoNothing();
+            if (inserted.length) {
+              await tx
+                .insert(animeToScreenshot)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
           })
         );
       }
@@ -697,6 +738,8 @@ class AnimeDbModule extends Module {
                 source: v.source.toLowerCase()
               }));
 
+            if (!videos.length) return;
+
             const inserted = await tx
               .insert(animeVideo)
               .values(videos)
@@ -715,10 +758,12 @@ class AnimeDbModule extends Module {
               await tx.delete(animeToVideo).where(eq(animeToVideo.A, payload.id));
             }
 
-            await tx
-              .insert(animeToVideo)
-              .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
-              .onConflictDoNothing();
+            if (inserted.length) {
+              await tx
+                .insert(animeToVideo)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
           })
         );
       }
@@ -735,6 +780,8 @@ class AnimeDbModule extends Module {
                 language: t.language
               }));
 
+            if (!titles.length) return;
+
             const inserted = await tx
               .insert(animeOtherTitle)
               .values(titles)
@@ -747,10 +794,12 @@ class AnimeDbModule extends Module {
               await tx.delete(animeToOtherTitle).where(eq(animeToOtherTitle.A, payload.id));
             }
 
-            await tx
-              .insert(animeToOtherTitle)
-              .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
-              .onConflictDoNothing();
+            if (inserted.length) {
+              await tx
+                .insert(animeToOtherTitle)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
           })
         );
       }
@@ -771,6 +820,8 @@ class AnimeDbModule extends Module {
                 language: d.language
               }));
 
+            if (!descriptions.length) return;
+
             const inserted = await tx
               .insert(animeOtherDescription)
               .values(descriptions)
@@ -787,10 +838,12 @@ class AnimeDbModule extends Module {
               await tx.delete(animeToOtherDescription).where(eq(animeToOtherDescription.A, payload.id));
             }
 
-            await tx
-              .insert(animeToOtherDescription)
-              .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
-              .onConflictDoNothing();
+            if (inserted.length) {
+              await tx
+                .insert(animeToOtherDescription)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
           })
         );
       }
@@ -807,6 +860,8 @@ class AnimeDbModule extends Module {
                 related_id: c.related_id,
                 order: c.order
               }));
+
+            if (!chronology.length) return;
 
             if (isForced(payload.chronology)) {
               await tx.delete(animeChronology).where(eq(animeChronology.anime_id, payload.id));
@@ -835,6 +890,8 @@ class AnimeDbModule extends Module {
                 related_id: c.related_id,
                 order: c.order
               }));
+
+            if (!recommendations.length) return;
 
             if (isForced(payload.recommendations)) {
               await tx.delete(animeRecommendation).where(eq(animeRecommendation.anime_id, payload.id));
