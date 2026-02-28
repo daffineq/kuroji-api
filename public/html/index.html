@@ -84,6 +84,7 @@
         background: #7b5cf0;
         padding: 0.2rem 0.5rem;
         border-radius: 4px;
+        white-space: nowrap;
       }
 
       .section-url {
@@ -99,10 +100,12 @@
         color: #ccc;
         flex: 1;
         padding: 0.4rem 0.6rem;
+        min-width: 0;
+        width: 100%;
       }
 
       .anime-section {
-        margin-bottom: 1rem;
+        margin-bottom: 2.5rem;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 0.75rem;
@@ -123,6 +126,7 @@
         border-radius: 12px;
         width: 100%;
         aspect-ratio: calc(2 / 2.9);
+        object-fit: cover;
       }
 
       .anime-title {
@@ -192,7 +196,7 @@
         color: #aaa;
         max-height: 300px;
         overflow-y: auto;
-        margin-bottom: 2.5rem;
+        margin-bottom: 1rem;
         white-space: pre-wrap;
         word-break: break-word;
       }
@@ -235,6 +239,81 @@
       footer a:hover {
         color: #aaa;
       }
+
+      @media (max-width: 600px) {
+        body {
+          padding: 1.25rem 1rem;
+          justify-content: flex-start;
+        }
+
+        .title {
+          font-size: 1.4rem;
+        }
+
+        .subtitle {
+          margin-bottom: 2rem;
+        }
+
+        .grid-section {
+          grid-template-columns: 1fr;
+        }
+
+        .section {
+          flex-wrap: nowrap;
+          gap: 0.6rem;
+          padding: 0.75rem 0.9rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .anime-section {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        pre {
+          font-size: 0.72rem;
+          padding: 1rem 0.75rem;
+        }
+
+        .stats {
+          gap: 0.75rem;
+        }
+
+        .stat {
+          flex: 1 1 calc(50% - 0.75rem);
+          font-size: 0.75rem;
+          padding: 0.75rem 1rem;
+        }
+
+        .btn {
+          width: 100%;
+          text-align: center;
+        }
+
+        footer {
+          margin-top: 2.5rem;
+          line-height: 1.9;
+        }
+      }
+
+      @media (max-width: 380px) {
+        .anime-section {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.5rem;
+        }
+
+        .anime-card {
+          padding: 0.6rem 0.5rem;
+          border-radius: 12px;
+        }
+
+        .anime-title {
+          font-size: 10px;
+        }
+
+        .stat {
+          flex: 1 1 100%;
+        }
+      }
     </style>
   </head>
   <body>
@@ -258,7 +337,7 @@
       <div class="grid-section">
         <div class="section">
           <span class="label">SEARCH</span>
-          <input id="search-input" class="text-input" type="text" placeholder="Enter the search" value="Naruto" />
+          <input id="search-input" class="text-input" type="text" placeholder="Enter the search" />
         </div>
 
         <div class="section">
