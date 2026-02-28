@@ -123,8 +123,8 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
   const links: AnimeLinkPayload[] = (media.externalLinks ?? [])
     .filter((link) => link?.url && link?.site)
     .map((link) => ({
-      source_link: link.url,
-      source_name: link.site,
+      link: link.url,
+      label: link.site,
       type: 'website'
     }));
 
