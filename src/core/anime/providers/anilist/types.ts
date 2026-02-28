@@ -215,10 +215,10 @@ export interface AnilistMedia {
   recommendations?: {
     edges: {
       node: {
-        media: {
+        media?: {
           id: number;
         };
-        mediaRecommendation: {
+        mediaRecommendation?: {
           id: number;
         };
       };

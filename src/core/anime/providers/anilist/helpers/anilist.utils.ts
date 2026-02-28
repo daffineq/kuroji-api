@@ -144,11 +144,13 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
 
   const genres = (media.genres ?? []).filter(Boolean).map((name) => ({ name }));
 
-  const recommendations: AnimeRecommendationPayload[] = (media.recommendations?.edges ?? []).map((r, i) => ({
-    parent_id: r.node.media.id,
-    related_id: r.node.mediaRecommendation.id,
-    order: i
-  }));
+  const recommendations: AnimeRecommendationPayload[] = (media.recommendations?.edges ?? [])
+    .filter((r) => r.node.media?.id && r.node.mediaRecommendation?.id)
+    .map((r, i) => ({
+      parent_id: r.node.media?.id!,
+      related_id: r.node.mediaRecommendation?.id!,
+      order: i
+    }));
 
   const other_titles: AnimeOtherTitlePayload[] = (media.synonyms ?? []).map((s) => ({
     title: s,
