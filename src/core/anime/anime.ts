@@ -84,8 +84,8 @@ class AnimeModule extends Module {
     const links = await db
       .select({ link: animeLink })
       .from(animeToLink)
-      .leftJoin(animeLink, eq(animeToLink.B, animeLink.id))
-      .where(eq(animeToImage.A, id));
+      .innerJoin(animeLink, eq(animeToLink.B, animeLink.id))
+      .where(eq(animeToLink.A, id));
 
     return links.find((l) => l.link?.label.toLowerCase() === name.toLowerCase())?.link?.link ?? null;
   }

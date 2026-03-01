@@ -8,6 +8,8 @@
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
     <style>
       * {
         box-sizing: border-box;
@@ -25,6 +27,19 @@
         align-items: center;
         justify-content: center;
         padding: 2rem;
+      }
+
+      .tippy-box[data-theme~='kuroji'] {
+        background: #1a1a1a;
+        border: 1px solid #2e2e2e;
+        border-radius: 12px;
+        padding: 0;
+        max-width: 300px !important;
+        overflow: hidden;
+      }
+
+      .tippy-box[data-theme~='kuroji'] .tippy-content {
+        padding: 0;
       }
 
       .container {
@@ -120,6 +135,11 @@
         border: 1px solid #2a2a2a;
         border-radius: 16px;
         padding: 0.85rem 0.8rem;
+        transition: transform 0.2s;
+      }
+
+      .anime-card:hover {
+        transform: translateY(-2px);
       }
 
       .anime-poster {
@@ -127,6 +147,60 @@
         width: 100%;
         aspect-ratio: calc(2 / 2.9);
         object-fit: cover;
+      }
+
+      .tooltip-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .tooltip-background {
+        width: 100%;
+        aspect-ratio: 3 / 1.8;
+        object-fit: cover;
+      }
+
+      .tooltip-anime-title-content {
+        margin: 0.5rem 0.5rem 0.2rem 0.5rem;
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .tooltip-anime-title {
+        font-size: 14px;
+        width: 100%;
+      }
+
+      .tooltip-anime-genres {
+        margin: 0.3rem 0.5rem 0.5rem 0.5rem;
+        font-size: 13px;
+      }
+
+      .tooltip-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #0f0f0f;
+        background: #7b5cf0;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+
+      .tooltip-pills {
+        margin: 0.2rem 0.5rem 0.5rem 0.5rem;
+        display: flex;
+        gap: 8px;
+      }
+
+      .tooltip-pill {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #0f0f0f;
+        background: #7b5cf0;
+        padding: 0.2rem 0.5rem;
+        border-radius: 999px;
+        white-space: nowrap;
       }
 
       .anime-title {
@@ -397,17 +471,17 @@
         items.replaceChildren('');
 
         const query = `query Query($search: String, $sort: [AnimeSort!]) {
-  animes(per_page: 8, search: $search, sort: $sort) {
-    data {
-      id
-      poster { large }
-      title { english romaji }
-      score
-      status
-      genres { name }
-    }
-  }
-}`;
+        animes(per_page: 8, search: $search, sort: $sort) {
+          data {
+            id
+            poster { large }
+            title { english romaji }
+            score
+            status
+            genres { name }
+          }
+        }
+      }`;
 
         try {
           const res = await fetch('/graphql', {
@@ -427,14 +501,77 @@
           const newContent = document.createElement('div');
           newContent.innerHTML = `<div class="anime-section">${data.data.animes.data
             .map((a) => {
-              return `<div class="anime-card">
-            <img src=${a.poster.large} class="anime-poster" />
-            <span class="anime-title">${a.title.english}</span>
-            </div>`;
+              return `<div class="anime-card" data-id=${a.id}>
+                  <img src=${a.poster.large} class="anime-poster" />
+                  <span class="anime-title">${a.title.romaji}</span>
+                  </div>`;
             })
             .join('')}</div>`;
 
           items.replaceChildren(newContent);
+
+          tippy('.anime-card', {
+            theme: 'kuroji',
+            content: 'Loading...',
+            placement: 'right',
+            arrow: false,
+            interactive: true,
+            allowHTML: true,
+            delay: 500,
+            appendTo: document.body,
+            onShow(instance) {
+              const id = instance.reference.dataset.id;
+
+              const info_query = `query Query($id: Int!) {
+              anime(id: $id) {
+                id
+                poster { large }
+                title { english romaji }
+                score
+                status
+                type
+                season
+                genres { name }
+                images { large type source }
+              }
+            }`;
+
+              fetch('/graphql', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'api-key': input.value },
+                body: JSON.stringify({
+                  query: info_query,
+                  variables: {
+                    id: Number(id)
+                  }
+                })
+              })
+                .then((r) => r.json())
+                .then((d) => {
+                  const a = d.data.anime;
+
+                  const image = a.images.find((i) => i.type === 'background' && i.source === 'tmdb').large;
+
+                  const pills = [a.status, a.type, a.season];
+
+                  instance.setContent(
+                    `
+                    <div class="tooltip-content">
+                      ${image ? `<img class="tooltip-background" src=${image} loading="lazy" />` : ``}
+                      <div class="tooltip-anime-title-content">
+                        <span class="tooltip-anime-title">${a.title.romaji}</span>
+                        <span class="tooltip-label">${a.score}/100</span>
+                      </div>
+                      <div class="tooltip-anime-genres">Genres: ${a.genres.map((g) => `<b>${g.name}</b>`).join(', ')}</div>
+                      <div class="tooltip-pills">
+                        ${pills.map((s) => `<span class="tooltip-pill">${s}</span>`).join('')}
+                      </div>
+                    </div>
+                    `
+                  );
+                });
+            }
+          });
         } catch (e) {
           box.textContent = 'Error: ' + e.message;
         }

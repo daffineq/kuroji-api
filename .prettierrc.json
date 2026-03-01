@@ -10,7 +10,6 @@
   "bracketSameLine": false,
   "arrowParens": "always",
   "endOfLine": "lf",
-  "parser": "typescript",
   "overrides": [
     {
       "files": "*.json",
@@ -46,6 +45,18 @@
       "options": {
         "parser": "json-stringify",
         "printWidth": 80
+      }
+    },
+    {
+      "files": "*.ts",
+      "options": {
+        "parser": "typescript"
+      }
+    },
+    {
+      "files": "*.html",
+      "options": {
+        "printWidth": 115
       }
     }
   ]
