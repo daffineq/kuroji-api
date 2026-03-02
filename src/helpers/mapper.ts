@@ -443,6 +443,10 @@ export const findBestMatch = <T extends ExpectAnime>(
     const matchLanguage = !searchLanguage || candidate.language === searchLanguage;
     const matchType = !searchType || (candidate.type && areTypesCompatible(searchType, candidate.type));
 
+    if (!matchLanguage) {
+      continue;
+    }
+
     for (const searchTitle of searchTitles) {
       for (const candidateTitle of candidateTitles) {
         const similiarity = getSimiliarity(searchTitle, candidateTitle);
