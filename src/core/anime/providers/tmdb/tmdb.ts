@@ -228,4 +228,6 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
 
 const Tmdb = new TmdbModule();
 
+console.log(await Tmdb.find(21));
+
 export { Tmdb, TmdbModule };

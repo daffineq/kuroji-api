@@ -293,7 +293,7 @@ export function levenshteinSimilarity(a: string, b: string): number {
   return 1 - distance / maxLength;
 }
 
-export function getSimiliarity(target: string, candidate: string, log: boolean = false): number {
+export function getSimilarity(target: string, candidate: string, log: boolean = false): number {
   if (target === candidate) return 1;
   if (!target.length || !candidate.length) return 0;
 
@@ -402,6 +402,11 @@ export interface ExpectAnime {
   language?: string;
 }
 
+interface CandidateAnime<T> {
+  expect: T;
+  score: number;
+}
+
 /**
  * Gets all available titles from an anime titles array
  * @param candidate - The anime candidate to get titles from
@@ -425,42 +430,40 @@ export const findBestMatch = <T extends ExpectAnime>(
 ): T | null => {
   if (!search || !results || results.length === 0) return null;
 
-  const sortedResults = results.filter((r) => exclude.indexOf(r.id as string) === -1);
+  const sortedResults = results.filter((r) => !exclude.includes(r.id as string));
 
   const searchTitles = getAllTitles(search);
   if (searchTitles.length === 0) return null;
 
-  const searchYear = search.year;
-  const searchEpisodes = search.episodes;
-  const searchType = search.type;
-  const searchLanguage = search.language;
+  const candidates: CandidateAnime<T>[] = [];
 
   for (const candidate of sortedResults) {
     const candidateTitles = getAllTitles(candidate);
 
-    const matchYear = !searchYear || candidate.year === searchYear;
-    const matchEpisodes = !searchEpisodes || candidate.episodes === searchEpisodes;
-    const matchLanguage = !searchLanguage || candidate.language === searchLanguage;
-    const matchType = !searchType || (candidate.type && areTypesCompatible(searchType, candidate.type));
+    let score = 0;
 
-    if (!matchLanguage) {
-      continue;
-    }
+    if (!search.year || candidate.year === search.year) score++;
+    if (!search.episodes || candidate.episodes === search.episodes) score++;
+    if (!search.language || candidate.language === search.language) score++;
+    if (!search.type || (candidate.type && areTypesCompatible(search.type, candidate.type))) score++;
+
+    let similarity = 0;
 
     for (const searchTitle of searchTitles) {
       for (const candidateTitle of candidateTitles) {
-        const similiarity = getSimiliarity(searchTitle, candidateTitle);
-
-        if (similiarity > 0.7 && matchYear && matchEpisodes && matchLanguage && matchType) {
-          return candidate;
-        }
-
-        if (similiarity > 0.9) {
-          return candidate;
-        }
+        similarity = Math.max(similarity, getSimilarity(searchTitle, candidateTitle));
       }
     }
+
+    candidates.push({
+      expect: candidate,
+      score: similarity * 10 + score
+    });
   }
 
-  return null;
+  return (
+    candidates.sort((a, b) => {
+      return b.score - a.score;
+    })[0]?.expect ?? null
+  );
 };
