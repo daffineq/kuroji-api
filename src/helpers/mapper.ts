@@ -111,7 +111,7 @@ export function deepCleanTitle(title: string): string {
     // Remove leading/trailing spaces
     .trim();
 
-  return cleaned;
+  return cleaned.split(' ').slice(0, 3).join(' ');
 }
 
 /**
