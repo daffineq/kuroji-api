@@ -24,24 +24,20 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.animeGenre.id.through(r.animeToGenre.B)
     }),
     airing_schedule: r.many.animeAiringSchedule({
-      from: r.anime.id,
-      to: r.animeAiringSchedule.anime_id
+      from: r.anime.id.through(r.animeToAiringSchedule.A),
+      to: r.animeAiringSchedule.id.through(r.animeToAiringSchedule.B)
     }),
-    characters: r.many.animeCharacterEdge({
+    characters: r.many.animeToCharacter({
       from: r.anime.id,
-      to: r.animeCharacterEdge.anime_id
+      to: r.animeToCharacter.anime_id
     }),
-    studios: r.many.animeStudioEdge({
+    studios: r.many.animeToStudio({
       from: r.anime.id,
-      to: r.animeStudioEdge.anime_id
+      to: r.animeToStudio.anime_id
     }),
-    tags: r.many.animeTagEdge({
+    tags: r.many.animeToTag({
       from: r.anime.id,
-      to: r.animeTagEdge.anime_id
-    }),
-    external_links: r.many.animeExternalLink({
-      from: r.anime.id,
-      to: r.animeExternalLink.anime_id
+      to: r.animeToTag.anime_id
     }),
     score_distribution: r.many.animeScoreDistribution({
       from: r.anime.id,
@@ -51,9 +47,41 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.anime.id,
       to: r.animeStatusDistribution.anime_id
     }),
-    meta: r.one.meta({
+    links: r.many.animeLink({
+      from: r.anime.id.through(r.animeToLink.A),
+      to: r.animeLink.id.through(r.animeToLink.B)
+    }),
+    chronology: r.many.animeChronology({
       from: r.anime.id,
-      to: r.meta.anime_id
+      to: r.animeChronology.anime_id
+    }),
+    recommendations: r.many.animeRecommendation({
+      from: r.anime.id,
+      to: r.animeRecommendation.anime_id
+    }),
+    other_titles: r.many.animeOtherTitle({
+      from: r.anime.id.through(r.animeToOtherTitle.A),
+      to: r.animeOtherTitle.id.through(r.animeToOtherTitle.B)
+    }),
+    other_descriptions: r.many.animeOtherDescription({
+      from: r.anime.id.through(r.animeToOtherDescription.A),
+      to: r.animeOtherDescription.id.through(r.animeToOtherDescription.B)
+    }),
+    images: r.many.animeImage({
+      from: r.anime.id.through(r.animeToImage.A),
+      to: r.animeImage.id.through(r.animeToImage.B)
+    }),
+    videos: r.many.animeVideo({
+      from: r.anime.id.through(r.animeToVideo.A),
+      to: r.animeVideo.id.through(r.animeToVideo.B)
+    }),
+    screenshots: r.many.animeScreenshot({
+      from: r.anime.id.through(r.animeToScreenshot.A),
+      to: r.animeScreenshot.id.through(r.animeToScreenshot.B)
+    }),
+    artworks: r.many.animeArtwork({
+      from: r.anime.id.through(r.animeToArtwork.A),
+      to: r.animeArtwork.id.through(r.animeToArtwork.B)
     })
   },
 
@@ -105,8 +133,20 @@ export const relations = defineRelations(schema, (r) => ({
 
   animeAiringSchedule: {
     anime: r.one.anime({
-      from: r.animeAiringSchedule.anime_id,
+      from: r.animeAiringSchedule.id.through(r.animeToAiringSchedule.B),
+      to: r.anime.id.through(r.animeToAiringSchedule.A)
+    })
+  },
+
+  animeToAiringSchedule: {
+    anime: r.one.anime({
+      from: r.animeToAiringSchedule.A,
       to: r.anime.id
+    }),
+
+    schedule: r.one.animeAiringSchedule({
+      from: r.animeToAiringSchedule.B,
+      to: r.animeAiringSchedule.id
     })
   },
 
@@ -119,23 +159,23 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.animeCharacter.id,
       to: r.animeCharacterImage.character_id
     }),
-    edges: r.many.animeCharacterEdge({
+    connections: r.many.animeToCharacter({
       from: r.animeCharacter.id,
-      to: r.animeCharacterEdge.character_id
+      to: r.animeToCharacter.character_id
     })
   },
 
-  animeCharacterEdge: {
+  animeCharacterConnection: {
     anime: r.one.anime({
-      from: r.animeCharacterEdge.anime_id,
+      from: r.animeToCharacter.anime_id,
       to: r.anime.id
     }),
     character: r.one.animeCharacter({
-      from: r.animeCharacterEdge.character_id,
+      from: r.animeToCharacter.character_id,
       to: r.animeCharacter.id
     }),
     voice_actors: r.many.animeVoiceActor({
-      from: r.animeCharacterEdge.id.through(r.characterToVoiceActor.A),
+      from: r.animeToCharacter.id.through(r.characterToVoiceActor.A),
       to: r.animeVoiceActor.id.through(r.characterToVoiceActor.B)
     })
   },
@@ -163,16 +203,16 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.animeVoiceActor.id,
       to: r.animeVoiceImage.voice_actor_id
     }),
-    character_edges: r.many.animeCharacterEdge({
+    connections: r.many.animeToCharacter({
       from: r.animeVoiceActor.id.through(r.characterToVoiceActor.B),
-      to: r.animeCharacterEdge.id.through(r.characterToVoiceActor.A)
+      to: r.animeToCharacter.id.through(r.characterToVoiceActor.A)
     })
   },
 
   characterToVoiceActor: {
-    character_edge: r.one.animeCharacterEdge({
+    connection: r.one.animeToCharacter({
       from: r.characterToVoiceActor.A,
-      to: r.animeCharacterEdge.id
+      to: r.animeToCharacter.id
     }),
     voice_actor: r.one.animeVoiceActor({
       from: r.characterToVoiceActor.B,
@@ -195,45 +235,38 @@ export const relations = defineRelations(schema, (r) => ({
   },
 
   animeStudio: {
-    edges: r.many.animeStudioEdge({
+    connections: r.many.animeToStudio({
       from: r.animeStudio.id,
-      to: r.animeStudioEdge.studio_id
+      to: r.animeToStudio.studio_id
     })
   },
 
-  animeStudioEdge: {
+  animeStudioConnection: {
     anime: r.one.anime({
-      from: r.animeStudioEdge.anime_id,
+      from: r.animeToStudio.anime_id,
       to: r.anime.id
     }),
     studio: r.one.animeStudio({
-      from: r.animeStudioEdge.studio_id,
+      from: r.animeToStudio.studio_id,
       to: r.animeStudio.id
     })
   },
 
   animeTag: {
-    edges: r.many.animeTagEdge({
+    connections: r.many.animeToTag({
       from: r.animeTag.id,
-      to: r.animeTagEdge.tag_id
+      to: r.animeToTag.tag_id
     })
   },
 
-  animeTagEdge: {
+  animeTagConnection: {
     anime: r.one.anime({
-      from: r.animeTagEdge.anime_id,
+      from: r.animeToTag.anime_id,
       to: r.anime.id
     }),
     tag: r.one.animeTag({
-      from: r.animeTagEdge.tag_id,
+      from: r.animeToTag.tag_id,
       to: r.animeTag.id
-    })
-  },
-
-  animeExternalLink: {
-    anime: r.one.anime({
-      from: r.animeExternalLink.anime_id,
-      to: r.anime.id
     })
   },
 
@@ -251,169 +284,146 @@ export const relations = defineRelations(schema, (r) => ({
     })
   },
 
-  // Meta relations
-  meta: {
+  animeLink: {
     anime: r.one.anime({
-      from: r.meta.anime_id,
+      from: r.animeLink.id.through(r.animeToLink.B),
+      to: r.anime.id.through(r.animeToLink.A)
+    })
+  },
+
+  animeToLink: {
+    anime: r.one.anime({
+      from: r.animeToLink.A,
       to: r.anime.id
     }),
-    mappings: r.many.metaMapping({
-      from: r.meta.id,
-      to: r.metaMapping.meta_id
+    link: r.one.animeLink({
+      from: r.animeToLink.B,
+      to: r.animeLink.id
+    })
+  },
+
+  animeChronology: {
+    anime: r.one.anime({
+      from: r.animeChronology.anime_id,
+      to: r.anime.id
+    })
+  },
+
+  animeRecommendation: {
+    anime: r.one.anime({
+      from: r.animeRecommendation.anime_id,
+      to: r.anime.id
+    })
+  },
+
+  animeOtherTitle: {
+    anime: r.many.anime({
+      from: r.animeOtherTitle.id.through(r.animeToOtherTitle.B),
+      to: r.anime.id.through(r.animeToOtherTitle.A)
+    })
+  },
+
+  animeToOtherTitle: {
+    anime: r.one.anime({
+      from: r.animeToOtherTitle.A,
+      to: r.anime.id
     }),
-    chronology: r.many.metaChronology({
-      from: r.meta.id,
-      to: r.metaChronology.meta_id
+    other_title: r.one.animeOtherTitle({
+      from: r.animeToOtherTitle.B,
+      to: r.animeOtherTitle.id
+    })
+  },
+
+  animeOtherDescription: {
+    anime: r.many.anime({
+      from: r.animeOtherDescription.id.through(r.animeToOtherDescription.B),
+      to: r.anime.id.through(r.animeToOtherDescription.A)
+    })
+  },
+
+  animeToOtherDescription: {
+    anime: r.one.anime({
+      from: r.animeToOtherDescription.A,
+      to: r.anime.id
     }),
-    titles: r.many.metaTitle({
-      from: r.meta.id.through(r.metaToTitle.A),
-      to: r.metaTitle.id.through(r.metaToTitle.B)
+    other_description: r.one.animeOtherDescription({
+      from: r.animeToOtherDescription.B,
+      to: r.animeOtherDescription.id
+    })
+  },
+
+  animeImage: {
+    anime: r.many.anime({
+      from: r.animeImage.id.through(r.animeToImage.B),
+      to: r.anime.id.through(r.animeToImage.A)
+    })
+  },
+
+  animeToImage: {
+    anime: r.one.anime({
+      from: r.animeToImage.A,
+      to: r.anime.id
     }),
-    descriptions: r.many.metaDescription({
-      from: r.meta.id.through(r.metaToDescription.A),
-      to: r.metaDescription.id.through(r.metaToDescription.B)
+    image: r.one.animeImage({
+      from: r.animeToImage.B,
+      to: r.animeImage.id
+    })
+  },
+
+  animeVideo: {
+    anime: r.many.anime({
+      from: r.animeVideo.id.through(r.animeToVideo.B),
+      to: r.anime.id.through(r.animeToVideo.A)
+    })
+  },
+
+  animeToVideo: {
+    anime: r.one.anime({
+      from: r.animeToVideo.A,
+      to: r.anime.id
     }),
-    images: r.many.metaImage({
-      from: r.meta.id.through(r.metaToImage.A),
-      to: r.metaImage.id.through(r.metaToImage.B)
+    video: r.one.animeVideo({
+      from: r.animeToVideo.B,
+      to: r.animeVideo.id
+    })
+  },
+
+  animeScreenshot: {
+    anime: r.many.anime({
+      from: r.animeScreenshot.id.through(r.animeToScreenshot.B),
+      to: r.anime.id.through(r.animeToScreenshot.A)
+    })
+  },
+
+  animeToScreenshot: {
+    anime: r.one.anime({
+      from: r.animeToScreenshot.A,
+      to: r.anime.id
     }),
-    videos: r.many.metaVideo({
-      from: r.meta.id.through(r.metaToVideo.A),
-      to: r.metaVideo.id.through(r.metaToVideo.B)
+    screenshot: r.one.animeScreenshot({
+      from: r.animeToScreenshot.B,
+      to: r.animeScreenshot.id
+    })
+  },
+
+  animeArtwork: {
+    anime: r.many.anime({
+      from: r.animeArtwork.id.through(r.animeToArtwork.B),
+      to: r.anime.id.through(r.animeToArtwork.A)
+    })
+  },
+
+  animeToArtwork: {
+    anime: r.one.anime({
+      from: r.animeToArtwork.A,
+      to: r.anime.id
     }),
-    screenshots: r.many.metaScreenshot({
-      from: r.meta.id.through(r.metaToScreenshot.A),
-      to: r.metaScreenshot.id.through(r.metaToScreenshot.B)
-    }),
-    artworks: r.many.metaArtwork({
-      from: r.meta.id.through(r.metaToArtwork.A),
-      to: r.metaArtwork.id.through(r.metaToArtwork.B)
+    artwork: r.one.animeArtwork({
+      from: r.animeToArtwork.B,
+      to: r.animeArtwork.id
     })
   },
 
-  metaMapping: {
-    meta: r.one.meta({
-      from: r.metaMapping.meta_id,
-      to: r.meta.id
-    })
-  },
-
-  metaChronology: {
-    meta: r.one.meta({
-      from: r.metaChronology.meta_id,
-      to: r.meta.id
-    })
-  },
-
-  metaTitle: {
-    metas: r.many.meta({
-      from: r.metaTitle.id.through(r.metaToTitle.B),
-      to: r.meta.id.through(r.metaToTitle.A)
-    })
-  },
-
-  metaToTitle: {
-    meta: r.one.meta({
-      from: r.metaToTitle.A,
-      to: r.meta.id
-    }),
-    title: r.one.metaTitle({
-      from: r.metaToTitle.B,
-      to: r.metaTitle.id
-    })
-  },
-
-  metaDescription: {
-    metas: r.many.meta({
-      from: r.metaDescription.id.through(r.metaToDescription.B),
-      to: r.meta.id.through(r.metaToDescription.A)
-    })
-  },
-
-  metaToDescription: {
-    meta: r.one.meta({
-      from: r.metaToDescription.A,
-      to: r.meta.id
-    }),
-    description: r.one.metaDescription({
-      from: r.metaToDescription.B,
-      to: r.metaDescription.id
-    })
-  },
-
-  metaImage: {
-    metas: r.many.meta({
-      from: r.metaImage.id.through(r.metaToImage.B),
-      to: r.meta.id.through(r.metaToImage.A)
-    })
-  },
-
-  metaToImage: {
-    meta: r.one.meta({
-      from: r.metaToImage.A,
-      to: r.meta.id
-    }),
-    image: r.one.metaImage({
-      from: r.metaToImage.B,
-      to: r.metaImage.id
-    })
-  },
-
-  metaVideo: {
-    metas: r.many.meta({
-      from: r.metaVideo.id.through(r.metaToVideo.B),
-      to: r.meta.id.through(r.metaToVideo.A)
-    })
-  },
-
-  metaToVideo: {
-    meta: r.one.meta({
-      from: r.metaToVideo.A,
-      to: r.meta.id
-    }),
-    video: r.one.metaVideo({
-      from: r.metaToVideo.B,
-      to: r.metaVideo.id
-    })
-  },
-
-  metaScreenshot: {
-    metas: r.many.meta({
-      from: r.metaScreenshot.id.through(r.metaToScreenshot.B),
-      to: r.meta.id.through(r.metaToScreenshot.A)
-    })
-  },
-
-  metaToScreenshot: {
-    meta: r.one.meta({
-      from: r.metaToScreenshot.A,
-      to: r.meta.id
-    }),
-    screenshot: r.one.metaScreenshot({
-      from: r.metaToScreenshot.B,
-      to: r.metaScreenshot.id
-    })
-  },
-
-  metaArtwork: {
-    metas: r.many.meta({
-      from: r.metaArtwork.id.through(r.metaToArtwork.B),
-      to: r.meta.id.through(r.metaToArtwork.A)
-    })
-  },
-
-  metaToArtwork: {
-    meta: r.one.meta({
-      from: r.metaToArtwork.A,
-      to: r.meta.id
-    }),
-    artwork: r.one.metaArtwork({
-      from: r.metaToArtwork.B,
-      to: r.metaArtwork.id
-    })
-  },
-
-  // API Key relations
   apiKey: {
     usage: r.many.apiKeyUsage({
       from: r.apiKey.id,

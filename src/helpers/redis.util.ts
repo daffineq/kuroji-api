@@ -1,6 +1,5 @@
 import { Config } from 'src/config/config';
 import redis from 'src/lib/redis';
-import { providers } from 'src/core/anime/types';
 import { localStore } from './local.store';
 
 class RedisModule {
@@ -82,8 +81,8 @@ class RedisModule {
   }
 }
 
-export const getKey = (provider: providers | string, ...args: any[]) => {
-  return `${provider.toLowerCase()}:${args.join(':')}`;
+export const getKey = (...args: any[]) => {
+  return args.join(':');
 };
 
 export const Redis = new RedisModule();

@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kuroji</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <style>
+      :root {
+        --main-color: #7b5cf0;
+        --primary-bg: #0f0f0f;
+        --secondary-bg: #1a1a1a;
+        --input-bg: #2a2a2a;
+        --input-border: #1a1a1a;
+
+        --primary-color: #e0e0e0;
+        --secondary-color: #555;
+        --text-muted: #aaa;
+        --text-dim: #888;
+        --text-dark: #444;
+        --text-link: #666;
+        --white: #ffffff;
+        --off-white: #ccc;
+
+        --primary-border: #2e2e2e;
+        --secondary-border: #2a2a2a;
+
+        --code-k: #c792ea;
+        --code-f: #82aaff;
+        --code-s: #c3e88d;
+        --code-p: #89ddff;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'JetBrains Mono', monospace;
+        background: var(--primary-bg);
+        color: var(--primary-color);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+
+      .tippy-box[data-theme~='kuroji'] {
+        background: var(--secondary-bg);
+        border: 1px solid var(--primary-border);
+        border-radius: 12px;
+        padding: 0;
+        max-width: 300px !important;
+        overflow: hidden;
+      }
+
+      .tippy-box[data-theme~='kuroji'] .tippy-content {
+        padding: 0;
+      }
+
+      .container {
+        max-width: 680px;
+        width: 100%;
+      }
+
+      .title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--white);
+        margin-bottom: 0.4rem;
+      }
+
+      .subtitle {
+        color: var(--secondary-color);
+        font-size: 0.85rem;
+        margin-bottom: 3rem;
+      }
+
+      .section-label {
+        font-size: 0.7rem;
+        color: var(--secondary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.75rem;
+      }
+
+      .section {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--secondary-bg);
+        border: 1px solid var(--primary-border);
+        border-radius: 8px;
+        padding: 0.85rem 1.1rem;
+        margin-bottom: 2.5rem;
+      }
+
+      .horizontal-section {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .grid-section {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+
+      .label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--primary-bg);
+        background: var(--main-color);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+
+      .section-url {
+        color: var(--off-white);
+        font-size: 0.88rem;
+      }
+
+      .text-input {
+        background: var(--input-bg);
+        border: var(--input-border);
+        border-radius: 6px;
+        font-size: 14px;
+        color: var(--off-white);
+        flex: 1;
+        padding: 0.4rem 0.6rem;
+        min-width: 0;
+        width: 100%;
+      }
+
+      .anime-section {
+        margin-bottom: 2.5rem;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+      }
+
+      .anime-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--secondary-bg);
+        border: 1px solid var(--secondary-border);
+        border-radius: 16px;
+        padding: 0.85rem 0.8rem;
+        transition: transform 0.2s;
+      }
+
+      .anime-card:hover {
+        transform: translateY(-2px);
+      }
+
+      .anime-poster {
+        border-radius: 12px;
+        width: 100%;
+        aspect-ratio: calc(2 / 2.9);
+        object-fit: cover;
+      }
+
+      .tooltip-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .tooltip-background {
+        width: 100%;
+        aspect-ratio: 3 / 1.8;
+        object-fit: cover;
+      }
+
+      .tooltip-anime-title-content {
+        margin: 0.5rem 0.5rem 0.2rem 0.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .tooltip-anime-title {
+        font-size: 14px;
+        width: 100%;
+      }
+
+      .tooltip-anime-genres {
+        margin: 0.3rem 0.5rem 0.5rem 0.5rem;
+        font-size: 13px;
+      }
+
+      .tooltip-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--primary-bg);
+        background: var(--main-color);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+
+      .tooltip-pills {
+        margin: 0.2rem 0.5rem 0.5rem 0.5rem;
+        display: flex;
+        gap: 8px;
+      }
+
+      .tooltip-pill {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--primary-bg);
+        background: var(--main-color);
+        padding: 0.2rem 0.5rem;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+
+      .tooltip-loading {
+        margin: 1rem;
+      }
+
+      .anime-title {
+        font-size: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+      }
+
+      pre {
+        background: var(--secondary-bg);
+        border: 1px solid var(--secondary-border);
+        border-radius: 8px;
+        padding: 1.25rem;
+        font-size: 0.82rem;
+        line-height: 1.75;
+        overflow-x: auto;
+        margin-bottom: 2.5rem;
+        color: var(--off-white);
+      }
+
+      .k {
+        color: var(--code-k);
+      }
+      .f {
+        color: var(--code-f);
+      }
+      .s {
+        color: var(--code-s);
+      }
+      .p {
+        color: var(--code-p);
+      }
+
+      .stats {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 2.5rem;
+      }
+
+      .stat {
+        background: var(--secondary-bg);
+        border: 1px solid var(--secondary-border);
+        border-radius: 8px;
+        padding: 0.85rem 1.25rem;
+        font-size: 0.8rem;
+        color: var(--text-dim);
+      }
+
+      .stat span {
+        color: var(--white);
+        font-weight: 700;
+      }
+
+      #result-box {
+        display: none;
+        background: var(--secondary-bg);
+        border: 1px solid var(--secondary-border);
+        border-radius: 8px;
+        padding: 1.25rem;
+        font-size: 0.8rem;
+        line-height: 1.7;
+        color: var(--text-muted);
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 1rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .btn {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 0.65rem 1.4rem;
+        margin-bottom: 0.65rem;
+        border-radius: 6px;
+        border: 1px solid var(--main-color);
+        background: transparent;
+        color: var(--main-color);
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+
+      .btn:hover {
+        background: var(--main-color);
+        color: var(--white);
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      footer {
+        margin-top: 4rem;
+        font-size: 0.72rem;
+        color: var(--text-dark);
+        text-align: center;
+      }
+
+      footer a {
+        color: var(--text-link);
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        color: var(--text-muted);
+      }
+
+      @media (max-width: 600px) {
+        body {
+          padding: 1.25rem 1rem;
+          justify-content: flex-start;
+        }
+        .title {
+          font-size: 1.4rem;
+        }
+        .subtitle {
+          margin-bottom: 2rem;
+        }
+        .grid-section {
+          grid-template-columns: 1fr;
+        }
+        .section {
+          flex-wrap: nowrap;
+          gap: 0.6rem;
+          padding: 0.75rem 0.9rem;
+          margin-bottom: 1.5rem;
+        }
+        .anime-section {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        pre {
+          font-size: 0.72rem;
+          padding: 1rem 0.75rem;
+        }
+        .stats {
+          gap: 0.75rem;
+        }
+        .stat {
+          flex: 1 1 100%;
+          font-size: 0.75rem;
+          padding: 0.75rem 1rem;
+        }
+        .btn {
+          width: 100%;
+          text-align: center;
+        }
+        footer {
+          margin-top: 2.5rem;
+          line-height: 1.9;
+        }
+      }
+
+      @media (max-width: 380px) {
+        .anime-section {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.5rem;
+        }
+        .anime-card {
+          padding: 0.6rem 0.5rem;
+          border-radius: 12px;
+        }
+        .anime-title {
+          font-size: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="title">Kuroji API</div>
+      <div class="subtitle">Open source anime API</div>
+
+      <div class="section-label">Endpoint</div>
+      <div class="section">
+        <span class="label">POST</span>
+        <span class="section-url">/graphql</span>
+      </div>
+
+      <div class="section-label">Security</div>
+      <div class="section">
+        <span class="label">API KEY</span>
+        <input id="key-input" class="text-input" type="text" placeholder="Your API key (not required)" />
+      </div>
+
+      <div class="section-label">Options</div>
+      <div class="grid-section">
+        <div class="section">
+          <span class="label">SEARCH</span>
+          <input id="search-input" class="text-input" type="text" placeholder="Enter the search" />
+        </div>
+
+        <div class="section">
+          <span class="label">SORT</span>
+          <input
+            id="sort-input"
+            class="text-input"
+            type="text"
+            placeholder="Enter the sort"
+            value="TRENDING_DESC"
+          />
+        </div>
+      </div>
+
+      <div class="section-label">Example Query</div>
+      <pre><span class="k">query</span> Query($search: String, $sort: [AnimeSort!]) {
+  <span class="f">animes</span>(<span class="p">per_page</span>: <span class="s">8</span>, <span class="p">search</span>: <span class="s">$search</span>, <span class="p">sort</span>: <span class="s">$sort</span>) {
+    data {
+      <span class="p">id</span>
+      poster { <span class="p">large</span> }
+      title { <span class="p">english</span> <span class="p">romaji</span> }
+      <span class="p">score</span>
+      <span class="p">status</span>
+      genres { <span class="p">name</span> }
+    }
+  }
+}</pre>
+
+      <button class="btn" id="tryBtn" onclick="runQuery()">▶ Run Example Query</button>
+      <pre id="result-box"></pre>
+
+      <div id="result-items"></div>
+
+      <div class="section-label">Info</div>
+      <div class="stats">
+        <div class="stat">Type <span>GraphQL</span></div>
+        <div class="stat">Method <span>POST</span></div>
+        <div class="stat">Auth <span>None</span></div>
+        <div class="stat">License <span>MIT</span></div>
+      </div>
+
+      <footer>
+        <a href="https://github.com/daffineq/kuroji-api" target="_blank">GitHub</a> &nbsp;·&nbsp;
+        <a href="/docs" target="_blank">Docs</a> &nbsp;·&nbsp; Send requests to
+        <code>/graphql</code>
+      </footer>
+    </div>
+
+    <script>
+      async function runQuery() {
+        const btn = document.getElementById('tryBtn');
+        const box = document.getElementById('result-box');
+        const items = document.getElementById('result-items');
+        const input = document.getElementById('key-input');
+        const searchInput = document.getElementById('search-input');
+        const sortInput = document.getElementById('sort-input');
+        btn.disabled = true;
+        btn.textContent = '⏳ Loading...';
+        box.style.display = 'block';
+        box.textContent = 'Fetching...';
+        items.replaceChildren('');
+
+        const query = `query Query($search: String, $sort: [AnimeSort!]) {
+        animes(per_page: 8, search: $search, sort: $sort) {
+          data {
+            id
+            poster { large }
+            title { english romaji }
+            score
+            status
+            genres { name }
+          }
+        }
+      }`;
+
+        try {
+          const res = await fetch('/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'api-key': input.value },
+            body: JSON.stringify({
+              query,
+              variables: {
+                search: searchInput.value,
+                sort: sortInput.value
+              }
+            })
+          });
+          const data = await res.json();
+          box.textContent = JSON.stringify(data, null, 2);
+
+          const newContent = document.createElement('div');
+          newContent.innerHTML = `<div class="anime-section">${data.data.animes.data
+            .map((a) => {
+              return `<div class="anime-card" data-id=${a.id}>
+                  <img src=${a.poster.large} class="anime-poster" />
+                  <span class="anime-title">${a.title.romaji}</span>
+                  </div>`;
+            })
+            .join('')}</div>`;
+
+          items.replaceChildren(newContent);
+
+          tippy('.anime-card', {
+            theme: 'kuroji',
+            content: `<div class="tooltip-loading"><span>Loading...</span></div>`,
+            placement: 'right',
+            arrow: false,
+            interactive: true,
+            allowHTML: true,
+            delay: 500,
+            appendTo: document.body,
+            popperOptions: {
+              modifiers: [
+                {
+                  name: 'flip',
+                  options: {
+                    fallbackPlacements: ['top', 'left', 'bottom']
+                  }
+                }
+              ]
+            },
+            onShow(instance) {
+              const id = instance.reference.dataset.id;
+
+              const info_query = `query Query($id: Int!) {
+              anime(id: $id) {
+                id
+                poster { large }
+                title { english romaji }
+                score
+                status
+                type
+                season
+                format
+                genres { name }
+                images { large type source }
+              }
+            }`;
+
+              instance.setContent(`<div class="tooltip-loading"><span>Loading...</span></div>`);
+
+              fetch('/graphql', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'api-key': input.value },
+                body: JSON.stringify({
+                  query: info_query,
+                  variables: {
+                    id: Number(id)
+                  }
+                })
+              })
+                .then((r) => r.json())
+                .then((d) => {
+                  const a = d.data.anime;
+
+                  const image = a.images.find((i) => i.type === 'background' && i.source === 'tmdb')?.large;
+
+                  const pills = [a.status, a.type, a.format, a.season];
+
+                  instance.setContent(
+                    `
+                    <div class="tooltip-content">
+                      ${image ? `<img class="tooltip-background" src=${image} loading="lazy" />` : ``}
+                      <div class="tooltip-anime-title-content">
+                        <span class="tooltip-anime-title">${a.title.romaji}</span>
+                        <span class="tooltip-label">${a.score}/100</span>
+                      </div>
+                      <div class="tooltip-anime-genres">Genres: ${a.genres.map((g) => `<b>${g.name}</b>`).join(', ')}</div>
+                      <div class="tooltip-pills">
+                        ${pills.map((s) => `<span class="tooltip-pill">${s}</span>`).join('')}
+                      </div>
+                    </div>
+                    `
+                  );
+                });
+            }
+          });
+        } catch (e) {
+          box.textContent = 'Error: ' + e.message;
+        }
+
+        btn.disabled = false;
+        btn.textContent = '▶ Run Example Query';
+      }
+    </script>
+  </body>
+</html>

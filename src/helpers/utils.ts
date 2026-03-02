@@ -1,3 +1,5 @@
+import { ForceOr } from './forced';
+
 export const uniqueBy = <T, K>(list: T[], key: (item: T) => K): T[] => {
   const seen = new Set<K>();
   return list.filter((item) => {
@@ -7,6 +9,11 @@ export const uniqueBy = <T, K>(list: T[], key: (item: T) => K): T[] => {
     return true;
   });
 };
+
+export function toArray<T>(value: ForceOr<T> | null | undefined): T[] {
+  if (value == null) return [];
+  return Array.isArray(value) ? value : [value];
+}
 
 export const getApiKey = (request: Request) => {
   const headerKey = request.headers.get('x-api-key');

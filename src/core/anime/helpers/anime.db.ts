@@ -1,4 +1,3 @@
-import { AnilistMedia } from '../providers/anilist/types';
 import { DateUtils } from 'src/helpers/date';
 import { Module } from 'src/helpers/module';
 import { Config } from 'src/config/config';
@@ -17,67 +16,62 @@ import {
   animeVoiceActor,
   animeVoiceName,
   animeVoiceImage,
-  animeCharacterEdge,
+  animeToCharacter,
   characterToVoiceActor,
   animeStudio,
-  animeStudioEdge,
+  animeToStudio,
   animeTag,
-  animeTagEdge,
-  animeExternalLink,
+  animeToTag,
   animeScoreDistribution,
   animeStatusDistribution,
   db,
-  upsertWithExcluded
+  cleanPayload,
+  animeToAiringSchedule,
+  animeLink,
+  animeToLink,
+  animeArtwork,
+  animeToArtwork,
+  animeImage,
+  animeToImage,
+  animeScreenshot,
+  animeToScreenshot,
+  animeVideo,
+  animeToVideo,
+  animeOtherTitle,
+  animeToOtherTitle,
+  animeOtherDescription,
+  animeToOtherDescription,
+  animeChronology,
+  animeRecommendation
 } from 'src/db';
 import { eq, sql } from 'drizzle-orm';
-import { uniqueBy } from 'src/helpers/utils';
+import { toArray, uniqueBy } from 'src/helpers/utils';
+import { AnimePayload } from '../types';
+import { isForced } from 'src/helpers/forced';
+import { getKey } from 'src/helpers/redis.util';
 
 class AnimeDbModule extends Module {
   override readonly name = 'AnimeDB';
 
-  async upsert(anilist: AnilistMedia) {
-    const airedEpisodes = anilist.airingSchedule?.edges
-      .filter((schedule) => DateUtils.isPast(schedule.node.airingAt))
-      .sort((a, b) => b.node.airingAt - a.node.airingAt);
+  async upsert(payload: AnimePayload) {
+    const airedEpisodes = toArray(payload.airing_schedule)
+      .filter((schedule) => DateUtils.isPast(schedule.airing_at ?? 0))
+      .sort((a, b) => (b.airing_at ?? 0) - (a.airing_at ?? 0));
 
-    const futureEpisodes = anilist.airingSchedule?.edges
-      .filter((schedule) => DateUtils.isFuture(schedule.node.airingAt))
-      .sort((a, b) => a.node.airingAt - b.node.airingAt);
+    const futureEpisodes = toArray(payload.airing_schedule)
+      .filter((schedule) => DateUtils.isFuture(schedule.airing_at ?? 0))
+      .sort((a, b) => (b.airing_at ?? 0) - (a.airing_at ?? 0));
 
-    const latestEpisode = airedEpisodes?.[0]?.node;
-    const nextEpisode = futureEpisodes?.[0]?.node;
-    const lastEpisode = [...(anilist.airingSchedule?.edges ?? [])].sort(
-      (a, b) => (b.node.episode ?? 0) - (a.node.episode ?? 0)
-    )[0]?.node;
+    const latestEpisode = airedEpisodes?.[0];
+    const nextEpisode = futureEpisodes?.[0];
+    const lastEpisode = toArray(payload.airing_schedule).sort((a, b) => (b.episode ?? 0) - (a.episode ?? 0))[0];
 
     await db.transaction(async (tx) => {
-      const { values, set } = upsertWithExcluded({
-        id: anilist.id,
-        id_mal: anilist.idMal,
-        background: anilist.bannerImage,
-        synonyms: anilist.synonyms ?? [],
-        description: anilist.description,
-        status: anilist.status,
-        type: anilist.type,
-        format: anilist.format,
-        updated_at: Math.floor(Date.now() / 1000),
-        season: anilist.season,
-        season_year: anilist.seasonYear,
-        episodes: anilist.episodes,
-        duration: anilist.duration,
-        country_of_origin: anilist.countryOfOrigin,
-        is_licensed: anilist.isLicensed,
-        source: anilist.source,
-        hashtag: anilist.hashtag,
-        is_adult: anilist.isAdult,
-        score: anilist.meanScore,
-        popularity: anilist.popularity,
-        trending: anilist.trending,
-        favorites: anilist.favourites,
-        color: anilist.coverImage?.color,
-        latest_airing_episode: latestEpisode?.airingAt,
-        next_airing_episode: nextEpisode?.airingAt,
-        last_airing_episode: lastEpisode?.airingAt
+      const { values, set } = cleanPayload({
+        ...payload,
+        latest_airing_episode: latestEpisode?.airing_at,
+        next_airing_episode: nextEpisode?.airing_at,
+        last_airing_episode: lastEpisode?.airing_at
       });
 
       await tx.insert(anime).values(values).onConflictDoUpdate({
@@ -88,15 +82,15 @@ class AnimeDbModule extends Module {
       const ops: Promise<any>[] = [];
 
       // Title
-      if (anilist.title) {
+      if (payload.title) {
         ops.push(
           tx
             .insert(animeTitle)
             .values({
-              anime_id: anilist.id,
-              romaji: anilist.title.romaji,
-              english: anilist.title.english,
-              native: anilist.title.native
+              anime_id: payload.id,
+              romaji: payload.title.romaji,
+              english: payload.title.english,
+              native: payload.title.native
             })
             .onConflictDoUpdate({
               target: animeTitle.anime_id,
@@ -110,37 +104,37 @@ class AnimeDbModule extends Module {
       }
 
       // Poster
-      if (anilist.coverImage) {
+      if (payload.poster) {
         ops.push(
           tx
             .insert(animePoster)
             .values({
-              anime_id: anilist.id,
-              medium: anilist.coverImage.medium,
-              large: anilist.coverImage.large,
-              extra_large: anilist.coverImage.extraLarge
+              anime_id: payload.id,
+              small: payload.poster.small,
+              medium: payload.poster.medium,
+              large: payload.poster.large
             })
             .onConflictDoUpdate({
               target: animePoster.anime_id,
               set: {
+                small: sql`excluded.small`,
                 medium: sql`excluded.medium`,
-                large: sql`excluded.large`,
-                extra_large: sql`excluded.extra_large`
+                large: sql`excluded.large`
               }
             })
         );
       }
 
       // Start Date
-      if (anilist.startDate) {
+      if (payload.start_date) {
         ops.push(
           tx
             .insert(animeStartDate)
             .values({
-              anime_id: anilist.id,
-              year: anilist.startDate.year,
-              month: anilist.startDate.month,
-              day: anilist.startDate.day
+              anime_id: payload.id,
+              year: payload.start_date.year,
+              month: payload.start_date.month,
+              day: payload.start_date.day
             })
             .onConflictDoUpdate({
               target: animeStartDate.anime_id,
@@ -154,15 +148,15 @@ class AnimeDbModule extends Module {
       }
 
       // End Date
-      if (anilist.endDate) {
+      if (payload.end_date) {
         ops.push(
           tx
             .insert(animeEndDate)
             .values({
-              anime_id: anilist.id,
-              year: anilist.endDate.year,
-              month: anilist.endDate.month,
-              day: anilist.endDate.day
+              anime_id: payload.id,
+              year: payload.end_date.year,
+              month: payload.end_date.month,
+              day: payload.end_date.day
             })
             .onConflictDoUpdate({
               target: animeEndDate.anime_id,
@@ -176,72 +170,98 @@ class AnimeDbModule extends Module {
       }
 
       // Genres
-      if (anilist.genres?.length) {
+      if (toArray(payload.genres).length) {
         ops.push(
           Promise.resolve().then(async () => {
+            const genres = uniqueBy(toArray(payload.genres), (g) => g.name)
+              .filter((g) => g.name)
+              .map((g) => ({ name: g.name! }));
+
+            if (!genres.length) return;
+
             const inserted = await tx
               .insert(animeGenre)
-              .values(uniqueBy(anilist.genres, (g) => g).map((name) => ({ name })))
+              .values(genres)
               .onConflictDoUpdate({ target: animeGenre.name, set: { name: sql`excluded.name` } })
-              .returning({ id: animeGenre.id, name: animeGenre.name });
+              .returning({ id: animeGenre.id });
 
-            await tx.delete(animeToGenre).where(eq(animeToGenre.A, anilist.id));
+            if (isForced(payload.genres)) {
+              await tx.delete(animeToGenre).where(eq(animeToGenre.A, payload.id));
+            }
 
-            await tx
-              .insert(animeToGenre)
-              .values(
-                inserted.map((genre) => ({
-                  A: anilist.id,
-                  B: genre.id
-                }))
-              )
-              .onConflictDoNothing();
+            if (inserted.length) {
+              await tx
+                .insert(animeToGenre)
+                .values(inserted.map((genre) => ({ A: payload.id, B: genre.id })))
+                .onConflictDoNothing();
+            }
           })
         );
       }
 
       // Airing Schedule
-      if (anilist.airingSchedule?.edges?.length) {
+      if (toArray(payload.airing_schedule).length) {
         ops.push(
-          tx
-            .insert(animeAiringSchedule)
-            .values(
-              uniqueBy(anilist.airingSchedule.edges, (e) => e.node.id).map((edge) => ({
-                id: edge.node.id,
-                episode: edge.node.episode,
-                airing_at: edge.node.airingAt,
-                anime_id: anilist.id
-              }))
-            )
-            .onConflictDoUpdate({
-              target: animeAiringSchedule.id,
-              set: {
-                episode: sql`excluded.episode`,
-                airing_at: sql`excluded.airing_at`,
-                anime_id: sql`excluded.anime_id`
-              }
-            })
+          Promise.resolve().then(async () => {
+            const schedule = uniqueBy(toArray(payload.airing_schedule), (a) => a.id)
+              .filter((a) => a.id)
+              .map((a) => ({
+                id: a.id,
+                episode: a.episode,
+                airing_at: a.airing_at
+              }));
+
+            if (!schedule.length) return;
+
+            const inserted = await tx
+              .insert(animeAiringSchedule)
+              .values(schedule)
+              .onConflictDoUpdate({
+                target: animeAiringSchedule.id,
+                set: {
+                  episode: sql`excluded.episode`,
+                  airing_at: sql`excluded.airing_at`
+                }
+              })
+              .returning({ id: animeAiringSchedule.id });
+
+            if (isForced(payload.airing_schedule)) {
+              await tx.delete(animeToAiringSchedule).where(eq(animeToAiringSchedule.A, payload.id));
+            }
+
+            if (inserted.length) {
+              await tx
+                .insert(animeToAiringSchedule)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
+          })
         );
       }
 
       // Characters
-      if (anilist.characters?.edges?.length) {
+      if (toArray(payload.characters).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            // Insert all characters
-            await tx
-              .insert(animeCharacter)
-              .values(uniqueBy(anilist.characters.edges, (e) => e.node.id).map((edge) => ({ id: edge.node.id })))
-              .onConflictDoNothing({ target: animeCharacter.id });
+            if (isForced(payload.characters)) {
+              await tx.delete(animeToCharacter).where(eq(animeToCharacter.anime_id, payload.id));
+            }
 
-            // Insert character names
-            const characterNames = uniqueBy(anilist.characters.edges, (e) => e.node.id)
-              .filter((edge) => edge.node.name)
-              .map((edge) => ({
-                character_id: edge.node.id,
-                full: edge.node.name.full,
-                native: edge.node.name.native,
-                alternative: edge.node.name.alternative || []
+            const characters = uniqueBy(toArray(payload.characters), (e) => e.character?.id)
+              .filter((c) => c.character?.id)
+              .map((c) => ({ id: c.character?.id! }));
+
+            if (!characters.length) return;
+
+            await tx.insert(animeCharacter).values(characters).onConflictDoNothing({ target: animeCharacter.id });
+
+            const characterNames = uniqueBy(toArray(payload.characters), (e) => e.character?.id)
+              .filter((c) => c.character?.name)
+              .map((c) => ({
+                character_id: c.character?.id,
+                full: c.character?.name?.full,
+                native: c.character?.name?.native,
+                alternative: c.character?.name?.alternative || []
               }));
 
             if (characterNames.length) {
@@ -258,13 +278,12 @@ class AnimeDbModule extends Module {
                 });
             }
 
-            // Insert character images
-            const characterImages = uniqueBy(anilist.characters.edges, (e) => e.node.id)
-              .filter((edge) => edge.node.image)
-              .map((edge) => ({
-                character_id: edge.node.id,
-                large: edge.node.image?.large,
-                medium: edge.node.image?.medium
+            const characterImages = uniqueBy(toArray(payload.characters), (e) => e.character?.id)
+              .filter((c) => c.character?.image)
+              .map((c) => ({
+                character_id: c.character?.id,
+                large: c.character?.image?.large,
+                medium: c.character?.image?.medium
               }));
 
             if (characterImages.length) {
@@ -280,33 +299,33 @@ class AnimeDbModule extends Module {
                 });
             }
 
-            // Insert voice actors
-            const allVoiceActors = uniqueBy(anilist.characters.edges, (e) => e.node.id).flatMap(
-              (edge) => edge.voiceActors ?? []
+            const allVoiceActors = uniqueBy(toArray(payload.characters), (e) => e.character?.id).flatMap(
+              (c) => c.voice_actors ?? []
             );
 
-            if (allVoiceActors.length) {
-              await tx
-                .insert(animeVoiceActor)
-                .values(
-                  uniqueBy(allVoiceActors, (a) => a.id).map((va) => ({
-                    id: va.id,
-                    language: va.languageV2
-                  }))
-                )
-                .onConflictDoUpdate({
-                  target: animeVoiceActor.id,
-                  set: { language: sql`excluded.language` }
-                });
+            const voiceActors = uniqueBy(allVoiceActors, (a) => a.id).map((va) => ({
+              id: va.id,
+              language: va.language
+            }));
 
-              // Insert voice actor names
+            if (allVoiceActors.length) {
+              if (voiceActors.length) {
+                await tx
+                  .insert(animeVoiceActor)
+                  .values(voiceActors)
+                  .onConflictDoUpdate({
+                    target: animeVoiceActor.id,
+                    set: { language: sql`excluded.language` }
+                  });
+              }
+
               const voiceNames = uniqueBy(allVoiceActors, (a) => a.id)
                 .filter((va) => va.name)
                 .map((va) => ({
                   voice_actor_id: va.id,
-                  full: va.name.full,
-                  native: va.name.native,
-                  alternative: va.name.alternative || []
+                  full: va.name?.full,
+                  native: va.name?.native,
+                  alternative: va.name?.alternative || []
                 }));
 
               if (voiceNames.length) {
@@ -323,7 +342,6 @@ class AnimeDbModule extends Module {
                   });
               }
 
-              // Insert voice actor images
               const voiceImages = uniqueBy(allVoiceActors, (a) => a.id)
                 .filter((va) => va.image)
                 .map((va) => ({
@@ -346,206 +364,561 @@ class AnimeDbModule extends Module {
               }
             }
 
-            // Insert character edges
-            await tx
-              .insert(animeCharacterEdge)
-              .values(
-                uniqueBy(anilist.characters.edges, (e) => e.id).map((edge) => ({
-                  id: edge.id,
-                  role: edge.role,
-                  anime_id: anilist.id,
-                  character_id: edge.node.id
-                }))
-              )
-              .onConflictDoUpdate({
-                target: animeCharacterEdge.id,
-                set: {
-                  role: sql`excluded.role`,
-                  anime_id: sql`excluded.anime_id`,
-                  character_id: sql`excluded.character_id`
-                }
-              });
+            const characterConnections = uniqueBy(toArray(payload.characters), (e) => e.id)
+              .filter((c) => c.character?.id)
+              .map((c) => ({
+                id: c.id,
+                role: c.role,
+                anime_id: payload.id,
+                character_id: c.character?.id!
+              }));
 
-            // Link characters to voice actors
-            const edgesWithVoiceActors = anilist.characters.edges.filter((edge) => edge.voiceActors?.length);
-
-            for (const edge of edgesWithVoiceActors) {
-              await tx.delete(characterToVoiceActor).where(eq(characterToVoiceActor.A, edge.id));
-
+            if (characterConnections.length) {
               await tx
-                .insert(characterToVoiceActor)
-                .values(
-                  uniqueBy(edge.voiceActors ?? [], (a) => a.id).map((va) => ({
-                    A: edge.id,
-                    B: va.id
-                  })) ?? []
-                )
-                .onConflictDoNothing();
+                .insert(animeToCharacter)
+                .values(characterConnections)
+                .onConflictDoUpdate({
+                  target: animeToCharacter.id,
+                  set: { role: sql`excluded.role` }
+                });
+            }
+
+            const connectionsWithVoiceActors =
+              toArray(payload.characters).filter((c) => c.voice_actors?.length) ?? [];
+
+            for (const connection of connectionsWithVoiceActors) {
+              await tx.delete(characterToVoiceActor).where(eq(characterToVoiceActor.A, connection.id));
+
+              const vaValues = uniqueBy(connection.voice_actors ?? [], (a) => a.id).map((va) => ({
+                A: connection.id,
+                B: va.id
+              }));
+
+              if (vaValues.length) {
+                await tx.insert(characterToVoiceActor).values(vaValues).onConflictDoNothing();
+              }
             }
           })
         );
       }
 
       // Studios
-      if (anilist.studios?.edges?.length) {
+      if (toArray(payload.studios).length) {
         ops.push(
           Promise.resolve().then(async () => {
+            const studios = uniqueBy(toArray(payload.studios), (e) => e.studio?.id)
+              .filter((c) => c.studio?.id)
+              .map((c) => ({
+                id: c.studio?.id!,
+                name: c.studio?.name
+              }));
+
+            if (!studios.length) return;
+
             await tx
               .insert(animeStudio)
-              .values(
-                uniqueBy(anilist.studios.edges, (e) => e.node.id).map((s) => ({
-                  id: s.node.id,
-                  name: s.node.name
-                }))
-              )
+              .values(studios)
               .onConflictDoUpdate({
                 target: animeStudio.id,
                 set: { name: sql`excluded.name` }
               });
 
-            await tx
-              .insert(animeStudioEdge)
-              .values(
-                uniqueBy(anilist.studios.edges, (e) => e.id).map((edge) => ({
-                  id: edge.id,
-                  is_main: edge.isMain,
-                  anime_id: anilist.id,
-                  studio_id: edge.node.id
-                }))
-              )
-              .onConflictDoUpdate({
-                target: animeStudioEdge.id,
-                set: {
-                  is_main: sql`excluded.is_main`,
-                  anime_id: sql`excluded.anime_id`,
-                  studio_id: sql`excluded.studio_id`
-                }
-              });
+            if (isForced(payload.studios)) {
+              await tx.delete(animeToStudio).where(eq(animeToStudio.anime_id, payload.id));
+            }
+
+            const studioConnections = uniqueBy(toArray(payload.studios), (c) => c.id)
+              .filter((c) => c.studio?.id)
+              .map((c) => ({
+                id: c.id,
+                is_main: c.is_main,
+                anime_id: payload.id,
+                studio_id: c.studio?.id!
+              }));
+
+            if (studioConnections.length) {
+              await tx
+                .insert(animeToStudio)
+                .values(studioConnections)
+                .onConflictDoUpdate({
+                  target: animeToStudio.id,
+                  set: {
+                    is_main: sql`excluded.is_main`
+                  }
+                });
+            }
           })
         );
       }
 
       // Tags
-      if (anilist.tags?.length) {
+      if (toArray(payload.tags).length) {
         ops.push(
           Promise.resolve().then(async () => {
+            const tags = uniqueBy(toArray(payload.tags), (c) => c.tag?.id)
+              .filter((c) => c.tag?.id)
+              .map((c) => ({
+                id: c.tag?.id!,
+                name: c.tag?.name,
+                description: c.tag?.description,
+                category: c.tag?.category,
+                is_adult: c.tag?.is_adult
+              }));
+
+            if (!tags.length) return;
+
             await tx
               .insert(animeTag)
-              .values(
-                uniqueBy(anilist.tags, (t) => t.id).map((tag) => ({
-                  id: tag.id,
-                  name: tag.name,
-                  description: tag.description,
-                  category: tag.category,
-                  is_general_spoiler: tag.isGeneralSpoiler,
-                  is_adult: tag.isAdult
-                }))
-              )
+              .values(tags)
               .onConflictDoUpdate({
                 target: animeTag.id,
                 set: {
                   name: sql`excluded.name`,
                   description: sql`excluded.description`,
                   category: sql`excluded.category`,
-                  is_general_spoiler: sql`excluded.is_general_spoiler`,
                   is_adult: sql`excluded.is_adult`
                 }
               });
 
-            await tx
-              .insert(animeTagEdge)
-              .values(
-                uniqueBy(anilist.tags, (t) => t.id).map((tag) => ({
-                  anime_id: anilist.id,
-                  tag_id: tag.id,
-                  rank: tag.rank,
-                  is_media_spoiler: tag.isMediaSpoiler
-                }))
-              )
+            if (isForced(payload.tags)) {
+              await tx.delete(animeToTag).where(eq(animeToTag.anime_id, payload.id));
+            }
+
+            const tagConnections = uniqueBy(toArray(payload.tags), (c) => c.tag?.id)
+              .filter((c) => c.tag?.id)
+              .map((c) => ({
+                anime_id: payload.id,
+                tag_id: c.tag?.id!,
+                rank: c.rank,
+                is_spoiler: c.is_spoiler
+              }));
+
+            if (tagConnections.length) {
+              await tx
+                .insert(animeToTag)
+                .values(tagConnections)
+                .onConflictDoUpdate({
+                  target: [animeToTag.anime_id, animeToTag.tag_id],
+                  set: {
+                    rank: sql`excluded.rank`,
+                    is_spoiler: sql`excluded.is_spoiler`
+                  }
+                });
+            }
+          })
+        );
+      }
+
+      // Links
+      if (toArray(payload.links).length) {
+        ops.push(
+          Promise.resolve().then(async () => {
+            const links = uniqueBy(toArray(payload.links), (l) => getKey(l.link, l.label))
+              .filter((l) => l.link && l.label)
+              .map((l) => ({
+                link: l?.link!,
+                label: l?.label.toLowerCase(),
+                type: l?.type
+              }));
+
+            if (!links.length) return;
+
+            const inserted = await tx
+              .insert(animeLink)
+              .values(links)
               .onConflictDoUpdate({
-                target: [animeTagEdge.anime_id, animeTagEdge.tag_id],
+                target: [animeLink.link, animeLink.label],
                 set: {
-                  rank: sql`excluded.rank`,
-                  is_media_spoiler: sql`excluded.is_media_spoiler`
+                  link: sql`excluded.link`,
+                  label: sql`excluded.label`,
+                  type: sql`excluded.type`
                 }
+              })
+              .returning({ id: animeLink.id });
+
+            if (isForced(payload.links)) {
+              await tx.delete(animeToLink).where(eq(animeToLink.A, payload.id));
+            }
+
+            if (inserted.length) {
+              await tx
+                .insert(animeToLink)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
+          })
+        );
+      }
+
+      // Score Distribution
+      if (toArray(payload.score_distribution).length) {
+        if (isForced(payload.score_distribution)) {
+          await tx.delete(animeScoreDistribution).where(eq(animeScoreDistribution.anime_id, payload.id));
+        }
+
+        const scoreDist = uniqueBy(toArray(payload.score_distribution), (dist) => dist.score)
+          .filter((dist) => dist.score)
+          .map((dist) => ({
+            anime_id: payload.id,
+            score: dist.score,
+            amount: dist.amount
+          }));
+
+        if (scoreDist.length) {
+          ops.push(
+            tx
+              .insert(animeScoreDistribution)
+              .values(scoreDist)
+              .onConflictDoUpdate({
+                target: [animeScoreDistribution.anime_id, animeScoreDistribution.score],
+                set: { amount: sql`excluded.amount` }
+              })
+          );
+        }
+      }
+
+      // Status Distribution
+      if (toArray(payload.status_distribution).length) {
+        if (isForced(payload.status_distribution)) {
+          await tx.delete(animeStatusDistribution).where(eq(animeStatusDistribution.anime_id, payload.id));
+        }
+
+        const statusDist = uniqueBy(toArray(payload.status_distribution), (dist) => dist.status)
+          .filter((dist) => dist.status)
+          .map((dist) => ({
+            anime_id: payload.id,
+            status: dist.status,
+            amount: dist.amount
+          }));
+
+        if (statusDist.length) {
+          ops.push(
+            tx
+              .insert(animeStatusDistribution)
+              .values(statusDist)
+              .onConflictDoUpdate({
+                target: [animeStatusDistribution.anime_id, animeStatusDistribution.status],
+                set: { amount: sql`excluded.amount` }
+              })
+          );
+        }
+      }
+
+      // Artworks
+      if (toArray(payload.artworks).length) {
+        ops.push(
+          Promise.resolve().then(async () => {
+            const artworks = uniqueBy(toArray(payload.artworks), (a) => getKey(a.url, a.source))
+              .filter((a) => a.url && a.source)
+              .map((a) => ({
+                url: a.url,
+                height: a.height,
+                large: a.large,
+                iso_639_1: a.iso_639_1,
+                medium: a.medium,
+                type: a.type,
+                width: a.width,
+                source: a.source.toLowerCase()
+              }));
+
+            if (!artworks.length) return;
+
+            const inserted = await tx
+              .insert(animeArtwork)
+              .values(artworks)
+              .onConflictDoUpdate({
+                target: [animeArtwork.url, animeArtwork.source],
+                set: {
+                  height: sql`excluded.height`,
+                  width: sql`excluded.width`,
+                  large: sql`excluded.large`,
+                  medium: sql`excluded.medium`,
+                  iso_639_1: sql`excluded.iso_639_1`
+                }
+              })
+              .returning({ id: animeArtwork.id });
+
+            if (isForced(payload.artworks)) {
+              await tx.delete(animeToArtwork).where(eq(animeToArtwork.A, payload.id));
+            }
+
+            if (inserted.length) {
+              await tx
+                .insert(animeToArtwork)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
+          })
+        );
+      }
+
+      // Images
+      if (toArray(payload.images).length) {
+        ops.push(
+          Promise.resolve().then(async () => {
+            const images = uniqueBy(toArray(payload.images), (i) => getKey(i.url, i.source))
+              .filter((i) => i.url && i.source)
+              .map((i) => ({
+                url: i.url,
+                small: i.small,
+                medium: i.medium,
+                large: i.large,
+                type: i.type,
+                source: i.source.toLowerCase()
+              }));
+
+            if (!images.length) return;
+
+            const inserted = await tx
+              .insert(animeImage)
+              .values(images)
+              .onConflictDoUpdate({
+                target: [animeImage.url, animeImage.source],
+                set: {
+                  small: sql`excluded.small`,
+                  medium: sql`excluded.medium`,
+                  large: sql`excluded.large`
+                }
+              })
+              .returning({ id: animeImage.id });
+
+            if (isForced(payload.images)) {
+              await tx.delete(animeToImage).where(eq(animeToImage.A, payload.id));
+            }
+
+            if (inserted.length) {
+              await tx
+                .insert(animeToImage)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
+          })
+        );
+      }
+
+      // Screenshots
+      if (toArray(payload.screenshots).length) {
+        ops.push(
+          Promise.resolve().then(async () => {
+            const screenshots = uniqueBy(toArray(payload.screenshots), (s) => getKey(s.url, s.source))
+              .filter((s) => s.url && s.source)
+              .map((s) => ({
+                url: s.url,
+                order: s.order,
+                small: s.small,
+                medium: s.medium,
+                large: s.large,
+                source: s.source.toLowerCase()
+              }));
+
+            if (!screenshots.length) return;
+
+            const inserted = await tx
+              .insert(animeScreenshot)
+              .values(screenshots)
+              .onConflictDoUpdate({
+                target: [animeScreenshot.url, animeScreenshot.source],
+                set: {
+                  order: sql`excluded.order`,
+                  small: sql`excluded.small`,
+                  medium: sql`excluded.medium`,
+                  large: sql`excluded.large`
+                }
+              })
+              .returning({ id: animeScreenshot.id });
+
+            if (isForced(payload.screenshots)) {
+              await tx.delete(animeToScreenshot).where(eq(animeToScreenshot.A, payload.id));
+            }
+
+            if (inserted.length) {
+              await tx
+                .insert(animeToScreenshot)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
+          })
+        );
+      }
+
+      // Videos
+      if (toArray(payload.videos).length) {
+        ops.push(
+          Promise.resolve().then(async () => {
+            const videos = uniqueBy(toArray(payload.videos), (v) => getKey(v.url, v.source))
+              .filter((v) => v.url && v.source)
+              .map((v) => ({
+                url: v.url,
+                title: v.title,
+                thumbnail: v.thumbnail,
+                artist: v.artist,
+                type: v.type,
+                source: v.source.toLowerCase()
+              }));
+
+            if (!videos.length) return;
+
+            const inserted = await tx
+              .insert(animeVideo)
+              .values(videos)
+              .onConflictDoUpdate({
+                target: [animeVideo.url, animeVideo.source],
+                set: {
+                  title: sql`excluded.title`,
+                  thumbnail: sql`excluded.thumbnail`,
+                  artist: sql`excluded.artist`,
+                  type: sql`excluded.type`
+                }
+              })
+              .returning({ id: animeVideo.id });
+
+            if (isForced(payload.videos)) {
+              await tx.delete(animeToVideo).where(eq(animeToVideo.A, payload.id));
+            }
+
+            if (inserted.length) {
+              await tx
+                .insert(animeToVideo)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
+          })
+        );
+      }
+
+      // Other Titles
+      if (toArray(payload.other_titles).length) {
+        ops.push(
+          Promise.resolve().then(async () => {
+            const titles = uniqueBy(toArray(payload.other_titles), (t) => getKey(t.title, t.source))
+              .filter((t) => t.title && t.source)
+              .map((t) => ({
+                title: t.title,
+                source: t.source.toLowerCase(),
+                language: t.language
+              }));
+
+            if (!titles.length) return;
+
+            const inserted = await tx
+              .insert(animeOtherTitle)
+              .values(titles)
+              .onConflictDoNothing({
+                target: [animeOtherTitle.title, animeOtherTitle.source]
+              })
+              .returning({ id: animeOtherTitle.id });
+
+            if (isForced(payload.other_titles)) {
+              await tx.delete(animeToOtherTitle).where(eq(animeToOtherTitle.A, payload.id));
+            }
+
+            if (inserted.length) {
+              await tx
+                .insert(animeToOtherTitle)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
+          })
+        );
+      }
+
+      // Other Descriptions
+      if (toArray(payload.other_descriptions).length) {
+        ops.push(
+          Promise.resolve().then(async () => {
+            const descriptions = uniqueBy(toArray(payload.other_descriptions), (d) =>
+              getKey(d.description, d.source)
+            )
+              .filter((d) => d.description && d.source)
+              .map((d) => ({
+                description: d.description,
+                source: d.source.toLowerCase(),
+                language: d.language
+              }));
+
+            if (!descriptions.length) return;
+
+            const inserted = await tx
+              .insert(animeOtherDescription)
+              .values(descriptions)
+              .onConflictDoNothing({
+                target: [animeOtherDescription.description, animeOtherDescription.source]
+              })
+              .returning({ id: animeOtherDescription.id });
+
+            if (isForced(payload.other_descriptions)) {
+              await tx.delete(animeToOtherDescription).where(eq(animeToOtherDescription.A, payload.id));
+            }
+
+            if (inserted.length) {
+              await tx
+                .insert(animeToOtherDescription)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
+          })
+        );
+      }
+
+      // Chronology
+      if (toArray(payload.chronology).length) {
+        ops.push(
+          Promise.resolve().then(async () => {
+            const chronology = uniqueBy(toArray(payload.chronology), (c) => getKey(c.parent_id, c.related_id))
+              .filter((c) => c.parent_id && c.related_id)
+              .map((c) => ({
+                anime_id: payload.id,
+                parent_id: c.parent_id,
+                related_id: c.related_id,
+                order: c.order
+              }));
+
+            if (!chronology.length) return;
+
+            if (isForced(payload.chronology)) {
+              await tx.delete(animeChronology).where(eq(animeChronology.anime_id, payload.id));
+            }
+
+            await tx
+              .insert(animeChronology)
+              .values(chronology)
+              .onConflictDoUpdate({
+                target: [animeChronology.parent_id, animeChronology.related_id],
+                set: { order: sql`excluded.order` }
               });
           })
         );
       }
 
-      // External Links
-      if (anilist.externalLinks?.length) {
+      // Recommendations
+      if (toArray(payload.recommendations).length) {
         ops.push(
-          tx
-            .insert(animeExternalLink)
-            .values(
-              uniqueBy(anilist.externalLinks, (e) => e.id).map((link) => ({
-                id: link.id,
-                url: link.url,
-                site: link.site,
-                site_id: link.siteId,
-                type: link.type,
-                language: link.language,
-                color: link.color,
-                icon: link.icon,
-                notes: link.notes,
-                is_disabled: link.isDisabled,
-                anime_id: anilist.id
-              }))
+          Promise.resolve().then(async () => {
+            const recommendations = uniqueBy(toArray(payload.recommendations), (c) =>
+              getKey(c.parent_id, c.related_id)
             )
-            .onConflictDoUpdate({
-              target: animeExternalLink.id,
-              set: {
-                url: sql`excluded.url`,
-                site: sql`excluded.site`,
-                site_id: sql`excluded.site_id`,
-                type: sql`excluded.type`,
-                language: sql`excluded.language`,
-                color: sql`excluded.color`,
-                icon: sql`excluded.icon`,
-                notes: sql`excluded.notes`,
-                is_disabled: sql`excluded.is_disabled`,
-                anime_id: sql`excluded.anime_id`
-              }
-            })
-        );
-      }
+              .filter((c) => c.parent_id && c.related_id)
+              .map((c) => ({
+                anime_id: payload.id,
+                parent_id: c.parent_id,
+                related_id: c.related_id,
+                order: c.order
+              }));
 
-      // Score Distribution
-      if (anilist.stats?.scoreDistribution?.length) {
-        ops.push(
-          tx
-            .insert(animeScoreDistribution)
-            .values(
-              anilist.stats.scoreDistribution.map((dist) => ({
-                anime_id: anilist.id,
-                score: dist.score,
-                amount: dist.amount
-              }))
-            )
-            .onConflictDoUpdate({
-              target: [animeScoreDistribution.anime_id, animeScoreDistribution.score],
-              set: { amount: sql`excluded.amount` }
-            })
-        );
-      }
+            if (!recommendations.length) return;
 
-      // Status Distribution
-      if (anilist.stats?.statusDistribution?.length) {
-        ops.push(
-          tx
-            .insert(animeStatusDistribution)
-            .values(
-              anilist.stats.statusDistribution.map((dist) => ({
-                anime_id: anilist.id,
-                status: dist.status,
-                amount: dist.amount
-              }))
-            )
-            .onConflictDoUpdate({
-              target: [animeStatusDistribution.anime_id, animeStatusDistribution.status],
-              set: { amount: sql`excluded.amount` }
-            })
+            if (isForced(payload.recommendations)) {
+              await tx.delete(animeRecommendation).where(eq(animeRecommendation.anime_id, payload.id));
+            }
+
+            await tx
+              .insert(animeRecommendation)
+              .values(recommendations)
+              .onConflictDoUpdate({
+                target: [animeRecommendation.parent_id, animeRecommendation.related_id],
+                set: { order: sql`excluded.order` }
+              });
+          })
         );
       }
 

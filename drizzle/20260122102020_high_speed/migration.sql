@@ -1,1 +1,0 @@
-ALTER TABLE "anime_airing_schedule" DROP CONSTRAINT "anime_airing_schedule_anime_id_anime_id_fkey", ADD CONSTRAINT "anime_airing_schedule_anime_id_anime_id_fkey" FOREIGN KEY ("anime_id") REFERENCES "anime"("id") ON DELETE CASCADE;

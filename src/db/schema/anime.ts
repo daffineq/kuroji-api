@@ -5,29 +5,38 @@ export const anime = pgTable('anime', {
   id: integer('id').primaryKey(),
   id_mal: integer('id_mal'),
   background: varchar('background', { length: 255 }),
-  synonyms: text('synonyms').array(),
   description: text('description'),
   status: varchar('status', { length: 255 }),
   type: varchar('type', { length: 255 }),
   format: varchar('format', { length: 255 }),
-  updated_at: integer('updated_at').notNull(),
+  updated_at: integer('updated_at')
+    .$defaultFn(() => Math.floor(Date.now() / 1000))
+    .$onUpdateFn(() => Math.floor(Date.now() / 1000)),
   season: varchar('season', { length: 255 }),
   season_year: integer('season_year'),
-  episodes: integer('episodes'),
   duration: integer('duration'),
-  country_of_origin: varchar('country_of_origin', { length: 255 }),
-  is_licensed: boolean('is_licensed'),
+  country: varchar('country', { length: 255 }),
+  is_licensed: boolean('is_licensed').default(false),
   source: varchar('source', { length: 255 }),
   hashtag: varchar('hashtag', { length: 255 }),
-  is_adult: boolean('is_adult'),
+  is_adult: boolean('is_adult').default(false),
   score: integer('score'),
   popularity: integer('popularity'),
   trending: integer('trending'),
   favorites: integer('favorites'),
   color: varchar('color', { length: 255 }),
+  franchise: varchar('franchise', { length: 255 }),
+  age_rating: varchar('age_rating', { length: 255 }),
+  episodes_aired: integer('episodes_aired'),
+  episodes_total: integer('episodes_total'),
+  moreinfo: varchar('moreinfo', { length: 255 }),
+  broadcast: varchar('broadcast', { length: 255 }),
+  nsfw: boolean('nsfw').default(false),
   latest_airing_episode: integer('latest_airing_episode'),
   next_airing_episode: integer('next_airing_episode'),
-  last_airing_episode: integer('last_airing_episode')
+  last_airing_episode: integer('last_airing_episode'),
+  auto_update: boolean('auto_update').default(true),
+  disabled: boolean('disabled').default(false)
 });
 
 export const animePoster = pgTable('anime_poster', {
@@ -38,9 +47,9 @@ export const animePoster = pgTable('anime_poster', {
     .notNull()
     .unique()
     .references(() => anime.id, { onDelete: 'cascade' }),
-  large: varchar('large', { length: 255 }),
+  small: varchar('small', { length: 255 }),
   medium: varchar('medium', { length: 255 }),
-  extra_large: varchar('extra_large', { length: 255 })
+  large: varchar('large', { length: 255 })
 });
 
 export const animeTitle = pgTable('anime_title', {
@@ -89,7 +98,6 @@ export const animeGenre = pgTable('anime_genre', {
   name: varchar('name', { length: 255 }).notNull().unique()
 });
 
-// Many-to-many for Anime and Genre
 export const animeToGenre = pgTable(
   '_anime_to_genre',
   {
@@ -105,18 +113,28 @@ export const animeToGenre = pgTable(
 
 export const animeAiringSchedule = pgTable('anime_airing_schedule', {
   id: integer('id').primaryKey(),
-  anime_id: integer('anime_id')
-    .notNull()
-    .references(() => anime.id, { onDelete: 'cascade' }),
   episode: integer('episode'),
   airing_at: integer('airing_at')
 });
+
+export const animeToAiringSchedule = pgTable(
+  '_anime_to_airing_schedule',
+  {
+    A: integer('A')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    B: integer('B')
+      .notNull()
+      .references(() => animeAiringSchedule.id, { onDelete: 'cascade' })
+  },
+  (t) => [primaryKey({ columns: [t.A, t.B] })]
+);
 
 export const animeCharacter = pgTable('anime_character', {
   id: integer('id').primaryKey()
 });
 
-export const animeCharacterEdge = pgTable('anime_character_edge', {
+export const animeToCharacter = pgTable('_anime_to_character', {
   id: integer('id').primaryKey(),
   anime_id: integer('anime_id')
     .notNull()
@@ -132,13 +150,12 @@ export const animeVoiceActor = pgTable('anime_voice_actor', {
   language: varchar('language', { length: 255 })
 });
 
-// Many-to-many for Character and Voice Actor
 export const characterToVoiceActor = pgTable(
   '_character_to_voice_actor',
   {
     A: integer('A')
       .notNull()
-      .references(() => animeCharacterEdge.id, { onDelete: 'cascade' }),
+      .references(() => animeToCharacter.id, { onDelete: 'cascade' }),
     B: integer('B')
       .notNull()
       .references(() => animeVoiceActor.id, { onDelete: 'cascade' })
@@ -197,7 +214,7 @@ export const animeStudio = pgTable('anime_studio', {
   name: varchar('name', { length: 255 })
 });
 
-export const animeStudioEdge = pgTable('anime_studio_edge', {
+export const animeToStudio = pgTable('_anime_to_studio', {
   id: integer('id').primaryKey(),
   anime_id: integer('anime_id')
     .notNull()
@@ -213,12 +230,11 @@ export const animeTag = pgTable('anime_tag', {
   name: varchar('name', { length: 255 }).unique(),
   description: text('description'),
   category: varchar('category', { length: 255 }),
-  is_general_spoiler: boolean('is_general_spoiler'),
   is_adult: boolean('is_adult')
 });
 
-export const animeTagEdge = pgTable(
-  'anime_tag_edge',
+export const animeToTag = pgTable(
+  '_anime_to_tag',
   {
     id: varchar('id', { length: 255 })
       .primaryKey()
@@ -230,26 +246,10 @@ export const animeTagEdge = pgTable(
       .notNull()
       .references(() => animeTag.id, { onDelete: 'cascade' }),
     rank: integer('rank'),
-    is_media_spoiler: boolean('is_media_spoiler')
+    is_spoiler: boolean('is_spoiler')
   },
   (t) => [uniqueIndex('anime_tag_unique').on(t.anime_id, t.tag_id)]
 );
-
-export const animeExternalLink = pgTable('anime_external_link', {
-  id: integer('id').primaryKey(),
-  anime_id: integer('anime_id')
-    .notNull()
-    .references(() => anime.id, { onDelete: 'cascade' }),
-  url: varchar('url', { length: 255 }),
-  site: varchar('site', { length: 255 }),
-  site_id: integer('site_id'),
-  type: varchar('type', { length: 255 }),
-  language: varchar('language', { length: 255 }),
-  color: varchar('color', { length: 255 }),
-  icon: varchar('icon', { length: 255 }),
-  notes: varchar('notes', { length: 255 }),
-  is_disabled: boolean('is_disabled')
-});
 
 export const animeScoreDistribution = pgTable(
   'anime_score_distribution',
@@ -279,4 +279,232 @@ export const animeStatusDistribution = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' })
   },
   (table) => [uniqueIndex('status_distribution_unique').on(table.anime_id, table.status)]
+);
+
+export const animeLink = pgTable(
+  'anime_link',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    link: varchar('link', { length: 255 }).notNull(),
+    label: varchar('label', { length: 255 }).notNull(),
+    type: varchar('type', { length: 255 })
+  },
+  (t) => [uniqueIndex('link_unique').on(t.link, t.label)]
+);
+
+export const animeOtherTitle = pgTable(
+  'anime_other_title',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    title: varchar('title', { length: 255 }).notNull(),
+    source: varchar('source', { length: 255 }).notNull(),
+    language: varchar('language', { length: 255 })
+  },
+  (t) => [uniqueIndex('other_title_unique').on(t.title, t.source)]
+);
+
+export const animeOtherDescription = pgTable(
+  'anime_other_description',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    description: text('description').notNull(),
+    source: varchar('source', { length: 255 }).notNull(),
+    language: varchar('language', { length: 255 })
+  },
+  (t) => [uniqueIndex('other_description_unique').on(t.description, t.source)]
+);
+
+export const animeImage = pgTable(
+  'anime_image',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    url: varchar('url', { length: 255 }).notNull(),
+    small: varchar('small', { length: 255 }),
+    medium: varchar('medium', { length: 255 }),
+    large: varchar('large', { length: 255 }),
+    type: varchar('type', { length: 255 }),
+    source: varchar('source', { length: 255 }).notNull()
+  },
+  (t) => [uniqueIndex('anime_image_unique').on(t.url, t.source)]
+);
+
+export const animeVideo = pgTable(
+  'anime_video',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    url: varchar('url', { length: 255 }).notNull(),
+    title: varchar('title', { length: 255 }),
+    thumbnail: varchar('thumbnail', { length: 255 }),
+    artist: varchar('artist', { length: 255 }),
+    type: varchar('type', { length: 255 }),
+    source: varchar('source', { length: 255 }).notNull()
+  },
+  (t) => [uniqueIndex('anime_video_unique').on(t.url, t.source)]
+);
+
+export const animeScreenshot = pgTable(
+  'anime_screenshot',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    url: varchar('url', { length: 255 }).notNull(),
+    order: integer('order').notNull(),
+    small: varchar('small', { length: 255 }),
+    medium: varchar('medium', { length: 255 }),
+    large: varchar('large', { length: 255 }),
+    source: varchar('source', { length: 255 }).notNull()
+  },
+  (t) => [uniqueIndex('anime_screenshot_unique').on(t.url, t.source)]
+);
+
+export const animeArtwork = pgTable(
+  'anime_artwork',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    url: varchar('url', { length: 255 }).notNull(),
+    height: integer('height'),
+    width: integer('width'),
+    large: varchar('large', { length: 255 }),
+    medium: varchar('medium', { length: 255 }),
+    iso_639_1: varchar('iso_639_1', { length: 255 }),
+    type: varchar('type', { length: 255 }),
+    source: varchar('source', { length: 255 }).notNull()
+  },
+  (t) => [uniqueIndex('anime_artwork_unique').on(t.url, t.source)]
+);
+
+export const animeChronology = pgTable(
+  'anime_chronology',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    parent_id: integer('parent_id').notNull(),
+    related_id: integer('related_id').notNull(),
+    order: integer('order').notNull(),
+    anime_id: integer('anime_id')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' })
+  },
+  (t) => [uniqueIndex('anime_chronology_unique').on(t.parent_id, t.related_id)]
+);
+
+export const animeRecommendation = pgTable(
+  'anime_recommendation',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    parent_id: integer('parent_id').notNull(),
+    related_id: integer('related_id').notNull(),
+    order: integer('order').notNull(),
+    anime_id: integer('anime_id')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' })
+  },
+  (t) => [uniqueIndex('anime_recommendation_unique').on(t.parent_id, t.related_id)]
+);
+
+export const animeToLink = pgTable(
+  '_anime_to_link',
+  {
+    A: integer('A')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    B: varchar('B', { length: 255 })
+      .notNull()
+      .references(() => animeLink.id, { onDelete: 'cascade' })
+  },
+  (t) => [primaryKey({ columns: [t.A, t.B] })]
+);
+
+export const animeToOtherTitle = pgTable(
+  '_anime_to_other_title',
+  {
+    A: integer('A')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    B: varchar('B', { length: 255 })
+      .notNull()
+      .references(() => animeOtherTitle.id, { onDelete: 'cascade' })
+  },
+  (t) => [primaryKey({ columns: [t.A, t.B] })]
+);
+
+export const animeToOtherDescription = pgTable(
+  '_anime_to_other_description',
+  {
+    A: integer('A')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    B: varchar('B', { length: 255 })
+      .notNull()
+      .references(() => animeOtherDescription.id, { onDelete: 'cascade' })
+  },
+  (t) => [primaryKey({ columns: [t.A, t.B] })]
+);
+
+export const animeToImage = pgTable(
+  '_anime_to_image',
+  {
+    A: integer('A')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    B: varchar('B', { length: 255 })
+      .notNull()
+      .references(() => animeImage.id, { onDelete: 'cascade' })
+  },
+  (t) => [primaryKey({ columns: [t.A, t.B] })]
+);
+
+export const animeToVideo = pgTable(
+  '_anime_to_video',
+  {
+    A: integer('A')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    B: varchar('B', { length: 255 })
+      .notNull()
+      .references(() => animeVideo.id, { onDelete: 'cascade' })
+  },
+  (t) => [primaryKey({ columns: [t.A, t.B] })]
+);
+
+export const animeToScreenshot = pgTable(
+  '_anime_to_screenshot',
+  {
+    A: integer('A')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    B: varchar('B', { length: 255 })
+      .notNull()
+      .references(() => animeScreenshot.id, { onDelete: 'cascade' })
+  },
+  (t) => [primaryKey({ columns: [t.A, t.B] })]
+);
+
+export const animeToArtwork = pgTable(
+  '_anime_to_artwork',
+  {
+    A: integer('A')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    B: varchar('B', { length: 255 })
+      .notNull()
+      .references(() => animeArtwork.id, { onDelete: 'cascade' })
+  },
+  (t) => [primaryKey({ columns: [t.A, t.B] })]
 );

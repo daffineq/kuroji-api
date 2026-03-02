@@ -1,1 +1,0 @@
-ALTER TABLE "tvdb_login" ALTER COLUMN "token" SET DATA TYPE text USING "token"::text;

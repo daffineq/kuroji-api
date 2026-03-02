@@ -2,14 +2,14 @@ import { NotFoundError } from 'src/helpers/errors';
 import { TvdbInfoResult } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { parseString } from 'src/helpers/parsers';
-import { ArtworkEntry, unifyArtworkType } from '../../meta/helpers/meta.dto';
 import { Anilist } from '../anilist';
 import { TvdbFetch } from './helpers/tvdb.fetch';
-import { Meta } from '../../meta';
 import { normalize_iso_639_1 } from 'src/helpers/languages';
 import { ProviderModule } from 'src/helpers/module';
 import { Tmdb } from '../tmdb';
 import { AnimeUtils } from '../../helpers';
+import { Anime } from '../../anime';
+import { AnimeArtworkPayload } from '../../types';
 
 class TvdbModule extends ProviderModule<TvdbInfoResult> {
   override readonly name = 'TVDB';
@@ -23,6 +23,31 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
       return cached;
     }
 
+    const info = await this.resolveInfo(id);
+
+    if (info.artworks) {
+      const artworks: AnimeArtworkPayload[] = info.artworks.map((a) => {
+        return {
+          url: a.image!,
+          large: a.image,
+          width: a.width,
+          height: a.height,
+          iso_639_1: normalize_iso_639_1(a.language) ?? undefined,
+          medium: a.thumbnail,
+          type: AnimeUtils.unifyArtworkType(a.type),
+          source: this.name
+        } satisfies AnimeArtworkPayload;
+      });
+
+      await Anime.upsert({ id, artworks });
+    }
+
+    await Redis.set(key, info);
+
+    return info;
+  }
+
+  async resolveInfo(id: number) {
     const al = await Anilist.getInfo(id);
 
     if (!al) {
@@ -31,13 +56,11 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
 
     const type = AnimeUtils.getType(al.format);
 
-    const tvdbId = await Meta.map(id, this.name);
-    const tmdbId = await Meta.map(id, Tmdb.name);
-
-    let info: TvdbInfoResult | undefined = undefined;
+    const tvdbId = await Anime.map(id, this.name);
+    const tmdbId = await Anime.map(id, Tmdb.name);
 
     if (tvdbId) {
-      info = type === 'movie' ? await TvdbFetch.fetchMovie(tvdbId) : await TvdbFetch.fetchSeries(tvdbId);
+      return type === 'movie' ? TvdbFetch.fetchMovie(tvdbId) : TvdbFetch.fetchSeries(tvdbId);
     } else if (tmdbId) {
       const search = await TvdbFetch.searchByRemote(
         tmdbId,
@@ -45,41 +68,22 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
         al.title.romaji ?? al.title.native ?? al.title.english ?? ''
       );
 
-      info = type === 'movie' ? await TvdbFetch.fetchMovie(search.id) : await TvdbFetch.fetchSeries(search.id);
+      const info =
+        type === 'movie' ? await TvdbFetch.fetchMovie(search.id) : await TvdbFetch.fetchSeries(search.id);
 
-      await Meta.update({
+      await Anime.upsert({
         id,
-        mappings: {
-          id: parseString(info.id)!,
-          name: this.name
+        links: {
+          link: parseString(info.id)!,
+          label: this.name,
+          type: 'mapping'
         }
       });
+
+      return info;
     }
 
-    if (!info) {
-      throw new NotFoundError('TVDB not found');
-    }
-
-    if (info.artworks) {
-      const artworks: ArtworkEntry[] = info.artworks.map((a) => {
-        return {
-          url: a.image!,
-          large: a.image,
-          width: a.width,
-          height: a.height,
-          iso_639_1: normalize_iso_639_1(a.language) ?? undefined,
-          medium: a.thumbnail,
-          type: unifyArtworkType(a.type),
-          source: this.name
-        } satisfies ArtworkEntry;
-      });
-
-      await Meta.update({ id, artworks });
-    }
-
-    await Redis.set(key, info);
-
-    return info;
+    throw new NotFoundError('TVDB not found');
   }
 }
 

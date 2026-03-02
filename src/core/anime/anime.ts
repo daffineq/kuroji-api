@@ -1,9 +1,12 @@
 import { AnilistMedia } from './providers/anilist/types';
-import { Anilist, Crysoline, Kitsu, MyAnimeList, Shikimori, Tmdb, Tvdb } from './providers';
+import { Anilist, AnilistUtils, Crysoline, Kitsu, MyAnimeList, Shikimori, Tmdb, Tvdb } from './providers';
 import { AnimeDb } from './helpers/anime.db';
-import { Meta } from './meta';
 import { Module } from 'src/helpers/module';
-import { db } from 'src/db';
+import { animeLink, animeToImage, animeToLink, db } from 'src/db';
+import { AnimeFetch } from './helpers/anime.fetch';
+import { AnimeUtils } from './helpers';
+import { AnimePayload } from './types';
+import { eq } from 'drizzle-orm';
 
 class AnimeModule extends Module {
   override readonly name = 'Anime';
@@ -21,7 +24,7 @@ class AnimeModule extends Module {
 
     const anilist = await Anilist.getInfo(id);
 
-    return this.save(anilist);
+    return this.save(AnilistUtils.anilistToAnimePayload(anilist));
   }
 
   async updateOrCreate(id: number) {
@@ -31,24 +34,32 @@ class AnimeModule extends Module {
   async update(id: number) {
     const anilist = await Anilist.getInfo(id);
 
-    return this.save(anilist);
+    return this.save(AnilistUtils.anilistToAnimePayload(anilist));
   }
 
-  async save(anilist: AnilistMedia) {
-    await AnimeDb.upsert(anilist);
+  async save(payload: AnimePayload) {
+    await AnimeDb.upsert(payload);
 
-    await this.initProviders(anilist.id, anilist.idMal);
+    await this.initProviders(payload.id, payload.id_mal ?? undefined);
 
     return db.query.anime.findFirst({
       where: {
-        id: anilist.id
+        id: payload.id
       }
     });
   }
 
-  async initProviders(id: number, idMal: number | undefined) {
-    await Meta.loadMappings(id);
+  async upsert(payload: AnimePayload) {
+    await AnimeDb.upsert(payload);
 
+    return db.query.anime.findFirst({
+      where: {
+        id: payload.id
+      }
+    });
+  }
+
+  async initProviders(id: number, idMal?: number | undefined) {
     await Promise.all([
       Crysoline.map(id).catch(() => null),
       MyAnimeList.getInfo(id, idMal).catch(() => null),
@@ -58,6 +69,23 @@ class AnimeModule extends Module {
     ]);
 
     await Promise.all([Tvdb.getInfo(id).catch(() => null)]);
+  }
+
+  async loadMappings(id: number) {
+    await this.fetchOrCreate(id);
+    const fetched = await AnimeFetch.fetchMappings(id).catch(() => null);
+    const links = AnimeUtils.toLinksArray(fetched?.mappings);
+    await this.upsert({ id, links });
+  }
+
+  async map(id: number, name: string) {
+    const links = await db
+      .select({ link: animeLink })
+      .from(animeToLink)
+      .innerJoin(animeLink, eq(animeLink.id, animeToLink.B))
+      .where(eq(animeToLink.A, id));
+
+    return links.find((l) => l.link?.label.toLowerCase() === name.toLowerCase())?.link?.link ?? null;
   }
 }
 

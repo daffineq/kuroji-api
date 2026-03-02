@@ -26,7 +26,7 @@ export interface AnimeArgs {
   type?: string;
   source?: string;
   source_in?: string[];
-  country_of_origin?: string;
+  country?: string;
   is_licensed?: boolean;
   is_adult?: boolean;
   genres?: string;
@@ -58,6 +58,10 @@ export interface AnimeArgs {
 }
 
 export interface ChronologyArgs extends AnimeArgs {
+  parent_id: number;
+}
+
+export interface RecommendationArgs extends AnimeArgs {
   parent_id: number;
 }
 

@@ -1,9 +1,9 @@
 import { Config } from 'src/config/config';
-import { AniZipData } from '../types';
 import { KurojiClient } from 'src/lib/http';
 import { ClientModule } from 'src/helpers/client';
+import { AniZipData } from 'src/core/types';
 
-class MetaFetchModule extends ClientModule {
+class AnimeFetchModule extends ClientModule {
   protected override readonly client = new KurojiClient(Config.ani_zip);
 
   async fetchMappings(id: number): Promise<AniZipData> {
@@ -21,6 +21,6 @@ class MetaFetchModule extends ClientModule {
   }
 }
 
-const MetaFetch = new MetaFetchModule();
+const AnimeFetch = new AnimeFetchModule();
 
-export { MetaFetch, MetaFetchModule };
+export { AnimeFetch, AnimeFetchModule };
