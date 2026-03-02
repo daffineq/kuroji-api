@@ -39,6 +39,27 @@ const pickBestTitle = (a: AnilistMedia): string | null => {
   return a.title.english ?? a.title.romaji ?? a.title.native ?? null;
 };
 
+const countryToLanguage: Record<string, string> = {
+  JP: 'ja',
+  KR: 'ko',
+  CN: 'zh',
+  TW: 'zh',
+  HK: 'zh',
+  US: 'en',
+  GB: 'en',
+  CA: 'en',
+  FR: 'fr',
+  DE: 'de',
+  IT: 'it',
+  ES: 'es'
+};
+
+const getLanguage = (country: string): string | null => {
+  if (!country) return null;
+
+  return countryToLanguage[country] ?? null;
+};
+
 const getType = (format: string | null | undefined): 'movie' | 'series' => {
   switch (format) {
     case 'MOVIE':
@@ -174,7 +195,8 @@ const AnimeUtils = {
   pickBestTitle,
   getType,
   toLinksArray,
-  unifyArtworkType
+  unifyArtworkType,
+  getLanguage
 };
 
 export { AnimeUtils };

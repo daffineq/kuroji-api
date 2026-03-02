@@ -25,43 +25,7 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
       return cached;
     }
 
-    let info: MALInfo;
-
-    if (idMal) {
-      info = await this.fetch.info(idMal);
-
-      await Anime.upsert({
-        id,
-        links: {
-          link: parseString(idMal)!,
-          label: this.name,
-          type: 'mapping'
-        }
-      });
-    } else {
-      const idMap = await Anime.map(id, this.name);
-
-      if (idMap) {
-        info = await this.fetch.info(idMap);
-      } else {
-        const al = await Anilist.getInfo(id);
-
-        if (!al.idMal) {
-          throw new Error('No MAL ID found');
-        }
-
-        info = await this.fetch.info(al.idMal);
-
-        await Anime.upsert({
-          id,
-          links: {
-            link: parseString(al.idMal)!,
-            label: this.name,
-            type: 'mapping'
-          }
-        });
-      }
-    }
+    const info = await this.resolveInfo(id, idMal);
 
     if (info.metadata?.videos) {
       const videos: AnimeVideoPayload[] = info.metadata.videos.map((v) => {
@@ -101,6 +65,48 @@ class MyAnimeListModule extends ProviderModule<MALInfo> {
     await Redis.set(key, info);
 
     return info;
+  }
+
+  async resolveInfo(id: number, idMal?: number) {
+    if (idMal) {
+      const info = await this.fetch.info(idMal);
+
+      await Anime.upsert({
+        id,
+        links: {
+          link: parseString(idMal)!,
+          label: this.name,
+          type: 'mapping'
+        }
+      });
+
+      return info;
+    } else {
+      const idMap = await Anime.map(id, this.name);
+
+      if (idMap) {
+        return this.fetch.info(idMap);
+      } else {
+        const al = await Anilist.getInfo(id);
+
+        if (!al.idMal) {
+          throw new Error('No MAL ID found');
+        }
+
+        const info = await this.fetch.info(al.idMal);
+
+        await Anime.upsert({
+          id,
+          links: {
+            link: parseString(al.idMal)!,
+            label: this.name,
+            type: 'mapping'
+          }
+        });
+
+        return info;
+      }
+    }
   }
 }
 

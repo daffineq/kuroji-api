@@ -20,43 +20,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
       return cached;
     }
 
-    let info: ShikimoriAnime;
-
-    if (idMal) {
-      info = await ShikimoriFetch.fetchInfo(parseString(idMal)!);
-
-      await Anime.upsert({
-        id,
-        links: {
-          link: parseString(idMal)!,
-          label: this.name,
-          type: 'mapping'
-        }
-      });
-    } else {
-      const idMap = await Anime.map(id, this.name);
-
-      if (idMap) {
-        info = await ShikimoriFetch.fetchInfo(idMap);
-      } else {
-        const al = await Anilist.getInfo(id);
-
-        if (!al.idMal) {
-          throw new Error('Anime not found');
-        }
-
-        info = await ShikimoriFetch.fetchInfo(parseString(al.idMal)!);
-
-        await Anime.upsert({
-          id,
-          links: {
-            link: parseString(al.idMal)!,
-            label: this.name,
-            type: 'mapping'
-          }
-        });
-      }
-    }
+    const info = await this.resolveInfo(id, idMal);
 
     if (info.videos) {
       const videos: AnimeVideoPayload[] = info.videos.map((v) => {
@@ -152,6 +116,48 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     await Redis.set(key, info);
 
     return info;
+  }
+
+  async resolveInfo(id: number, idMal?: number) {
+    if (idMal) {
+      const info = await ShikimoriFetch.fetchInfo(parseString(idMal)!);
+
+      await Anime.upsert({
+        id,
+        links: {
+          link: parseString(idMal)!,
+          label: this.name,
+          type: 'mapping'
+        }
+      });
+
+      return info;
+    } else {
+      const idMap = await Anime.map(id, this.name);
+
+      if (idMap) {
+        return ShikimoriFetch.fetchInfo(idMap);
+      } else {
+        const al = await Anilist.getInfo(id);
+
+        if (!al.idMal) {
+          throw new Error('Anime not found');
+        }
+
+        const info = await ShikimoriFetch.fetchInfo(parseString(al.idMal)!);
+
+        await Anime.upsert({
+          id,
+          links: {
+            link: parseString(al.idMal)!,
+            label: this.name,
+            type: 'mapping'
+          }
+        });
+
+        return info;
+      }
+    }
   }
 }
 

@@ -1,7 +1,7 @@
 import { KitsuAnime } from './types';
 import { NotFoundError } from 'src/helpers/errors';
 import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
-import { parseNumber } from 'src/helpers/parsers';
+import { parseNumber, parseString } from 'src/helpers/parsers';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { KitsuFetch } from './helpers/kitsu.fetch';
 import { Anilist, AnilistUtils } from '../anilist';
@@ -20,24 +20,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
       return cached;
     }
 
-    const idMap = await Anime.map(id, this.name);
-
-    let info: KitsuAnime;
-
-    if (idMap) {
-      info = await KitsuFetch.fetchInfo(idMap);
-    } else {
-      info = await this.find(id);
-
-      await Anime.upsert({
-        id,
-        links: {
-          link: info.id,
-          label: this.name,
-          type: 'mapping'
-        }
-      });
-    }
+    const info = await this.resolveInfo(id);
 
     if (info.attributes.posterImage) {
       await Anime.upsert({
@@ -74,6 +57,27 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     return info;
   }
 
+  async resolveInfo(id: number) {
+    const idMap = await Anime.map(id, this.name);
+
+    if (idMap) {
+      return KitsuFetch.fetchInfo(idMap);
+    } else {
+      const info = await this.find(id);
+
+      await Anime.upsert({
+        id,
+        links: {
+          link: info.id,
+          label: this.name,
+          type: 'mapping'
+        }
+      });
+
+      return info;
+    }
+  }
+
   async find(id: number): Promise<KitsuAnime> {
     const al = await Anilist.getInfo(id);
 
@@ -91,6 +95,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
         titles: [result.attributes.titles.en, result.attributes.titles.en_jp, result.attributes.titles.ja_jp],
         id: result.id,
         year,
+        type: result.attributes.subtype,
         episodes: result.attributes.episodeCount
       };
     });
@@ -98,13 +103,15 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     const searchCriteria: ExpectAnime = {
       titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.synonyms],
       year: al.seasonYear ?? undefined,
+      type: al.format,
       episodes: AnilistUtils.findEpisodeCount(al)
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);
+    const bestMatchId = parseString(bestMatch?.id);
 
-    if (bestMatch) {
-      const data = await KitsuFetch.fetchInfo(bestMatch.result.id);
+    if (bestMatchId) {
+      const data = await KitsuFetch.fetchInfo(bestMatchId);
       return data;
     }
 

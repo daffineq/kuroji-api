@@ -24,30 +24,12 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       return cached;
     }
 
-    const idMap = parseNumber(await Anime.map(id, this.name));
-
-    let info: TmdbInfoResult;
-
-    const al = await Anilist.getInfo(id);
-    const type = AnimeUtils.getType(al.format);
-
-    if (idMap) {
-      info = type === 'movie' ? await TmdbFetch.fetchMovie(idMap) : await TmdbFetch.fetchSeries(idMap);
-    } else {
-      info = await this.find(id);
-
-      await Anime.upsert({
-        id,
-        links: {
-          link: parseString(info.id)!,
-          label: this.name,
-          type: 'mapping'
-        }
-      });
-    }
+    const resolved = await this.resolveInfo(id);
 
     const images =
-      type === 'movie' ? await TmdbFetch.getMovieImages(info.id) : await TmdbFetch.getSeriesImages(info.id);
+      resolved.type === 'movie'
+        ? await TmdbFetch.getMovieImages(resolved.info.id)
+        : await TmdbFetch.getSeriesImages(resolved.info.id);
 
     const artworks: AnimeArtworkPayload[] = images.map((i) => {
       return {
@@ -66,37 +48,72 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       await Anime.upsert({ id, artworks });
     }
 
-    if (info.poster_path) {
+    if (resolved.info.poster_path) {
       await Anime.upsert({
         id,
         images: {
-          url: info.poster_path,
-          small: TmdbUtils.getImage('w300', info.poster_path),
-          medium: TmdbUtils.getImage('w780', info.poster_path),
-          large: TmdbUtils.getImage('original', info.poster_path),
+          url: resolved.info.poster_path,
+          small: TmdbUtils.getImage('w300', resolved.info.poster_path),
+          medium: TmdbUtils.getImage('w780', resolved.info.poster_path),
+          large: TmdbUtils.getImage('original', resolved.info.poster_path),
           type: 'poster',
           source: this.name
         }
       });
     }
 
-    if (info.backdrop_path) {
+    if (resolved.info.backdrop_path) {
       await Anime.upsert({
         id,
         images: {
-          url: info.backdrop_path,
-          small: TmdbUtils.getImage('w300', info.backdrop_path),
-          medium: TmdbUtils.getImage('w780', info.backdrop_path),
-          large: TmdbUtils.getImage('original', info.backdrop_path),
+          url: resolved.info.backdrop_path,
+          small: TmdbUtils.getImage('w300', resolved.info.backdrop_path),
+          medium: TmdbUtils.getImage('w780', resolved.info.backdrop_path),
+          large: TmdbUtils.getImage('original', resolved.info.backdrop_path),
           type: 'background',
           source: this.name
         }
       });
     }
 
-    await Redis.set(key, info);
+    await Redis.set(key, resolved.info);
 
-    return info;
+    return resolved.info;
+  }
+
+  async resolveInfo(id: number): Promise<{
+    info: TmdbInfoResult;
+    type: string;
+  }> {
+    const idMap = parseNumber(await Anime.map(id, this.name));
+
+    const al = await Anilist.getInfo(id);
+    const type = AnimeUtils.getType(al.format);
+
+    if (idMap) {
+      const info = type === 'movie' ? await TmdbFetch.fetchMovie(idMap) : await TmdbFetch.fetchSeries(idMap);
+
+      return {
+        info,
+        type
+      };
+    } else {
+      const info = await this.find(id);
+
+      await Anime.upsert({
+        id,
+        links: {
+          link: parseString(info.id)!,
+          label: this.name,
+          type: 'mapping'
+        }
+      });
+
+      return {
+        info,
+        type
+      };
+    }
   }
 
   async getTranslations(id: number): Promise<TmdbTranslation[]> {
@@ -183,24 +200,25 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
         ? await TmdbFetch.searchMovie(deepCleanTitle(title))
         : await TmdbFetch.searchSeries(deepCleanTitle(title));
 
-    const results = search.map((result) => {
+    const results: ExpectAnime[] = search.map((result) => {
       return {
         titles: [result.original_name, result.original_title, result.name, result.title],
-        id: result.id
+        id: result.id,
+        language: result.original_language
       };
     });
 
     const searchCriteria: ExpectAnime = {
-      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.synonyms]
+      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.synonyms],
+      language: AnimeUtils.getLanguage(al.countryOfOrigin ?? 'JP') ?? 'jp'
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);
+    const bestMatchId = parseNumber(bestMatch?.id);
 
-    if (bestMatch) {
+    if (bestMatchId) {
       const data =
-        type === 'movie'
-          ? await TmdbFetch.fetchMovie(bestMatch.result.id)
-          : await TmdbFetch.fetchSeries(bestMatch.result.id);
+        type === 'movie' ? await TmdbFetch.fetchMovie(bestMatchId) : await TmdbFetch.fetchSeries(bestMatchId);
       return data;
     }
 

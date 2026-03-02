@@ -60,8 +60,6 @@ class AnimeModule extends Module {
   }
 
   async initProviders(id: number, idMal?: number | undefined) {
-    await this.loadMappings(id).catch(() => null);
-
     await Promise.all([
       Crysoline.map(id).catch(() => null),
       MyAnimeList.getInfo(id, idMal).catch(() => null),
@@ -84,7 +82,7 @@ class AnimeModule extends Module {
     const links = await db
       .select({ link: animeLink })
       .from(animeToLink)
-      .innerJoin(animeLink, eq(animeToLink.B, animeLink.id))
+      .innerJoin(animeLink, eq(animeLink.id, animeToLink.B))
       .where(eq(animeToLink.A, id));
 
     return links.find((l) => l.link?.label.toLowerCase() === name.toLowerCase())?.link?.link ?? null;

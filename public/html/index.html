@@ -519,6 +519,16 @@
             allowHTML: true,
             delay: 500,
             appendTo: document.body,
+            popperOptions: {
+              modifiers: [
+                {
+                  name: 'flip',
+                  options: {
+                    fallbackPlacements: ['top', 'left', 'bottom']
+                  }
+                }
+              ]
+            },
             onShow(instance) {
               const id = instance.reference.dataset.id;
 

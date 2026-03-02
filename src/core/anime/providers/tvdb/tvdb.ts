@@ -23,43 +23,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
       return cached;
     }
 
-    const al = await Anilist.getInfo(id);
-
-    if (!al) {
-      throw new NotFoundError('Anilist not found');
-    }
-
-    const type = AnimeUtils.getType(al.format);
-
-    const tvdbId = await Anime.map(id, this.name);
-    const tmdbId = await Anime.map(id, Tmdb.name);
-
-    let info: TvdbInfoResult | undefined = undefined;
-
-    if (tvdbId) {
-      info = type === 'movie' ? await TvdbFetch.fetchMovie(tvdbId) : await TvdbFetch.fetchSeries(tvdbId);
-    } else if (tmdbId) {
-      const search = await TvdbFetch.searchByRemote(
-        tmdbId,
-        type,
-        al.title.romaji ?? al.title.native ?? al.title.english ?? ''
-      );
-
-      info = type === 'movie' ? await TvdbFetch.fetchMovie(search.id) : await TvdbFetch.fetchSeries(search.id);
-
-      await Anime.upsert({
-        id,
-        links: {
-          link: parseString(info.id)!,
-          label: this.name,
-          type: 'mapping'
-        }
-      });
-    }
-
-    if (!info) {
-      throw new NotFoundError('TVDB not found');
-    }
+    const info = await this.resolveInfo(id);
 
     if (info.artworks) {
       const artworks: AnimeArtworkPayload[] = info.artworks.map((a) => {
@@ -81,6 +45,45 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
     await Redis.set(key, info);
 
     return info;
+  }
+
+  async resolveInfo(id: number) {
+    const al = await Anilist.getInfo(id);
+
+    if (!al) {
+      throw new NotFoundError('Anilist not found');
+    }
+
+    const type = AnimeUtils.getType(al.format);
+
+    const tvdbId = await Anime.map(id, this.name);
+    const tmdbId = await Anime.map(id, Tmdb.name);
+
+    if (tvdbId) {
+      return type === 'movie' ? TvdbFetch.fetchMovie(tvdbId) : TvdbFetch.fetchSeries(tvdbId);
+    } else if (tmdbId) {
+      const search = await TvdbFetch.searchByRemote(
+        tmdbId,
+        type,
+        al.title.romaji ?? al.title.native ?? al.title.english ?? ''
+      );
+
+      const info =
+        type === 'movie' ? await TvdbFetch.fetchMovie(search.id) : await TvdbFetch.fetchSeries(search.id);
+
+      await Anime.upsert({
+        id,
+        links: {
+          link: parseString(info.id)!,
+          label: this.name,
+          type: 'mapping'
+        }
+      });
+
+      return info;
+    }
+
+    throw new NotFoundError('TVDB not found');
   }
 }
 
