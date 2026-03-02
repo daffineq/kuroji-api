@@ -567,6 +567,8 @@
               }
             }`;
 
+              instance.setContent(`<div class="tooltip-loading"><span>Loading...</span></div>`);
+
               fetch('/graphql', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'api-key': input.value },
