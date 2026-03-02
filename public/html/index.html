@@ -562,6 +562,7 @@
                 status
                 type
                 season
+                format
                 genres { name }
                 images { large type source }
               }
@@ -583,9 +584,9 @@
                 .then((d) => {
                   const a = d.data.anime;
 
-                  const image = a.images.find((i) => i.type === 'background' && i.source === 'tmdb').large;
+                  const image = a.images.find((i) => i.type === 'background' && i.source === 'tmdb')?.large;
 
-                  const pills = [a.status, a.type, a.season];
+                  const pills = [a.status, a.type, a.format, a.season];
 
                   instance.setContent(
                     `
