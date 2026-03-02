@@ -797,7 +797,8 @@ export const resolvers = {
         .select({ genre: animeGenre })
         .from(animeToGenre)
         .innerJoin(animeGenre, eq(animeToGenre.B, animeGenre.id))
-        .where(eq(animeToGenre.A, parent.id));
+        .where(eq(animeToGenre.A, parent.id))
+        .orderBy(asc(animeGenre.name));
 
       return result.map((r) => r.genre);
     },
@@ -807,7 +808,8 @@ export const resolvers = {
         .select({ schedule: animeAiringSchedule })
         .from(animeToAiringSchedule)
         .innerJoin(animeAiringSchedule, eq(animeToAiringSchedule.B, animeAiringSchedule.id))
-        .where(eq(animeToAiringSchedule.A, parent.id));
+        .where(eq(animeToAiringSchedule.A, parent.id))
+        .orderBy(asc(animeAiringSchedule.episode));
 
       return result.map((r) => r.schedule);
     },
@@ -829,6 +831,7 @@ export const resolvers = {
           .leftJoin(animeCharacterName, eq(animeCharacter.id, animeCharacterName.character_id))
           .leftJoin(animeCharacterImage, eq(animeCharacter.id, animeCharacterImage.character_id))
           .where(eq(animeToCharacter.anime_id, parent.id))
+          .orderBy(asc(animeToCharacter.role), asc(animeToCharacter.character_id))
           .limit(per_page)
           .offset(skip),
         db.select({ count: count() }).from(animeToCharacter).where(eq(animeToCharacter.anime_id, parent.id))
@@ -848,7 +851,8 @@ export const resolvers = {
             .innerJoin(animeVoiceActor, eq(characterToVoiceActor.B, animeVoiceActor.id))
             .leftJoin(animeVoiceName, eq(animeVoiceActor.id, animeVoiceName.voice_actor_id))
             .leftJoin(animeVoiceImage, eq(animeVoiceActor.id, animeVoiceImage.voice_actor_id))
-            .where(eq(characterToVoiceActor.A, e.edge.id));
+            .where(eq(characterToVoiceActor.A, e.edge.id))
+            .orderBy(asc(animeVoiceActor.language));
 
           return {
             ...e.edge,
@@ -882,7 +886,8 @@ export const resolvers = {
         .select({ edge: animeToStudio, studio: animeStudio })
         .from(animeToStudio)
         .innerJoin(animeStudio, eq(animeToStudio.studio_id, animeStudio.id))
-        .where(and(...conditions));
+        .where(and(...conditions))
+        .orderBy(desc(animeToStudio.is_main), asc(animeStudio.name));
 
       return result.map((r) => ({ ...r.edge, studio: r.studio }));
     },
@@ -892,7 +897,8 @@ export const resolvers = {
         .select({ edge: animeToTag, tag: animeTag })
         .from(animeToTag)
         .innerJoin(animeTag, eq(animeToTag.tag_id, animeTag.id))
-        .where(eq(animeToTag.anime_id, parent.id));
+        .where(eq(animeToTag.anime_id, parent.id))
+        .orderBy(desc(animeToTag.rank), asc(animeTag.name));
 
       return result.map((r) => ({ ...r.edge, tag: r.tag }));
     },
@@ -902,20 +908,26 @@ export const resolvers = {
         .select({ link: animeLink })
         .from(animeToLink)
         .innerJoin(animeLink, eq(animeToLink.B, animeLink.id))
-        .where(eq(animeToLink.A, parent.id));
+        .where(eq(animeToLink.A, parent.id))
+        .orderBy(asc(animeLink.label));
 
       return result.map((r) => r.link);
     },
 
     score_distribution: async (parent: any) => {
-      return await db.select().from(animeScoreDistribution).where(eq(animeScoreDistribution.anime_id, parent.id));
+      return await db
+        .select()
+        .from(animeScoreDistribution)
+        .where(eq(animeScoreDistribution.anime_id, parent.id))
+        .orderBy(asc(animeScoreDistribution.score));
     },
 
     status_distribution: async (parent: any) => {
       return await db
         .select()
         .from(animeStatusDistribution)
-        .where(eq(animeStatusDistribution.anime_id, parent.id));
+        .where(eq(animeStatusDistribution.anime_id, parent.id))
+        .orderBy(asc(animeStatusDistribution.status));
     },
 
     other_titles: async (parent: any) => {
@@ -923,7 +935,8 @@ export const resolvers = {
         .select({ title: animeOtherTitle })
         .from(animeToOtherTitle)
         .innerJoin(animeOtherTitle, eq(animeToOtherTitle.B, animeOtherTitle.id))
-        .where(eq(animeToOtherTitle.A, parent.id));
+        .where(eq(animeToOtherTitle.A, parent.id))
+        .orderBy(asc(animeOtherTitle.source), asc(animeOtherTitle.language));
 
       return result.map((r) => r.title);
     },
@@ -933,7 +946,8 @@ export const resolvers = {
         .select({ description: animeOtherDescription })
         .from(animeToOtherDescription)
         .innerJoin(animeOtherDescription, eq(animeToOtherDescription.B, animeOtherDescription.id))
-        .where(eq(animeToOtherDescription.A, parent.id));
+        .where(eq(animeToOtherDescription.A, parent.id))
+        .orderBy(asc(animeOtherDescription.source), asc(animeOtherDescription.language));
 
       return result.map((r) => r.description);
     },
@@ -943,7 +957,8 @@ export const resolvers = {
         .select({ image: animeImage })
         .from(animeToImage)
         .innerJoin(animeImage, eq(animeToImage.B, animeImage.id))
-        .where(eq(animeToImage.A, parent.id));
+        .where(eq(animeToImage.A, parent.id))
+        .orderBy(asc(animeImage.type), asc(animeImage.source));
 
       return result.map((r) => r.image);
     },
@@ -953,7 +968,8 @@ export const resolvers = {
         .select({ video: animeVideo })
         .from(animeToVideo)
         .innerJoin(animeVideo, eq(animeToVideo.B, animeVideo.id))
-        .where(eq(animeToVideo.A, parent.id));
+        .where(eq(animeToVideo.A, parent.id))
+        .orderBy(asc(animeVideo.type), asc(animeVideo.title));
 
       return result.map((r) => r.video);
     },
@@ -980,6 +996,7 @@ export const resolvers = {
         .from(animeToArtwork)
         .innerJoin(animeArtwork, eq(animeToArtwork.B, animeArtwork.id))
         .where(and(...conditions))
+        .orderBy(asc(animeArtwork.type), asc(animeArtwork.iso_639_1))
         .$dynamic();
 
       if (page && per_page) query.limit(per_page).offset((page - 1) * per_page);

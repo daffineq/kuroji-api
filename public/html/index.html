@@ -203,6 +203,10 @@
         white-space: nowrap;
       }
 
+      .tooltip-loading {
+        margin: 1rem;
+      }
+
       .anime-title {
         font-size: 12px;
         display: -webkit-box;
@@ -512,7 +516,7 @@
 
           tippy('.anime-card', {
             theme: 'kuroji',
-            content: 'Loading...',
+            content: `<div class="tooltip-loading"><span>Loading...</span></div>`,
             placement: 'right',
             arrow: false,
             interactive: true,
