@@ -1,6 +1,6 @@
 import { parseNumber, parseString } from 'src/helpers/parsers';
 import { TmdbImage, TmdbInfoResult, TmdbTranslation } from './types';
-import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
+import { getSearchTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { NotFoundError } from 'src/helpers/errors';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { Anilist } from '../anilist';
@@ -197,8 +197,8 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
 
     const search =
       type === 'movie'
-        ? await TmdbFetch.searchMovie(deepCleanTitle(title))
-        : await TmdbFetch.searchSeries(deepCleanTitle(title));
+        ? await TmdbFetch.searchMovie(getSearchTitle(title))
+        : await TmdbFetch.searchSeries(getSearchTitle(title));
 
     const results: ExpectAnime[] = search.map((result) => {
       return {

@@ -1,49 +1,52 @@
-export const SPECIAL_CHARS_REGEX = /[^\p{L}\p{N}\s]/gu;
-export const SEASON_PATTERNS = [
-  /\b(\d+)(?:st|nd|rd|th)?\s*season\b/i, // "1st season", "2nd season", "3 season"
-  /\bseason\s*(\d+)\b/i, // "season 1", "season 2"
-  /\bs(\d+)\b/i, // "s1", "s2"
-  /\b(\d+)(期|クール)\b/ // Japanese season indicators
-];
+export const REMOVE_WORDS_REGEX =
+  /\b(season|part|cour|arc|chapter|movie|ova|special|edition|final|complete|s\d+|\d+(st|nd|rd|th)?)\b/gi;
 
-export const PART_PATTERNS = [
-  /\bpart\s*(\d+)\b/i, // "part 1", "part 2"
-  /\bp(\d+)\b/i, // "p1", "p2"
-  /\b(\d+)部\b/ // Japanese part indicator
-];
+export const SKIP_WORDS = [
+  'no',
+  'ni',
+  'de',
+  'to',
+  'ga',
+  'wo',
+  'o',
+  'wa',
+  'mo',
+  'ya',
+  'ka',
+  'kara',
+  'made',
+  'e',
 
-export const FORMAT_INDICATORS = [
-  /\b(?:ova|oad|ona)\b/i, // Animation format indicators
-  /\b(?:movie|film|theatrical)\b/i, // Movie indicators
-  /\b(?:special|sp|specials)\b/i, // Special episode indicators
-  /\b(?:tv|television)\s*series?\b/i, // TV series indicators
-  /\b(?:web|net)\s*series?\b/i // Web series indicators
-];
-
-// NEW: Add patterns to detect derivative/re-edit versions
-export const DERIVATIVE_PATTERNS = [
-  /\b(?:re-?edit|redit|re-?cut)\b/i, // Re-edit indicators
-  /\b(?:director'?s?\s*cut|extended\s*cut|final\s*cut)\b/i, // Director's cut
-  /\b(?:new\s*edit|新編集版|compilation)\b/i, // New edit/compilation
-  /\b(?:recap|recaps|summary)\b/i, // Recap versions
-  /\b(?:condensed|abridged|shortened)\b/i, // Condensed versions
-  /\b(?:theatrical\s*version|cinema\s*version)\b/i, // Theatrical versions
-  /\b(?:alternate\s*version|alternative\s*version)\b/i, // Alternative versions
-  /\b(?:extended\s*version|long\s*version)\b/i, // Extended versions
-  /\b(?:remaster|remastered|remake)\b/i, // Remastered versions
-  /\([^)]*(?:re-?edit|director|cut|recap|compilation|remaster)[^)]*\)/i // Parenthetical indicators
-];
-
-export const EXTRA_PATTERNS = [
-  /\b(?:complete|collection|series)\b/i, // Collection indicators
-  /\b(?:dubbed|subbed|uncensored|uncut)\b/i, // Version indicators
-  /\b(?:hd|bd|dvd|blu-ray)\b/i, // Media format
-  /\b(?:remaster(?:ed)?|remake)\b/i, // Version types
-  /\b(?:final|chapter|episode|vol\.?)\b/i, // Content indicators
-  /[-~+:]/g, // Common separators
-  /\([^)]*\)/g, // Remove anything in parentheses
-  /\[[^\]]*\]/g, // Remove anything in square brackets
-  /\{[^}]*\}/g // Remove anything in curly braces
+  'the',
+  'a',
+  'an',
+  'of',
+  'in',
+  'on',
+  'at',
+  'by',
+  'for',
+  'from',
+  'with',
+  'and',
+  'or',
+  'but',
+  'nor',
+  'so',
+  'yet',
+  'into',
+  'onto',
+  'over',
+  'under',
+  'between',
+  'without',
+  'within',
+  'through',
+  'about',
+  'around',
+  'after',
+  'before',
+  'during'
 ];
 
 /**
@@ -69,49 +72,35 @@ export function cleanTitle(title?: string): string | undefined {
   );
 }
 
-export function deepCleanTitle(title: string): string {
+export function getSearchTitle(title: string): string {
   if (!title) return '';
 
-  // Convert to lowercase and trim
   let cleaned = title.toLowerCase().trim();
 
-  // Remove all special characters
-  cleaned = cleaned.replace(SPECIAL_CHARS_REGEX, ' ');
-
-  // Remove season indicators
-  SEASON_PATTERNS.forEach((pattern) => {
-    cleaned = cleaned.replace(pattern, '');
-  });
-
-  // Remove part indicators
-  PART_PATTERNS.forEach((pattern) => {
-    cleaned = cleaned.replace(pattern, '');
-  });
-
-  // Remove format indicators
-  FORMAT_INDICATORS.forEach((pattern) => {
-    cleaned = cleaned.replace(pattern, '');
-  });
-
-  // Remove extra patterns
-  EXTRA_PATTERNS.forEach((pattern) => {
-    cleaned = cleaned.replace(pattern, '');
-  });
-
-  // Additional cleaning steps
   cleaned = cleaned
-    // Remove year patterns
-    .replace(/\b\d{4}\b/g, '')
-    // Remove single digits (often season/part numbers)
-    .replace(/\b\d\b/g, '')
-    // Remove common anime title prefixes
-    .replace(/^(?:the|a|an)\s+/i, '')
-    // Replace multiple spaces with single space
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/[:\-]/g, ' ')
+    .replace(REMOVE_WORDS_REGEX, '')
+    .replace(/\b\d+\b/g, '')
     .replace(/\s+/g, ' ')
-    // Remove leading/trailing spaces
     .trim();
 
-  return cleaned.split(' ').slice(0, 3).join(' ');
+  const tokens = cleaned.split(/\s+/);
+
+  const result: string[] = [];
+  let wordCount = 0;
+
+  for (const token of tokens) {
+    result.push(token);
+
+    if (!SKIP_WORDS.includes(token)) {
+      wordCount++;
+    }
+
+    if (wordCount >= 2) break;
+  }
+
+  return result.join(' ');
 }
 
 /**

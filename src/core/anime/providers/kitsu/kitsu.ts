@@ -1,6 +1,6 @@
 import { KitsuAnime } from './types';
 import { NotFoundError } from 'src/helpers/errors';
-import { deepCleanTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
+import { getSearchTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { parseNumber, parseString } from 'src/helpers/parsers';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { KitsuFetch } from './helpers/kitsu.fetch';
@@ -85,7 +85,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
       throw new NotFoundError('Anilist not found');
     }
 
-    const search = await KitsuFetch.search(deepCleanTitle(al.title?.romaji ?? ''));
+    const search = await KitsuFetch.search(getSearchTitle(al.title?.romaji ?? ''));
 
     const results = search.map((result) => {
       const startDate = result.attributes.startDate;

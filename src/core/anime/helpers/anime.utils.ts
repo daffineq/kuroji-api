@@ -36,7 +36,7 @@ const getEpisodesCount = (
 };
 
 const pickBestTitle = (a: AnilistMedia): string | null => {
-  return a.title.english ?? a.title.romaji ?? a.title.native ?? null;
+  return a.title.romaji ?? a.title.english ?? a.title.native ?? null;
 };
 
 const countryToLanguage: Record<string, string> = {
