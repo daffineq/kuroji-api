@@ -147,22 +147,20 @@ const filterAnime = (
 
     if (tokens.length > 0) {
       const searchConditions = tokens.map((token) =>
-        or(
-          exists(
-            db
-              .select()
-              .from(animeTitle)
-              .where(
-                and(
-                  eq(animeTitle.anime_id, anime.id),
-                  or(
-                    ilike(animeTitle.romaji, `%${token}%`),
-                    ilike(animeTitle.english, `%${token}%`),
-                    ilike(animeTitle.native, `%${token}%`)
-                  )
+        exists(
+          db
+            .select()
+            .from(animeTitle)
+            .where(
+              and(
+                eq(animeTitle.anime_id, anime.id),
+                or(
+                  ilike(animeTitle.romaji, `%${token}%`),
+                  ilike(animeTitle.english, `%${token}%`),
+                  ilike(animeTitle.native, `%${token}%`)
                 )
               )
-          )
+            )
         )
       );
       conditions.push(and(...searchConditions)!);
@@ -330,55 +328,131 @@ const filterAnime = (
 
   // Date filters
   if (start_date_greater) {
-    const parts = start_date_greater.split('-').map(Number);
+    const [year, month, day] = start_date_greater.split('-').map(Number);
+
     conditions.push(
-      or(
-        gt(sql`${animeStartDate.year}`, parts[0]),
-        and(eq(animeStartDate.year, parts[0]!), parts[1] ? gte(animeStartDate.month, parts[1]) : sql`true`)
-      )!
+      exists(
+        db
+          .select()
+          .from(animeStartDate)
+          .where(
+            and(
+              eq(animeStartDate.anime_id, anime.id),
+              or(
+                gt(animeStartDate.year, year!),
+                and(eq(animeStartDate.year, year!), gt(animeStartDate.month, month!)),
+                and(eq(animeStartDate.year, year!), eq(animeStartDate.month, month!), gt(animeStartDate.day, day!))
+              )
+            )
+          )
+      )
     );
   }
+
   if (start_date_lesser) {
-    const parts = start_date_lesser.split('-').map(Number);
+    const [year, month, day] = start_date_lesser.split('-').map(Number);
+
     conditions.push(
-      or(
-        lt(sql`${animeStartDate.year}`, parts[0]),
-        and(eq(animeStartDate.year, parts[0]!), parts[1] ? lte(animeStartDate.month, parts[1]) : sql`true`)
-      )!
+      exists(
+        db
+          .select()
+          .from(animeStartDate)
+          .where(
+            and(
+              eq(animeStartDate.anime_id, anime.id),
+              or(
+                lt(animeStartDate.year, year!),
+                and(eq(animeStartDate.year, year!), lt(animeStartDate.month, month!)),
+                and(eq(animeStartDate.year, year!), eq(animeStartDate.month, month!), lt(animeStartDate.day, day!))
+              )
+            )
+          )
+      )
     );
   }
+
   if (start_date_like) {
-    const parts = start_date_like.split('-').map(Number);
-    const dateConds = [eq(animeStartDate.year, parts[0]!)];
-    if (parts[1]) dateConds.push(eq(animeStartDate.month, parts[1]));
-    if (parts[2]) dateConds.push(eq(animeStartDate.day, parts[2]));
-    conditions.push(and(...dateConds)!);
+    const [year, month, day] = start_date_like.split('-').map(Number);
+
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeStartDate)
+          .where(
+            and(
+              eq(animeStartDate.anime_id, anime.id),
+              eq(animeStartDate.year, year!),
+              eq(animeStartDate.month, month!),
+              eq(animeStartDate.day, day!)
+            )
+          )
+      )
+    );
   }
 
   if (end_date_greater) {
-    const parts = end_date_greater.split('-').map(Number);
+    const [year, month, day] = end_date_greater.split('-').map(Number);
+
     conditions.push(
-      or(
-        gt(sql`${animeEndDate.year}`, parts[0]),
-        and(eq(animeEndDate.year, parts[0]!), parts[1] ? gte(animeEndDate.month, parts[1]) : sql`true`)
-      )!
+      exists(
+        db
+          .select()
+          .from(animeEndDate)
+          .where(
+            and(
+              eq(animeEndDate.anime_id, anime.id),
+              or(
+                gt(animeEndDate.year, year!),
+                and(eq(animeEndDate.year, year!), gt(animeEndDate.month, month!)),
+                and(eq(animeEndDate.year, year!), eq(animeEndDate.month, month!), gt(animeEndDate.day, day!))
+              )
+            )
+          )
+      )
     );
   }
+
   if (end_date_lesser) {
-    const parts = end_date_lesser.split('-').map(Number);
+    const [year, month, day] = end_date_lesser.split('-').map(Number);
+
     conditions.push(
-      or(
-        lt(sql`${animeEndDate.year}`, parts[0]),
-        and(eq(animeEndDate.year, parts[0]!), parts[1] ? lte(animeEndDate.month, parts[1]) : sql`true`)
-      )!
+      exists(
+        db
+          .select()
+          .from(animeEndDate)
+          .where(
+            and(
+              eq(animeEndDate.anime_id, anime.id),
+              or(
+                lt(animeEndDate.year, year!),
+                and(eq(animeEndDate.year, year!), lt(animeEndDate.month, month!)),
+                and(eq(animeEndDate.year, year!), eq(animeEndDate.month, month!), lt(animeEndDate.day, day!))
+              )
+            )
+          )
+      )
     );
   }
+
   if (end_date_like) {
-    const parts = end_date_like.split('-').map(Number);
-    const dateConds = [eq(animeEndDate.year, parts[0]!)];
-    if (parts[1]) dateConds.push(eq(animeEndDate.month, parts[1]));
-    if (parts[2]) dateConds.push(eq(animeEndDate.day, parts[2]));
-    conditions.push(and(...dateConds)!);
+    const [year, month, day] = end_date_like.split('-').map(Number);
+
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeEndDate)
+          .where(
+            and(
+              eq(animeEndDate.anime_id, anime.id),
+              eq(animeEndDate.year, year!),
+              eq(animeEndDate.month, month!),
+              eq(animeEndDate.day, day!)
+            )
+          )
+      )
+    );
   }
 
   if (franchise) {
@@ -529,6 +603,43 @@ const filterAnime = (
   };
 };
 
+const getAnimePage = async (args: AnimeArgs) => {
+  const { where, orderBy, skip, take, page } = filterAnime(args);
+
+  const query = db
+    .select()
+    .from(anime)
+    .leftJoin(animeTitle, eq(animeTitle.anime_id, anime.id))
+    .leftJoin(animeStartDate, eq(animeStartDate.anime_id, anime.id))
+    .leftJoin(animeEndDate, eq(animeEndDate.anime_id, anime.id))
+    .$dynamic();
+
+  if (where) query.where(where);
+  if (orderBy.length) query.orderBy(...orderBy);
+
+  const [data, totalResult] = await Promise.all([
+    query.limit(take).offset(skip),
+    db
+      .select({ count: count() })
+      .from(anime)
+      .where(where || sql`true`)
+  ]);
+
+  const total = totalResult[0]?.count || 0;
+  const last_page = Math.ceil(total / take);
+
+  return {
+    data: data.map((d) => d.anime),
+    page_info: {
+      total,
+      per_page: take,
+      current_page: page,
+      last_page,
+      has_next_page: page < last_page
+    }
+  };
+};
+
 export const resolvers = {
   Query: {
     anime: async (_: any, { id }: { id: number }) => {
@@ -544,34 +655,7 @@ export const resolvers = {
     },
 
     animes: async (_: any, args: AnimeArgs) => {
-      const { where, orderBy, skip, take, page } = filterAnime(args);
-
-      const query = db.select().from(anime).$dynamic();
-
-      if (where) query.where(where);
-      if (orderBy.length) query.orderBy(...orderBy);
-
-      const [data, totalResult] = await Promise.all([
-        query.limit(take).offset(skip),
-        db
-          .select({ count: count() })
-          .from(anime)
-          .where(where || sql`true`)
-      ]);
-
-      const total = totalResult[0]?.count || 0;
-      const last_page = Math.ceil(total / take);
-
-      return {
-        data,
-        page_info: {
-          total,
-          per_page: take,
-          current_page: page,
-          last_page,
-          has_next_page: page < last_page
-        }
-      };
+      return getAnimePage(args);
     },
 
     character: async (_: any, { id }: { id: number }) => {
@@ -689,27 +773,7 @@ export const resolvers = {
 
       args.id_mal_in = animeIds;
 
-      const { where, orderBy, skip, take, page } = filterAnime(args);
-      const query = db.select().from(anime).$dynamic();
-
-      if (where) query.where(where);
-      if (orderBy.length) query.orderBy(...orderBy);
-
-      const [data, totalResult] = await Promise.all([
-        query.limit(take).offset(skip),
-        db
-          .select({ count: count() })
-          .from(anime)
-          .where(where || sql`true`)
-      ]);
-
-      const total = totalResult[0]?.count || 0;
-      const last_page = Math.ceil(total / take);
-
-      return {
-        data,
-        page_info: { total, per_page: take, current_page: page, last_page, has_next_page: page < last_page }
-      };
+      return getAnimePage(args);
     },
 
     recommendations: async (_: any, args: RecommendationArgs) => {
@@ -735,27 +799,7 @@ export const resolvers = {
 
       args.id_in = animeIds;
 
-      const { where, orderBy, skip, take, page } = filterAnime(args);
-      const query = db.select().from(anime).$dynamic();
-
-      if (where) query.where(where);
-      if (orderBy.length) query.orderBy(...orderBy);
-
-      const [data, totalResult] = await Promise.all([
-        query.limit(take).offset(skip),
-        db
-          .select({ count: count() })
-          .from(anime)
-          .where(where || sql`true`)
-      ]);
-
-      const total = totalResult[0]?.count || 0;
-      const last_page = Math.ceil(total / take);
-
-      return {
-        data,
-        page_info: { total, per_page: take, current_page: page, last_page, has_next_page: page < last_page }
-      };
+      return getAnimePage(args);
     },
 
     sources: async (_: any, args: SourcesArgs) => {
@@ -1037,21 +1081,11 @@ export const resolvers = {
         TmdbSeasons.getEpisodes(parent.id).catch(() => [])
       ]);
 
-      const tmdbEpisodesFormatted: MergedEpisode[] = tmdbEpisodes.map((e) => formatEpisodeData(e));
+      const providerMap = new Map(providerEpisodes.filter((ep) => ep.number != null).map((ep) => [ep.number, ep]));
 
-      const providerMap = new Map<number, Episode>();
-      for (const ep of providerEpisodes) {
-        if (ep.number !== null && ep.number !== undefined) {
-          providerMap.set(ep.number, ep);
-        }
-      }
-
-      const merged: MergedEpisode[] = tmdbEpisodesFormatted.map((tmdbEp) => {
+      const mergeEpisode = (tmdbEp: MergedEpisode): MergedEpisode => {
         const providerEp = providerMap.get(tmdbEp.number);
-
-        if (providerEp) {
-          providerMap.delete(tmdbEp.number);
-        }
+        providerMap.delete(tmdbEp.number);
 
         return {
           number: tmdbEp.number,
@@ -1063,20 +1097,23 @@ export const resolvers = {
           is_filler: providerEp?.is_filler ?? false,
           providers: providerEp?.providers ?? []
         };
+      };
+
+      const fromProvider = (ep: Episode): MergedEpisode => ({
+        number: ep.number!,
+        title: ep.title ?? null,
+        overview: ep.description ?? null,
+        image: ep.image ?? null,
+        runtime: null,
+        air_date: null,
+        is_filler: ep.is_filler ?? false,
+        providers: ep.providers
       });
 
-      for (const [_, providerEp] of providerMap) {
-        merged.push({
-          number: providerEp.number!,
-          title: providerEp.title ?? null,
-          overview: providerEp.description ?? null,
-          image: providerEp.image ?? null,
-          runtime: null,
-          air_date: null,
-          is_filler: providerEp?.is_filler ?? false,
-          providers: providerEp.providers
-        });
-      }
+      const merged = [
+        ...tmdbEpisodes.map(formatEpisodeData).map(mergeEpisode),
+        ...Array.from(providerMap.values()).map(fromProvider)
+      ];
 
       return merged.sort((a, b) => a.number - b.number);
     }

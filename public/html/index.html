@@ -142,6 +142,7 @@
         padding: 0.4rem 0.6rem;
         min-width: 0;
         width: 100%;
+        font-family: 'JetBrains Mono', monospace;
       }
 
       .anime-section {
@@ -433,13 +434,71 @@
 
         <div class="section">
           <span class="label">SORT</span>
-          <input
-            id="sort-input"
-            class="text-input"
-            type="text"
-            placeholder="Enter the sort"
-            value="TRENDING_DESC"
-          />
+          <select id="sort-input" class="text-input">
+            <optgroup label="ID">
+              <option value="ID_DESC">ID ↓</option>
+              <option value="ID_ASC">ID ↑</option>
+            </optgroup>
+
+            <optgroup label="Title">
+              <option value="TITLE_ROMAJI">Title (Romaji) ↑</option>
+              <option value="TITLE_ROMAJI_DESC">Title (Romaji) ↓</option>
+              <option value="TITLE_ENGLISH">Title (English) ↑</option>
+              <option value="TITLE_ENGLISH_DESC">Title (English) ↓</option>
+              <option value="TITLE_NATIVE">Title (Native) ↑</option>
+              <option value="TITLE_NATIVE_DESC">Title (Native) ↓</option>
+            </optgroup>
+
+            <optgroup label="Score & Stats">
+              <option value="SCORE_DESC">Score ↓</option>
+              <option value="SCORE_ASC">Score ↑</option>
+              <option value="POPULARITY_DESC">Popularity ↓</option>
+              <option value="POPULARITY_ASC">Popularity ↑</option>
+              <option value="TRENDING_DESC" selected>Trending ↓</option>
+              <option value="TRENDING_ASC">Trending ↑</option>
+              <option value="FAVORITES_DESC">Favorites ↓</option>
+              <option value="FAVORITES_ASC">Favorites ↑</option>
+            </optgroup>
+
+            <optgroup label="Dates">
+              <option value="START_DATE_DESC">Start Date ↓</option>
+              <option value="START_DATE_ASC">Start Date ↑</option>
+              <option value="END_DATE_DESC">End Date ↓</option>
+              <option value="END_DATE_ASC">End Date ↑</option>
+              <option value="UPDATED_AT_DESC">Updated At ↓</option>
+              <option value="UPDATED_AT_ASC">Updated At ↑</option>
+            </optgroup>
+
+            <optgroup label="Episodes">
+              <option value="EPISODES_DESC">Episodes ↓</option>
+              <option value="EPISODES_ASC">Episodes ↑</option>
+              <option value="DURATION_DESC">Duration ↓</option>
+              <option value="DURATION_ASC">Duration ↑</option>
+              <option value="LATEST_EPISODE_DESC">Latest Episode ↓</option>
+              <option value="LATEST_EPISODE_ASC">Latest Episode ↑</option>
+              <option value="NEXT_EPISODE_DESC">Next Episode ↓</option>
+              <option value="NEXT_EPISODE_ASC">Next Episode ↑</option>
+              <option value="LAST_EPISODE_DESC">Last Episode ↓</option>
+              <option value="LAST_EPISODE_ASC">Last Episode ↑</option>
+            </optgroup>
+
+            <optgroup label="Season">
+              <option value="SEASON_YEAR_DESC">Season Year ↓</option>
+              <option value="SEASON_YEAR_ASC">Season Year ↑</option>
+            </optgroup>
+
+            <optgroup label="Format & Type">
+              <option value="FORMAT_ASC">Format ↑</option>
+              <option value="FORMAT_DESC">Format ↓</option>
+              <option value="TYPE_ASC">Type ↑</option>
+              <option value="TYPE_DESC">Type ↓</option>
+            </optgroup>
+
+            <optgroup label="Status">
+              <option value="STATUS_ASC">Status ↑</option>
+              <option value="STATUS_DESC">Status ↓</option>
+            </optgroup>
+          </select>
         </div>
       </div>
 
