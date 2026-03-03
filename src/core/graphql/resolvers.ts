@@ -738,7 +738,7 @@ export const resolvers = {
 
       return {
         images: formattedImages,
-        translation: translations,
+        translations: translations,
         number: baseData.number,
         title: baseData.title ?? providerEp?.title ?? null,
         overview: baseData.overview ?? providerEp?.description ?? null,

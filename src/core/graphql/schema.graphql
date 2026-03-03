@@ -612,7 +612,7 @@ type EpisodeInfo {
   runtime: Int
   air_date: String
   is_filler: Boolean
-  translation: [Translation!]!
+  translations: [Translation!]!
   images: [EpisodeImages!]!
   providers: [EpisodeProvider!]!
 }
