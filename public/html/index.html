@@ -580,9 +580,23 @@
                   }
                 })
               })
-                .then((r) => r.json())
+                .then(async (r) => {
+                  if (!r.ok) {
+                    instance.setContent(
+                      `<div class="tooltip-loading"><span>Request failed: <b>${await r.text()}</b></span></div>`
+                    );
+
+                    return;
+                  }
+
+                  return r.json();
+                })
                 .then((d) => {
-                  const a = d.data.anime;
+                  if (!d) {
+                    return;
+                  }
+
+                  const a = d.data?.anime;
 
                   const image = a.images.find((i) => i.type === 'background' && i.source === 'tmdb')?.large;
 
