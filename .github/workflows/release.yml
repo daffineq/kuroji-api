@@ -13,7 +13,7 @@ jobs:
 
       - name: Conventional changelog action
         id: changelog
-        uses: TriPSs/conventional-changelog-action@v5
+        uses: TriPSs/conventional-changelog-action@v6
         with:
           skip-on-empty: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
