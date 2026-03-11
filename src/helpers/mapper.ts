@@ -1,52 +1,15 @@
 export const REMOVE_WORDS_REGEX =
-  /\b(season|part|cour|arc|chapter|movie|ova|special|edition|final|complete|s\d+|\d+(st|nd|rd|th)?)\b/gi;
+  /\b(season|part|cour|arc|chapter|movie|ova|special|edition|final|complete|ver|version|s\d+|\d+(st|nd|rd|th)?)\b/gi;
 
+// prettier-ignore
 export const SKIP_WORDS = [
-  'no',
-  'ni',
-  'de',
-  'to',
-  'ga',
-  'wo',
-  'o',
-  'wa',
-  'mo',
-  'ya',
-  'ka',
-  'kara',
-  'made',
-  'e',
-
-  'the',
-  'a',
-  'an',
-  'of',
-  'in',
-  'on',
-  'at',
-  'by',
-  'for',
-  'from',
-  'with',
-  'and',
-  'or',
-  'but',
-  'nor',
-  'so',
-  'yet',
-  'into',
-  'onto',
-  'over',
-  'under',
-  'between',
-  'without',
-  'within',
-  'through',
-  'about',
-  'around',
-  'after',
-  'before',
-  'during'
+  'san', 'kun', 'chan', 'sama', 'dono', 'senpai', 'kohai', 'sensei',
+  'no', 'ni', 'de', 'to', 'ga', 'wo', 'o', 'wa', 'mo', 'ya', 'ka', 'kara', 'made', 'e',
+  'na', 'ne', 'yo', 'desu', 'da', 'suru', 'naru', 'aru', 'nai',
+  'the', 'a', 'an', 'of', 'in', 'on', 'at', 'by', 'for', 'from', 'with', 'and', 'or',
+  'but', 'nor', 'so', 'yet', 'into', 'onto', 'over', 'under', 'between', 'without',
+  'within', 'through', 'about', 'around', 'after', 'before', 'during', 'since',
+  'until', 'till', 'upon', 'via', 'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being'
 ];
 
 /**

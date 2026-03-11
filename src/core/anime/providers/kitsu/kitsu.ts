@@ -7,6 +7,7 @@ import { KitsuFetch } from './helpers/kitsu.fetch';
 import { Anilist, AnilistUtils } from '../anilist';
 import { ProviderModule } from 'src/helpers/module';
 import { Anime } from '../../anime';
+import { AnimeUtils } from '../../helpers';
 
 class KitsuModule extends ProviderModule<KitsuAnime> {
   override readonly name = 'Kitsu';
@@ -85,7 +86,13 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
       throw new NotFoundError('Anilist not found');
     }
 
-    const search = await KitsuFetch.search(getSearchTitle(al.title?.romaji ?? ''));
+    const title = AnimeUtils.pickBestTitle(al);
+
+    if (!title) {
+      throw new NotFoundError('no title?');
+    }
+
+    const search = await KitsuFetch.search(getSearchTitle(title));
 
     const results = search.map((result) => {
       const startDate = result.attributes.startDate;
