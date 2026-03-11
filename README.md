@@ -7,7 +7,7 @@
 <h1 align="center">Kuroji API v2</h1>
 
 <p align="center">
-  <strong>🚀 A modern anime API that doesn't suck</strong>
+  <strong>A modern anime API</strong>
 </p>
 
 <p align="center">
@@ -25,12 +25,10 @@
 
 **Base URL:** `https://kuroji-api-j4mh.onrender.com`
 
-**⚠️ HEADS UP:**
-- Rate limited to 10 req/min - don't abuse it
-- Testing ONLY - don't build production apps on this
-- If you're gonna use this fr, deploy your own instance, it's easy!
-
 ```bash
+# Check the home page
+open https://kuroji-api-j4mh.onrender.com
+
 # Check the docs
 open https://kuroji-api-j4mh.onrender.com/docs
 
@@ -144,6 +142,8 @@ curl -X POST "https://your-app.onrender.com/api/anime/indexer/start?delay=5"
 - 512MB RAM - adjust `ANIME_POPULARITY_THRESHOLD` accordingly
 - Neon free tier = 500MB storage
 
+**Btw, the demo is being hosted using the same method as above!**
+
 ---
 
 ## Configuration
@@ -151,7 +151,7 @@ curl -X POST "https://your-app.onrender.com/api/anime/indexer/start?delay=5"
 Check **[.env.example](.env.example)** - it's already documented with everything you need to know.
 
 **Memory Requirements:**
-- Minimum: 500MB-1GB
+- Recommended-Minimum: 200MB-500MB
 - Recommended: 2GB-4GB
 - Depends on your `ANIME_POPULARITY_THRESHOLD` setting
 
@@ -169,7 +169,7 @@ bun run db:generate      # Generate migrations
 bun run db:migrate       # Run migrations
 bun run db:studio        # Database GUI
 bun run db:truncate      # Clear data
-bun run db:drop          # Drop tables (⚠️)
+bun run db:drop          # Drop tables
 ```
 
 ---
@@ -183,6 +183,18 @@ bun run db:drop          # Drop tables (⚠️)
 - **[GraphQL Yoga](https://the-guild.dev/graphql/yoga-server)**
 - **[Scalar](https://github.com/scalar/scalar)**
 
+---
+
+## Database
+
+You can look at the visual anime schema at **[Schema](https://dbdiagram.io/d/kuroji_anime-69b1bbb877d079431b61a938)**
+
+---
+
+## Crysoline
+
+A little bit of comments on the crysoline. We, with my friends started it as an alternative to consumet, to provide safety of our methods of scrapping websites we had to make it private, sorry if you can't use it as of now, we are working on it. To check out what providers we have added so far, you can look at **[Docs](https://api.crysoline.moe/docs)**
+ 
 ---
 
 ## Contributing
