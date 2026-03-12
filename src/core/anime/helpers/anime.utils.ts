@@ -2,7 +2,6 @@ import { DateUtils } from 'src/helpers/date';
 import { AnilistMedia } from '../providers/anilist/types';
 import { KitsuAnime } from '../providers/kitsu/types';
 import { ShikimoriAnime } from '../providers/shikimori/types';
-import { AniZipMappings } from 'src/core/types';
 import { AnimeLinkPayload } from '../types';
 
 const getEpisodesCount = (
@@ -73,37 +72,6 @@ const getType = (format: string | null | undefined): 'movie' | 'series' => {
     default:
       return 'series';
   }
-};
-
-const toLinksArray = (mappings: AniZipMappings | undefined): AnimeLinkPayload[] => {
-  const result: AnimeLinkPayload[] = [];
-
-  if (!mappings) {
-    return result;
-  }
-
-  const entries: [keyof AniZipMappings, string][] = [
-    ['animeplanet_id', 'animeplanet'],
-    ['kitsu_id', 'kitsu'],
-    ['mal_id', 'mal'],
-    ['anilist_id', 'anilist'],
-    ['anisearch_id', 'anisearch'],
-    ['anidb_id', 'anidb'],
-    ['notifymoe_id', 'notifymoe'],
-    ['livechart_id', 'livechart'],
-    ['thetvdb_id', 'tvdb'],
-    ['imdb_id', 'imdb'],
-    ['themoviedb_id', 'tmdb']
-  ];
-
-  for (const [key, name] of entries) {
-    const value = mappings[key];
-    if (value !== undefined && value !== null && value !== '') {
-      result.push({ link: `${value}`, label: name, type: 'mapping' });
-    }
-  }
-
-  return result;
 };
 
 export enum ArtworkType {
@@ -194,7 +162,6 @@ const AnimeUtils = {
   getEpisodesCount,
   pickBestTitle,
   getType,
-  toLinksArray,
   unifyArtworkType,
   getLanguage
 };

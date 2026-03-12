@@ -1,10 +1,7 @@
-import { AnilistMedia } from './providers/anilist/types';
 import { Anilist, AnilistUtils, Crysoline, Kitsu, MyAnimeList, Shikimori, Tmdb, Tvdb } from './providers';
 import { AnimeDb } from './helpers/anime.db';
 import { Module } from 'src/helpers/module';
-import { animeLink, animeToImage, animeToLink, db } from 'src/db';
-import { AnimeFetch } from './helpers/anime.fetch';
-import { AnimeUtils } from './helpers';
+import { animeLink, animeToLink, db } from 'src/db';
 import { AnimePayload } from './types';
 import { eq } from 'drizzle-orm';
 
@@ -69,13 +66,6 @@ class AnimeModule extends Module {
     ]);
 
     await Promise.all([Tvdb.getInfo(id).catch(() => null)]);
-  }
-
-  async loadMappings(id: number) {
-    await this.fetchOrCreate(id);
-    const fetched = await AnimeFetch.fetchMappings(id).catch(() => null);
-    const links = AnimeUtils.toLinksArray(fetched?.mappings);
-    await this.upsert({ id, links });
   }
 
   async map(id: number, name: string) {
