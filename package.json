@@ -24,6 +24,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "cuid": "^3.0.0",
+    "dataloader": "^2.2.3",
     "drizzle-orm": "^1.0.0-beta.8",
     "elysia": "^1.4.19",
     "graphql": "^16.12.0",
