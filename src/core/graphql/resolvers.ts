@@ -68,7 +68,6 @@ import {
   count,
   SQL,
   ilike,
-  arrayContains,
   exists,
   notInArray,
   not,
@@ -1123,16 +1122,19 @@ export const resolvers = {
     },
 
     chronology: async (parent: any) => {
-      const entries = await db
-        .select()
-        .from(animeChronology)
-        .where(eq(animeChronology.anime_id, parent.id))
-        .orderBy(asc(animeChronology.order));
+      const entries = await db.select().from(animeChronology).where(eq(animeChronology.anime_id, parent.id));
 
       const ids = entries.map((c) => c.related_id);
       if (!ids.length) return [];
 
-      return await db.select().from(anime).where(inArray(anime.id_mal, ids));
+      return (
+        await db
+          .select()
+          .from(anime)
+          .innerJoin(animeChronology, eq(animeChronology.related_id, anime.id_mal))
+          .where(inArray(anime.id_mal, ids))
+          .orderBy(asc(animeChronology.order))
+      ).map((r) => r.anime);
     },
 
     recommendations: async (parent: any) => {
@@ -1145,7 +1147,14 @@ export const resolvers = {
       const ids = entries.map((c) => c.related_id);
       if (!ids.length) return [];
 
-      return await db.select().from(anime).where(inArray(anime.id, ids));
+      return (
+        await db
+          .select()
+          .from(anime)
+          .innerJoin(animeRecommendation, eq(animeRecommendation.related_id, anime.id))
+          .where(inArray(anime.id, ids))
+          .orderBy(asc(animeRecommendation.order))
+      ).map((r) => r.anime);
     },
 
     episodes: async (parent: any) => {
