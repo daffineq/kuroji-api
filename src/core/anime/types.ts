@@ -173,6 +173,21 @@ export interface AnimeRecommendationPayload {
   order: number;
 }
 
+export interface AnimeEpisodeImagePayload {
+  small?: string | null;
+  medium?: string | null;
+  large?: string | null;
+}
+
+export interface AnimeEpisodePayload {
+  title?: string | null;
+  number: number;
+  air_date?: string | null;
+  runtime?: number | null;
+  overview?: string | null;
+  image?: AnimeEpisodeImagePayload | null;
+}
+
 export interface AnimePayload {
   id: number;
   id_mal?: number | null;
@@ -226,6 +241,8 @@ export interface AnimePayload {
   videos?: ForceOr<AnimeVideoPayload> | null;
   screenshots?: ForceOr<AnimeScreenshotPayload> | null;
   artworks?: ForceOr<AnimeArtworkPayload> | null;
+
+  episodes?: ForceOr<AnimeEpisodePayload> | null;
 
   auto_update?: boolean | null;
   disabled?: boolean | null;

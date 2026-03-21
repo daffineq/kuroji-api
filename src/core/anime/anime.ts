@@ -1,4 +1,14 @@
-import { Anilist, AnilistUtils, Crysoline, Kitsu, MyAnimeList, Shikimori, Tmdb, Tvdb } from './providers';
+import {
+  Anilist,
+  AnilistUtils,
+  Crysoline,
+  Kitsu,
+  MyAnimeList,
+  Shikimori,
+  Tmdb,
+  TmdbSeasons,
+  Tvdb
+} from './providers';
 import { AnimeDb } from './helpers/anime.db';
 import { Module } from 'src/helpers/module';
 import { animeLink, animeToLink, db } from 'src/db';
@@ -65,7 +75,7 @@ class AnimeModule extends Module {
       Tmdb.getInfo(id).catch(() => null)
     ]);
 
-    await Promise.all([Tvdb.getInfo(id).catch(() => null)]);
+    await Promise.all([Tvdb.getInfo(id).catch(() => null), TmdbSeasons.getEpisodes(id).catch(() => null)]);
   }
 
   async map(id: number, name: string) {

@@ -39,7 +39,9 @@ import {
   animeArtwork,
   animeToArtwork,
   animeChronology,
-  animeRecommendation
+  animeRecommendation,
+  animeEpisode,
+  animeEpisodeImage
 } from 'src/db';
 import { eq, inArray, asc, desc, and } from 'drizzle-orm';
 import { formatEpisodeData, MergedEpisode } from './types';
@@ -471,7 +473,18 @@ export function createLoaders() {
         ids.map(async (id) => {
           const [providerEpisodes, tmdbEpisodes] = await Promise.all([
             Crysoline.episodes(id).catch(() => []),
-            TmdbSeasons.getEpisodes(id).catch(() => [])
+            (
+              await db
+                .select({ episode: animeEpisode, image: animeEpisodeImage })
+                .from(animeEpisode)
+                .leftJoin(animeEpisodeImage, eq(animeEpisodeImage.episode_id, animeEpisode.id))
+                .where(eq(animeEpisode.anime_id, id))
+            ).map((e) => {
+              return {
+                ...e.episode,
+                image: e.image
+              };
+            })
           ]);
 
           const providerMap = new Map(

@@ -682,50 +682,6 @@ export const resolvers = {
       return await db.select().from(animeStudio).where(where).orderBy(asc(animeStudio.name)).limit(50);
     },
 
-    episode_info: async (_: any, args: EpisodeArgs) => {
-      const [tmdbEpisodes, providerEpisodes] = await Promise.all([
-        TmdbSeasons.getEpisodes(args.id).catch(() => []),
-        Crysoline.episodes(args.id).catch(() => [])
-      ]);
-
-      const episode = tmdbEpisodes.find((e) => e.episode_number === args.number);
-
-      if (!episode) return null;
-
-      const providerEp = providerEpisodes.find((e) => e.number === args.number);
-
-      const [translations, images] = await Promise.all([
-        Tmdb.getEpisodeTranslations(episode?.show_id, episode?.season_number, episode?.episode_number),
-        Tmdb.getEpisodeImages(episode?.show_id, episode?.season_number, episode?.episode_number)
-      ]);
-
-      const formattedImages = images.map((i) => ({
-        height: i.height,
-        width: i.width,
-        iso_639_1: i.iso_639_1 ?? '',
-        image: {
-          small: TmdbUtils.getImage('w500', i.file_path),
-          medium: TmdbUtils.getImage('w780', i.file_path),
-          large: TmdbUtils.getImage('original', i.file_path)
-        }
-      }));
-
-      const baseData = formatEpisodeData(episode);
-
-      return {
-        images: formattedImages,
-        translations: translations,
-        number: baseData.number,
-        title: baseData.title ?? providerEp?.title ?? null,
-        overview: baseData.overview ?? providerEp?.description ?? null,
-        image: baseData.image ?? providerEp?.image ?? null,
-        runtime: baseData.runtime ?? null,
-        air_date: baseData.air_date ?? null,
-        is_filler: providerEp?.is_filler ?? false,
-        providers: providerEp?.providers ?? []
-      };
-    },
-
     chronology: async (_: any, args: ChronologyArgs) => {
       const chronologyEntries = await db
         .select()

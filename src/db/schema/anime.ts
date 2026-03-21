@@ -520,6 +520,43 @@ export const animeRecommendation = pgTable(
   ]
 );
 
+export const animeEpisode = pgTable(
+  'anime_episode',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    title: varchar('title', { length: 255 }),
+    number: integer('number').notNull(),
+    air_date: varchar('air_date', { length: 255 }),
+    runtime: integer('runtime'),
+    overview: text('overview'),
+    anime_id: integer('anime_id')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' })
+  },
+  (t) => [
+    uniqueIndex('anime_episode_unique').on(t.anime_id, t.number),
+    index('idx_anime_episode_anime_id').on(t.anime_id)
+  ]
+);
+
+export const animeEpisodeImage = pgTable(
+  'anime_episode_image',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    small: varchar('small', { length: 255 }),
+    medium: varchar('medium', { length: 255 }),
+    large: varchar('large', { length: 255 }),
+    episode_id: varchar('episode_id', { length: 255 })
+      .unique()
+      .references(() => animeEpisode.id, { onDelete: 'cascade' })
+  },
+  (t) => [index('idx_anime_episode_image_episode_id').on(t.episode_id)]
+);
+
 export const animeToLink = pgTable(
   '_anime_to_link',
   {

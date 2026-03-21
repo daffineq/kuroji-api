@@ -1,5 +1,6 @@
 import { Image } from '@crysoline/lib/dist/core/types';
 import { EpisodeProvider, TmdbEpisode, TmdbUtils } from '../anime';
+import { NatMap } from 'ioredis';
 
 export interface AnimeArgs {
   page?: number;
@@ -104,16 +105,27 @@ export interface MergedEpisode {
   providers?: EpisodeProvider[];
 }
 
-export const formatEpisodeData = (episode: TmdbEpisode) => ({
-  title: episode.name,
+export const formatEpisodeData = (episode: {
+  title: string | null;
+  air_date: string | null;
+  overview: string | null;
+  number: number;
+  runtime: number | null;
+  image: {
+    small: string | null;
+    medium: string | null;
+    large: string | null;
+  } | null;
+}): MergedEpisode => ({
+  title: episode.title,
   air_date: episode.air_date,
   overview: episode.overview,
-  number: episode.episode_number,
+  number: episode.number,
   runtime: episode.runtime,
   image: {
     aspectRatio: 1,
-    small: TmdbUtils.getImage('w300', episode.still_path) ?? '',
-    medium: TmdbUtils.getImage('w780', episode.still_path) ?? '',
-    large: TmdbUtils.getImage('original', episode.still_path) ?? ''
+    small: episode.image?.small ?? '',
+    medium: episode.image?.medium ?? '',
+    large: episode.image?.large ?? ''
   }
 });

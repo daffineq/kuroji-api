@@ -5,11 +5,11 @@ import { ProviderModule } from 'src/helpers/module';
 import { Meta as CryMeta } from '@crysoline/lib';
 import { Config } from 'src/config/config';
 import { Info } from '@crysoline/lib/dist/core/types';
-import { MInfoMeta } from '@crysoline/lib/dist/core/meta/myanimelist';
+import { MyAnimeListInfoMeta } from '@crysoline/lib/dist/core/meta/myanimelist';
 import { Anime } from '../../anime';
 import { AnimeVideoPayload } from '../../types';
 
-type MALInfo = Info<MInfoMeta>;
+type MALInfo = Info<MyAnimeListInfoMeta>;
 
 class MyAnimeListModule extends ProviderModule<MALInfo> {
   override readonly name = 'MyAnimeList';

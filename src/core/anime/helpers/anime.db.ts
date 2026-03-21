@@ -42,7 +42,9 @@ import {
   animeOtherDescription,
   animeToOtherDescription,
   animeChronology,
-  animeRecommendation
+  animeRecommendation,
+  animeEpisode,
+  animeEpisodeImage
 } from 'src/db';
 import { eq, sql } from 'drizzle-orm';
 import { toArray, uniqueBy } from 'src/helpers/utils';
@@ -918,6 +920,67 @@ class AnimeDbModule extends Module {
                 target: [animeRecommendation.parent_id, animeRecommendation.related_id],
                 set: { order: sql`excluded.order` }
               });
+          })
+        );
+      }
+
+      // Episodes
+      if (toArray(payload.episodes).length) {
+        ops.push(
+          Promise.resolve().then(async () => {
+            const episodes = uniqueBy(toArray(payload.episodes), (e) => e.number).map((e) => ({
+              title: e.title,
+              number: e.number,
+              air_date: e.air_date,
+              runtime: e.runtime,
+              overview: e.overview,
+              anime_id: payload.id
+            }));
+
+            if (!episodes.length) return;
+
+            if (isForced(payload.episodes)) {
+              await tx.delete(animeEpisode).where(eq(animeEpisode.anime_id, payload.id));
+            }
+
+            const inserted = await tx
+              .insert(animeEpisode)
+              .values(episodes)
+              .onConflictDoUpdate({
+                target: [animeEpisode.anime_id, animeEpisode.number],
+                set: {
+                  title: sql`excluded.title`,
+                  number: sql`excluded.number`,
+                  air_date: sql`excluded.air_date`,
+                  runtime: sql`excluded.runtime`,
+                  overview: sql`excluded.overview`
+                }
+              })
+              .returning({ id: animeEpisode.id, number: animeEpisode.number });
+
+            const episodeImages = uniqueBy(toArray(payload.episodes), (e) => e.number)
+              .filter((e) => e.image)
+              .map((e, i) => ({
+                episode_id: inserted.find((i) => i.number === e.number)?.id,
+                small: e.image?.small,
+                medium: e.image?.medium,
+                large: e.image?.large
+              }))
+              .filter((e) => e.episode_id);
+
+            if (episodeImages.length) {
+              await tx
+                .insert(animeEpisodeImage)
+                .values(episodeImages)
+                .onConflictDoUpdate({
+                  target: animeEpisodeImage.episode_id,
+                  set: {
+                    small: sql`excluded.small`,
+                    medium: sql`excluded.medium`,
+                    large: sql`excluded.large`
+                  }
+                });
+            }
           })
         );
       }

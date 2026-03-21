@@ -11,6 +11,9 @@ import { Kitsu } from '../../kitsu';
 import { TmdbFetch } from './tmdb.fetch';
 import { AnimeUtils } from 'src/core/anime/helpers';
 import { Module } from 'src/helpers/module';
+import { Anime } from 'src/core/anime/anime';
+import { AnimeEpisodePayload } from 'src/core/anime/types';
+import { TmdbUtils } from './tmdb.utils';
 
 class TmdbSeasonsModule extends Module {
   override readonly name = 'TmdbSeasons';
@@ -57,6 +60,28 @@ class TmdbSeasonsModule extends Module {
     }
 
     await Redis.set(key, matchResult.episodes);
+
+    {
+      const episodes: AnimeEpisodePayload[] = matchResult.episodes.map((e) => {
+        return {
+          title: e.name,
+          number: e.episode_number,
+          overview: e.overview,
+          air_date: e.air_date,
+          runtime: e.runtime,
+          image: {
+            small: TmdbUtils.getImage('w300', e.still_path),
+            medium: TmdbUtils.getImage('w780', e.still_path),
+            large: TmdbUtils.getImage('original', e.still_path)
+          }
+        };
+      });
+
+      await Anime.upsert({
+        id,
+        episodes
+      });
+    }
 
     return matchResult.episodes;
   }

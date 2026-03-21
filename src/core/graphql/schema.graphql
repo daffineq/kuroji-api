@@ -61,7 +61,6 @@ type Query {
   genres: [AnimeGenre!]!
   tags(search: String, category: String, is_adult: Boolean): [AnimeTag!]!
   studios(search: String): [AnimeStudio!]!
-  episode_info(id: Int!, number: Int!): EpisodeInfo
   chronology(
     page: Int = 1
     per_page: Int = 20
@@ -603,19 +602,6 @@ type Episode {
   runtime: Int
   air_date: String
   is_filler: Boolean
-  providers: [EpisodeProvider!]!
-}
-
-type EpisodeInfo {
-  number: Int!
-  title: String
-  overview: String
-  image: EpisodeImage
-  runtime: Int
-  air_date: String
-  is_filler: Boolean
-  translations: [Translation!]!
-  images: [EpisodeImages!]!
   providers: [EpisodeProvider!]!
 }
 
