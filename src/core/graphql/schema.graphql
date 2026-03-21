@@ -174,7 +174,7 @@ type Query {
     franchise: String
     sort: [AnimeSort!]
   ): AnimePage!
-  characters(page: Int, per_page: Int): CharacterPage!
+  characters(page: Int = 1, per_page: Int = 20, parent_id: Int!): CharacterPage!
   sources(id: Int, ep_id: String): Source
 }
 

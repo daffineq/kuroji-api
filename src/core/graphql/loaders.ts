@@ -42,10 +42,9 @@ import {
   animeRecommendation
 } from 'src/db';
 import { eq, inArray, asc, desc, and } from 'drizzle-orm';
+import { formatEpisodeData, MergedEpisode } from './types';
+import { Crysoline, Episode, TmdbSeasons } from '../anime';
 
-// ─── helpers ────────────────────────────────────────────────────────────────
-
-/** Group an array of rows by a key, returning a Map<key, Row[]>. */
 function groupBy<T>(rows: T[], key: (row: T) => number | string): Map<number | string, T[]> {
   const map = new Map<number | string, T[]>();
   for (const row of rows) {
@@ -57,19 +56,14 @@ function groupBy<T>(rows: T[], key: (row: T) => number | string): Map<number | s
   return map;
 }
 
-/** Map an array of rows by a unique key, returning a Map<key, Row>. */
 function indexBy<T>(rows: T[], key: (row: T) => number | string): Map<number | string, T> {
   const map = new Map<number | string, T>();
   for (const row of rows) map.set(key(row), row);
   return map;
 }
 
-// ─── loader factory ─────────────────────────────────────────────────────────
-
 export function createLoaders() {
-  // ----- single-row loaders (one record per anime_id) ----------------------
-
-  const posterLoader = new DataLoader<number, typeof animePoster.$inferSelect | null>(
+  const poster = new DataLoader<number, typeof animePoster.$inferSelect | null>(
     async (ids) => {
       const rows = await db
         .select()
@@ -81,7 +75,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const titleLoader = new DataLoader<number, typeof animeTitle.$inferSelect | null>(
+  const title = new DataLoader<number, typeof animeTitle.$inferSelect | null>(
     async (ids) => {
       const rows = await db
         .select()
@@ -93,7 +87,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const startDateLoader = new DataLoader<number, typeof animeStartDate.$inferSelect | null>(
+  const startDate = new DataLoader<number, typeof animeStartDate.$inferSelect | null>(
     async (ids) => {
       const rows = await db
         .select()
@@ -105,7 +99,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const endDateLoader = new DataLoader<number, typeof animeEndDate.$inferSelect | null>(
+  const endDate = new DataLoader<number, typeof animeEndDate.$inferSelect | null>(
     async (ids) => {
       const rows = await db
         .select()
@@ -117,9 +111,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  // ----- multi-row loaders (many records per anime_id) ---------------------
-
-  const genresLoader = new DataLoader<number, (typeof animeGenre.$inferSelect)[]>(
+  const genres = new DataLoader<number, (typeof animeGenre.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
         .select({ anime_id: animeToGenre.A, genre: animeGenre })
@@ -133,7 +125,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const airingScheduleLoader = new DataLoader<number, (typeof animeAiringSchedule.$inferSelect)[]>(
+  const airingSchedule = new DataLoader<number, (typeof animeAiringSchedule.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
         .select({ anime_id: animeToAiringSchedule.A, schedule: animeAiringSchedule })
@@ -147,41 +139,67 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const studiosLoader = new DataLoader<
-    number,
-    { is_main: boolean | null; studio: typeof animeStudio.$inferSelect }[]
-  >(
+  const studioConnections = new DataLoader<number, (typeof animeToStudio.$inferSelect)[]>(
     async (ids) => {
-      const rows = await db
-        .select({ anime_id: animeToStudio.anime_id, edge: animeToStudio, studio: animeStudio })
-        .from(animeToStudio)
-        .innerJoin(animeStudio, eq(animeToStudio.studio_id, animeStudio.id))
-        .where(inArray(animeToStudio.anime_id, [...ids]))
-        .orderBy(desc(animeToStudio.is_main), asc(animeStudio.name));
+      const rows = (
+        await db
+          .select({ connection: animeToStudio })
+          .from(animeToStudio)
+          .innerJoin(animeStudio, eq(animeStudio.id, animeToStudio.studio_id))
+          .where(inArray(animeToStudio.anime_id, [...ids]))
+          .orderBy(desc(animeToStudio.is_main), asc(animeStudio.name))
+      ).map((r) => r.connection);
       const map = groupBy(rows, (r) => r.anime_id);
-      return ids.map((id) => (map.get(id) ?? []).map((r) => ({ ...r.edge, studio: r.studio })));
+      return ids.map((id) => map.get(id) ?? []);
     },
     { cache: true }
   );
 
-  const tagsLoader = new DataLoader<
-    number,
-    { rank: number | null; is_spoiler: boolean | null; tag: typeof animeTag.$inferSelect }[]
-  >(
+  const studio = new DataLoader<number, typeof animeStudio.$inferSelect | null>(
     async (ids) => {
       const rows = await db
-        .select({ anime_id: animeToTag.anime_id, edge: animeToTag, tag: animeTag })
-        .from(animeToTag)
-        .innerJoin(animeTag, eq(animeToTag.tag_id, animeTag.id))
-        .where(inArray(animeToTag.anime_id, [...ids]))
-        .orderBy(desc(animeToTag.rank), asc(animeTag.name));
+        .select()
+        .from(animeStudio)
+        .where(inArray(animeStudio.id, [...ids]));
+      const map = indexBy(rows, (r) => r.id);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    {
+      cache: true
+    }
+  );
+
+  const tagConnections = new DataLoader<number, (typeof animeToTag.$inferSelect)[]>(
+    async (ids) => {
+      const rows = (
+        await db
+          .select({ connnection: animeToTag })
+          .from(animeToTag)
+          .innerJoin(animeTag, eq(animeTag.id, animeToTag.tag_id))
+          .where(inArray(animeToTag.anime_id, [...ids]))
+          .orderBy(desc(animeToTag.rank), asc(animeTag.name))
+      ).map((r) => r.connnection);
       const map = groupBy(rows, (r) => r.anime_id);
-      return ids.map((id) => (map.get(id) ?? []).map((r) => ({ ...r.edge, tag: r.tag })));
+      return ids.map((id) => map.get(id) ?? []);
     },
     { cache: true }
   );
 
-  const scoreDistributionLoader = new DataLoader<number, (typeof animeScoreDistribution.$inferSelect)[]>(
+  const tag = new DataLoader<number, typeof animeTag.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeTag)
+        .where(inArray(animeTag.id, [...ids]));
+      const map = indexBy(rows, (r) => r.id);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    {
+      cache: true
+    }
+  );
+
+  const scoreDistribution = new DataLoader<number, (typeof animeScoreDistribution.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
         .select()
@@ -194,7 +212,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const statusDistributionLoader = new DataLoader<number, (typeof animeStatusDistribution.$inferSelect)[]>(
+  const statusDistribution = new DataLoader<number, (typeof animeStatusDistribution.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
         .select()
@@ -207,7 +225,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const linksLoader = new DataLoader<number, (typeof animeLink.$inferSelect)[]>(
+  const links = new DataLoader<number, (typeof animeLink.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
         .select({ anime_id: animeToLink.A, link: animeLink })
@@ -221,7 +239,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const otherTitlesLoader = new DataLoader<number, (typeof animeOtherTitle.$inferSelect)[]>(
+  const otherTitles = new DataLoader<number, (typeof animeOtherTitle.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
         .select({ anime_id: animeToOtherTitle.A, title: animeOtherTitle })
@@ -235,7 +253,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const otherDescriptionsLoader = new DataLoader<number, (typeof animeOtherDescription.$inferSelect)[]>(
+  const otherDescriptions = new DataLoader<number, (typeof animeOtherDescription.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
         .select({ anime_id: animeToOtherDescription.A, description: animeOtherDescription })
@@ -249,7 +267,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const imagesLoader = new DataLoader<number, (typeof animeImage.$inferSelect)[]>(
+  const images = new DataLoader<number, (typeof animeImage.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
         .select({ anime_id: animeToImage.A, image: animeImage })
@@ -263,7 +281,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const videosLoader = new DataLoader<number, (typeof animeVideo.$inferSelect)[]>(
+  const videos = new DataLoader<number, (typeof animeVideo.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
         .select({ anime_id: animeToVideo.A, video: animeVideo })
@@ -277,7 +295,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const screenshotsLoader = new DataLoader<number, (typeof animeScreenshot.$inferSelect)[]>(
+  const screenshots = new DataLoader<number, (typeof animeScreenshot.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
         .select({ anime_id: animeToScreenshot.A, screenshot: animeScreenshot })
@@ -291,7 +309,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const artworksLoader = new DataLoader<number, (typeof animeArtwork.$inferSelect)[]>(
+  const artworks = new DataLoader<number, (typeof animeArtwork.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
         .select({ anime_id: animeToArtwork.A, artwork: animeArtwork })
@@ -305,7 +323,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const chronologyLoader = new DataLoader<number, (typeof anime.$inferSelect)[]>(
+  const chronology = new DataLoader<number, (typeof anime.$inferSelect)[]>(
     async (ids) => {
       const entries = await db
         .select()
@@ -316,9 +334,15 @@ export function createLoaders() {
       const relatedIds = [...new Set(entries.map((e) => e.related_id))];
       if (!relatedIds.length) return ids.map(() => []);
 
-      const animeRows = await db.select().from(anime).where(inArray(anime.id_mal, relatedIds));
-
-      const animeByMalId = indexBy(animeRows, (r) => r.id_mal!);
+      const animeRows = (
+        await db
+          .select({ a: anime })
+          .from(anime)
+          .innerJoin(animeChronology, eq(animeChronology.related_id, anime.id_mal))
+          .where(inArray(anime.id_mal, relatedIds))
+          .orderBy(asc(animeChronology.order))
+      ).map((r) => r.a);
+      const animeByMalId = indexBy(animeRows, (a) => a.id_mal!);
       const entriesByAnimeId = groupBy(entries, (e) => e.anime_id);
 
       return ids.map((id) =>
@@ -330,7 +354,7 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const recommendationsLoader = new DataLoader<number, (typeof anime.$inferSelect)[]>(
+  const recommendations = new DataLoader<number, (typeof anime.$inferSelect)[]>(
     async (ids) => {
       const entries = await db
         .select()
@@ -342,7 +366,6 @@ export function createLoaders() {
       if (!relatedIds.length) return ids.map(() => []);
 
       const animeRows = await db.select().from(anime).where(inArray(anime.id, relatedIds));
-
       const animeById = indexBy(animeRows, (r) => r.id);
       const entriesByAnimeId = groupBy(entries, (e) => e.anime_id);
 
@@ -355,83 +378,177 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const charactersLoader = new DataLoader<number, any[]>(
+  const characterConnections = new DataLoader<number, (typeof animeToCharacter.$inferSelect)[]>(
     async (ids) => {
-      const connections = await db
-        .select({
-          edge: animeToCharacter,
-          character: animeCharacter,
-          characterName: animeCharacterName,
-          characterImage: animeCharacterImage
-        })
+      const rows = await db
+        .select()
         .from(animeToCharacter)
-        .innerJoin(animeCharacter, eq(animeToCharacter.character_id, animeCharacter.id))
-        .leftJoin(animeCharacterName, eq(animeCharacter.id, animeCharacterName.character_id))
-        .leftJoin(animeCharacterImage, eq(animeCharacter.id, animeCharacterImage.character_id))
         .where(inArray(animeToCharacter.anime_id, [...ids]))
         .orderBy(asc(animeToCharacter.role), asc(animeToCharacter.character_id));
-
-      const edgeIds = connections.map((c) => c.edge.id);
-      const voiceActorRows =
-        edgeIds.length > 0
-          ? await db
-              .select({
-                edge_id: characterToVoiceActor.A,
-                voiceActor: animeVoiceActor,
-                voiceName: animeVoiceName,
-                voiceImage: animeVoiceImage
-              })
-              .from(characterToVoiceActor)
-              .innerJoin(animeVoiceActor, eq(characterToVoiceActor.B, animeVoiceActor.id))
-              .leftJoin(animeVoiceName, eq(animeVoiceActor.id, animeVoiceName.voice_actor_id))
-              .leftJoin(animeVoiceImage, eq(animeVoiceActor.id, animeVoiceImage.voice_actor_id))
-              .where(inArray(characterToVoiceActor.A, edgeIds))
-              .orderBy(asc(animeVoiceActor.language))
-          : [];
-
-      const vaByEdgeId = groupBy(voiceActorRows, (r) => r.edge_id);
-
-      const assembled = connections.map((e) => ({
-        ...e.edge,
-        character: {
-          ...e.character,
-          name: e.characterName,
-          image: e.characterImage
-        },
-        voice_actors: (vaByEdgeId.get(e.edge.id) ?? []).map((v) => ({
-          ...v.voiceActor,
-          name: v.voiceName,
-          image: v.voiceImage
-        }))
-      }));
-
-      const byAnimeId = groupBy(assembled, (r) => r.anime_id);
-      return ids.map((id) => byAnimeId.get(id) ?? []);
+      const map = groupBy(rows, (r) => r.anime_id);
+      return ids.map((id) => map.get(id) ?? []);
     },
     { cache: true }
   );
 
+  const character = new DataLoader<number, typeof animeCharacter.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeCharacter)
+        .where(inArray(animeCharacter.id, [...ids]));
+      const map = indexBy(rows, (r) => r.id);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    { cache: true }
+  );
+
+  const characterName = new DataLoader<number, typeof animeCharacterName.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeCharacterName)
+        .where(inArray(animeCharacterName.character_id, [...ids]));
+      const map = indexBy(rows, (r) => r.character_id!);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    { cache: true }
+  );
+
+  const characterImage = new DataLoader<number, typeof animeCharacterImage.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeCharacterImage)
+        .where(inArray(animeCharacterImage.character_id, [...ids]));
+      const map = indexBy(rows, (r) => r.character_id!);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    { cache: true }
+  );
+
+  const voiceActors = new DataLoader<number, (typeof animeVoiceActor.$inferSelect)[]>(
+    async (ids) => {
+      const rows = await db
+        .select({ connection_id: characterToVoiceActor.A, voiceActor: animeVoiceActor })
+        .from(characterToVoiceActor)
+        .innerJoin(animeVoiceActor, eq(characterToVoiceActor.B, animeVoiceActor.id))
+        .where(inArray(characterToVoiceActor.A, [...ids]))
+        .orderBy(asc(animeVoiceActor.language));
+      const map = groupBy(rows, (r) => r.connection_id);
+      return ids.map((id) => (map.get(id) ?? []).map((r) => r.voiceActor));
+    },
+    { cache: true }
+  );
+
+  const voiceName = new DataLoader<number, typeof animeVoiceName.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeVoiceName)
+        .where(inArray(animeVoiceName.voice_actor_id, [...ids]));
+      const map = indexBy(rows, (r) => r.voice_actor_id!);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    { cache: true }
+  );
+
+  const voiceImage = new DataLoader<number, typeof animeVoiceImage.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeVoiceImage)
+        .where(inArray(animeVoiceImage.voice_actor_id, [...ids]));
+      const map = indexBy(rows, (r) => r.voice_actor_id!);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    { cache: true }
+  );
+
+  const episodes = new DataLoader<number, MergedEpisode[]>(
+    async (ids) => {
+      const results = await Promise.all(
+        ids.map(async (id) => {
+          const [providerEpisodes, tmdbEpisodes] = await Promise.all([
+            Crysoline.episodes(id).catch(() => []),
+            TmdbSeasons.getEpisodes(id).catch(() => [])
+          ]);
+
+          const providerMap = new Map(
+            providerEpisodes.filter((ep) => ep.number != null).map((ep) => [ep.number, ep])
+          );
+
+          const mergeEpisode = (tmdbEp: MergedEpisode): MergedEpisode => {
+            const providerEp = providerMap.get(tmdbEp.number);
+            providerMap.delete(tmdbEp.number);
+            return {
+              number: tmdbEp.number,
+              title: tmdbEp.title ?? providerEp?.title ?? null,
+              overview: tmdbEp.overview ?? providerEp?.description ?? null,
+              image: tmdbEp.image ?? providerEp?.image ?? null,
+              runtime: tmdbEp.runtime ?? null,
+              air_date: tmdbEp.air_date ?? null,
+              is_filler: providerEp?.is_filler ?? false,
+              providers: providerEp?.providers ?? []
+            };
+          };
+
+          const fromProvider = (ep: Episode): MergedEpisode => ({
+            number: ep.number!,
+            title: ep.title ?? null,
+            overview: ep.description ?? null,
+            image: ep.image ?? null,
+            runtime: null,
+            air_date: null,
+            is_filler: ep.is_filler ?? false,
+            providers: ep.providers
+          });
+
+          const merged = [
+            ...tmdbEpisodes.map(formatEpisodeData).map(mergeEpisode),
+            ...Array.from(providerMap.values()).map(fromProvider)
+          ];
+
+          return merged.sort((a, b) => a.number - b.number);
+        })
+      );
+      return results;
+    },
+    {
+      cache: true
+    }
+  );
+
   return {
-    poster: posterLoader,
-    title: titleLoader,
-    startDate: startDateLoader,
-    endDate: endDateLoader,
-    genres: genresLoader,
-    airingSchedule: airingScheduleLoader,
-    characters: charactersLoader,
-    studios: studiosLoader,
-    tags: tagsLoader,
-    scoreDistribution: scoreDistributionLoader,
-    statusDistribution: statusDistributionLoader,
-    links: linksLoader,
-    otherTitles: otherTitlesLoader,
-    otherDescriptions: otherDescriptionsLoader,
-    images: imagesLoader,
-    videos: videosLoader,
-    screenshots: screenshotsLoader,
-    artworks: artworksLoader,
-    chronology: chronologyLoader,
-    recommendations: recommendationsLoader
+    poster,
+    title,
+    startDate,
+    endDate,
+    genres,
+    airingSchedule,
+    studioConnections,
+    studio,
+    tagConnections,
+    tag,
+    scoreDistribution,
+    statusDistribution,
+    links,
+    otherTitles,
+    otherDescriptions,
+    images,
+    videos,
+    screenshots,
+    artworks,
+    chronology,
+    recommendations,
+    characterConnections,
+    character,
+    characterName,
+    characterImage,
+    voiceActors,
+    voiceName,
+    voiceImage,
+    episodes
   };
 }
 

@@ -1,4 +1,4 @@
-import { Anime, Crysoline, Episode, Tmdb, TmdbSeasons, TmdbUtils } from '../anime';
+import { Anime, Crysoline, Tmdb, TmdbSeasons, TmdbUtils } from '../anime';
 import {
   AnimeArgs,
   ArtworksArgs,
@@ -7,7 +7,6 @@ import {
   EpisodeArgs,
   formatEpisodeData,
   LinkArgs,
-  MergedEpisode,
   RecommendationArgs,
   SourceArgs,
   SourcesArgs
@@ -20,36 +19,11 @@ import {
   animeEndDate,
   animeGenre,
   animeToGenre,
-  animeAiringSchedule,
-  animeToAiringSchedule,
-  animeCharacter,
-  animeCharacterName,
-  animeCharacterImage,
   animeToCharacter,
-  characterToVoiceActor,
-  animeVoiceActor,
-  animeVoiceName,
-  animeVoiceImage,
   animeStudio,
   animeToStudio,
   animeTag,
   animeToTag,
-  animeScoreDistribution,
-  animeStatusDistribution,
-  animeLink,
-  animeToLink,
-  animeOtherTitle,
-  animeToOtherTitle,
-  animeOtherDescription,
-  animeToOtherDescription,
-  animeImage,
-  animeToImage,
-  animeVideo,
-  animeToVideo,
-  animeScreenshot,
-  animeToScreenshot,
-  animeArtwork,
-  animeToArtwork,
   animeChronology,
   animeRecommendation
 } from 'src/db';
@@ -74,6 +48,7 @@ import {
   isNotNull,
   isNull
 } from 'drizzle-orm';
+import { Loaders } from './loaders';
 
 const filterAnime = (
   args: AnimeArgs
@@ -809,16 +784,8 @@ export const resolvers = {
 
       const [connections, totalResult] = await Promise.all([
         db
-          .select({
-            edge: animeToCharacter,
-            character: animeCharacter,
-            characterName: animeCharacterName,
-            characterImage: animeCharacterImage
-          })
+          .select()
           .from(animeToCharacter)
-          .innerJoin(animeCharacter, eq(animeToCharacter.character_id, animeCharacter.id))
-          .leftJoin(animeCharacterName, eq(animeCharacter.id, animeCharacterName.character_id))
-          .leftJoin(animeCharacterImage, eq(animeCharacter.id, animeCharacterImage.character_id))
           .where(eq(animeToCharacter.anime_id, parent_id))
           .orderBy(asc(animeToCharacter.role), asc(animeToCharacter.character_id))
           .limit(per_page)
@@ -828,41 +795,10 @@ export const resolvers = {
 
       const total = totalResult[0]?.count || 0;
 
-      const connectionsWithVoiceActors = await Promise.all(
-        connections.map(async (e) => {
-          const voiceActorResults = await db
-            .select({
-              voiceActor: animeVoiceActor,
-              voiceName: animeVoiceName,
-              voiceImage: animeVoiceImage
-            })
-            .from(characterToVoiceActor)
-            .innerJoin(animeVoiceActor, eq(characterToVoiceActor.B, animeVoiceActor.id))
-            .leftJoin(animeVoiceName, eq(animeVoiceActor.id, animeVoiceName.voice_actor_id))
-            .leftJoin(animeVoiceImage, eq(animeVoiceActor.id, animeVoiceImage.voice_actor_id))
-            .where(eq(characterToVoiceActor.A, e.edge.id))
-            .orderBy(asc(animeVoiceActor.language));
-
-          return {
-            ...e.edge,
-            character: {
-              ...e.character,
-              name: e.characterName,
-              image: e.characterImage
-            },
-            voice_actors: voiceActorResults.map((v) => ({
-              ...v.voiceActor,
-              name: v.voiceName,
-              image: v.voiceImage
-            }))
-          };
-        })
-      );
-
       const last_page = Math.ceil(total / per_page);
 
       return {
-        connections: connectionsWithVoiceActors,
+        connections,
         page_info: { total, per_page, current_page: page, last_page, has_next_page: page < last_page }
       };
     },
@@ -885,343 +821,148 @@ export const resolvers = {
   },
 
   Anime: {
-    poster: async (parent: any) => {
-      return await db.query.animePoster.findFirst({ where: { anime_id: parent.id } });
+    poster: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.poster.load(parent.id);
     },
 
-    title: async (parent: any) => {
-      return await db.query.animeTitle.findFirst({ where: { anime_id: parent.id } });
+    title: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.title.load(parent.id);
     },
 
-    start_date: async (parent: any) => {
-      return await db.query.animeStartDate.findFirst({ where: { anime_id: parent.id } });
+    start_date: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.startDate.load(parent.id);
     },
 
-    end_date: async (parent: any) => {
-      return await db.query.animeEndDate.findFirst({ where: { anime_id: parent.id } });
+    end_date: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.endDate.load(parent.id);
     },
 
-    genres: async (parent: any) => {
-      const result = await db
-        .select({ genre: animeGenre })
-        .from(animeToGenre)
-        .innerJoin(animeGenre, eq(animeToGenre.B, animeGenre.id))
-        .where(eq(animeToGenre.A, parent.id))
-        .orderBy(asc(animeGenre.name));
-
-      return result.map((r) => r.genre);
+    genres: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.genres.load(parent.id);
     },
 
-    airing_schedule: async (parent: any) => {
-      const result = await db
-        .select({ schedule: animeAiringSchedule })
-        .from(animeToAiringSchedule)
-        .innerJoin(animeAiringSchedule, eq(animeToAiringSchedule.B, animeAiringSchedule.id))
-        .where(eq(animeToAiringSchedule.A, parent.id))
-        .orderBy(asc(animeAiringSchedule.episode));
-
-      return result.map((r) => r.schedule);
+    airing_schedule: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.airingSchedule.load(parent.id);
     },
 
-    characters: async (parent: any) => {
-      const connections = await db
-        .select({
-          edge: animeToCharacter,
-          character: animeCharacter,
-          characterName: animeCharacterName,
-          characterImage: animeCharacterImage
-        })
-        .from(animeToCharacter)
-        .innerJoin(animeCharacter, eq(animeToCharacter.character_id, animeCharacter.id))
-        .leftJoin(animeCharacterName, eq(animeCharacter.id, animeCharacterName.character_id))
-        .leftJoin(animeCharacterImage, eq(animeCharacter.id, animeCharacterImage.character_id))
-        .where(eq(animeToCharacter.anime_id, parent.id))
-        .orderBy(asc(animeToCharacter.role), asc(animeToCharacter.character_id));
-
-      const connectionsWithVoiceActors = await Promise.all(
-        connections.map(async (e) => {
-          const voiceActorResults = await db
-            .select({
-              voiceActor: animeVoiceActor,
-              voiceName: animeVoiceName,
-              voiceImage: animeVoiceImage
-            })
-            .from(characterToVoiceActor)
-            .innerJoin(animeVoiceActor, eq(characterToVoiceActor.B, animeVoiceActor.id))
-            .leftJoin(animeVoiceName, eq(animeVoiceActor.id, animeVoiceName.voice_actor_id))
-            .leftJoin(animeVoiceImage, eq(animeVoiceActor.id, animeVoiceImage.voice_actor_id))
-            .where(eq(characterToVoiceActor.A, e.edge.id))
-            .orderBy(asc(animeVoiceActor.language));
-
-          return {
-            ...e.edge,
-            character: {
-              ...e.character,
-              name: e.characterName,
-              image: e.characterImage
-            },
-            voice_actors: voiceActorResults.map((v) => ({
-              ...v.voiceActor,
-              name: v.voiceName,
-              image: v.voiceImage
-            }))
-          };
-        })
-      );
-
-      return connectionsWithVoiceActors;
+    characters: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.characterConnections.load(parent.id);
     },
 
-    studios: async (parent: any, args: { only_main?: boolean }) => {
-      const conditions = [eq(animeToStudio.anime_id, parent.id)];
-      if (args.only_main) conditions.push(eq(animeToStudio.is_main, true));
-
-      const result = await db
-        .select({ edge: animeToStudio, studio: animeStudio })
-        .from(animeToStudio)
-        .innerJoin(animeStudio, eq(animeToStudio.studio_id, animeStudio.id))
-        .where(and(...conditions))
-        .orderBy(desc(animeToStudio.is_main), asc(animeStudio.name));
-
-      return result.map((r) => ({ ...r.edge, studio: r.studio }));
+    studios: async (parent: any, args: { only_main?: boolean }, { loaders }: { loaders: Loaders }) => {
+      return loaders.studioConnections
+        .load(parent.id)
+        .then((s) => (args.only_main ? s.filter((s: any) => s.is_main) : s));
     },
 
-    tags: async (parent: any) => {
-      const result = await db
-        .select({ edge: animeToTag, tag: animeTag })
-        .from(animeToTag)
-        .innerJoin(animeTag, eq(animeToTag.tag_id, animeTag.id))
-        .where(eq(animeToTag.anime_id, parent.id))
-        .orderBy(desc(animeToTag.rank), asc(animeTag.name));
-
-      return result.map((r) => ({ ...r.edge, tag: r.tag }));
+    tags: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.tagConnections.load(parent.id);
     },
 
-    score_distribution: async (parent: any) => {
-      return await db
-        .select()
-        .from(animeScoreDistribution)
-        .where(eq(animeScoreDistribution.anime_id, parent.id))
-        .orderBy(asc(animeScoreDistribution.score));
+    score_distribution: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.scoreDistribution.load(parent.id);
     },
 
-    status_distribution: async (parent: any) => {
-      return await db
-        .select()
-        .from(animeStatusDistribution)
-        .where(eq(animeStatusDistribution.anime_id, parent.id))
-        .orderBy(asc(animeStatusDistribution.status));
+    status_distribution: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.statusDistribution.load(parent.id);
     },
 
-    links: async (parent: any, args: LinkArgs) => {
-      const { type } = args;
-      const conditions = [eq(animeToLink.A, parent.id)];
-
-      if (type) conditions.push(eq(animeLink.type, type));
-
-      const result = await db
-        .select({ link: animeLink })
-        .from(animeToLink)
-        .innerJoin(animeLink, eq(animeToLink.B, animeLink.id))
-        .where(and(...conditions))
-        .orderBy(asc(animeLink.label));
-
-      return result.map((r) => r.link);
+    links: async (parent: any, args: LinkArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.links.load(parent.id).then((ll) => (args.type ? ll.filter((l) => l.type === args.type) : ll));
     },
 
-    other_titles: async (parent: any, args: SourceArgs) => {
-      const { source } = args;
-      const conditions = [eq(animeToOtherTitle.A, parent.id)];
-      if (source) conditions.push(eq(animeOtherTitle.source, source));
-
-      const result = await db
-        .select({ title: animeOtherTitle })
-        .from(animeToOtherTitle)
-        .innerJoin(animeOtherTitle, eq(animeToOtherTitle.B, animeOtherTitle.id))
-        .where(and(...conditions))
-        .orderBy(asc(animeOtherTitle.source), asc(animeOtherTitle.language));
-
-      return result.map((r) => r.title);
+    other_titles: async (parent: any, args: SourceArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.otherTitles
+        .load(parent.id)
+        .then((tl) => (args.source ? tl.filter((t) => t.source === args.source) : tl));
     },
 
-    other_descriptions: async (parent: any, args: SourceArgs) => {
-      const { source } = args;
-      const conditions = [eq(animeToOtherDescription.A, parent.id)];
-      if (source) conditions.push(eq(animeOtherDescription.source, source));
-
-      const result = await db
-        .select({ description: animeOtherDescription })
-        .from(animeToOtherDescription)
-        .innerJoin(animeOtherDescription, eq(animeToOtherDescription.B, animeOtherDescription.id))
-        .where(and(...conditions))
-        .orderBy(asc(animeOtherDescription.source), asc(animeOtherDescription.language));
-
-      return result.map((r) => r.description);
+    other_descriptions: async (parent: any, args: SourceArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.otherDescriptions
+        .load(parent.id)
+        .then((dl) => (args.source ? dl.filter((d) => d.source === args.source) : dl));
     },
 
-    images: async (parent: any, args: SourceArgs) => {
-      const { source } = args;
-      const conditions = [eq(animeToImage.A, parent.id)];
-      if (source) conditions.push(eq(animeImage.source, source));
-
-      const result = await db
-        .select({ image: animeImage })
-        .from(animeToImage)
-        .innerJoin(animeImage, eq(animeToImage.B, animeImage.id))
-        .where(and(...conditions))
-        .orderBy(asc(animeImage.type), asc(animeImage.source));
-
-      return result.map((r) => r.image);
+    images: async (parent: any, args: SourceArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.images
+        .load(parent.id)
+        .then((il) => (args.source ? il.filter((i) => i.source === args.source) : il));
     },
 
-    videos: async (parent: any, args: SourceArgs) => {
-      const { source } = args;
-      const conditions = [eq(animeToVideo.A, parent.id)];
-      if (source) conditions.push(eq(animeVideo.source, source));
-
-      const result = await db
-        .select({ video: animeVideo })
-        .from(animeToVideo)
-        .innerJoin(animeVideo, eq(animeToVideo.B, animeVideo.id))
-        .where(and(...conditions))
-        .orderBy(asc(animeVideo.type), asc(animeVideo.title));
-
-      return result.map((r) => r.video);
+    videos: async (parent: any, args: SourceArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.videos
+        .load(parent.id)
+        .then((vl) => (args.source ? vl.filter((v) => v.source === args.source) : vl));
     },
 
-    screenshots: async (parent: any, args: SourceArgs) => {
-      const { source } = args;
-      const conditions = [eq(animeToScreenshot.A, parent.id)];
-      if (source) conditions.push(eq(animeScreenshot.source, source));
-
-      const result = await db
-        .select({ screenshot: animeScreenshot })
-        .from(animeToScreenshot)
-        .innerJoin(animeScreenshot, eq(animeToScreenshot.B, animeScreenshot.id))
-        .where(and(...conditions))
-        .orderBy(asc(animeScreenshot.order));
-
-      return result.map((r) => r.screenshot);
+    screenshots: async (parent: any, args: SourceArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.screenshots
+        .load(parent.id)
+        .then((sl) => (args.source ? sl.filter((s) => s.source === args.source) : sl));
     },
 
-    artworks: async (parent: any, args: ArtworksArgs) => {
-      const { iso_639_1, source } = args;
-      const conditions = [eq(animeToArtwork.A, parent.id)];
+    artworks: async (parent: any, args: ArtworksArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.artworks.load(parent.id).then((al) => {
+        let filtered = al;
 
-      if (iso_639_1) conditions.push(eq(animeArtwork.iso_639_1, iso_639_1));
-      if (source) conditions.push(eq(animeArtwork.source, source));
+        if (args.iso_639_1) filtered.filter((a) => a.iso_639_1 === args.iso_639_1);
 
-      const result = await db
-        .select({ artwork: animeArtwork })
-        .from(animeToArtwork)
-        .innerJoin(animeArtwork, eq(animeToArtwork.B, animeArtwork.id))
-        .where(and(...conditions))
-        .orderBy(asc(animeArtwork.type), asc(animeArtwork.iso_639_1));
+        if (args.source) filtered.filter((a) => a.source === args.source);
 
-      return result.map((r) => r.artwork);
-    },
-
-    chronology: async (parent: any) => {
-      const entries = await db.select().from(animeChronology).where(eq(animeChronology.anime_id, parent.id));
-
-      const ids = entries.map((c) => c.related_id);
-      if (!ids.length) return [];
-
-      return (
-        await db
-          .select()
-          .from(anime)
-          .innerJoin(animeChronology, eq(animeChronology.related_id, anime.id_mal))
-          .where(inArray(anime.id_mal, ids))
-          .orderBy(asc(animeChronology.order))
-      ).map((r) => r.anime);
-    },
-
-    recommendations: async (parent: any) => {
-      const entries = await db
-        .select()
-        .from(animeRecommendation)
-        .where(eq(animeRecommendation.anime_id, parent.id))
-        .orderBy(asc(animeRecommendation.order));
-
-      const ids = entries.map((c) => c.related_id);
-      if (!ids.length) return [];
-
-      return (
-        await db
-          .select()
-          .from(anime)
-          .innerJoin(animeRecommendation, eq(animeRecommendation.related_id, anime.id))
-          .where(inArray(anime.id, ids))
-          .orderBy(asc(animeRecommendation.order))
-      ).map((r) => r.anime);
-    },
-
-    episodes: async (parent: any) => {
-      const [providerEpisodes, tmdbEpisodes] = await Promise.all([
-        Crysoline.episodes(parent.id).catch(() => []),
-        TmdbSeasons.getEpisodes(parent.id).catch(() => [])
-      ]);
-
-      const providerMap = new Map(providerEpisodes.filter((ep) => ep.number != null).map((ep) => [ep.number, ep]));
-
-      const mergeEpisode = (tmdbEp: MergedEpisode): MergedEpisode => {
-        const providerEp = providerMap.get(tmdbEp.number);
-        providerMap.delete(tmdbEp.number);
-
-        return {
-          number: tmdbEp.number,
-          title: tmdbEp.title ?? providerEp?.title ?? null,
-          overview: tmdbEp.overview ?? providerEp?.description ?? null,
-          image: tmdbEp.image ?? providerEp?.image ?? null,
-          runtime: tmdbEp.runtime ?? null,
-          air_date: tmdbEp.air_date ?? null,
-          is_filler: providerEp?.is_filler ?? false,
-          providers: providerEp?.providers ?? []
-        };
-      };
-
-      const fromProvider = (ep: Episode): MergedEpisode => ({
-        number: ep.number!,
-        title: ep.title ?? null,
-        overview: ep.description ?? null,
-        image: ep.image ?? null,
-        runtime: null,
-        air_date: null,
-        is_filler: ep.is_filler ?? false,
-        providers: ep.providers
+        return filtered;
       });
+    },
 
-      const merged = [
-        ...tmdbEpisodes.map(formatEpisodeData).map(mergeEpisode),
-        ...Array.from(providerMap.values()).map(fromProvider)
-      ];
+    chronology: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.chronology.load(parent.id);
+    },
 
-      return merged.sort((a, b) => a.number - b.number);
+    recommendations: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.recommendations.load(parent.id);
+    },
+
+    episodes: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.episodes.load(parent.id);
     }
   },
 
   CharacterConnection: {
-    character: (parent: any) => parent.character,
-    voice_actors: (parent: any) => parent.voice_actors
+    character: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.character.load(parent.character_id);
+    },
+    voice_actors: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.voiceActors.load(parent.id);
+    }
   },
 
   StudioConnection: {
-    studio: (parent: any) => parent.studio
+    studio: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.studio.load(parent.studio_id);
+    }
   },
 
   TagConnection: {
-    tag: (parent: any) => parent.tag
+    tag: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.tag.load(parent.tag_id);
+    }
   },
 
   AnimeCharacter: {
-    name: (parent: any) => parent.name || null,
-    image: (parent: any) => parent.image || null
+    name: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.characterName.load(parent.id);
+    },
+    image: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.characterImage.load(parent.id);
+    }
   },
 
   VoiceActor: {
-    name: (parent: any) => parent.name || null,
-    image: (parent: any) => parent.image || null
+    name: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.voiceName.load(parent.id);
+    },
+    image: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.voiceImage.load(parent.id);
+    }
   },
 
   Episode: {
