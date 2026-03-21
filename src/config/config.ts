@@ -32,6 +32,9 @@ class ConfigModule {
     parseNumber(process.env.ANIME_POPULARITY_THRESHOLD) ??
     1500;
 
+  readonly anime_indexer_default_upcoming_popularity_threshold =
+    parseNumber(process.env.ANIME_INDEXER_DEFAULT_UPCOMING_POPULARITY_THRESHOLD) ?? 1500;
+
   readonly anime_indexer_default_delay = parseNumber(process.env.ANIME_INDEXER_DEFAULT_DELAY) ?? 5;
 
   // API Base URLs

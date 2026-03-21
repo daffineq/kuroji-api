@@ -126,14 +126,17 @@ class AnimeIndexerModule extends Module {
     await this.index({ status: 'RELEASING' });
   }
 
-  @Scheduled(Schedule.weeklyOn(0))
+  @Scheduled(Schedule.every12Hours())
   async scheduleIndexUpcoming() {
     if (!Config.anime_indexer_update_enabled) {
       logger.log('Anime indexer updates disabled. Skipping scheduled upcoming indexing.');
       return;
     }
 
-    await this.index({ status: 'NOT_YET_RELEASED' });
+    await this.index({
+      status: 'NOT_YET_RELEASED',
+      threshold: Config.anime_indexer_default_upcoming_popularity_threshold
+    });
   }
 
   public async calculateEstimatedTime(options: {
