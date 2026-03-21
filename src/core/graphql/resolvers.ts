@@ -6,8 +6,10 @@ import {
   ChronologyArgs,
   EpisodeArgs,
   formatEpisodeData,
+  LinkArgs,
   MergedEpisode,
   RecommendationArgs,
+  SourceArgs,
   SourcesArgs
 } from './types';
 import {
@@ -802,6 +804,70 @@ export const resolvers = {
       return getAnimePage(args);
     },
 
+    characters: async (_: any, args: CharacterArgs) => {
+      const { page = 1, per_page = 25, parent_id } = args;
+      const skip = (page - 1) * per_page;
+
+      const [connections, totalResult] = await Promise.all([
+        db
+          .select({
+            edge: animeToCharacter,
+            character: animeCharacter,
+            characterName: animeCharacterName,
+            characterImage: animeCharacterImage
+          })
+          .from(animeToCharacter)
+          .innerJoin(animeCharacter, eq(animeToCharacter.character_id, animeCharacter.id))
+          .leftJoin(animeCharacterName, eq(animeCharacter.id, animeCharacterName.character_id))
+          .leftJoin(animeCharacterImage, eq(animeCharacter.id, animeCharacterImage.character_id))
+          .where(eq(animeToCharacter.anime_id, parent_id))
+          .orderBy(asc(animeToCharacter.role), asc(animeToCharacter.character_id))
+          .limit(per_page)
+          .offset(skip),
+        db.select({ count: count() }).from(animeToCharacter).where(eq(animeToCharacter.anime_id, parent_id))
+      ]);
+
+      const total = totalResult[0]?.count || 0;
+
+      const connectionsWithVoiceActors = await Promise.all(
+        connections.map(async (e) => {
+          const voiceActorResults = await db
+            .select({
+              voiceActor: animeVoiceActor,
+              voiceName: animeVoiceName,
+              voiceImage: animeVoiceImage
+            })
+            .from(characterToVoiceActor)
+            .innerJoin(animeVoiceActor, eq(characterToVoiceActor.B, animeVoiceActor.id))
+            .leftJoin(animeVoiceName, eq(animeVoiceActor.id, animeVoiceName.voice_actor_id))
+            .leftJoin(animeVoiceImage, eq(animeVoiceActor.id, animeVoiceImage.voice_actor_id))
+            .where(eq(characterToVoiceActor.A, e.edge.id))
+            .orderBy(asc(animeVoiceActor.language));
+
+          return {
+            ...e.edge,
+            character: {
+              ...e.character,
+              name: e.characterName,
+              image: e.characterImage
+            },
+            voice_actors: voiceActorResults.map((v) => ({
+              ...v.voiceActor,
+              name: v.voiceName,
+              image: v.voiceImage
+            }))
+          };
+        })
+      );
+
+      const last_page = Math.ceil(total / per_page);
+
+      return {
+        connections: connectionsWithVoiceActors,
+        page_info: { total, per_page, current_page: page, last_page, has_next_page: page < last_page }
+      };
+    },
+
     sources: async (_: any, args: SourcesArgs) => {
       const sources = await Crysoline.sources(args.id, args.ep_id);
 
@@ -858,33 +924,23 @@ export const resolvers = {
       return result.map((r) => r.schedule);
     },
 
-    characters: async (parent: any, args: CharacterArgs) => {
-      const { page = 1, per_page = 25 } = args;
-      const skip = (page - 1) * per_page;
+    characters: async (parent: any) => {
+      const connections = await db
+        .select({
+          edge: animeToCharacter,
+          character: animeCharacter,
+          characterName: animeCharacterName,
+          characterImage: animeCharacterImage
+        })
+        .from(animeToCharacter)
+        .innerJoin(animeCharacter, eq(animeToCharacter.character_id, animeCharacter.id))
+        .leftJoin(animeCharacterName, eq(animeCharacter.id, animeCharacterName.character_id))
+        .leftJoin(animeCharacterImage, eq(animeCharacter.id, animeCharacterImage.character_id))
+        .where(eq(animeToCharacter.anime_id, parent.id))
+        .orderBy(asc(animeToCharacter.role), asc(animeToCharacter.character_id));
 
-      const [edges, totalResult] = await Promise.all([
-        db
-          .select({
-            edge: animeToCharacter,
-            character: animeCharacter,
-            characterName: animeCharacterName,
-            characterImage: animeCharacterImage
-          })
-          .from(animeToCharacter)
-          .innerJoin(animeCharacter, eq(animeToCharacter.character_id, animeCharacter.id))
-          .leftJoin(animeCharacterName, eq(animeCharacter.id, animeCharacterName.character_id))
-          .leftJoin(animeCharacterImage, eq(animeCharacter.id, animeCharacterImage.character_id))
-          .where(eq(animeToCharacter.anime_id, parent.id))
-          .orderBy(asc(animeToCharacter.role), asc(animeToCharacter.character_id))
-          .limit(per_page)
-          .offset(skip),
-        db.select({ count: count() }).from(animeToCharacter).where(eq(animeToCharacter.anime_id, parent.id))
-      ]);
-
-      const total = totalResult[0]?.count || 0;
-
-      const edgesWithVoiceActors = await Promise.all(
-        edges.map(async (e) => {
+      const connectionsWithVoiceActors = await Promise.all(
+        connections.map(async (e) => {
           const voiceActorResults = await db
             .select({
               voiceActor: animeVoiceActor,
@@ -914,12 +970,7 @@ export const resolvers = {
         })
       );
 
-      const last_page = Math.ceil(total / per_page);
-
-      return {
-        connections: edgesWithVoiceActors,
-        page_info: { total, per_page, current_page: page, last_page, has_next_page: page < last_page }
-      };
+      return connectionsWithVoiceActors;
     },
 
     studios: async (parent: any, args: { only_main?: boolean }) => {
@@ -947,17 +998,6 @@ export const resolvers = {
       return result.map((r) => ({ ...r.edge, tag: r.tag }));
     },
 
-    links: async (parent: any) => {
-      const result = await db
-        .select({ link: animeLink })
-        .from(animeToLink)
-        .innerJoin(animeLink, eq(animeToLink.B, animeLink.id))
-        .where(eq(animeToLink.A, parent.id))
-        .orderBy(asc(animeLink.label));
-
-      return result.map((r) => r.link);
-    },
-
     score_distribution: async (parent: any) => {
       return await db
         .select()
@@ -974,78 +1014,111 @@ export const resolvers = {
         .orderBy(asc(animeStatusDistribution.status));
     },
 
-    other_titles: async (parent: any) => {
+    links: async (parent: any, args: LinkArgs) => {
+      const { type } = args;
+      const conditions = [eq(animeToLink.A, parent.id)];
+
+      if (type) conditions.push(eq(animeLink.type, type));
+
+      const result = await db
+        .select({ link: animeLink })
+        .from(animeToLink)
+        .innerJoin(animeLink, eq(animeToLink.B, animeLink.id))
+        .where(and(...conditions))
+        .orderBy(asc(animeLink.label));
+
+      return result.map((r) => r.link);
+    },
+
+    other_titles: async (parent: any, args: SourceArgs) => {
+      const { source } = args;
+      const conditions = [eq(animeToOtherTitle.A, parent.id)];
+      if (source) conditions.push(eq(animeOtherTitle.source, source));
+
       const result = await db
         .select({ title: animeOtherTitle })
         .from(animeToOtherTitle)
         .innerJoin(animeOtherTitle, eq(animeToOtherTitle.B, animeOtherTitle.id))
-        .where(eq(animeToOtherTitle.A, parent.id))
+        .where(and(...conditions))
         .orderBy(asc(animeOtherTitle.source), asc(animeOtherTitle.language));
 
       return result.map((r) => r.title);
     },
 
-    other_descriptions: async (parent: any) => {
+    other_descriptions: async (parent: any, args: SourceArgs) => {
+      const { source } = args;
+      const conditions = [eq(animeToOtherDescription.A, parent.id)];
+      if (source) conditions.push(eq(animeOtherDescription.source, source));
+
       const result = await db
         .select({ description: animeOtherDescription })
         .from(animeToOtherDescription)
         .innerJoin(animeOtherDescription, eq(animeToOtherDescription.B, animeOtherDescription.id))
-        .where(eq(animeToOtherDescription.A, parent.id))
+        .where(and(...conditions))
         .orderBy(asc(animeOtherDescription.source), asc(animeOtherDescription.language));
 
       return result.map((r) => r.description);
     },
 
-    images: async (parent: any) => {
+    images: async (parent: any, args: SourceArgs) => {
+      const { source } = args;
+      const conditions = [eq(animeToImage.A, parent.id)];
+      if (source) conditions.push(eq(animeImage.source, source));
+
       const result = await db
         .select({ image: animeImage })
         .from(animeToImage)
         .innerJoin(animeImage, eq(animeToImage.B, animeImage.id))
-        .where(eq(animeToImage.A, parent.id))
+        .where(and(...conditions))
         .orderBy(asc(animeImage.type), asc(animeImage.source));
 
       return result.map((r) => r.image);
     },
 
-    videos: async (parent: any) => {
+    videos: async (parent: any, args: SourceArgs) => {
+      const { source } = args;
+      const conditions = [eq(animeToVideo.A, parent.id)];
+      if (source) conditions.push(eq(animeVideo.source, source));
+
       const result = await db
         .select({ video: animeVideo })
         .from(animeToVideo)
         .innerJoin(animeVideo, eq(animeToVideo.B, animeVideo.id))
-        .where(eq(animeToVideo.A, parent.id))
+        .where(and(...conditions))
         .orderBy(asc(animeVideo.type), asc(animeVideo.title));
 
       return result.map((r) => r.video);
     },
 
-    screenshots: async (parent: any) => {
+    screenshots: async (parent: any, args: SourceArgs) => {
+      const { source } = args;
+      const conditions = [eq(animeToScreenshot.A, parent.id)];
+      if (source) conditions.push(eq(animeScreenshot.source, source));
+
       const result = await db
         .select({ screenshot: animeScreenshot })
         .from(animeToScreenshot)
         .innerJoin(animeScreenshot, eq(animeToScreenshot.B, animeScreenshot.id))
-        .where(eq(animeToScreenshot.A, parent.id))
+        .where(and(...conditions))
         .orderBy(asc(animeScreenshot.order));
 
       return result.map((r) => r.screenshot);
     },
 
     artworks: async (parent: any, args: ArtworksArgs) => {
-      const { page, per_page, iso_639_1 } = args;
-
+      const { iso_639_1, source } = args;
       const conditions = [eq(animeToArtwork.A, parent.id)];
-      if (iso_639_1) conditions.push(eq(animeArtwork.iso_639_1, iso_639_1));
 
-      const query = db
+      if (iso_639_1) conditions.push(eq(animeArtwork.iso_639_1, iso_639_1));
+      if (source) conditions.push(eq(animeArtwork.source, source));
+
+      const result = await db
         .select({ artwork: animeArtwork })
         .from(animeToArtwork)
         .innerJoin(animeArtwork, eq(animeToArtwork.B, animeArtwork.id))
         .where(and(...conditions))
-        .orderBy(asc(animeArtwork.type), asc(animeArtwork.iso_639_1))
-        .$dynamic();
+        .orderBy(asc(animeArtwork.type), asc(animeArtwork.iso_639_1));
 
-      if (page && per_page) query.limit(per_page).offset((page - 1) * per_page);
-
-      const result = await query;
       return result.map((r) => r.artwork);
     },
 

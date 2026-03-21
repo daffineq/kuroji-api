@@ -122,7 +122,7 @@ type Query {
     page: Int = 1
     per_page: Int = 20
     search: String
-    parent_id: Int
+    parent_id: Int!
     id: Int
     id_in: [Int!]
     id_not: Int
@@ -174,6 +174,7 @@ type Query {
     franchise: String
     sort: [AnimeSort!]
   ): AnimePage!
+  characters(page: Int, per_page: Int): CharacterPage!
   sources(id: Int, ep_id: String): Source
 }
 
@@ -365,18 +366,18 @@ type Anime {
   nsfw: Boolean
   genres: [AnimeGenre!]!
   airing_schedule: [AiringSchedule!]!
-  characters(page: Int, per_page: Int): CharacterPage!
+  characters: [CharacterConnection!]!
   studios(only_main: Boolean): [StudioConnection!]!
   tags: [TagConnection!]!
-  links: [AnimeLink!]!
+  links(type: String): [AnimeLink!]!
   score_distribution: [ScoreDistribution!]!
   status_distribution: [StatusDistribution!]!
-  other_titles: [OtherTitle!]!
-  other_descriptions: [OtherDescription!]!
-  images: [AnimeImage!]!
-  videos: [AnimeVideo!]!
-  screenshots: [AnimeScreenshot!]!
-  artworks(iso_639_1: String): [AnimeArtwork!]!
+  other_titles(source: String): [OtherTitle!]!
+  other_descriptions(source: String): [OtherDescription!]!
+  images(source: String): [AnimeImage!]!
+  videos(source: String): [AnimeVideo!]!
+  screenshots(source: String): [AnimeScreenshot!]!
+  artworks(iso_639_1: String, source: String): [AnimeArtwork!]!
   chronology: [Anime!]!
   recommendations: [Anime!]!
   episodes: [Episode!]!
@@ -524,6 +525,7 @@ type AnimeVideo {
   thumbnail: String
   artist: String
   type: String
+  source: String
 }
 
 type AnimeScreenshot {

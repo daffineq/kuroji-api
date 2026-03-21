@@ -152,6 +152,16 @@ app.get('/', () => file('public/html/index.html'), {
   }
 });
 
+app.get('/info', () => file('public/html/info.html'), {
+  query: t.Object({
+    id: t.Number()
+  }),
+  detail: {
+    summary: 'Info Page',
+    description: 'The info page of the API'
+  }
+});
+
 app.get(
   '/logs',
   ({ query }) => {

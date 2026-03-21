@@ -8,34 +8,10 @@
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="/public/html/styles.css" />
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
     <style>
-      :root {
-        --main-color: #7b5cf0;
-        --primary-bg: #0f0f0f;
-        --secondary-bg: #1a1a1a;
-        --input-bg: #2a2a2a;
-        --input-border: #1a1a1a;
-
-        --primary-color: #e0e0e0;
-        --secondary-color: #555;
-        --text-muted: #aaa;
-        --text-dim: #888;
-        --text-dark: #444;
-        --text-link: #666;
-        --white: #ffffff;
-        --off-white: #ccc;
-
-        --primary-border: #2e2e2e;
-        --secondary-border: #2a2a2a;
-
-        --code-k: #c792ea;
-        --code-f: #82aaff;
-        --code-s: #c3e88d;
-        --code-p: #89ddff;
-      }
-
       * {
         box-sizing: border-box;
         margin: 0;
@@ -162,6 +138,8 @@
         border-radius: 16px;
         padding: 0.85rem 0.8rem;
         transition: transform 0.2s;
+        text-decoration: none;
+        color: inherit;
       }
 
       .anime-card:hover {
@@ -346,6 +324,15 @@
 
       footer a:hover {
         color: var(--text-muted);
+      }
+
+      code {
+        font-family: 'JetBrains Mono', monospace;
+        background: var(--input-bg);
+        border-radius: 4px;
+        padding: 0.1rem 0.35rem;
+        font-size: 0.82rem;
+        color: var(--code-p);
       }
 
       @media (max-width: 600px) {
@@ -581,10 +568,10 @@
           const newContent = document.createElement('div');
           newContent.innerHTML = `<div class="anime-section">${data.data.animes.data
             .map((a) => {
-              return `<div class="anime-card" data-id=${a.id}>
+              return `<a class="anime-card" data-id=${a.id} href=${`/info?id=${a.id}`}>
                   <img src=${a.poster.large} class="anime-poster" />
                   <span class="anime-title">${a.title.romaji}</span>
-                  </div>`;
+                  </a>`;
             })
             .join('')}</div>`;
 

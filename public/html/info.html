@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kuroji</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/public/html/styles.css" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'JetBrains Mono', monospace;
+        background: var(--primary-bg);
+        color: var(--primary-color);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem;
+      }
+
+      .container {
+        max-width: 780px;
+        width: 100%;
+        padding-top: 2rem;
+      }
+
+      .back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.72rem;
+        color: var(--text-link);
+        text-decoration: none;
+        margin-bottom: 2.5rem;
+        transition: color 0.2s;
+      }
+      .back:hover {
+        color: var(--text-muted);
+      }
+
+      .hero {
+        position: relative;
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 2.5rem;
+        border: 1px solid var(--primary-border);
+      }
+      .hero-banner {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        display: block;
+      }
+      .hero-banner-placeholder {
+        width: 100%;
+        height: 220px;
+        background: linear-gradient(135deg, #1a1a28 0%, #0d0d1a 100%);
+      }
+      .hero-body {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.25rem 1.5rem;
+        background: var(--secondary-bg);
+        align-items: flex-start;
+      }
+      .poster {
+        width: 110px;
+        flex-shrink: 0;
+        border-radius: 10px;
+        aspect-ratio: 2/2.9;
+        object-fit: cover;
+        margin-top: -4.5rem;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      }
+      .poster-placeholder {
+        width: 110px;
+        flex-shrink: 0;
+        border-radius: 10px;
+        aspect-ratio: 2/2.9;
+        background: var(--input-bg);
+        border: 1px solid var(--primary-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-dark);
+        font-size: 0.7rem;
+        margin-top: -4.5rem;
+        position: relative;
+        z-index: 2;
+      }
+      .hero-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .hero-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--white);
+        line-height: 1.3;
+        margin-bottom: 0.25rem;
+        word-break: break-word;
+      }
+      .hero-native {
+        font-size: 0.78rem;
+        color: var(--text-dim);
+        margin-bottom: 0.75rem;
+      }
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-bottom: 0.75rem;
+      }
+      .pill {
+        font-size: 0.62rem;
+        font-weight: 700;
+        padding: 0.15rem 0.55rem;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .pill-solid {
+        color: var(--primary-bg);
+        background: var(--main-color);
+      }
+      .pill-outline {
+        color: var(--main-color);
+        background: transparent;
+        border: 1px solid var(--main-color);
+      }
+      .pill-status {
+        background: transparent;
+        border: 1px solid currentColor;
+      }
+      .score-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+      }
+      .score-val {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--white);
+      }
+
+      .section-label {
+        font-size: 0.68rem;
+        color: var(--secondary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.65rem;
+      }
+      .section {
+        background: var(--secondary-bg);
+        border: 1px solid var(--primary-border);
+        border-radius: 8px;
+        padding: 0.85rem 1.1rem;
+        margin-bottom: 2rem;
+        font-size: 0.83rem;
+        color: var(--off-white);
+        line-height: 1.8;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.65rem;
+        margin-bottom: 2rem;
+      }
+      .stat-card {
+        background: var(--secondary-bg);
+        border: 1px solid var(--primary-border);
+        border-radius: 8px;
+        padding: 0.75rem 0.9rem;
+      }
+      .stat-card-label {
+        font-size: 0.58rem;
+        color: var(--secondary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.3rem;
+      }
+      .stat-card-value {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--white);
+      }
+
+      .row-list {
+        background: var(--secondary-bg);
+        border: 1px solid var(--primary-border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+      }
+      .row-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.65rem 1.1rem;
+        border-bottom: 1px solid var(--primary-border);
+        font-size: 0.8rem;
+      }
+      .row-item:last-child {
+        border-bottom: none;
+      }
+      .row-key {
+        color: var(--text-dim);
+      }
+      .row-val {
+        color: var(--off-white);
+        font-weight: 700;
+        text-align: right;
+      }
+
+      .genre-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-bottom: 2rem;
+      }
+      .genre-chip {
+        font-size: 0.7rem;
+        color: var(--code-p);
+        background: rgba(137, 221, 255, 0.06);
+        border: 1px solid rgba(137, 221, 255, 0.14);
+        border-radius: 6px;
+        padding: 0.22rem 0.55rem;
+      }
+
+      .tags-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-bottom: 2rem;
+      }
+      .tag-chip {
+        font-size: 0.68rem;
+        color: var(--code-k);
+        background: rgba(199, 146, 234, 0.07);
+        border: 1px solid rgba(199, 146, 234, 0.18);
+        border-radius: 6px;
+        padding: 0.22rem 0.55rem;
+      }
+      .tag-spoiler {
+        opacity: 0.45;
+      }
+
+      .h-scroll-wrap {
+        position: relative;
+        margin-bottom: 2rem;
+      }
+
+      .h-scroll {
+        display: flex;
+        gap: 0.75rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        scrollbar-width: thin;
+        scrollbar-color: var(--secondary-border) transparent;
+        scroll-behavior: smooth;
+      }
+      .h-scroll::-webkit-scrollbar {
+        height: 4px;
+      }
+      .h-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .h-scroll::-webkit-scrollbar-thumb {
+        background: var(--secondary-border);
+        border-radius: 2px;
+      }
+
+      .h-scroll-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-60%);
+        z-index: 10;
+        width: 32px;
+        height: 32px;
+        background: var(--secondary-bg);
+        border: 1px solid var(--secondary-border);
+        border-radius: 50%;
+        color: var(--off-white);
+        font-size: 0.75rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          opacity 0.2s,
+          background 0.2s;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .h-scroll-btn:hover {
+        background: var(--input-bg);
+      }
+      .h-scroll-btn.left {
+        left: -12px;
+      }
+      .h-scroll-btn.right {
+        right: -12px;
+      }
+      .h-scroll-btn.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .anime-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--secondary-bg);
+        border: 1px solid var(--secondary-border);
+        border-radius: 16px;
+        padding: 0.85rem 0.8rem;
+        transition: transform 0.2s;
+        text-decoration: none;
+        color: inherit;
+        flex-shrink: 0;
+        width: 150px;
+      }
+      .anime-card:hover {
+        transform: translateY(-2px);
+      }
+      .anime-poster {
+        border-radius: 12px;
+        width: 100%;
+        aspect-ratio: 2/2.9;
+        object-fit: cover;
+      }
+      .anime-poster-ph {
+        border-radius: 12px;
+        width: 100%;
+        aspect-ratio: 2/2.9;
+        background: var(--input-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-dark);
+        font-size: 0.65rem;
+      }
+      .anime-title {
+        font-size: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+      }
+
+      .screenshot {
+        flex-shrink: 0;
+        width: 240px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--primary-border);
+        aspect-ratio: 16/9;
+        cursor: zoom-in;
+      }
+      .screenshot img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .char-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--secondary-bg);
+        border: 1px solid var(--secondary-border);
+        border-radius: 10px;
+        padding: 0.65rem 0.5rem;
+        flex-shrink: 0;
+        width: 90px;
+        transition: transform 0.2s;
+      }
+      .char-card:hover {
+        transform: translateY(-2px);
+      }
+      .char-img {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--primary-border);
+      }
+      .char-img-ph {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: var(--input-bg);
+        border: 2px solid var(--primary-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-dark);
+        font-size: 0.6rem;
+      }
+      .char-name {
+        font-size: 10px;
+        text-align: center;
+        color: var(--text-dim);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        width: 100%;
+        line-height: 1.4;
+      }
+      .char-role {
+        font-size: 9px;
+        font-weight: 700;
+        padding: 0.08rem 0.35rem;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .char-role-main {
+        color: var(--primary-bg);
+        background: var(--main-color);
+      }
+      .char-role-supporting {
+        color: var(--code-s);
+        background: rgba(195, 232, 141, 0.12);
+        border: 1px solid rgba(195, 232, 141, 0.25);
+      }
+      .char-role-bg {
+        color: var(--text-dark);
+        background: var(--secondary-bg);
+        border: 1px solid var(--secondary-border);
+      }
+
+      .video-card {
+        flex-shrink: 0;
+        width: 220px;
+        background: var(--secondary-bg);
+        border: 1px solid var(--primary-border);
+        border-radius: 8px;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2s;
+      }
+      .video-card:hover {
+        transform: translateY(-2px);
+      }
+      .video-thumb {
+        width: 100%;
+        aspect-ratio: 16/9;
+        object-fit: cover;
+        display: block;
+        background: var(--input-bg);
+      }
+      .video-meta {
+        padding: 0.5rem 0.7rem;
+      }
+      .video-title {
+        font-size: 0.72rem;
+        color: var(--off-white);
+        font-weight: 700;
+        margin-bottom: 0.15rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .video-type {
+        font-size: 0.62rem;
+        color: var(--text-dim);
+      }
+
+      .episodes-list {
+        background: var(--secondary-bg);
+        border: 1px solid var(--primary-border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+        max-height: 360px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--secondary-border) transparent;
+      }
+      .episodes-list::-webkit-scrollbar {
+        width: 4px;
+      }
+      .episodes-list::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .episodes-list::-webkit-scrollbar-thumb {
+        background: var(--secondary-border);
+        border-radius: 2px;
+      }
+      .ep-item {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid var(--primary-border);
+        font-size: 0.8rem;
+      }
+      .ep-item:last-child {
+        border-bottom: none;
+      }
+      .ep-img {
+        width: 80px;
+        height: 45px;
+        border-radius: 6px;
+        object-fit: cover;
+        flex-shrink: 0;
+        background: var(--input-bg);
+      }
+      .ep-img-ph {
+        width: 80px;
+        height: 45px;
+        border-radius: 6px;
+        background: var(--input-bg);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-dark);
+        font-size: 0.6rem;
+      }
+      .ep-num {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--main-color);
+        flex-shrink: 0;
+        width: 2rem;
+        text-align: center;
+      }
+      .ep-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .ep-title {
+        color: var(--off-white);
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 0.15rem;
+      }
+      .ep-meta {
+        font-size: 0.65rem;
+        color: var(--text-dim);
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .ep-filler {
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: var(--code-k);
+        border: 1px solid rgba(199, 146, 234, 0.3);
+        border-radius: 4px;
+        padding: 0.05rem 0.3rem;
+      }
+
+      .links-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+      }
+      .link-btn {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        text-decoration: none;
+        border: 1px solid var(--primary-border);
+        color: var(--text-dim);
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+      }
+      .link-btn:hover {
+        border-color: var(--main-color);
+        color: var(--main-color);
+      }
+
+      .lightbox {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.92);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        cursor: zoom-out;
+      }
+      .lightbox.open {
+        display: flex;
+      }
+      .lightbox img {
+        max-width: 90vw;
+        max-height: 85vh;
+        border-radius: 8px;
+      }
+
+      .state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40vh;
+        color: var(--text-dim);
+        font-size: 0.85rem;
+      }
+
+      code {
+        font-family: 'JetBrains Mono', monospace;
+        background: var(--input-bg);
+        border-radius: 4px;
+        padding: 0.1rem 0.35rem;
+        font-size: 0.82rem;
+        color: var(--code-p);
+      }
+
+      footer {
+        margin-top: 4rem;
+        font-size: 0.72rem;
+        color: var(--text-dark);
+        text-align: center;
+      }
+      footer a {
+        color: var(--text-link);
+        text-decoration: none;
+      }
+      footer a:hover {
+        color: var(--text-muted);
+      }
+
+      @media (max-width: 600px) {
+        body {
+          padding: 1.25rem 1rem;
+        }
+        .hero-title {
+          font-size: 1rem;
+        }
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        footer {
+          margin-top: 2.5rem;
+          line-height: 1.9;
+        }
+      }
+      @media (max-width: 380px) {
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a class="back" href="/">← back</a>
+      <div id="app"><div class="state">Loading...</div></div>
+
+      <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="" />
+      </div>
+
+      <footer>
+        <a href="https://github.com/daffineq/kuroji-api" target="_blank">GitHub</a> &nbsp;·&nbsp;
+        <a href="/docs" target="_blank">Docs</a> &nbsp;·&nbsp; Send requests to <code>/graphql</code>
+      </footer>
+    </div>
+
+    <script>
+      function getId() {
+        const params = new URLSearchParams(window.location.search);
+        const id = parseInt(params.get('id'));
+        return isNaN(id) ? 21 : id;
+      }
+
+      function statusColor(status) {
+        if (!status) return '';
+        if (status === 'RELEASING') return 'color: var(--code-s)';
+        if (status === 'FINISHED') return 'color: var(--text-muted)';
+        if (status === 'NOT_YET_RELEASED') return 'color: var(--code-f)';
+        if (status === 'CANCELLED') return 'color: #e06c75';
+        if (status === 'HIATUS') return 'color: var(--code-k)';
+        return 'color: var(--text-dim)';
+      }
+
+      function fmt(val, fallback = '—') {
+        if (val === null ?? val === undefined ?? val === '') return fallback;
+        return val;
+      }
+
+      function fmtDate(d) {
+        if (!d ?? !d.year) return '—';
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const m = d.month ? months[d.month - 1] : '';
+        return [d.day, m, d.year].filter(Boolean).join(' ');
+      }
+
+      function openLightbox(src) {
+        document.getElementById('lightbox-img').src = src;
+        document.getElementById('lightbox').classList.add('open');
+      }
+      function closeLightbox() {
+        document.getElementById('lightbox').classList.remove('open');
+      }
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      function animeCard(a) {
+        const title = a.title?.english ?? a.title?.romaji ?? '—';
+        const img = a.poster?.large;
+        return `<a class="anime-card" href="/info?id=${a.id}">
+          ${
+            img
+              ? `<img class="anime-poster" src="${img}" alt="${title}" loading="lazy" />`
+              : `<div class="anime-poster-ph">no img</div>`
+          }
+          <span class="anime-title">${title}</span>
+        </a>`;
+      }
+
+      async function load() {
+        const id = getId();
+        const app = document.getElementById('app');
+
+        const query = `query Query($id: Int!) {
+          anime(id: $id) {
+            id id_mal
+            title { romaji english native }
+            poster { large }
+            description status type format source
+            season season_year
+            episodes_aired episodes_total duration
+            score popularity favorites trending
+            country is_adult hashtag
+            start_date { day month year }
+            end_date { day month year }
+            genres { name }
+            studios(only_main: true) { studio { name } }
+            tags { rank is_spoiler tag { name category } }
+            links(type: "website") { link label type }
+            images { large type source }
+            characters {
+              role
+              character { id name { full } image { large } }
+            }
+            screenshots { large order }
+            videos(source: "myanimelist") { url title thumbnail type source }
+            episodes {
+              number title overview
+              image { large }
+              runtime air_date is_filler
+            }
+            recommendations { id title { romaji english } poster { large } }
+            chronology { id title { romaji english } poster { large } }
+          }
+        }`;
+
+        try {
+          const res = await fetch('/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, variables: { id } })
+          });
+
+          const json = await res.json();
+          const a = json?.data?.anime;
+
+          if (!a) {
+            app.innerHTML = `<div class="state">No anime found for id <code>${id}</code></div>`;
+            return;
+          }
+
+          document.title = `${a.title?.romaji ?? a.title?.english ?? 'Anime'}`;
+
+          const bgImage =
+            (a.images ?? []).find((i) => i.type === 'background' && i.source === 'tmdb')?.large ??
+            (a.images ?? []).find((i) => i.type === 'background')?.large;
+
+          const pills = [a.status, a.type, a.format, a.season]
+            .filter(Boolean)
+            .map((p, i) =>
+              i === 0
+                ? `<span class="pill pill-status" style="${statusColor(a.status)}">${p}</span>`
+                : `<span class="pill pill-outline">${p}</span>`
+            )
+            .join('');
+
+          const desc = a.description ? a.description.replace(/<[^>]+>/g, '') : null;
+
+          const genreHtml = (a.genres ?? []).map((g) => `<span class="genre-chip">${g.name}</span>`).join('');
+
+          const tags = (a.tags ?? []).filter((t) => t.tag?.name);
+          const tagsHtml = tags.length
+            ? `<div class="section-label">Tags</div>
+               <div class="tags-wrap">
+                 ${tags
+                   .map(
+                     (
+                       t
+                     ) => `<span class="tag-chip${t.is_spoiler ? ' tag-spoiler' : ''}" title="${t.tag.category ?? ''}${t.is_spoiler ? ' · spoiler' : ''}">
+                   ${t.tag.name}${t.rank ? ` <span style="opacity:0.5">${t.rank}%</span>` : ''}
+                 </span>`
+                   )
+                   .join('')}
+               </div>`
+            : '';
+
+          const studios =
+            (a.studios ?? [])
+              .map((s) => s.studio?.name)
+              .filter(Boolean)
+              .join(', ') ?? '—';
+
+          // characters
+          const chars = a.characters ?? [];
+          const charsHtml = chars.length
+            ? `<div class="section-label">Characters</div>
+               <div class="h-scroll">
+                 ${chars
+                   .map((c) => {
+                     const rc =
+                       c.role === 'MAIN'
+                         ? 'char-role-main'
+                         : c.role === 'SUPPORTING'
+                           ? 'char-role-supporting'
+                           : 'char-role-bg';
+                     return `<div class="char-card">
+                     ${
+                       c.character?.image?.large
+                         ? `<img class="char-img" src="${c.character.image.large}" alt="${c.character.name?.full ?? ''}" loading="lazy" />`
+                         : `<div class="char-img-ph">?</div>`
+                     }
+                     <span class="char-name">${c.character?.name?.full ?? '—'}</span>
+                     ${c.role ? `<span class="char-role ${rc}">${c.role}</span>` : ''}
+                   </div>`;
+                   })
+                   .join('')}
+               </div>`
+            : '';
+
+          // screenshots
+          const shots = (a.screenshots ?? []).sort((x, y) => x.order - y.order);
+          const shotsHtml = shots.length
+            ? `<div class="section-label">Screenshots</div>
+               <div class="h-scroll">
+                 ${shots
+                   .map(
+                     (s) => `<div class="screenshot" onclick="openLightbox('${s.large}')">
+                   <img src="${s.large}" alt="" loading="lazy" />
+                 </div>`
+                   )
+                   .join('')}
+               </div>`
+            : '';
+
+          // videos
+          const vids = a.videos ?? [];
+          const vidsHtml = vids.length
+            ? `<div class="section-label">Videos</div>
+               <div class="h-scroll">
+                 ${vids
+                   .map(
+                     (v) => `<a class="video-card" href="${v.url}" target="_blank" rel="noopener">
+                   ${
+                     v.thumbnail
+                       ? `<img class="video-thumb" src="${v.thumbnail}" alt="" loading="lazy" />`
+                       : `<div class="video-thumb"></div>`
+                   }
+                   <div class="video-meta">
+                     <div class="video-title">${v.title ?? 'Video'}</div>
+                     <div class="video-type">${v.type ?? ''}</div>
+                   </div>
+                 </a>`
+                   )
+                   .join('')}
+               </div>`
+            : '';
+
+          // links
+          const links = a.links ?? [];
+          const linksHtml = links.length
+            ? `<div class="section-label">Links</div>
+               <div class="links-wrap">
+                 ${links.map((l) => `<a class="link-btn" href="${l.link}" target="_blank" rel="noopener">${l.label}</a>`).join('')}
+               </div>`
+            : '';
+
+          // episodes
+          const eps = a.episodes ?? [];
+          const epsHtml = eps.length
+            ? `<div class="section-label">Episodes</div>
+               <div class="episodes-list">
+                 ${eps
+                   .map(
+                     (ep) => `<div class="ep-item">
+                   ${
+                     ep.image?.large
+                       ? `<img class="ep-img" src="${ep.image.large}" alt="" loading="lazy" />`
+                       : `<div class="ep-img-ph">no img</div>`
+                   }
+                   <span class="ep-num">${ep.number}</span>
+                   <div class="ep-info">
+                     <div class="ep-title">${ep.title ?? `Episode ${ep.number}`}</div>
+                     <div class="ep-meta">
+                       ${ep.air_date ? `<span>${ep.air_date}</span>` : ''}
+                       ${ep.runtime ? `<span>${ep.runtime} min</span>` : ''}
+                       ${ep.is_filler ? `<span class="ep-filler">FILLER</span>` : ''}
+                     </div>
+                   </div>
+                 </div>`
+                   )
+                   .join('')}
+               </div>`
+            : '';
+
+          const chrono = a.chronology ?? [];
+          const chronoHtml = chrono.length
+            ? `<div class="section-label">Chronology</div>
+               <div class="h-scroll">${chrono.map(animeCard).join('')}</div>`
+            : '';
+
+          const recs = a.recommendations ?? [];
+          const recsHtml = recs.length
+            ? `<div class="section-label">Recommendations</div>
+               <div class="h-scroll">${recs.map(animeCard).join('')}</div>`
+            : '';
+
+          app.innerHTML = `
+            <div class="hero">
+              ${
+                bgImage
+                  ? `<img class="hero-banner" src="${bgImage}" alt="" />`
+                  : `<div class="hero-banner-placeholder"></div>`
+              }
+              <div class="hero-body">
+                ${
+                  a.poster?.large
+                    ? `<img class="poster" src="${a.poster.large}" alt="${a.title?.romaji ?? ''}" />`
+                    : `<div class="poster-placeholder">no img</div>`
+                }
+                <div class="hero-info">
+                  <div class="hero-title">${fmt(a.title?.english ?? a.title?.romaji)}</div>
+                  ${a.title?.native ? `<div class="hero-native">${a.title.native}</div>` : ''}
+                  <div class="pills">${pills}</div>
+                  <div class="score-row">
+                    <span class="score-val">${fmt(a.score, '?')}</span>
+                    <span>/ 100</span>
+                    ${a.is_adult ? `<span class="pill pill-solid" style="background:#c0392b;margin-left:0.4rem">18+</span>` : ''}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            ${genreHtml ? `<div class="section-label">Genres</div><div class="genre-chips">${genreHtml}</div>` : ''}
+            ${tagsHtml}
+            ${desc ? `<div class="section-label">Synopsis</div><div class="section">${desc}</div>` : ''}
+
+            <div class="section-label">Details</div>
+            <div class="stats-grid">
+              <div class="stat-card"><div class="stat-card-label">Episodes</div><div class="stat-card-value">${fmt(a.episodes_aired)}${a.episodes_total ? ` / ${a.episodes_total}` : ''}</div></div>
+              <div class="stat-card"><div class="stat-card-label">Duration</div><div class="stat-card-value">${a.duration ? a.duration + ' min' : '—'}</div></div>
+              <div class="stat-card"><div class="stat-card-label">Season Year</div><div class="stat-card-value">${fmt(a.season_year)}</div></div>
+              <div class="stat-card"><div class="stat-card-label">Popularity</div><div class="stat-card-value">${fmt(a.popularity)}</div></div>
+              <div class="stat-card"><div class="stat-card-label">Favorites</div><div class="stat-card-value">${fmt(a.favorites)}</div></div>
+              <div class="stat-card"><div class="stat-card-label">Trending</div><div class="stat-card-value">${fmt(a.trending)}</div></div>
+            </div>
+
+            <div class="section-label">Info</div>
+            <div class="row-list">
+              <div class="row-item"><span class="row-key">Studio</span><span class="row-val">${studios}</span></div>
+              <div class="row-item"><span class="row-key">Source</span><span class="row-val">${fmt(a.source)}</span></div>
+              <div class="row-item"><span class="row-key">Country</span><span class="row-val">${fmt(a.country)}</span></div>
+              <div class="row-item"><span class="row-key">Start Date</span><span class="row-val">${fmtDate(a.start_date)}</span></div>
+              <div class="row-item"><span class="row-key">End Date</span><span class="row-val">${fmtDate(a.end_date)}</span></div>
+              <div class="row-item"><span class="row-key">MAL ID</span><span class="row-val">${fmt(a.id_mal)}</span></div>
+              ${a.hashtag ? `<div class="row-item"><span class="row-key">Hashtag</span><span class="row-val">${a.hashtag}</span></div>` : ''}
+            </div>
+
+            ${charsHtml}
+            ${shotsHtml}
+            ${vidsHtml}
+            ${linksHtml}
+            ${epsHtml}
+            ${chronoHtml}
+            ${recsHtml}
+          `;
+          initScrollButtons();
+        } catch (e) {
+          app.innerHTML = `<div class="state">Error: ${e.message}</div>`;
+        }
+      }
+
+      function initScrollButtons() {
+        document.querySelectorAll('.h-scroll').forEach((scroll) => {
+          const wrap = document.createElement('div');
+          wrap.className = 'h-scroll-wrap';
+          scroll.parentNode.insertBefore(wrap, scroll);
+          wrap.appendChild(scroll);
+
+          const btnL = document.createElement('button');
+          btnL.className = 'h-scroll-btn left';
+          btnL.innerHTML = '&#8249;';
+          btnL.setAttribute('aria-label', 'Scroll left');
+
+          const btnR = document.createElement('button');
+          btnR.className = 'h-scroll-btn right';
+          btnR.innerHTML = '&#8250;';
+          btnR.setAttribute('aria-label', 'Scroll right');
+
+          wrap.appendChild(btnL);
+          wrap.appendChild(btnR);
+
+          const step = 320;
+          btnL.addEventListener('click', () => scroll.scrollBy({ left: -step, behavior: 'smooth' }));
+          btnR.addEventListener('click', () => scroll.scrollBy({ left: step, behavior: 'smooth' }));
+
+          function update() {
+            const atStart = scroll.scrollLeft <= 4;
+            const atEnd = scroll.scrollLeft + scroll.clientWidth >= scroll.scrollWidth - 4;
+            btnL.classList.toggle('visible', !atStart);
+            btnR.classList.toggle('visible', !atEnd);
+          }
+
+          scroll.addEventListener('scroll', update, { passive: true });
+          requestAnimationFrame(update);
+        });
+      }
+
+      load();
+    </script>
+  </body>
+</html>

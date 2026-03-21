@@ -57,6 +57,10 @@ export interface AnimeArgs {
   sort?: string[];
 }
 
+export interface SourceArgs {
+  source?: string;
+}
+
 export interface ChronologyArgs extends AnimeArgs {
   parent_id: number;
 }
@@ -68,6 +72,7 @@ export interface RecommendationArgs extends AnimeArgs {
 export interface CharacterArgs {
   page?: number;
   per_page?: number;
+  parent_id: number;
 }
 
 export interface EpisodeArgs {
@@ -75,15 +80,17 @@ export interface EpisodeArgs {
   number: number;
 }
 
-export interface ArtworksArgs {
-  page?: number;
-  per_page?: number;
+export interface ArtworksArgs extends SourceArgs {
   iso_639_1?: string;
 }
 
 export interface SourcesArgs {
   id: number;
   ep_id: string;
+}
+
+export interface LinkArgs {
+  type?: string;
 }
 
 export interface MergedEpisode {
