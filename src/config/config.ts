@@ -56,9 +56,7 @@ class ConfigModule {
   readonly has_tvdb_api_key = this.tvdb_api_key !== '';
 
   // Crysoline
-  readonly crysoline_anime_providers = (
-    process.env.CRYSOLINE_ANIME_PROVIDERS ?? 'hianime,animepahe,animekai'
-  ).split(',');
+  readonly crysoline_anime_providers = (process.env.CRYSOLINE_ANIME_PROVIDERS ?? 'animepahe,animekai').split(',');
 
   readonly crysoline_should_init_maps = parseBoolean(process.env.CRYSOLINE_SHOULD_INIT_MAPS) ?? true;
 
