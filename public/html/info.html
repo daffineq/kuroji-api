@@ -822,7 +822,7 @@
 
           const genreHtml = (a.genres ?? []).map((g) => `<span class="genre-chip">${g.name}</span>`).join('');
 
-          const tags = (a.tags ?? []).filter((t) => t.tag?.name);
+          const tags = (a.tags ?? []).filter((t) => t.tag?.name && !t.is_spoiler);
           const tagsHtml = tags.length
             ? `<div class="section-label">Tags</div>
                <div class="tags-wrap">
