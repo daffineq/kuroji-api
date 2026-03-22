@@ -40,7 +40,7 @@ open https://kuroji-api-j4mh.onrender.com/graphql
 
 ## What's This?
 
-Fast anime database API that pulls from multiple sources (AniList, Kitsu, Shikimori, TMDB, TVDB). REST + GraphQL, rate limiting, API keys - the whole package.
+Fast anime database API that pulls from multiple sources (AniList, Kitsu, Shikimori, TMDB, TVDB, MyAnimeList). REST + GraphQL, rate limiting, API keys - the whole package.
 
 **Important:** You gotta index anime data before querying.
 
@@ -195,6 +195,12 @@ You can look at the visual anime schema at **[Schema](https://dbdiagram.io/d/kur
 
 Fork it, branch it, commit it, push it, PR it.
 
+---
+
+## Crysoline
+
+A little bit of comments on the crysoline. We, with my friends started it as an alternative to consumet, to provide safety of our methods of scrapping websites we had to make it private, sorry if you can't use it as of now, we are working on it. To check out what providers we have added so far, you can look at **[Docs](https://api.crysoline.moe/docs)**
+ 
 ---
 
 ## License
