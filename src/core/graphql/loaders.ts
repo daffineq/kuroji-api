@@ -41,7 +41,10 @@ import {
   animeChronology,
   animeRecommendation,
   animeEpisode,
-  animeEpisodeImage
+  animeEpisodeImage,
+  animeCharacterBirthDate,
+  animeVoiceDeathDate,
+  animeVoiceBirthDate
 } from 'src/db';
 import { eq, inArray, asc, desc, and } from 'drizzle-orm';
 import { formatEpisodeData, MergedEpisode } from './types';
@@ -405,6 +408,18 @@ export function createLoaders() {
     { cache: true }
   );
 
+  const characterBirthDate = new DataLoader<number, typeof animeCharacterBirthDate.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeCharacterBirthDate)
+        .where(inArray(animeCharacterBirthDate.character_id, [...ids]));
+      const map = indexBy(rows, (r) => r.character_id!);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    { cache: true }
+  );
+
   const characterName = new DataLoader<number, typeof animeCharacterName.$inferSelect | null>(
     async (ids) => {
       const rows = await db
@@ -439,6 +454,30 @@ export function createLoaders() {
         .orderBy(asc(animeVoiceActor.language));
       const map = groupBy(rows, (r) => r.connection_id);
       return ids.map((id) => (map.get(id) ?? []).map((r) => r.voiceActor));
+    },
+    { cache: true }
+  );
+
+  const voiceBirthDate = new DataLoader<number, typeof animeVoiceBirthDate.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeVoiceBirthDate)
+        .where(inArray(animeVoiceBirthDate.voice_actor_id, [...ids]));
+      const map = indexBy(rows, (r) => r.voice_actor_id!);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    { cache: true }
+  );
+
+  const voiceDeathDate = new DataLoader<number, typeof animeVoiceDeathDate.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeVoiceDeathDate)
+        .where(inArray(animeVoiceDeathDate.voice_actor_id, [...ids]));
+      const map = indexBy(rows, (r) => r.voice_actor_id!);
+      return ids.map((id) => map.get(id) ?? null);
     },
     { cache: true }
   );
@@ -556,9 +595,12 @@ export function createLoaders() {
     recommendations,
     characterConnections,
     character,
+    characterBirthDate,
     characterName,
     characterImage,
     voiceActors,
+    voiceBirthDate,
+    voiceDeathDate,
     voiceName,
     voiceImage,
     episodes

@@ -44,7 +44,10 @@ import {
   animeChronology,
   animeRecommendation,
   animeEpisode,
-  animeEpisodeImage
+  animeEpisodeImage,
+  animeCharacterBirthDate,
+  animeVoiceBirthDate,
+  animeVoiceDeathDate
 } from 'src/db';
 import { eq, sql } from 'drizzle-orm';
 import { toArray, uniqueBy } from 'src/helpers/utils';
@@ -251,19 +254,63 @@ class AnimeDbModule extends Module {
 
             const characters = uniqueBy(toArray(payload.characters), (e) => e.character?.id)
               .filter((c) => c.character?.id)
-              .map((c) => ({ id: c.character?.id! }));
+              .map((c) => ({
+                id: c.character?.id!,
+                age: c.character?.age,
+                blood_type: c.character?.blood_type,
+                gender: c.character?.gender,
+                description: c.character?.description
+              }));
 
             if (!characters.length) return;
 
-            await tx.insert(animeCharacter).values(characters).onConflictDoNothing({ target: animeCharacter.id });
+            await tx
+              .insert(animeCharacter)
+              .values(characters)
+              .onConflictDoUpdate({
+                target: animeCharacter.id,
+                set: {
+                  age: sql`excluded.age`,
+                  blood_type: sql`excluded.blood_type`,
+                  gender: sql`excluded.gender`,
+                  description: sql`excluded.description`
+                }
+              });
+
+            const characterBirthDates = uniqueBy(toArray(payload.characters), (e) => e.character?.id)
+              .filter((c) => c.character?.birth_date)
+              .map((c) => ({
+                character_id: c.character?.id!,
+                day: c.character?.birth_date?.day,
+                month: c.character?.birth_date?.month,
+                year: c.character?.birth_date?.year
+              }));
+
+            if (characterBirthDates.length) {
+              await tx
+                .insert(animeCharacterBirthDate)
+                .values(characterBirthDates)
+                .onConflictDoUpdate({
+                  target: animeCharacterBirthDate.character_id,
+                  set: {
+                    day: sql`excluded.day`,
+                    month: sql`excluded.month`,
+                    year: sql`excluded.year`
+                  }
+                });
+            }
 
             const characterNames = uniqueBy(toArray(payload.characters), (e) => e.character?.id)
               .filter((c) => c.character?.name)
               .map((c) => ({
                 character_id: c.character?.id,
+                first: c.character?.name?.first,
+                middle: c.character?.name?.middle,
+                last: c.character?.name?.last,
                 full: c.character?.name?.full,
                 native: c.character?.name?.native,
-                alternative: c.character?.name?.alternative || []
+                alternative: c.character?.name?.alternative || [],
+                alternative_spoiler: c.character?.name?.alternative_spoiler || []
               }));
 
             if (characterNames.length) {
@@ -273,9 +320,13 @@ class AnimeDbModule extends Module {
                 .onConflictDoUpdate({
                   target: animeCharacterName.character_id,
                   set: {
+                    first: sql`excluded.first`,
+                    middle: sql`excluded.middle`,
+                    last: sql`excluded.last`,
                     full: sql`excluded.full`,
                     native: sql`excluded.native`,
-                    alternative: sql`excluded.alternative`
+                    alternative: sql`excluded.alternative`,
+                    alternative_spoiler: sql`excluded.alternative_spoiler`
                   }
                 });
             }
@@ -307,7 +358,12 @@ class AnimeDbModule extends Module {
 
             const voiceActors = uniqueBy(allVoiceActors, (a) => a.id).map((va) => ({
               id: va.id,
-              language: va.language
+              language: va.language,
+              age: va.age,
+              blood_type: va.blood_type,
+              gender: va.gender,
+              description: va.description,
+              home_town: va.home_town
             }));
 
             if (allVoiceActors.length) {
@@ -317,7 +373,52 @@ class AnimeDbModule extends Module {
                   .values(voiceActors)
                   .onConflictDoUpdate({
                     target: animeVoiceActor.id,
-                    set: { language: sql`excluded.language` }
+                    set: {
+                      language: sql`excluded.language`,
+                      age: sql`excluded.age`,
+                      blood_type: sql`excluded.blood_type`,
+                      gender: sql`excluded.gender`,
+                      description: sql`excluded.description`,
+                      home_town: sql`excluded.home_town`
+                    }
+                  });
+              }
+
+              const voiceBirthDates = uniqueBy(allVoiceActors, (a) => a.id)
+                .filter((va) => va.birth_date)
+                .map((va) => ({
+                  voice_actor_id: va.id,
+                  day: va.birth_date?.day,
+                  month: va.birth_date?.month,
+                  year: va.birth_date?.year
+                }));
+
+              if (voiceBirthDates.length) {
+                await tx
+                  .insert(animeVoiceBirthDate)
+                  .values(voiceBirthDates)
+                  .onConflictDoUpdate({
+                    target: animeVoiceBirthDate.voice_actor_id,
+                    set: { day: sql`excluded.day`, month: sql`excluded.month`, year: sql`excluded.year` }
+                  });
+              }
+
+              const voiceDeathDates = uniqueBy(allVoiceActors, (a) => a.id)
+                .filter((va) => va.death_date)
+                .map((va) => ({
+                  voice_actor_id: va.id,
+                  day: va.death_date?.day,
+                  month: va.death_date?.month,
+                  year: va.death_date?.year
+                }));
+
+              if (voiceDeathDates.length) {
+                await tx
+                  .insert(animeVoiceDeathDate)
+                  .values(voiceDeathDates)
+                  .onConflictDoUpdate({
+                    target: animeVoiceDeathDate.voice_actor_id,
+                    set: { day: sql`excluded.day`, month: sql`excluded.month`, year: sql`excluded.year` }
                   });
               }
 
@@ -325,6 +426,9 @@ class AnimeDbModule extends Module {
                 .filter((va) => va.name)
                 .map((va) => ({
                   voice_actor_id: va.id,
+                  first: va.name?.first,
+                  middle: va.name?.middle,
+                  last: va.name?.last,
                   full: va.name?.full,
                   native: va.name?.native,
                   alternative: va.name?.alternative || []
@@ -337,6 +441,9 @@ class AnimeDbModule extends Module {
                   .onConflictDoUpdate({
                     target: animeVoiceName.voice_actor_id,
                     set: {
+                      first: sql`excluded.first`,
+                      middle: sql`excluded.middle`,
+                      last: sql`excluded.last`,
                       full: sql`excluded.full`,
                       native: sql`excluded.native`,
                       alternative: sql`excluded.alternative`

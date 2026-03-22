@@ -155,6 +155,10 @@ export const relations = defineRelations(schema, (r) => ({
   },
 
   animeCharacter: {
+    date_of_birth: r.one.animeCharacterBirthDate({
+      from: r.animeCharacter.id,
+      to: r.animeCharacterBirthDate.character_id
+    }),
     name: r.one.animeCharacterName({
       from: r.animeCharacter.id,
       to: r.animeCharacterName.character_id
@@ -199,6 +203,14 @@ export const relations = defineRelations(schema, (r) => ({
   },
 
   animeVoiceActor: {
+    date_of_birth: r.one.animeVoiceBirthDate({
+      from: r.animeVoiceActor.id,
+      to: r.animeVoiceBirthDate.voice_actor_id
+    }),
+    date_of_death: r.one.animeVoiceDeathDate({
+      from: r.animeVoiceActor.id,
+      to: r.animeVoiceDeathDate.voice_actor_id
+    }),
     name: r.one.animeVoiceName({
       from: r.animeVoiceActor.id,
       to: r.animeVoiceName.voice_actor_id

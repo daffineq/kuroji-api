@@ -77,7 +77,6 @@ export const ANILIST_INFO = `
               native
               alternative
               alternativeSpoiler
-              userPreferred
             }
             image {
               large
@@ -92,11 +91,6 @@ export const ANILIST_INFO = `
             }
             age
             bloodType
-            isFavourite
-            isFavouriteBlocked
-            siteUrl
-            favourites
-            modNotes
           }
           role
           voiceActors {
@@ -113,7 +107,6 @@ export const ANILIST_INFO = `
               day
             }
             description
-            favourites
             gender
             homeTown
             id
@@ -129,7 +122,6 @@ export const ANILIST_INFO = `
               full
               native
               alternative
-              userPreferred
             }
             siteUrl
           }

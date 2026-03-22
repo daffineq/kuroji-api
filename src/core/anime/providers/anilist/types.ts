@@ -81,7 +81,6 @@ export interface AnilistMedia {
           native?: string;
           alternative?: string[];
           alternativeSpoiler?: string[];
-          userPreferred?: string;
         };
         image?: {
           large?: string;
@@ -112,7 +111,6 @@ export interface AnilistMedia {
           full?: string;
           native?: string;
           alternative?: string[];
-          userPreferred?: string;
         };
         image?: {
           large?: string;

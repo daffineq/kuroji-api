@@ -424,14 +424,23 @@ type CharacterConnection {
 
 type AnimeCharacter {
   id: Int!
+  age: String
+  blood_type: String
+  gender: String
+  description: String
   name: CharacterName
   image: CharacterImage
+  date_of_birth: AnimeDate
 }
 
 type CharacterName {
+  first: String
+  middle: String
+  last: String
   full: String
   native: String
   alternative: [String!]!
+  alternative_spoiler: [String!]!
 }
 
 type CharacterImage {
@@ -442,11 +451,21 @@ type CharacterImage {
 type VoiceActor {
   id: Int!
   language: String
+  age: Int
+  blood_type: String
+  gender: String
+  description: String
+  home_town: String
   name: VoiceActorName
   image: VoiceActorImage
+  date_of_birth: AnimeDate
+  date_of_death: AnimeDate
 }
 
 type VoiceActorName {
+  first: String
+  middle: String
+  last: String
   full: String
   native: String
   alternative: [String!]!

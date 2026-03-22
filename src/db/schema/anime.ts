@@ -175,7 +175,11 @@ export const animeToAiringSchedule = pgTable(
 );
 
 export const animeCharacter = pgTable('anime_character', {
-  id: integer('id').primaryKey()
+  id: integer('id').primaryKey(),
+  age: varchar('age', { length: 255 }),
+  blood_type: varchar('blood_type', { length: 255 }),
+  description: text('description'),
+  gender: varchar('gender', { length: 255 })
 });
 
 export const animeToCharacter = pgTable(
@@ -199,7 +203,12 @@ export const animeToCharacter = pgTable(
 
 export const animeVoiceActor = pgTable('anime_voice_actor', {
   id: integer('id').primaryKey(),
-  language: varchar('language', { length: 255 })
+  language: varchar('language', { length: 255 }),
+  age: integer('age'),
+  blood_type: varchar('blood_type', { length: 255 }),
+  description: text('description'),
+  gender: varchar('gender', { length: 255 }),
+  home_town: varchar('home_town', { length: 255 })
 });
 
 export const characterToVoiceActor = pgTable(
@@ -219,15 +228,35 @@ export const characterToVoiceActor = pgTable(
   ]
 );
 
+export const animeCharacterBirthDate = pgTable(
+  'anime_character_birth_date',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    day: integer('day'),
+    month: integer('month'),
+    year: integer('year'),
+    character_id: integer('character_id')
+      .unique()
+      .references(() => animeCharacter.id, { onDelete: 'cascade' })
+  },
+  (t) => [index('idx_anime_character_birth_date_character_id').on(t.character_id)]
+);
+
 export const animeCharacterName = pgTable(
   'anime_character_name',
   {
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
+    first: varchar('first', { length: 255 }),
+    middle: varchar('middle', { length: 255 }),
+    last: varchar('last', { length: 255 }),
     full: varchar('full', { length: 255 }),
     native: varchar('native', { length: 255 }),
     alternative: text('alternative').array(),
+    alternative_spoiler: text('alternative_spoiler').array(),
     character_id: integer('character_id')
       .unique()
       .references(() => animeCharacter.id, { onDelete: 'cascade' })
@@ -250,12 +279,47 @@ export const animeCharacterImage = pgTable(
   (t) => [index('idx_anime_character_image_character_id').on(t.character_id)]
 );
 
+export const animeVoiceBirthDate = pgTable(
+  'anime_voice_birth_date',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    day: integer('day'),
+    month: integer('month'),
+    year: integer('year'),
+    voice_actor_id: integer('character_id')
+      .unique()
+      .references(() => animeVoiceActor.id, { onDelete: 'cascade' })
+  },
+  (t) => [index('idx_anime_voice_birth_date_voice_actor_id').on(t.voice_actor_id)]
+);
+
+export const animeVoiceDeathDate = pgTable(
+  'anime_voice_death_date',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    day: integer('day'),
+    month: integer('month'),
+    year: integer('year'),
+    voice_actor_id: integer('character_id')
+      .unique()
+      .references(() => animeVoiceActor.id, { onDelete: 'cascade' })
+  },
+  (t) => [index('idx_anime_voice_death_date_voice_actor_id').on(t.voice_actor_id)]
+);
+
 export const animeVoiceName = pgTable(
   'anime_voice_name',
   {
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
+    first: varchar('first', { length: 255 }),
+    middle: varchar('middle', { length: 255 }),
+    last: varchar('last', { length: 255 }),
     full: varchar('full', { length: 255 }),
     native: varchar('native', { length: 255 }),
     alternative: text('alternative').array(),

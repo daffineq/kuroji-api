@@ -67,28 +67,65 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
       }[edge.role ?? 'BACKGROUND'],
       character: {
         id: edge.node.id,
+        age: edge.node.age ?? null,
+        blood_type: edge.node.bloodType ?? null,
+        gender: edge.node.gender ?? null,
+        description: edge.node.description ?? null,
         name: {
+          first: edge.node.name?.first ?? null,
+          middle: edge.node.name?.middle ?? null,
+          last: edge.node.name?.last ?? null,
           full: edge.node.name?.full ?? null,
           native: edge.node.name?.native ?? null,
-          alternative: [...(edge.node.name?.alternative ?? []), ...(edge.node.name?.alternativeSpoiler ?? [])]
+          alternative: [...(edge.node.name?.alternative ?? [])],
+          alternative_spoiler: [...(edge.node.name?.alternativeSpoiler ?? [])]
         },
         image: {
           large: edge.node.image?.large ?? null,
           medium: edge.node.image?.medium ?? null
-        }
+        },
+        birth_date: edge.node.dateOfBirth
+          ? {
+              day: edge.node.dateOfBirth.day ?? null,
+              month: edge.node.dateOfBirth.month ?? null,
+              year: edge.node.dateOfBirth.year ?? null
+            }
+          : null
       },
       voice_actors: (edge.voiceActors ?? []).map((va) => ({
         id: va.id,
         language: va.languageV2 ?? null,
+        age: va.age ?? null,
+        blood_type: va.bloodType ?? null,
+        gender: va.gender ?? null,
+        description: va.description ?? null,
+        home_town: va.homeTown ?? null,
         name: {
+          first: va.name?.first ?? null,
+          middle: va.name?.middle ?? null,
+          last: va.name?.last ?? null,
           full: va.name?.full ?? null,
           native: va.name?.native ?? null,
-          alternative: va.name?.alternative ?? null
+          alternative: va.name?.alternative ?? []
         },
         image: {
           large: va.image?.large ?? null,
           medium: va.image?.medium ?? null
-        }
+        },
+        birth_date: va.dateOfBirth
+          ? {
+              day: va.dateOfBirth.day ?? null,
+              month: va.dateOfBirth.month ?? null,
+              year: va.dateOfBirth.year ?? null
+            }
+          : null,
+        death_date: va.dateOfDeath
+          ? {
+              day: va.dateOfDeath.day ?? null,
+              month: va.dateOfDeath.month ?? null,
+              year: va.dateOfDeath.year ?? null
+            }
+          : null
       }))
     }));
 

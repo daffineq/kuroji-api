@@ -29,9 +29,13 @@ export interface AnimeAiringSchedulePayload {
 }
 
 export interface AnimeCharacterNamePayload {
+  first?: string | null;
+  middle?: string | null;
+  last?: string | null;
   full?: string | null;
   native?: string | null;
   alternative?: string[] | null;
+  alternative_spoiler?: string[] | null;
 }
 
 export interface AnimeCharacterImagePayload {
@@ -40,6 +44,9 @@ export interface AnimeCharacterImagePayload {
 }
 
 export interface AnimeVoiceNamePayload {
+  first?: string | null;
+  middle?: string | null;
+  last?: string | null;
   full?: string | null;
   native?: string | null;
   alternative?: string[] | null;
@@ -53,8 +60,15 @@ export interface AnimeVoiceImagePayload {
 export interface AnimeVoiceActorPayload {
   id: number;
   language?: string | null;
+  age?: number | null;
+  blood_type?: string | null;
+  gender?: string | null;
+  description?: string | null;
+  home_town?: string | null;
   name?: AnimeVoiceNamePayload | null;
   image?: AnimeVoiceImagePayload | null;
+  birth_date?: AnimeFuzzyDatePayload | null;
+  death_date?: AnimeFuzzyDatePayload | null;
 }
 
 export interface AnimeCharacterConnectionPayload {
@@ -67,8 +81,13 @@ export interface AnimeCharacterConnectionPayload {
 
 export interface AnimeCharacterPayload {
   id: number;
+  age?: string | null;
+  blood_type?: string | null;
+  gender?: string | null;
+  description?: string | null;
   name?: AnimeCharacterNamePayload | null;
   image?: AnimeCharacterImagePayload | null;
+  birth_date?: AnimeFuzzyDatePayload | null;
 }
 
 export interface AnimeStudioPayload {

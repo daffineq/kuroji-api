@@ -904,6 +904,9 @@ export const resolvers = {
   },
 
   AnimeCharacter: {
+    date_of_birth: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.characterBirthDate.load(parent.id);
+    },
     name: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
       return loaders.characterName.load(parent.id);
     },
@@ -913,6 +916,12 @@ export const resolvers = {
   },
 
   VoiceActor: {
+    date_of_birth: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.voiceBirthDate.load(parent.id);
+    },
+    date_of_death: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.voiceDeathDate.load(parent.id);
+    },
     name: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
       return loaders.voiceName.load(parent.id);
     },

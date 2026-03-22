@@ -1,0 +1,1 @@
+ALTER TABLE "anime_voice_actor" ALTER COLUMN "age" SET DATA TYPE integer USING "age"::integer;
