@@ -102,7 +102,7 @@ export interface AnilistMedia {
         favourites?: number;
         modNotes?: string;
       };
-      role?: string;
+      role?: 'MAIN' | 'SUPPORTING' | 'BACKGROUND';
       voiceActors?: {
         id: number;
         name: {

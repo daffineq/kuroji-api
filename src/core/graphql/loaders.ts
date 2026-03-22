@@ -386,7 +386,7 @@ export function createLoaders() {
         .select()
         .from(animeToCharacter)
         .where(inArray(animeToCharacter.anime_id, [...ids]))
-        .orderBy(asc(animeToCharacter.role), asc(animeToCharacter.character_id));
+        .orderBy(asc(animeToCharacter.role_i), asc(animeToCharacter.character_id));
       const map = groupBy(rows, (r) => r.anime_id);
       return ids.map((id) => map.get(id) ?? []);
     },

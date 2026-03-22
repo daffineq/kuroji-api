@@ -188,7 +188,8 @@ export const animeToCharacter = pgTable(
     character_id: integer('character_id')
       .notNull()
       .references(() => animeCharacter.id, { onDelete: 'cascade' }),
-    role: varchar('role', { length: 255 })
+    role: varchar('role', { length: 255 }),
+    role_i: integer('role_i').default(2) // 0: Main, 1: Support, 2: Background
   },
   (t) => [
     index('idx_anime_to_character_anime_id').on(t.anime_id),

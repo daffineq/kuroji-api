@@ -60,6 +60,7 @@ export interface AnimeVoiceActorPayload {
 export interface AnimeCharacterConnectionPayload {
   id: number;
   role?: string | null;
+  role_i?: number | null;
   character?: AnimeCharacterPayload | null;
   voice_actors?: AnimeVoiceActorPayload[] | null;
 }

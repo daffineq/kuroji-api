@@ -1,0 +1,1 @@
+ALTER TABLE "_anime_to_character" ADD COLUMN "role_i" integer DEFAULT 2;

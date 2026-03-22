@@ -60,6 +60,11 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
     .map((edge) => ({
       id: edge.id,
       role: edge.role ?? null,
+      role_i: {
+        MAIN: 0,
+        SUPPORTING: 1,
+        BACKGROUND: 2
+      }[edge.role ?? 'BACKGROUND'],
       character: {
         id: edge.node.id,
         name: {

@@ -371,6 +371,7 @@ class AnimeDbModule extends Module {
               .map((c) => ({
                 id: c.id,
                 role: c.role,
+                role_i: c.role_i,
                 anime_id: payload.id,
                 character_id: c.character?.id!
               }));
