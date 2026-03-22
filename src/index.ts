@@ -15,6 +15,7 @@ import swagger from '@elysiajs/swagger';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 import staticPlugin from '@elysiajs/static';
+import { TmdbSeasons } from './core/anime';
 
 const app = new Elysia()
   .use(
