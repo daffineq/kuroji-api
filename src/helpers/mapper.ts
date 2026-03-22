@@ -396,7 +396,7 @@ export const findBestMatch = <T extends ExpectAnime>(
 
     if (!search.year || candidate.year === search.year) score++;
     if (!search.episodes || candidate.episodes === search.episodes) score++;
-    if (!search.language || candidate.language === search.language) score++;
+    if (!search.language || candidate.language === search.language) score += 4;
     if (!search.type || (candidate.type && areTypesCompatible(search.type, candidate.type))) score++;
 
     let similarity = 0;
@@ -405,6 +405,10 @@ export const findBestMatch = <T extends ExpectAnime>(
       for (const candidateTitle of candidateTitles) {
         similarity = Math.max(similarity, getSimilarity(searchTitle, candidateTitle));
       }
+    }
+
+    if (similarity < 0.5) {
+      continue;
     }
 
     candidates.push({
