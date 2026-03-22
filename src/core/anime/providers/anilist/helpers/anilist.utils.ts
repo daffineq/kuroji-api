@@ -161,6 +161,7 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
   return {
     id: media.id,
     id_mal: media.idMal ?? null,
+    background: media.bannerImage ?? null,
     description: media.description ?? null,
     status: media.status ?? null,
     type: media.type ?? null,
