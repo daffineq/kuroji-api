@@ -47,11 +47,9 @@ class ConfigModule {
   readonly tvdb = process.env.TVDB ?? 'https://api4.thetvdb.com/v4';
 
   // Keys
-  readonly crysoline_api_key = process.env.CRYSOLINE_API_KEY ?? '';
   readonly tmdb_api_key = process.env.TMDB_API_KEY ?? '';
   readonly tvdb_api_key = process.env.TVDB_API_KEY ?? '';
 
-  readonly has_crysoline_api_key = this.crysoline_api_key !== '';
   readonly has_tmdb_api_key = this.tmdb_api_key !== '';
   readonly has_tvdb_api_key = this.tvdb_api_key !== '';
 
