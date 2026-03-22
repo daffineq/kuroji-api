@@ -496,8 +496,8 @@ export function createLoaders() {
             providerMap.delete(tmdbEp.number);
             return {
               number: tmdbEp.number,
-              title: tmdbEp.title ?? providerEp?.title ?? null,
-              overview: tmdbEp.overview ?? providerEp?.description ?? null,
+              title: tmdbEp.title || providerEp?.title || null,
+              overview: tmdbEp.overview || providerEp?.description || null,
               image: tmdbEp.image ?? providerEp?.image ?? null,
               runtime: tmdbEp.runtime ?? null,
               air_date: tmdbEp.air_date ?? null,

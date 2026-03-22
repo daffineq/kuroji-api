@@ -134,9 +134,9 @@ class CrysolineModule extends Module {
           mergedMap.set(number, { ...episode });
         } else {
           mergedMap.set(number, {
-            title: episode.title ?? existing.title,
+            title: episode.title || existing.title,
             image: episode.image ?? existing.image,
-            description: episode.description ?? existing.description,
+            description: episode.description || existing.description,
             number,
             is_filler: episode.is_filler ?? existing.is_filler,
             providers: [

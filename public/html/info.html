@@ -122,7 +122,7 @@
         margin-bottom: 0.25rem;
         word-break: break-word;
       }
-      .hero-native {
+      .hero-subtitle {
         font-size: 0.78rem;
         color: var(--text-dim);
         margin-bottom: 0.75rem;
@@ -979,8 +979,8 @@
                     : `<div class="poster-placeholder">no img</div>`
                 }
                 <div class="hero-info">
-                  <div class="hero-title">${fmt(a.title?.english ?? a.title?.romaji)}</div>
-                  ${a.title?.native ? `<div class="hero-native">${a.title.native}</div>` : ''}
+                  <div class="hero-title">${fmt(a.title?.romaji)}</div>
+                  ${a.title?.english ? `<div class="hero-subtitle">${a.title.english}</div>` : ''}
                   <div class="pills">${pills}</div>
                   <div class="score-row">
                     <span class="score-val">${fmt(a.score, '?')}</span>
