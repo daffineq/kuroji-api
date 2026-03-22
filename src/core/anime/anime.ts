@@ -1,14 +1,4 @@
-import {
-  Anilist,
-  AnilistUtils,
-  Crysoline,
-  Kitsu,
-  MyAnimeList,
-  Shikimori,
-  Tmdb,
-  TmdbSeasons,
-  Tvdb
-} from './providers';
+import { Anilist, AnilistUtils, Kitsu, MyAnimeList, Shikimori, Tmdb, TmdbSeasons, Tvdb } from './providers';
 import { AnimeDb } from './helpers/anime.db';
 import { Module } from 'src/helpers/module';
 import { animeLink, animeToLink, db } from 'src/db';
@@ -68,7 +58,6 @@ class AnimeModule extends Module {
 
   async initProviders(id: number, idMal?: number | undefined) {
     await Promise.all([
-      Crysoline.map(id).catch(() => null),
       MyAnimeList.getInfo(id, idMal).catch(() => null),
       Shikimori.getInfo(id, idMal).catch(() => null),
       Kitsu.getInfo(id).catch(() => null),

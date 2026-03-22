@@ -173,8 +173,6 @@ type Query {
     franchise: String
     sort: [AnimeSort!]
   ): AnimePage!
-  characters(page: Int = 1, per_page: Int = 20, parent_id: Int!): CharacterPage!
-  sources(id: Int, ep_id: String): Source
 }
 
 type AnimePage {
@@ -620,13 +618,6 @@ type Episode {
   image: EpisodeImage
   runtime: Int
   air_date: String
-  is_filler: Boolean
-  providers: [EpisodeProvider!]!
-}
-
-type EpisodeProvider {
-  name: String
-  id: String
 }
 
 type EpisodeImage {

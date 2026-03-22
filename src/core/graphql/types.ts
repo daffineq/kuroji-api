@@ -1,7 +1,3 @@
-import { Image } from '@crysoline/lib/dist/core/types';
-import { EpisodeProvider, TmdbEpisode, TmdbUtils } from '../anime';
-import { NatMap } from 'ioredis';
-
 export interface AnimeArgs {
   page?: number;
   per_page?: number;
@@ -85,48 +81,6 @@ export interface ArtworksArgs extends SourceArgs {
   iso_639_1?: string;
 }
 
-export interface SourcesArgs {
-  id: number;
-  ep_id: string;
-}
-
 export interface LinkArgs {
   type?: string;
 }
-
-export interface EpisodeImage {
-  small?: string | null;
-  medium?: string | null;
-  large?: string | null;
-}
-
-export interface MergedEpisode {
-  number: number;
-  title: string | null;
-  overview: string | null;
-  image: EpisodeImage | string | null;
-  runtime: number | null;
-  air_date: string | null;
-  is_filler?: boolean | false;
-  providers?: EpisodeProvider[];
-}
-
-export const formatEpisodeData = (episode: {
-  title: string | null;
-  air_date: string | null;
-  overview: string | null;
-  number: number;
-  runtime: number | null;
-  image: {
-    small: string | null;
-    medium: string | null;
-    large: string | null;
-  } | null;
-}): MergedEpisode => ({
-  title: episode.title,
-  air_date: episode.air_date,
-  overview: episode.overview,
-  number: episode.number,
-  runtime: episode.runtime,
-  image: episode.image
-});

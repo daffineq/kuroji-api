@@ -579,14 +579,6 @@
         flex-wrap: wrap;
         align-items: center;
       }
-      .ep-filler {
-        font-size: 0.6rem;
-        font-weight: 700;
-        color: var(--code-k);
-        border: 1px solid rgba(199, 146, 234, 0.3);
-        border-radius: 4px;
-        padding: 0.05rem 0.3rem;
-      }
 
       .links-wrap {
         display: flex;
@@ -788,7 +780,7 @@
             episodes {
               number title overview
               image { large }
-              runtime air_date is_filler
+              runtime air_date
             }
             recommendations { id title { romaji english } poster { large } }
             chronology { id title { romaji english } poster { large } }
@@ -944,7 +936,6 @@
                      <div class="ep-meta">
                        ${ep.air_date ? `<span>${ep.air_date}</span>` : ''}
                        ${ep.runtime ? `<span>${ep.runtime} min</span>` : ''}
-                       ${ep.is_filler ? `<span class="ep-filler">FILLER</span>` : ''}
                      </div>
                    </div>
                  </div>`

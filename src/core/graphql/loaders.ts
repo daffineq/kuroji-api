@@ -46,9 +46,7 @@ import {
   animeVoiceDeathDate,
   animeVoiceBirthDate
 } from 'src/db';
-import { eq, inArray, asc, desc, and } from 'drizzle-orm';
-import { formatEpisodeData, MergedEpisode } from './types';
-import { Crysoline, Episode, TmdbSeasons } from '../anime';
+import { eq, inArray, asc, desc } from 'drizzle-orm';
 
 function groupBy<T>(rows: T[], key: (row: T) => number | string): Map<number | string, T[]> {
   const map = new Map<number | string, T[]>();
@@ -506,65 +504,28 @@ export function createLoaders() {
     { cache: true }
   );
 
-  const episodes = new DataLoader<number, MergedEpisode[]>(
+  const episodes = new DataLoader<number, (typeof animeEpisode.$inferSelect)[]>(
     async (ids) => {
-      const results = await Promise.all(
-        ids.map(async (id) => {
-          const [providerEpisodes, tmdbEpisodes] = await Promise.all([
-            Crysoline.episodes(id).catch(() => []),
-            (
-              await db
-                .select({ episode: animeEpisode, image: animeEpisodeImage })
-                .from(animeEpisode)
-                .leftJoin(animeEpisodeImage, eq(animeEpisodeImage.episode_id, animeEpisode.id))
-                .where(eq(animeEpisode.anime_id, id))
-            ).map((e) => {
-              return {
-                ...e.episode,
-                image: e.image
-              };
-            })
-          ]);
+      const rows = await db
+        .select()
+        .from(animeEpisode)
+        .where(inArray(animeEpisode.anime_id, [...ids]));
+      const map = groupBy(rows, (r) => r.anime_id);
+      return ids.map((id) => map.get(id) ?? []);
+    },
+    {
+      cache: true
+    }
+  );
 
-          const providerMap = new Map(
-            providerEpisodes.filter((ep) => ep.number != null).map((ep) => [ep.number, ep])
-          );
-
-          const mergeEpisode = (tmdbEp: MergedEpisode): MergedEpisode => {
-            const providerEp = providerMap.get(tmdbEp.number);
-            providerMap.delete(tmdbEp.number);
-            return {
-              number: tmdbEp.number,
-              title: tmdbEp.title || providerEp?.title || null,
-              overview: tmdbEp.overview || providerEp?.description || null,
-              image: tmdbEp.image ?? providerEp?.image ?? null,
-              runtime: tmdbEp.runtime ?? null,
-              air_date: tmdbEp.air_date ?? null,
-              is_filler: providerEp?.is_filler ?? false,
-              providers: providerEp?.providers ?? []
-            };
-          };
-
-          const fromProvider = (ep: Episode): MergedEpisode => ({
-            number: ep.number!,
-            title: ep.title ?? null,
-            overview: ep.description ?? null,
-            image: ep.image ?? null,
-            runtime: null,
-            air_date: null,
-            is_filler: ep.is_filler ?? false,
-            providers: ep.providers
-          });
-
-          const merged = [
-            ...tmdbEpisodes.map(formatEpisodeData).map(mergeEpisode),
-            ...Array.from(providerMap.values()).map(fromProvider)
-          ];
-
-          return merged.sort((a, b) => a.number - b.number);
-        })
-      );
-      return results;
+  const episodeImage = new DataLoader<string, typeof animeEpisodeImage.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeEpisodeImage)
+        .where(inArray(animeEpisodeImage.episode_id, [...ids]));
+      const map = indexBy(rows, (r) => r.episode_id!);
+      return ids.map((id) => map.get(id) ?? null);
     },
     {
       cache: true
@@ -603,7 +564,8 @@ export function createLoaders() {
     voiceDeathDate,
     voiceName,
     voiceImage,
-    episodes
+    episodes,
+    episodeImage
   };
 }
 

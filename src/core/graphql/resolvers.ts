@@ -1,15 +1,12 @@
-import { Anime, Crysoline, Tmdb, TmdbSeasons, TmdbUtils } from '../anime';
+import { Anime } from '../anime';
 import {
   AnimeArgs,
   ArtworksArgs,
   CharacterArgs,
   ChronologyArgs,
-  EpisodeArgs,
-  formatEpisodeData,
   LinkArgs,
   RecommendationArgs,
-  SourceArgs,
-  SourcesArgs
+  SourceArgs
 } from './types';
 import {
   db,
@@ -732,47 +729,6 @@ export const resolvers = {
       args.id_in = animeIds;
 
       return getAnimePage(args);
-    },
-
-    characters: async (_: any, args: CharacterArgs) => {
-      const { page = 1, per_page = 25, parent_id } = args;
-      const skip = (page - 1) * per_page;
-
-      const [connections, totalResult] = await Promise.all([
-        db
-          .select()
-          .from(animeToCharacter)
-          .where(eq(animeToCharacter.anime_id, parent_id))
-          .orderBy(asc(animeToCharacter.role), asc(animeToCharacter.character_id))
-          .limit(per_page)
-          .offset(skip),
-        db.select({ count: count() }).from(animeToCharacter).where(eq(animeToCharacter.anime_id, parent_id))
-      ]);
-
-      const total = totalResult[0]?.count || 0;
-
-      const last_page = Math.ceil(total / per_page);
-
-      return {
-        connections,
-        page_info: { total, per_page, current_page: page, last_page, has_next_page: page < last_page }
-      };
-    },
-
-    sources: async (_: any, args: SourcesArgs) => {
-      const sources = await Crysoline.sources(args.id, args.ep_id);
-
-      if (!sources) return null;
-
-      return {
-        ...sources,
-        headers: sources.headers
-          ? Object.entries(sources.headers).map(([key, value]) => ({
-              key,
-              value: value != null ? String(value) : null
-            }))
-          : []
-      };
     }
   },
 
@@ -931,6 +887,8 @@ export const resolvers = {
   },
 
   Episode: {
-    image: (parent: any) => parent.image || null
+    image: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.episodeImage.load(parent.id);
+    }
   }
 };
