@@ -9,8 +9,6 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/public/html/styles.css" />
-    <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <script src="https://unpkg.com/tippy.js@6"></script>
     <style>
       :root {
         --main-color: #7b5cf0;
@@ -593,7 +591,7 @@
           const newContent = document.createElement('div');
           newContent.innerHTML = `<div class="anime-section">${data.data.animes.data
             .map((a) => {
-              return `<a class="anime-card" data-id=${a.id} href=${`/info?id=${a.id}`}>
+              return `<a class="anime-card" data-id=${a.id} href="/info?id=${a.id}"}>
                   <img src=${a.poster.large} class="anime-poster" />
                   <span class="anime-title">${a.title.romaji}</span>
                   </a>`;
@@ -601,96 +599,6 @@
             .join('')}</div>`;
 
           items.replaceChildren(newContent);
-
-          tippy('.anime-card', {
-            theme: 'kuroji',
-            content: `<div class="tooltip-loading"><span>Loading...</span></div>`,
-            placement: 'right',
-            arrow: false,
-            interactive: true,
-            allowHTML: true,
-            delay: 500,
-            appendTo: document.body,
-            popperOptions: {
-              modifiers: [
-                {
-                  name: 'flip',
-                  options: {
-                    fallbackPlacements: ['top', 'left', 'bottom']
-                  }
-                }
-              ]
-            },
-            onShow(instance) {
-              const id = instance.reference.dataset.id;
-
-              const info_query = `query Query($id: Int!) {
-              anime(id: $id) {
-                id
-                poster { large }
-                title { english romaji }
-                score
-                status
-                type
-                season
-                format
-                genres { name }
-                images { large type source }
-              }
-            }`;
-
-              instance.setContent(`<div class="tooltip-loading"><span>Loading...</span></div>`);
-
-              fetch('/graphql', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'api-key': input.value },
-                body: JSON.stringify({
-                  query: info_query,
-                  variables: {
-                    id: Number(id)
-                  }
-                })
-              })
-                .then(async (r) => {
-                  if (!r.ok) {
-                    instance.setContent(
-                      `<div class="tooltip-loading"><span>Request failed: <b>${await r.text()}</b></span></div>`
-                    );
-
-                    return;
-                  }
-
-                  return r.json();
-                })
-                .then((d) => {
-                  if (!d) {
-                    return;
-                  }
-
-                  const a = d.data?.anime;
-
-                  const image = a.images.find((i) => i.type === 'background' && i.source === 'tmdb')?.large;
-
-                  const pills = [a.status, a.type, a.format, a.season];
-
-                  instance.setContent(
-                    `
-                    <div class="tooltip-content">
-                      ${image ? `<img class="tooltip-background" src=${image} loading="lazy" />` : ``}
-                      <div class="tooltip-anime-title-content">
-                        <span class="tooltip-anime-title">${a.title.romaji}</span>
-                        <span class="tooltip-label">${a.score}/100</span>
-                      </div>
-                      <div class="tooltip-anime-genres">Genres: ${a.genres.map((g) => `<b>${g.name}</b>`).join(', ')}</div>
-                      <div class="tooltip-pills">
-                        ${pills.map((s) => `<span class="tooltip-pill">${s}</span>`).join('')}
-                      </div>
-                    </div>
-                    `
-                  );
-                });
-            }
-          });
         } catch (e) {
           box.textContent = 'Error: ' + e.message;
         }
