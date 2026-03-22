@@ -179,7 +179,7 @@ class AnimeUpdateModule extends Module {
       });
 
       for (const item of items) {
-        logger.log(`Processing anime ID ${item.anime_id})`);
+        logger.log(`Processing anime ID ${item.anime_id}`);
 
         await this.processQueueItem(item);
 

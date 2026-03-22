@@ -37,8 +37,6 @@ class TmdbSeasonsModule extends Module {
       throw new Error("LMAO, movies can't have seasons, you baka!");
     }
 
-    const tmdb = await Tmdb.getInfo(id);
-
     const allEpisodes = await this.getAllEpisodes(id);
     const seasonGroups = this.groupEpisodesBySeasons(allEpisodes);
 
@@ -61,27 +59,25 @@ class TmdbSeasonsModule extends Module {
 
     await Redis.set(key, matchResult.episodes);
 
-    {
-      const episodes: AnimeEpisodePayload[] = matchResult.episodes.map((e) => {
-        return {
-          title: e.name,
-          number: e.episode_number,
-          overview: e.overview,
-          air_date: e.air_date,
-          runtime: e.runtime,
-          image: {
-            small: TmdbUtils.getImage('w300', e.still_path),
-            medium: TmdbUtils.getImage('w780', e.still_path),
-            large: TmdbUtils.getImage('original', e.still_path)
-          }
-        };
-      });
+    const episodes: AnimeEpisodePayload[] = matchResult.episodes.map((e) => {
+      return {
+        title: e.name,
+        number: e.episode_number,
+        overview: e.overview,
+        air_date: e.air_date,
+        runtime: e.runtime,
+        image: {
+          small: TmdbUtils.getImage('w300', e.still_path),
+          medium: TmdbUtils.getImage('w780', e.still_path),
+          large: TmdbUtils.getImage('original', e.still_path)
+        }
+      };
+    });
 
-      await Anime.upsert({
-        id,
-        episodes
-      });
-    }
+    await Anime.upsert({
+      id,
+      episodes
+    });
 
     return matchResult.episodes;
   }
