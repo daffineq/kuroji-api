@@ -894,6 +894,7 @@
       }
 
       const ARTWORK_PAGE_SIZE = 40;
+      const ARTWORK_INIT_PAGE_SIZE = 8;
 
       let _artworkState = {
         all: [],
@@ -957,9 +958,9 @@
           )
           .join('');
 
-        const initialItems = artworks.slice(0, ARTWORK_PAGE_SIZE);
+        const initialItems = artworks.slice(0, ARTWORK_INIT_PAGE_SIZE);
         _artworkState.rendered = initialItems.length;
-        const hasMore = artworks.length > ARTWORK_PAGE_SIZE;
+        const hasMore = artworks.length > ARTWORK_INIT_PAGE_SIZE;
 
         return `<div class="artworks-section">
           <div class="section-label">Artworks</div>
@@ -995,7 +996,7 @@
         const btn = document.getElementById('artworks-load-more');
         if (!grid) return;
 
-        const initialItems = _artworkState.filtered.slice(0, ARTWORK_PAGE_SIZE);
+        const initialItems = _artworkState.filtered.slice(0, ARTWORK_INIT_PAGE_SIZE);
         _artworkState.rendered = initialItems.length;
         grid.innerHTML = renderArtworkItems(initialItems);
 
