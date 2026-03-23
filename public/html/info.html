@@ -466,7 +466,7 @@
         border: 1px solid var(--primary-border);
         border-radius: 8px;
         padding: 0.6rem 0.7rem;
-        gap: 0.75rem
+        gap: 0.75rem;
         overflow: hidden;
         text-decoration: none;
         color: inherit;
@@ -603,6 +603,146 @@
         color: var(--main-color);
       }
 
+      .artworks-section {
+        margin-bottom: 2rem;
+      }
+
+      .artworks-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .artworks-filter-btn {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.62rem;
+        font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        border-radius: 6px;
+        border: 1px solid var(--primary-border);
+        background: transparent;
+        color: var(--text-dim);
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          color 0.15s,
+          background 0.15s;
+        white-space: nowrap;
+      }
+      .artworks-filter-btn:hover {
+        border-color: var(--main-color);
+        color: var(--main-color);
+      }
+      .artworks-filter-btn.active {
+        background: var(--main-color);
+        border-color: var(--main-color);
+        color: var(--primary-bg);
+      }
+
+      .artworks-count {
+        margin-left: auto;
+        font-size: 0.6rem;
+        color: var(--text-dark);
+      }
+
+      .artworks-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 0.5rem;
+      }
+
+      .artwork-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--primary-border);
+        background: var(--secondary-bg);
+        cursor: zoom-in;
+        aspect-ratio: 16/9;
+      }
+      .artwork-item.portrait {
+        aspect-ratio: 2/3;
+      }
+      .artwork-item.square {
+        aspect-ratio: 1/1;
+      }
+
+      .artwork-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition:
+          transform 0.2s,
+          opacity 0.3s;
+        opacity: 0;
+      }
+      .artwork-item img.loaded {
+        opacity: 1;
+      }
+      .artwork-item:hover img {
+        transform: scale(1.04);
+      }
+
+      .artwork-ph {
+        position: absolute;
+        inset: 0;
+        background: var(--input-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-dark);
+        font-size: 0.6rem;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      .artwork-item img.loaded + .artwork-ph,
+      .artwork-ph.hidden {
+        opacity: 0;
+      }
+
+      .artwork-badge {
+        position: absolute;
+        bottom: 0.35rem;
+        left: 0.35rem;
+        font-size: 0.55rem;
+        font-weight: 700;
+        padding: 0.1rem 0.4rem;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.65);
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        pointer-events: none;
+      }
+
+      .artworks-load-more {
+        margin-top: 0.75rem;
+        width: 100%;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.55rem 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--primary-border);
+        background: var(--secondary-bg);
+        color: var(--text-dim);
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+        display: none;
+      }
+      .artworks-load-more:hover {
+        border-color: var(--main-color);
+        color: var(--main-color);
+      }
+      .artworks-load-more.visible {
+        display: block;
+      }
+
       .lightbox {
         display: none;
         position: fixed;
@@ -674,6 +814,9 @@
         .hero-banner-placeholder {
           height: 180px;
         }
+        .artworks-grid {
+          grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
       }
       @media (max-width: 380px) {
         .stats-grid {
@@ -715,12 +858,12 @@
       }
 
       function fmt(val, fallback = '—') {
-        if (val === null ?? val === undefined ?? val === '') return fallback;
+        if (val === null || val === undefined || val === '') return fallback;
         return val;
       }
 
       function fmtDate(d) {
-        if (!d ?? !d.year) return '—';
+        if (!d || !d.year) return '—';
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const m = d.month ? months[d.month - 1] : '';
         return [d.day, m, d.year].filter(Boolean).join(' ');
@@ -748,6 +891,142 @@
           }
           <span class="anime-title">${title}</span>
         </a>`;
+      }
+
+      const ARTWORK_PAGE_SIZE = 40;
+
+      let _artworkState = {
+        all: [],
+        filtered: [],
+        rendered: 0,
+        activeType: 'all',
+        observer: null
+      };
+
+      function artworkAspectClass(aw) {
+        if (!aw.width || !aw.height) return '';
+        const ratio = aw.width / aw.height;
+        if (ratio < 0.8) return 'portrait';
+        if (ratio > 1.4) return '';
+        return 'square';
+      }
+
+      function renderArtworkItems(items) {
+        return items
+          .map((aw) => {
+            const src = aw.large || aw.medium || aw.url;
+            const cls = artworkAspectClass(aw);
+            const badge = aw.type ? aw.type.replace(/_/g, ' ') : '';
+            const lang = aw.iso_639_1 ? ` · ${aw.iso_639_1}` : '';
+            return `<div class="artwork-item${cls ? ' ' + cls : ''}" onclick="openLightbox('${src}')">
+            ${
+              src
+                ? `<img
+                  src="${src}"
+                  alt="${badge}"
+                  loading="lazy"
+                  onload="this.classList.add('loaded')"
+                />`
+                : ''
+            }
+            <div class="artwork-ph">no img</div>
+            ${badge ? `<span class="artwork-badge">${badge}${lang}</span>` : ''}
+          </div>`;
+          })
+          .join('');
+      }
+
+      function initArtworks(artworks) {
+        if (!artworks || !artworks.length) return '';
+
+        _artworkState.all = artworks;
+        _artworkState.filtered = artworks;
+        _artworkState.rendered = 0;
+        _artworkState.activeType = 'all';
+
+        const types = ['all', ...new Set(artworks.map((a) => a.type).filter(Boolean))];
+
+        const filterBtns = types
+          .map(
+            (t) =>
+              `<button
+            class="artworks-filter-btn${t === 'all' ? ' active' : ''}"
+            data-type="${t}"
+            onclick="filterArtworks('${t}')"
+          >${t === 'all' ? 'all' : t.replace(/_/g, ' ')}</button>`
+          )
+          .join('');
+
+        const initialItems = artworks.slice(0, ARTWORK_PAGE_SIZE);
+        _artworkState.rendered = initialItems.length;
+        const hasMore = artworks.length > ARTWORK_PAGE_SIZE;
+
+        return `<div class="artworks-section">
+          <div class="section-label">Artworks</div>
+          <div class="artworks-toolbar">
+            ${filterBtns}
+            <span class="artworks-count" id="artworks-count">${artworks.length} total</span>
+          </div>
+          <div class="artworks-grid" id="artworks-grid">
+            ${renderArtworkItems(initialItems)}
+          </div>
+          <button
+            class="artworks-load-more${hasMore ? ' visible' : ''}"
+            id="artworks-load-more"
+            onclick="loadMoreArtworks()"
+          >load more (${artworks.length - _artworkState.rendered} remaining)</button>
+        </div>`;
+      }
+
+      function filterArtworks(type) {
+        _artworkState.activeType = type;
+        _artworkState.filtered =
+          type === 'all' ? _artworkState.all : _artworkState.all.filter((a) => a.type === type);
+        _artworkState.rendered = 0;
+
+        document.querySelectorAll('.artworks-filter-btn').forEach((btn) => {
+          btn.classList.toggle('active', btn.dataset.type === type);
+        });
+
+        const countEl = document.getElementById('artworks-count');
+        if (countEl) countEl.textContent = `${_artworkState.filtered.length} total`;
+
+        const grid = document.getElementById('artworks-grid');
+        const btn = document.getElementById('artworks-load-more');
+        if (!grid) return;
+
+        const initialItems = _artworkState.filtered.slice(0, ARTWORK_PAGE_SIZE);
+        _artworkState.rendered = initialItems.length;
+        grid.innerHTML = renderArtworkItems(initialItems);
+
+        const hasMore = _artworkState.filtered.length > _artworkState.rendered;
+        if (btn) {
+          btn.classList.toggle('visible', hasMore);
+          if (hasMore) {
+            btn.textContent = `load more (${_artworkState.filtered.length - _artworkState.rendered} remaining)`;
+          }
+        }
+      }
+
+      function loadMoreArtworks() {
+        const grid = document.getElementById('artworks-grid');
+        const btn = document.getElementById('artworks-load-more');
+        if (!grid) return;
+
+        const nextItems = _artworkState.filtered.slice(
+          _artworkState.rendered,
+          _artworkState.rendered + ARTWORK_PAGE_SIZE
+        );
+        _artworkState.rendered += nextItems.length;
+
+        grid.insertAdjacentHTML('beforeend', renderArtworkItems(nextItems));
+
+        const remaining = _artworkState.filtered.length - _artworkState.rendered;
+        const hasMore = remaining > 0;
+        if (btn) {
+          btn.classList.toggle('visible', hasMore);
+          if (hasMore) btn.textContent = `load more (${remaining} remaining)`;
+        }
       }
 
       async function load() {
@@ -781,6 +1060,16 @@
               number title overview
               image { large }
               runtime air_date
+            }
+            artworks {
+              url
+              large
+              medium
+              type
+              source
+              width
+              height
+              iso_639_1
             }
             recommendations { id title { romaji english } poster { large } }
             chronology { id title { romaji english } poster { large } }
@@ -818,7 +1107,6 @@
             .join('');
 
           const desc = a.description ? a.description.replace(/<[^>]+>/g, '') : null;
-
           const genreHtml = (a.genres ?? []).map((g) => `<span class="genre-chip">${g.name}</span>`).join('');
 
           const tags = (a.tags ?? []).filter((t) => t.tag?.name && !t.is_spoiler);
@@ -827,11 +1115,10 @@
                <div class="tags-wrap">
                  ${tags
                    .map(
-                     (
-                       t
-                     ) => `<span class="tag-chip${t.is_spoiler ? ' tag-spoiler' : ''}" title="${t.tag.category ?? ''}${t.is_spoiler ? ' · spoiler' : ''}">
-                   ${t.tag.name}${t.rank ? ` <span style="opacity:0.5">${t.rank}%</span>` : ''}
-                 </span>`
+                     (t) =>
+                       `<span class="tag-chip${t.is_spoiler ? ' tag-spoiler' : ''}" title="${t.tag.category ?? ''}${t.is_spoiler ? ' · spoiler' : ''}">
+                     ${t.tag.name}${t.rank ? ` <span style="opacity:0.5">${t.rank}%</span>` : ''}
+                   </span>`
                    )
                    .join('')}
                </div>`
@@ -841,7 +1128,7 @@
             (a.studios ?? [])
               .map((s) => s.studio?.name)
               .filter(Boolean)
-              .join(', ') ?? '—';
+              .join(', ') || '—';
 
           // characters
           const chars = a.characters ?? [];
@@ -877,9 +1164,10 @@
                <div class="h-scroll">
                  ${shots
                    .map(
-                     (s) => `<div class="screenshot" onclick="openLightbox('${s.large}')">
-                   <img src="${s.large}" alt="" loading="lazy" />
-                 </div>`
+                     (s) =>
+                       `<div class="screenshot" onclick="openLightbox('${s.large}')">
+                     <img src="${s.large}" alt="" loading="lazy" />
+                   </div>`
                    )
                    .join('')}
                </div>`
@@ -892,17 +1180,18 @@
                <div class="h-scroll">
                  ${vids
                    .map(
-                     (v) => `<a class="video-card" href="${v.url}" target="_blank" rel="noopener">
-                   ${
-                     v.thumbnail
-                       ? `<img class="video-thumb" src="${v.thumbnail}" alt="" loading="lazy" />`
-                       : `<div class="video-thumb"></div>`
-                   }
-                   <div class="video-meta">
-                     <div class="video-title">${v.title ?? 'Video'}</div>
-                     <div class="video-type">${v.type ?? ''}</div>
-                   </div>
-                 </a>`
+                     (v) =>
+                       `<a class="video-card" href="${v.url}" target="_blank" rel="noopener">
+                     ${
+                       v.thumbnail
+                         ? `<img class="video-thumb" src="${v.thumbnail}" alt="" loading="lazy" />`
+                         : `<div class="video-thumb"></div>`
+                     }
+                     <div class="video-meta">
+                       <div class="video-title">${v.title ?? 'Video'}</div>
+                       <div class="video-type">${v.type ?? ''}</div>
+                     </div>
+                   </a>`
                    )
                    .join('')}
                </div>`
@@ -924,25 +1213,29 @@
                <div class="episodes-list">
                  ${eps
                    .map(
-                     (ep) => `<div class="ep-item">
-                   ${
-                     ep.image?.large
-                       ? `<img class="ep-img" src="${ep.image.large}" alt="" loading="lazy" />`
-                       : `<div class="ep-img-ph">no img</div>`
-                   }
-                   <span class="ep-num">${ep.number}</span>
-                   <div class="ep-info">
-                     <div class="ep-title">${ep.title ?? `Episode ${ep.number}`}</div>
-                     <div class="ep-meta">
-                       ${ep.air_date ? `<span>${ep.air_date}</span>` : ''}
-                       ${ep.runtime ? `<span>${ep.runtime} min</span>` : ''}
+                     (ep) =>
+                       `<div class="ep-item">
+                     ${
+                       ep.image?.large
+                         ? `<img class="ep-img" src="${ep.image.large}" alt="" loading="lazy" />`
+                         : `<div class="ep-img-ph">no img</div>`
+                     }
+                     <span class="ep-num">${ep.number}</span>
+                     <div class="ep-info">
+                       <div class="ep-title">${ep.title ?? `Episode ${ep.number}`}</div>
+                       <div class="ep-meta">
+                         ${ep.air_date ? `<span>${ep.air_date}</span>` : ''}
+                         ${ep.runtime ? `<span>${ep.runtime} min</span>` : ''}
+                       </div>
                      </div>
-                   </div>
-                 </div>`
+                   </div>`
                    )
                    .join('')}
                </div>`
             : '';
+
+          // artworks
+          const artworksHtml = initArtworks(a.artworks ?? []);
 
           const chrono = a.chronology ?? [];
           const chronoHtml = chrono.length
@@ -1012,9 +1305,11 @@
             ${vidsHtml}
             ${linksHtml}
             ${epsHtml}
+            ${artworksHtml}
             ${chronoHtml}
             ${recsHtml}
           `;
+
           initScrollButtons();
         } catch (e) {
           app.innerHTML = `<div class="state">Error: ${e.message}</div>`;
