@@ -8,14 +8,12 @@ import rateLimit from './helpers/plugins/rate.limit';
 import protectRoute from './helpers/plugins/protect.route';
 import { animeRoute, apiRoute, proxyRoute, yoga } from './core';
 import logger from './helpers/logger';
-import { HTTPError } from 'ky';
 import Elysia, { file, NotFoundError, t } from 'elysia';
 import { cors } from '@elysiajs/cors';
 import swagger from '@elysiajs/swagger';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 import staticPlugin from '@elysiajs/static';
-import { MyAnimeList, TmdbFetch } from './core/anime';
 
 const app = new Elysia()
   .use(
@@ -102,16 +100,6 @@ const app = new Elysia()
       set.status = error.status;
       return createErrorResponse({
         error: { status: error.status, message: error.message, details: error.details }
-      });
-    }
-
-    if (error instanceof HTTPError) {
-      set.status = error.response?.status ?? 500;
-      return createErrorResponse({
-        error: {
-          status: set.status,
-          message: error.message
-        }
       });
     }
 
