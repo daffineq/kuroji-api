@@ -9,12 +9,12 @@ class AnilistFetchModule extends ClientModule {
 
   async fetchInfo(id: number): Promise<AnilistMedia> {
     const { data, error } = await this.client.post<AnilistMediaResponse>(``, {
-      json: {
+      body: JSON.stringify({
         query: ANILIST_INFO,
         variables: {
           id
         }
-      }
+      })
     });
 
     if (error) {
@@ -42,7 +42,7 @@ class AnilistFetchModule extends ClientModule {
       media: { id: number }[];
       pageInfo: { hasNextPage: boolean };
     }>(``, {
-      json: {
+      body: JSON.stringify({
         query: `
           query ($page: Int, $perPage: Int) {
             Page(page: $page, perPage: $perPage) {
@@ -63,7 +63,7 @@ class AnilistFetchModule extends ClientModule {
           page,
           perPage
         }
-      },
+      }),
       jsonPath: 'data.Page'
     });
 
@@ -83,7 +83,7 @@ class AnilistFetchModule extends ClientModule {
       media: { id: number }[];
       pageInfo: { lastPage: number };
     }>(``, {
-      json: {
+      body: JSON.stringify({
         query: `
           query {
             Page(page: 1, perPage: 1) {
@@ -96,7 +96,7 @@ class AnilistFetchModule extends ClientModule {
             }
           }
         `
-      },
+      }),
       jsonPath: 'data.Page'
     });
 

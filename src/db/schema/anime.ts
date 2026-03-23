@@ -6,7 +6,7 @@ export const anime = pgTable(
   {
     id: integer('id').primaryKey(),
     id_mal: integer('id_mal'),
-    background: varchar('background', { length: 255 }),
+    background: text('background'),
     description: text('description'),
     status: varchar('status', { length: 255 }),
     type: varchar('type', { length: 255 }),
@@ -31,7 +31,7 @@ export const anime = pgTable(
     age_rating: varchar('age_rating', { length: 255 }),
     episodes_aired: integer('episodes_aired'),
     episodes_total: integer('episodes_total'),
-    moreinfo: varchar('moreinfo', { length: 255 }),
+    moreinfo: text('moreinfo'),
     broadcast: varchar('broadcast', { length: 255 }),
     nsfw: boolean('nsfw').default(false),
     latest_airing_episode: integer('latest_airing_episode'),
@@ -73,9 +73,9 @@ export const animePoster = pgTable(
       .notNull()
       .unique()
       .references(() => anime.id, { onDelete: 'cascade' }),
-    small: varchar('small', { length: 255 }),
-    medium: varchar('medium', { length: 255 }),
-    large: varchar('large', { length: 255 })
+    small: text('small'),
+    medium: text('medium'),
+    large: text('large')
   },
   (t) => [index('idx_anime_poster_anime_id').on(t.anime_id)]
 );
@@ -90,9 +90,9 @@ export const animeTitle = pgTable(
       .notNull()
       .unique()
       .references(() => anime.id, { onDelete: 'cascade' }),
-    romaji: varchar('romaji', { length: 255 }),
-    english: varchar('english', { length: 255 }),
-    native: varchar('native', { length: 255 })
+    romaji: text('romaji'),
+    english: text('english'),
+    native: text('native')
   },
   (t) => [index('idx_anime_title_anime_id').on(t.anime_id)]
 );
@@ -208,7 +208,7 @@ export const animeVoiceActor = pgTable('anime_voice_actor', {
   blood_type: varchar('blood_type', { length: 255 }),
   description: text('description'),
   gender: varchar('gender', { length: 255 }),
-  home_town: varchar('home_town', { length: 255 })
+  home_town: text('home_town')
 });
 
 export const characterToVoiceActor = pgTable(
@@ -250,11 +250,11 @@ export const animeCharacterName = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    first: varchar('first', { length: 255 }),
-    middle: varchar('middle', { length: 255 }),
-    last: varchar('last', { length: 255 }),
-    full: varchar('full', { length: 255 }),
-    native: varchar('native', { length: 255 }),
+    first: text('first'),
+    middle: text('middle'),
+    last: text('last'),
+    full: text('full'),
+    native: text('native'),
     alternative: text('alternative').array(),
     alternative_spoiler: text('alternative_spoiler').array(),
     character_id: integer('character_id')
@@ -270,8 +270,8 @@ export const animeCharacterImage = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    large: varchar('large', { length: 255 }),
-    medium: varchar('medium', { length: 255 }),
+    large: text('large'),
+    medium: text('medium'),
     character_id: integer('character_id')
       .unique()
       .references(() => animeCharacter.id, { onDelete: 'cascade' })
@@ -317,11 +317,11 @@ export const animeVoiceName = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    first: varchar('first', { length: 255 }),
-    middle: varchar('middle', { length: 255 }),
-    last: varchar('last', { length: 255 }),
-    full: varchar('full', { length: 255 }),
-    native: varchar('native', { length: 255 }),
+    first: text('first'),
+    middle: text('middle'),
+    last: text('last'),
+    full: text('full'),
+    native: text('native'),
     alternative: text('alternative').array(),
     voice_actor_id: integer('voice_actor_id')
       .unique()
@@ -336,8 +336,8 @@ export const animeVoiceImage = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    large: varchar('large', { length: 255 }),
-    medium: varchar('medium', { length: 255 }),
+    large: text('large'),
+    medium: text('medium'),
     voice_actor_id: integer('voice_actor_id')
       .unique()
       .references(() => animeVoiceActor.id, { onDelete: 'cascade' })
@@ -347,7 +347,7 @@ export const animeVoiceImage = pgTable(
 
 export const animeStudio = pgTable('anime_studio', {
   id: integer('id').primaryKey(),
-  name: varchar('name', { length: 255 })
+  name: text('name')
 });
 
 export const animeToStudio = pgTable(
@@ -444,8 +444,8 @@ export const animeLink = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    link: varchar('link', { length: 255 }).notNull(),
-    label: varchar('label', { length: 255 }).notNull(),
+    link: text('link').notNull(),
+    label: text('label').notNull(),
     type: varchar('type', { length: 255 })
   },
   (t) => [uniqueIndex('link_unique').on(t.link, t.label)]
@@ -457,7 +457,7 @@ export const animeOtherTitle = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    title: varchar('title', { length: 255 }).notNull(),
+    title: text('title').notNull(),
     source: varchar('source', { length: 255 }).notNull(),
     language: varchar('language', { length: 255 })
   },
@@ -483,10 +483,10 @@ export const animeImage = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    url: varchar('url', { length: 255 }).notNull(),
-    small: varchar('small', { length: 255 }),
-    medium: varchar('medium', { length: 255 }),
-    large: varchar('large', { length: 255 }),
+    url: text('url').notNull(),
+    small: text('small'),
+    medium: text('medium'),
+    large: text('large'),
     type: varchar('type', { length: 255 }),
     source: varchar('source', { length: 255 }).notNull()
   },
@@ -499,10 +499,10 @@ export const animeVideo = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    url: varchar('url', { length: 255 }).notNull(),
-    title: varchar('title', { length: 255 }),
-    thumbnail: varchar('thumbnail', { length: 255 }),
-    artist: varchar('artist', { length: 255 }),
+    url: text('url').notNull(),
+    title: text('title'),
+    thumbnail: text('thumbnail'),
+    artist: text('artist'),
     type: varchar('type', { length: 255 }),
     source: varchar('source', { length: 255 }).notNull()
   },
@@ -515,11 +515,11 @@ export const animeScreenshot = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    url: varchar('url', { length: 255 }).notNull(),
+    url: text('url').notNull(),
     order: integer('order').notNull(),
-    small: varchar('small', { length: 255 }),
-    medium: varchar('medium', { length: 255 }),
-    large: varchar('large', { length: 255 }),
+    small: text('small'),
+    medium: text('medium'),
+    large: text('large'),
     source: varchar('source', { length: 255 }).notNull()
   },
   (t) => [uniqueIndex('anime_screenshot_unique').on(t.url, t.source)]
@@ -531,11 +531,11 @@ export const animeArtwork = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    url: varchar('url', { length: 255 }).notNull(),
+    url: text('url').notNull(),
     height: integer('height'),
     width: integer('width'),
-    large: varchar('large', { length: 255 }),
-    medium: varchar('medium', { length: 255 }),
+    large: text('large'),
+    medium: text('medium'),
     iso_639_1: varchar('iso_639_1', { length: 255 }),
     type: varchar('type', { length: 255 }),
     source: varchar('source', { length: 255 }).notNull()
@@ -591,7 +591,7 @@ export const animeEpisode = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    title: varchar('title', { length: 255 }),
+    title: text('title'),
     number: integer('number').notNull(),
     air_date: varchar('air_date', { length: 255 }),
     runtime: integer('runtime'),
@@ -612,9 +612,9 @@ export const animeEpisodeImage = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    small: varchar('small', { length: 255 }),
-    medium: varchar('medium', { length: 255 }),
-    large: varchar('large', { length: 255 }),
+    small: text('small'),
+    medium: text('medium'),
+    large: text('large'),
     episode_id: varchar('episode_id', { length: 255 })
       .unique()
       .references(() => animeEpisode.id, { onDelete: 'cascade' })

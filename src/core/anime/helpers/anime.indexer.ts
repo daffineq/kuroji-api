@@ -46,7 +46,7 @@ class AnimeIndexerModule extends Module {
           try {
             await Promise.race([
               Anime.updateOrCreate(id),
-              sleep(60000).then(() => {
+              sleep(120000).then(() => {
                 throw new Error('Timed out');
               })
             ]);

@@ -1,0 +1,1 @@
+ALTER TABLE "anime" ALTER COLUMN "moreinfo" SET DATA TYPE text USING "moreinfo"::text;

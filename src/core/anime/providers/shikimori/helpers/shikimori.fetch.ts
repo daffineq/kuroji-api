@@ -9,10 +9,10 @@ class ShikimoriFetchModule extends ClientModule {
 
   async fetchInfo(id: string): Promise<ShikimoriAnime> {
     const { data, error } = await this.client.post<ShikimoriAnime[]>(``, {
-      json: {
+      body: JSON.stringify({
         query: SHIKIMORI_INFO,
         variables: { ids: id }
-      },
+      }),
       jsonPath: 'data.animes'
     });
 

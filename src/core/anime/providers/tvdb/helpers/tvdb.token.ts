@@ -65,9 +65,9 @@ class TvdbTokenModule extends ClientModule {
 
   async createToken(): Promise<void> {
     const { data, error } = await this.client.post<LoginResponse>('login', {
-      json: {
+      body: JSON.stringify({
         apikey: Config.has_tvdb_api_key ? Config.tvdb_api_key : this.getRandomKey()
-      }
+      })
     });
 
     if (error) {

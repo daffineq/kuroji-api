@@ -198,7 +198,7 @@ class AnimeUpdateModule extends Module {
     try {
       await Promise.race([
         Anime.update(item.anime_id),
-        sleep(60000).then(() => {
+        sleep(120000).then(() => {
           throw new Error('Timed out');
         })
       ]);
