@@ -8,7 +8,6 @@
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/public/html/styles.css" />
     <style>
       :root {
         --main-color: #7b5cf0;
@@ -344,6 +343,9 @@
         color: inherit;
         flex-shrink: 0;
         width: 150px;
+      }
+      .anime-card.current {
+        background: color-mix(in srgb, var(--main-color), transparent 80%);
       }
       .anime-card:hover {
         transform: translateY(-2px);
@@ -880,10 +882,10 @@
         if (e.key === 'Escape') closeLightbox();
       });
 
-      function animeCard(a) {
+      function animeCard(a, c) {
         const title = a.title?.romaji ?? a.title?.english ?? '—';
         const img = a.poster?.large;
-        return `<a class="anime-card" href="/info?id=${a.id}">
+        return `<a class="anime-card ${c === a.id ? 'current' : ''}" href="/info?id=${a.id}">
           ${
             img
               ? `<img class="anime-poster" src="${img}" alt="${title}" loading="lazy" />`
@@ -1241,7 +1243,7 @@
           const chrono = a.chronology ?? [];
           const chronoHtml = chrono.length
             ? `<div class="section-label">Chronology</div>
-               <div class="h-scroll">${chrono.map(animeCard).join('')}</div>`
+               <div class="h-scroll">${chrono.map((c) => animeCard(c, a.id)).join('')}</div>`
             : '';
 
           const recs = a.recommendations ?? [];
