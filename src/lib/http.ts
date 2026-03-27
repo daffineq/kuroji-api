@@ -142,7 +142,7 @@ export class KurojiClient {
           continue;
         }
 
-        if (!apiResponse.ok) {
+        if (apiResponse.status >= 400) {
           throw new Error(
             `Request failed with status ${apiResponse.status} ${apiResponse.statusText} ${finalUrl}`
           );

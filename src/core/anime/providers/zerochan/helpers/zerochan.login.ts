@@ -4,7 +4,6 @@ import { KurojiClient } from 'src/lib/http';
 import { ClientModule } from 'src/helpers/client';
 import { db, zerochanLogin } from 'src/db';
 import { count, eq } from 'drizzle-orm';
-import puppeteer from 'puppeteer';
 
 class ZerochanLoginModule extends ClientModule {
   protected override readonly client = new KurojiClient(Config.zerochan);
@@ -64,34 +63,40 @@ class ZerochanLoginModule extends ClientModule {
   }
 
   async createLogin(): Promise<void> {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+    const body = new URLSearchParams({
+      name: 'kurojiq',
+      password: 'j^V+$D>L79mE52.',
+      login: 'Login'
     });
-    const page = await browser.newPage();
 
-    await page.goto(`${Config.zerochan}/login`);
+    const { response } = await this.client.post('login', {
+      body: body.toString(),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      redirect: 'manual'
+    });
 
-    await page.type('input[name="name"]', `${Config.zerochan_user}`);
-    await page.type('input[name="password"]', `${Config.zerochan_password}`);
+    const cookies = response?.headers.getSetCookie() ?? [];
 
-    await Promise.all([page.click('input[name="login"]'), page.waitForNavigation()]);
+    const getCookieValue = (name: string) => {
+      const cookie = cookies.find((c) => c.startsWith(`${name}=`));
+      if (!cookie) return null;
+      return cookie.split(';')[0]?.split('=')[1];
+    };
 
-    const cookies = await browser.cookies();
-    const z_id = cookies.find((c) => c.name === 'z_id')?.value;
-    const z_hash = cookies.find((c) => c.name === 'z_hash')?.value;
-    const xbotcheck = cookies.find((c) => c.name === 'xbotcheck')?.value;
+    const z_id = getCookieValue('z_id');
+    const z_hash = getCookieValue('z_hash');
 
-    if (!z_id || !z_hash || !xbotcheck) {
+    if (!z_id || !z_hash) {
       throw new Error('No login found');
     }
 
-    logger.log(`Zerochan login: z_id=${z_id}; z_hash=${z_hash}; xbotcheck=${xbotcheck}`);
+    logger.log(`Zerochan login: z_id=${z_id}; z_hash=${z_hash};`);
 
     await db.insert(zerochanLogin).values({
       z_id,
-      z_hash,
-      xbotcheck
+      z_hash
     });
   }
 }

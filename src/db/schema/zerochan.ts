@@ -7,7 +7,6 @@ export const zerochanLogin = pgTable('zerochan_login', {
     .$defaultFn(() => cuid()),
   z_id: text('z_id').notNull(),
   z_hash: text('z_hash').notNull(),
-  xbotcheck: text('xbotcheck').notNull(),
   created_at: timestamp('created_at').notNull().defaultNow(),
   expired: boolean('expired').notNull().default(false)
 });

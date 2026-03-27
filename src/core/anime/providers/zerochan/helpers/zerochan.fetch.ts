@@ -14,7 +14,7 @@ class ZerochanFetchModule extends ClientModule {
       `/${encodeURIComponent(q)}?s=fav&json&l=250`,
       {
         headers: {
-          Cookie: `xbotcheck=${login.xbotcheck}; z_id=${login.z_id}; z_hash=${login.z_hash}`,
+          Cookie: `xbotcheck=123; z_id=${login.z_id}; z_hash=${login.z_hash}`,
           'User-Agent': `Kuroji - ${Config.zerochan_user}`
         },
         jsonPath: 'items'
@@ -37,7 +37,7 @@ class ZerochanFetchModule extends ClientModule {
 
     const { data, error } = await this.client.get<ZerochanSuggestion[]>(`/suggest?q=${q}&json`, {
       headers: {
-        Cookie: `xbotcheck=${login.xbotcheck}; z_id=${login.z_id}; z_hash=${login.z_hash}`,
+        Cookie: `xbotcheck=123; z_id=${login.z_id}; z_hash=${login.z_hash}`,
         'User-Agent': `Kuroji - ${Config.zerochan_user}`
       },
       jsonPath: 'suggestions'
