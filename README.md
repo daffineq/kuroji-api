@@ -40,7 +40,7 @@ open https://kuroji-api-j4mh.onrender.com/graphql
 
 ## What's This?
 
-Fast anime database API that pulls from multiple sources (AniList, Kitsu, Shikimori, TMDB, TVDB, MyAnimeList). REST + GraphQL, rate limiting, API keys - the whole package.
+Fast anime database API that pulls from multiple sources (AniList, Kitsu, Shikimori, TMDB, TVDB, MyAnimeList, Zerochan). REST + GraphQL, rate limiting, API keys - the whole package.
 
 **Important:** You gotta index anime data before querying.
 
@@ -188,6 +188,19 @@ bun run db:drop          # Drop tables
 ## Database
 
 You can look at the visual anime schema at **[Schema](https://dbdiagram.io/d/kuroji_anime-69b1bbb877d079431b61a938)**
+
+---
+
+## Providers
+
+Kuroji API wouldn't be possible without the amazing data provided by these platforms
+
+### Data Sources
+- **[AniList](https://anilist.co/)** - Primary source for anime metadata and characters
+- **[MyAnimeList](https://myanimelist.net/)** - Additional metadata
+- **[Zerochan](https://www.zerochan.net/)** - High-quality anime imagery and art
+- **[Shikimori](https://shikimori.one/)** & **[Kitsu](https://kitsu.io/)** - Additional metadata
+- **[TMDB](https://www.themoviedb.org/)** & **[TVDB](https://thetvdb.com/)** - Episodes and imagery
 
 ---
 
