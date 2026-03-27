@@ -71,8 +71,8 @@ class AnimeModule extends Module {
       MyAnimeList.getInfo(id, idMal).catch(() => null),
       Shikimori.getInfo(id, idMal).catch(() => null),
       Kitsu.getInfo(id).catch(() => null),
-      Tmdb.getInfo(id).catch(() => null),
-      Zerochan.getImages(id).catch(() => null)
+      Tmdb.getInfo(id).catch(() => null)
+      // Zerochan.getImages(id).catch(() => null)
     ]);
 
     await Promise.all([Tvdb.getInfo(id).catch(() => null), TmdbSeasons.getEpisodes(id).catch(() => null)]);
