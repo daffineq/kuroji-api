@@ -63,7 +63,7 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
     return info;
   }
 
-  async resolveInfo(id: number, idMal?: number) {
+  private async resolveInfo(id: number, idMal?: number) {
     if (idMal) {
       const info = await this.scrape(idMal);
 
@@ -105,7 +105,7 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
     }
   }
 
-  async scrape(id: number | string): Promise<MyAnimeListInfo> {
+  private async scrape(id: number | string): Promise<MyAnimeListInfo> {
     const [res, moreInfoRes, videoRes] = await Promise.all([
       fetch(`${this.url}/anime/${id}`),
       fetch(`${this.url}/anime/${id}/1/moreinfo`),

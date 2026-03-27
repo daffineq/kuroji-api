@@ -79,6 +79,7 @@ export interface EpisodeArgs {
 
 export interface ArtworksArgs extends SourceArgs {
   iso_639_1?: string;
+  include_adult?: boolean;
 }
 
 export interface LinkArgs {

@@ -1,13 +1,5 @@
 import { Anime } from '../anime';
-import {
-  AnimeArgs,
-  ArtworksArgs,
-  CharacterArgs,
-  ChronologyArgs,
-  LinkArgs,
-  RecommendationArgs,
-  SourceArgs
-} from './types';
+import { AnimeArgs, ArtworksArgs, ChronologyArgs, LinkArgs, RecommendationArgs, SourceArgs } from './types';
 import {
   db,
   anime,
@@ -817,9 +809,17 @@ export const resolvers = {
       return loaders.artworks.load(parent.id).then((al) => {
         let filtered = al;
 
-        if (args.iso_639_1) filtered.filter((a) => a.iso_639_1 === args.iso_639_1);
+        if (args.iso_639_1) {
+          filtered = filtered.filter((a) => a.iso_639_1 === args.iso_639_1);
+        }
 
-        if (args.source) filtered.filter((a) => a.source === args.source);
+        if (args.source) {
+          filtered = filtered.filter((a) => a.source === args.source);
+        }
+
+        if (args.include_adult === false) {
+          filtered = filtered.filter((a) => a.is_adult === false);
+        }
 
         return filtered;
       });

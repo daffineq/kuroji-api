@@ -83,9 +83,7 @@ class TvdbTokenModule extends ClientModule {
     logger.log(`TVDB token: ${token}`);
 
     await db.insert(tvdbLogin).values({
-      token,
-      created_at: new Date(),
-      expired: false
+      token
     });
   }
 

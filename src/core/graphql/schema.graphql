@@ -374,7 +374,7 @@ type Anime {
   images(source: String): [AnimeImage!]!
   videos(source: String): [AnimeVideo!]!
   screenshots(source: String): [AnimeScreenshot!]!
-  artworks(iso_639_1: String, source: String): [AnimeArtwork!]!
+  artworks(iso_639_1: String, source: String, include_adult: Boolean): [AnimeArtwork!]!
   chronology: [Anime!]!
   recommendations: [Anime!]!
   episodes: [Episode!]!
@@ -559,6 +559,7 @@ type AnimeArtwork {
   width: Int
   large: String
   medium: String
+  is_adult: Boolean
   iso_639_1: String
   type: String!
   source: String!

@@ -47,7 +47,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
     return info;
   }
 
-  async resolveInfo(id: number) {
+  private async resolveInfo(id: number) {
     const al = await Anilist.getInfo(id);
 
     if (!al) {

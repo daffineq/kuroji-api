@@ -58,7 +58,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     return info;
   }
 
-  async resolveInfo(id: number) {
+  private async resolveInfo(id: number) {
     const idMap = await Anime.map(id, this.name);
 
     if (idMap) {
@@ -79,7 +79,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     }
   }
 
-  async find(id: number): Promise<KitsuAnime> {
+  private async find(id: number): Promise<KitsuAnime> {
     const al = await Anilist.getInfo(id);
 
     if (!al) {
