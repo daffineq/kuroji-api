@@ -1,0 +1,1 @@
+ALTER TABLE "zerochan_login" DROP COLUMN "xbotcheck";
