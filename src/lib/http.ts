@@ -143,7 +143,9 @@ export class KurojiClient {
         }
 
         if (!apiResponse.ok) {
-          throw new Error(`Request failed with status ${apiResponse.status} ${apiResponse.statusText}`);
+          throw new Error(
+            `Request failed with status ${apiResponse.status} ${apiResponse.statusText} ${finalUrl}`
+          );
         }
 
         const textResponse = await apiResponse.text();

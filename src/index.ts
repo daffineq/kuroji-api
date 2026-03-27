@@ -14,6 +14,7 @@ import swagger from '@elysiajs/swagger';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 import staticPlugin from '@elysiajs/static';
+import { Zerochan, ZerochanFetch, ZerochanLogin } from './core/anime/providers/zerochan';
 
 const app = new Elysia()
   .use(

@@ -1,0 +1,1 @@
+ALTER TABLE "zerochan_login" ADD COLUMN "xbotcheck" text NOT NULL;

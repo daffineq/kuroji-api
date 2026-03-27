@@ -727,6 +727,7 @@ class AnimeDbModule extends Module {
                 iso_639_1: a.iso_639_1,
                 medium: a.medium,
                 type: a.type,
+                is_adult: a.is_adult,
                 width: a.width,
                 source: a.source.toLowerCase()
               }));
@@ -743,6 +744,7 @@ class AnimeDbModule extends Module {
                   width: sql`excluded.width`,
                   large: sql`excluded.large`,
                   medium: sql`excluded.medium`,
+                  is_adult: sql`excluded.is_adult`,
                   iso_639_1: sql`excluded.iso_639_1`
                 }
               })

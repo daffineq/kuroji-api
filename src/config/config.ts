@@ -45,6 +45,11 @@ class ConfigModule {
   readonly tmdb = process.env.TMDB ?? 'https://api.themoviedb.org/3';
   readonly tmdb_image = process.env.TMDB_IMAGE ?? 'https://image.tmdb.org/t/p/';
   readonly tvdb = process.env.TVDB ?? 'https://api4.thetvdb.com/v4';
+  readonly zerochan = process.env.ZEROCHAN ?? 'https://www.zerochan.net';
+
+  // Zerochan
+  readonly zerochan_user = process.env.ZEROCHAN_USER ?? 'kurojiq';
+  readonly zerochan_password = process.env.ZEROCHAN_PASSWORD ?? 'j^V+$D>L79mE52.';
 
   // Keys
   readonly tmdb_api_key = process.env.TMDB_API_KEY ?? '';

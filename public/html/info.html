@@ -684,6 +684,9 @@
       .artwork-item img.loaded {
         opacity: 1;
       }
+      .artwork-item img.adult {
+        filter: blur(6px);
+      }
       .artwork-item:hover img {
         transform: scale(1.04);
       }
@@ -928,6 +931,7 @@
                   src="${src}"
                   alt="${badge}"
                   loading="lazy"
+                  class="${aw.is_adult ? 'adult' : ''}"
                   onload="this.classList.add('loaded')"
                 />`
                 : ''
@@ -1072,6 +1076,7 @@
               source
               width
               height
+              is_adult
               iso_639_1
             }
             recommendations { id title { romaji english } poster { large } }

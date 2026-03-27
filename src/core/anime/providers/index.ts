@@ -4,3 +4,4 @@ export * from './mal';
 export * from './shikimori';
 export * from './tmdb';
 export * from './tvdb';
+export * from './zerochan';

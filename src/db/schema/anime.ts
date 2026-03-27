@@ -537,6 +537,7 @@ export const animeArtwork = pgTable(
     large: text('large'),
     medium: text('medium'),
     iso_639_1: varchar('iso_639_1', { length: 255 }),
+    is_adult: boolean('is_adult').default(false),
     type: varchar('type', { length: 255 }),
     source: varchar('source', { length: 255 }).notNull()
   },

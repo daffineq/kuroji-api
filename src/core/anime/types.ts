@@ -177,6 +177,7 @@ export interface AnimeArtworkPayload {
   large?: string | null;
   medium?: string | null;
   iso_639_1?: string | null;
+  is_adult?: boolean | false;
   type: string;
   source: string;
 }

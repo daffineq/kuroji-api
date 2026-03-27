@@ -81,7 +81,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     return resolved.info;
   }
 
-  async resolveInfo(id: number): Promise<{
+  private async resolveInfo(id: number): Promise<{
     info: TmdbInfoResult;
     type: string;
   }> {
@@ -180,7 +180,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     return images;
   }
 
-  async find(id: number): Promise<TmdbInfoResult> {
+  private async find(id: number): Promise<TmdbInfoResult> {
     const al = await Anilist.getInfo(id);
 
     if (!al) {

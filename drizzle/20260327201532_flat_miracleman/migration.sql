@@ -1,0 +1,1 @@
+ALTER TABLE "anime_artwork" ADD COLUMN "is_adult" boolean DEFAULT false;

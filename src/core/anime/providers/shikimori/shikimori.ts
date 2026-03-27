@@ -118,7 +118,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     return info;
   }
 
-  async resolveInfo(id: number, idMal?: number) {
+  private async resolveInfo(id: number, idMal?: number) {
     if (idMal) {
       const info = await ShikimoriFetch.fetchInfo(parseString(idMal)!);
 
