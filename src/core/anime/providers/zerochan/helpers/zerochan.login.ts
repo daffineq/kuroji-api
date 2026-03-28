@@ -64,8 +64,8 @@ class ZerochanLoginModule extends ClientModule {
 
   async createLogin(): Promise<void> {
     const body = new URLSearchParams({
-      name: 'kurojiq',
-      password: 'j^V+$D>L79mE52.',
+      name: Config.zerochan_user,
+      password: Config.zerochan_password,
       login: 'Login'
     });
 
