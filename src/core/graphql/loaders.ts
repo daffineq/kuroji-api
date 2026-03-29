@@ -509,7 +509,8 @@ export function createLoaders() {
       const rows = await db
         .select()
         .from(animeEpisode)
-        .where(inArray(animeEpisode.anime_id, [...ids]));
+        .where(inArray(animeEpisode.anime_id, [...ids]))
+        .orderBy(asc(animeEpisode.number));
       const map = groupBy(rows, (r) => r.anime_id);
       return ids.map((id) => map.get(id) ?? []);
     },
