@@ -1,6 +1,6 @@
 import logger from 'src/helpers/logger';
 import { sleep } from 'bun';
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import lock from 'src/helpers/lock';
 import { EnableSchedule, Scheduled, Schedule } from 'src/helpers/schedule';
 import { AnimeUpdateFetch } from './anime.update.fetch';

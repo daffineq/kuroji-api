@@ -1,4 +1,4 @@
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import redis from 'src/lib/redis';
 import { localStore } from './local.store';
 

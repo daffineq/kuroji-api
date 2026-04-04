@@ -6,13 +6,16 @@ import { Anime } from '../../anime';
 import { AnimeVideoPayload } from '../../types';
 import { load } from 'cheerio';
 import { MyAnimeListInfo, MyAnimeListVideo } from './types';
+import { Config } from 'src/config';
 
 class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
   override readonly name = 'MyAnimeList';
 
-  private url = 'https://myanimelist.net';
-
   override async getInfo(id: number, idMal?: number): Promise<MyAnimeListInfo> {
+    if (!Config.use_myanimelist) {
+      throw new Error(`${this.name} disabled`);
+    }
+
     const key = getKey(this.name, 'info', id);
 
     const cached = await Redis.get<MyAnimeListInfo>(key);
@@ -107,9 +110,9 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
 
   private async scrape(id: number | string): Promise<MyAnimeListInfo> {
     const [res, moreInfoRes, videoRes] = await Promise.all([
-      fetch(`${this.url}/anime/${id}`),
-      fetch(`${this.url}/anime/${id}/1/moreinfo`),
-      fetch(`${this.url}/anime/${id}/1/video`)
+      fetch(`${Config.myanimelist}/anime/${id}`),
+      fetch(`${Config.myanimelist}/anime/${id}/1/moreinfo`),
+      fetch(`${Config.myanimelist}/anime/${id}/1/video`)
     ]);
     const html = await res.text();
     const $ = load(html);

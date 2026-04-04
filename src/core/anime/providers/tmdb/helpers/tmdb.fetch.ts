@@ -1,4 +1,4 @@
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { SeasonTmdb, TmdbImage, TmdbInfoResult, TmdbSearchResult, TmdbTranslation } from '../types';
 import { KurojiClient } from 'src/lib/http';
 import { ClientModule } from 'src/helpers/client';

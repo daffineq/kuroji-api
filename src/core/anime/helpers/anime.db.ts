@@ -1,6 +1,6 @@
 import { DateUtils } from 'src/helpers/date';
 import { Module } from 'src/helpers/module';
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import {
   anime,
   animeTitle,

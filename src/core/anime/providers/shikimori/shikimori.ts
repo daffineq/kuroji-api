@@ -7,11 +7,16 @@ import { ProviderModule } from 'src/helpers/module';
 import { Anime } from '../../anime';
 import { AnimeChronologyPayload, AnimeScreenshotPayload, AnimeVideoPayload } from '../../types';
 import { forced } from 'src/helpers/forced';
+import { Config } from 'src/config';
 
 class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
   override readonly name = 'Shikimori';
 
   override async getInfo(id: number, idMal?: number): Promise<ShikimoriAnime> {
+    if (!Config.use_shikimori) {
+      throw new Error(`${this.name} disabled`);
+    }
+
     const key = getKey(this.name, 'info', id);
 
     const cached = await Redis.get<ShikimoriAnime>(key);

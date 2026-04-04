@@ -1,4 +1,4 @@
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { ClientModule } from 'src/helpers/client';
 import { KurojiClient } from 'src/lib/http';
 import { ZerochanArtwork, ZerochanSuggestion } from '../types';

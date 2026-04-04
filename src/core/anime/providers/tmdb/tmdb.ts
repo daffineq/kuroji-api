@@ -11,11 +11,16 @@ import { ProviderModule } from 'src/helpers/module';
 import { AnimeUtils } from '../../helpers';
 import { Anime } from '../../anime';
 import { AnimeArtworkPayload } from '../../types';
+import { Config } from 'src/config';
 
 class TmdbModule extends ProviderModule<TmdbInfoResult> {
   override readonly name = 'TMDB';
 
   override async getInfo(id: number): Promise<TmdbInfoResult> {
+    if (!Config.use_tmdb) {
+      throw new Error(`${this.name} disabled`);
+    }
+
     const key = getKey(this.name, 'info', id);
 
     const cached = await Redis.get<TmdbInfoResult>(key);
@@ -117,6 +122,10 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
   }
 
   async getTranslations(id: number): Promise<TmdbTranslation[]> {
+    if (!Config.use_tmdb) {
+      throw new Error(`${this.name} disabled`);
+    }
+
     const key = getKey(this.name, 'info', 'translations', id);
 
     const cached = await Redis.get<TmdbTranslation[]>(key);
@@ -141,6 +150,10 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
   }
 
   async getEpisodeTranslations(show_id?: number, season?: number, episode?: number): Promise<TmdbTranslation[]> {
+    if (!Config.use_tmdb) {
+      throw new Error(`${this.name} disabled`);
+    }
+
     if (!show_id || !season || !episode) {
       return [];
     }
@@ -161,6 +174,10 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
   }
 
   async getEpisodeImages(show_id?: number, season?: number, episode?: number): Promise<TmdbImage[]> {
+    if (!Config.use_tmdb) {
+      throw new Error(`${this.name} disabled`);
+    }
+
     if (!show_id || !season || !episode) {
       return [];
     }

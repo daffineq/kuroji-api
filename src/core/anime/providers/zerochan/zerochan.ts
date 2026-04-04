@@ -9,13 +9,16 @@ import { parseString } from 'src/helpers/parsers';
 import { NotFoundError } from 'src/helpers/errors';
 import { Anime } from '../../anime';
 import { AnimeArtworkPayload } from '../../types';
+import { Config } from 'src/config';
 
 class ZerochanModule extends Module {
   override readonly name = 'Zerochan';
 
-  private imageUrl = 'https://static.zerochan.net';
-
   async getImages(id: number): Promise<ZerochanArtwork[]> {
+    if (!Config.use_zerochan) {
+      throw new Error(`${this.name} disabled`);
+    }
+
     const key = getKey(this.name, 'info', id);
 
     const cached = await Redis.get<ZerochanArtwork[]>(key);
@@ -116,11 +119,13 @@ class ZerochanModule extends Module {
   }
 
   private getImage(i: ZerochanArtwork) {
+    const base = `${Config.zerochan_image}/${i.tag.replace(/\s+/g, '.')}.full.${i.id}`;
+
     if (i.source.endsWith('.webp')) {
-      return `${this.imageUrl}/${i.tag.replace(/\s+/g, '.')}.full.${i.id}.webp`;
+      return `${base}.webp`;
     }
 
-    return `${this.imageUrl}/${i.tag.replace(/\s+/g, '.')}.full.${i.id}.jpg`;
+    return `${base}.jpg`;
   }
 
   private getType(i: ZerochanArtwork): ArtworkType {

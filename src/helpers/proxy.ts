@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as http from 'http';
 import * as https from 'https';
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { Readable } from 'stream';
 
 const httpAgent = new http.Agent({ keepAlive: true });

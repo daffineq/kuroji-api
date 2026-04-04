@@ -10,11 +10,16 @@ import { Tmdb } from '../tmdb';
 import { AnimeUtils } from '../../helpers';
 import { Anime } from '../../anime';
 import { AnimeArtworkPayload } from '../../types';
+import { Config } from 'src/config';
 
 class TvdbModule extends ProviderModule<TvdbInfoResult> {
   override readonly name = 'TVDB';
 
   override async getInfo(id: number): Promise<TvdbInfoResult> {
+    if (!Config.use_tvdb) {
+      throw new Error(`${this.name} disabled`);
+    }
+
     const key = getKey(this.name, 'info', id);
 
     const cached = await Redis.get<TvdbInfoResult>(key);
