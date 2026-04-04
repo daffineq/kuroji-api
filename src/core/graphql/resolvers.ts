@@ -837,6 +837,10 @@ export const resolvers = {
     },
 
     connected: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      if (!parent.franchise) {
+        return [];
+      }
+
       return loaders.connected.load(parent.franchise);
     },
 
