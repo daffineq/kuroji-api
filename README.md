@@ -40,7 +40,7 @@ open https://kuroji-api-j4mh.onrender.com/graphql
 
 ## What's This?
 
-Fast anime database API that pulls from multiple sources (AniList, Kitsu, Shikimori, TMDB, TVDB, MyAnimeList, Zerochan). REST + GraphQL, rate limiting, API keys - the whole package.
+Fast anime database API that pulls from multiple sources (AniList, Kitsu, Shikimori, TMDB, TVDB, MyAnimeList, Zerochan)
 
 **Important:** You gotta index anime data before querying.
 
@@ -154,6 +154,32 @@ Check **[.env.example](.env.example)** - it's already documented with everything
 - Recommended-Minimum: 200MB-500MB
 - Recommended: 2GB-4GB
 - Depends on your `ANIME_POPULARITY_THRESHOLD` setting
+
+---
+
+## How It Stays Updated
+
+Kuroji keeps your data fresh automatically through a background scheduler. Here's what runs and when:
+
+### Update Queue
+| Schedule | What it does |
+|----------|-------------|
+| Every 30 minutes | Processes the update queue |
+| Every hour | Queues recently aired anime for update |
+| Every 6 hours | Queues anime airing today for update |
+| Every 12 hours | Queues anime that aired 2 days ago for update |
+
+### Re-indexing
+| Schedule | What it does |
+|----------|-------------|
+| Every 12 hours | Re-indexes all upcoming anime (`NOT_YET_RELEASED`) |
+| Every other day | Re-indexes all currently airing anime (`RELEASING`) |
+| Every other week | Full re-index of all anime in the database |
+
+> Re-indexing respects your `ANIME_POPULARITY_THRESHOLD` settings — upcoming anime uses `ANIME_POPULARITY_THRESHOLD_UPCOMING` specifically.
+> You can disable all re-indexing by setting `ANIME_REINDEXING_ENABLED=false` while keeping the update queue running.
+> To disable the update queue entirely, set `ANIME_UPDATE_ENABLED=false`.
+> Set both to `false` to run Kuroji as a fully static database with no background updates.
 
 ---
 

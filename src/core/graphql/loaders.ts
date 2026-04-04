@@ -46,7 +46,7 @@ import {
   animeVoiceDeathDate,
   animeVoiceBirthDate
 } from 'src/db';
-import { eq, inArray, asc, desc } from 'drizzle-orm';
+import { eq, inArray, asc, desc, sql } from 'drizzle-orm';
 
 function groupBy<T>(rows: T[], key: (row: T) => number | string): Map<number | string, T[]> {
   const map = new Map<number | string, T[]>();
@@ -381,6 +381,29 @@ export function createLoaders() {
     { cache: true }
   );
 
+  const connected = new DataLoader<string, (typeof anime.$inferSelect)[]>(
+    async (ids) => {
+      const rows = (
+        await db
+          .select({ a: anime })
+          .from(anime)
+          .leftJoin(animeStartDate, eq(animeStartDate.anime_id, anime.id))
+          .where(inArray(anime.franchise, [...ids]))
+          .orderBy(
+            sql`${animeStartDate.year} ASC NULLS LAST`,
+            sql`${animeStartDate.month} ASC NULLS LAST`,
+            sql`${animeStartDate.day} ASC NULLS LAST`
+          )
+      )
+        .map((r) => r.a)
+        .filter((a) => Boolean(a.franchise));
+      const map = groupBy(rows, (r) => r.franchise!);
+
+      return ids.map((id) => map.get(id) ?? []);
+    },
+    { cache: true }
+  );
+
   const characterConnections = new DataLoader<number, (typeof animeToCharacter.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
@@ -555,6 +578,7 @@ export function createLoaders() {
     artworks,
     chronology,
     recommendations,
+    connected,
     characterConnections,
     character,
     characterBirthDate,

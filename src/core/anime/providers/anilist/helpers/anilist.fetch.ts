@@ -36,7 +36,7 @@ class AnilistFetchModule extends ClientModule {
     media: { id: number }[];
     pageInfo: { hasNextPage: boolean };
   }> {
-    const { status, threshold = Config.anime_indexer_default_popularity_threshold } = options;
+    const { status, threshold = Config.anime_popularity_threshold } = options;
 
     const { data, error } = await this.client.post<{
       media: { id: number }[];

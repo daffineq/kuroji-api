@@ -9,14 +9,6 @@ import { Module } from 'src/helpers/module';
 import { db, updateQueue } from 'src/db';
 import { count, eq, lt, sql } from 'drizzle-orm';
 
-export interface QueueItem {
-  animeId: number;
-  malId: number | null | undefined;
-  addedAt: number;
-}
-
-const SLEEP_BETWEEN_UPDATES = 10;
-
 @EnableSchedule
 class AnimeUpdateModule extends Module {
   override readonly name = 'AnimeUpdate';
@@ -78,29 +70,6 @@ class AnimeUpdateModule extends Module {
       logger.log('Queue cleared manually');
     } catch (e) {
       logger.error('Failed to clear queue:', e);
-    }
-  }
-
-  private async getNextFromQueue(): Promise<QueueItem | null> {
-    try {
-      const next = await db.query.updateQueue.findFirst({
-        orderBy: {
-          updated_at: 'desc'
-        }
-      });
-
-      if (!next) {
-        return null;
-      }
-
-      return {
-        animeId: next.anime_id,
-        malId: next.mal_id ?? undefined,
-        addedAt: next.added_at.getTime()
-      };
-    } catch (e) {
-      logger.error('Failed to get next queue item:', e);
-      return null;
     }
   }
 
@@ -183,7 +152,7 @@ class AnimeUpdateModule extends Module {
 
         await this.processQueueItem(item);
 
-        await sleep(SLEEP_BETWEEN_UPDATES);
+        await sleep(Config.anime_processing_delay);
       }
 
       logger.log(`Processed ${queueCount} anime from queue.`);

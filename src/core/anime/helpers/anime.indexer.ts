@@ -18,7 +18,7 @@ class AnimeIndexerModule extends Module {
       return;
     }
 
-    const { delay = Config.anime_indexer_default_delay, status } = options;
+    const { delay = Config.anime_processing_delay, status } = options;
 
     try {
       let page = await this.getLastFetchedPage(status);
@@ -108,8 +108,8 @@ class AnimeIndexerModule extends Module {
 
   @Scheduled(Schedule.everyOtherWeek())
   async scheduleIndex() {
-    if (!Config.anime_indexer_update_enabled) {
-      logger.log('Anime indexer updates disabled. Skipping scheduled indexing.');
+    if (!Config.anime_reindexing_enabled) {
+      logger.log('Anime re-indexing disabled. Skipping scheduled indexing.');
       return;
     }
 
@@ -118,8 +118,8 @@ class AnimeIndexerModule extends Module {
 
   @Scheduled(Schedule.everyOtherDay())
   async scheduleIndexReleasing() {
-    if (!Config.anime_indexer_update_enabled) {
-      logger.log('Anime indexer updates disabled. Skipping scheduled releasing indexing.');
+    if (!Config.anime_reindexing_enabled) {
+      logger.log('Anime re-indexing disabled. Skipping scheduled releasing indexing.');
       return;
     }
 
@@ -128,14 +128,14 @@ class AnimeIndexerModule extends Module {
 
   @Scheduled(Schedule.every12Hours())
   async scheduleIndexUpcoming() {
-    if (!Config.anime_indexer_update_enabled) {
-      logger.log('Anime indexer updates disabled. Skipping scheduled upcoming indexing.');
+    if (!Config.anime_reindexing_enabled) {
+      logger.log('Anime re-indexing disabled. Skipping scheduled upcoming indexing.');
       return;
     }
 
     await this.index({
       status: 'NOT_YET_RELEASED',
-      threshold: Config.anime_indexer_default_upcoming_popularity_threshold
+      threshold: Config.anime_popularity_threshold_upcoming
     });
   }
 
@@ -144,7 +144,7 @@ class AnimeIndexerModule extends Module {
     status?: string;
     threshold?: number;
   }): Promise<string> {
-    const { delay = Config.anime_indexer_default_delay, status } = options;
+    const { delay = Config.anime_processing_delay, status } = options;
 
     const fetched = (await this.getLastFetchedPage(status)) * 50;
 
@@ -162,7 +162,7 @@ class AnimeIndexerModule extends Module {
   }
 
   private estimateCount(options: { status?: string; threshold?: number } = {}): number {
-    const { status, threshold = Config.anime_indexer_default_popularity_threshold } = options;
+    const { status, threshold = Config.anime_popularity_threshold } = options;
 
     const buckets: [number, number][] = [
       [50_000, 300],

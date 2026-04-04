@@ -34,7 +34,6 @@ type Query {
     tags: [String!]
     tags_in: [String!]
     tags_not_in: [String!]
-    minimum_tag_rank: Int
     studios: [String!]
     studios_in: [String!]
     score_greater: Int
@@ -96,7 +95,6 @@ type Query {
     tags: [String!]
     tags_in: [String!]
     tags_not_in: [String!]
-    minimum_tag_rank: Int
     studios: [String!]
     studios_in: [String!]
     score_greater: Int
@@ -152,7 +150,6 @@ type Query {
     tags: [String!]
     tags_in: [String!]
     tags_not_in: [String!]
-    minimum_tag_rank: Int
     studios: [String!]
     studios_in: [String!]
     score_greater: Int
@@ -377,6 +374,7 @@ type Anime {
   artworks(iso_639_1: String, source: String, include_adult: Boolean): [AnimeArtwork!]!
   chronology: [Anime!]!
   recommendations: [Anime!]!
+  connected: [Anime!]!
   episodes: [Episode!]!
 }
 

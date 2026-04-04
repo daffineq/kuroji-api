@@ -1080,7 +1080,7 @@
               iso_639_1
             }
             recommendations { id title { romaji english } poster { large } }
-            chronology { id title { romaji english } poster { large } }
+            connected { id title { romaji english } poster { large } }
           }
         }`;
 
@@ -1245,10 +1245,10 @@
           // artworks
           const artworksHtml = initArtworks(a.artworks ?? []);
 
-          const chrono = a.chronology ?? [];
-          const chronoHtml = chrono.length
-            ? `<div class="section-label">Chronology</div>
-               <div class="h-scroll">${chrono.map((c) => animeCard(c, a.id)).join('')}</div>`
+          const conn = a.connected ?? [];
+          const connHtml = conn.length
+            ? `<div class="section-label">Connected</div>
+               <div class="h-scroll">${conn.map((c) => animeCard(c, a.id)).join('')}</div>`
             : '';
 
           const recs = a.recommendations ?? [];
@@ -1314,7 +1314,7 @@
             ${linksHtml}
             ${epsHtml}
             ${artworksHtml}
-            ${chronoHtml}
+            ${connHtml}
             ${recsHtml}
           `;
 

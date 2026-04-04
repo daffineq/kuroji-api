@@ -32,7 +32,6 @@ export interface AnimeArgs {
   tags?: string;
   tags_in?: string[];
   tags_not_in?: string[];
-  minimum_tag_rank?: number;
   studios?: string;
   studios_in?: string[];
   score_greater?: number;

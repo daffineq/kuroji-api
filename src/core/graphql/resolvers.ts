@@ -8,7 +8,6 @@ import {
   animeEndDate,
   animeGenre,
   animeToGenre,
-  animeToCharacter,
   animeStudio,
   animeToStudio,
   animeTag,
@@ -203,12 +202,14 @@ const filterAnime = (
 
   if (genres_not_in?.length) {
     conditions.push(
-      exists(
-        db
-          .select()
-          .from(animeToGenre)
-          .innerJoin(animeGenre, eq(animeGenre.id, animeToGenre.B))
-          .where(and(eq(animeToGenre.A, anime.id), notInArray(animeGenre.name, genres_not_in)))
+      not(
+        exists(
+          db
+            .select()
+            .from(animeToGenre)
+            .innerJoin(animeGenre, eq(animeGenre.id, animeToGenre.B))
+            .where(and(eq(animeToGenre.A, anime.id), inArray(animeGenre.name, genres_not_in)))
+        )
       )
     );
   }
@@ -240,12 +241,14 @@ const filterAnime = (
 
   if (tags_not_in?.length) {
     conditions.push(
-      exists(
-        db
-          .select()
-          .from(animeToTag)
-          .innerJoin(animeTag, eq(animeTag.id, animeToTag.tag_id))
-          .where(and(eq(animeToTag.anime_id, anime.id), notInArray(animeTag.name, tags_not_in)))
+      not(
+        exists(
+          db
+            .select()
+            .from(animeToTag)
+            .innerJoin(animeTag, eq(animeTag.id, animeToTag.tag_id))
+            .where(and(eq(animeToTag.anime_id, anime.id), inArray(animeTag.name, tags_not_in)))
+        )
       )
     );
   }
@@ -831,6 +834,10 @@ export const resolvers = {
 
     recommendations: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
       return loaders.recommendations.load(parent.id);
+    },
+
+    connected: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.connected.load(parent.franchise);
     },
 
     episodes: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
