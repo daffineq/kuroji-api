@@ -2,7 +2,7 @@ import lock from 'src/helpers/lock';
 import { sleep } from 'bun';
 import logger from 'src/helpers/logger';
 import { EnableSchedule, Scheduled, Schedule } from 'src/helpers/schedule';
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { AnilistFetch } from '../providers';
 import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';

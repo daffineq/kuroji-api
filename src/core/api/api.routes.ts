@@ -1,4 +1,4 @@
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { UnauthorizedError } from 'src/helpers/errors';
 import { ApiKeys } from './api.keys';
 import { createSuccessResponse } from 'src/helpers/response';

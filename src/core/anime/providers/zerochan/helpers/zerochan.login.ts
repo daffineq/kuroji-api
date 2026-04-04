@@ -1,4 +1,4 @@
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import logger from 'src/helpers/logger';
 import { KurojiClient } from 'src/lib/http';
 import { ClientModule } from 'src/helpers/client';

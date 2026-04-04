@@ -1,4 +1,4 @@
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { TvdbInfoResult, TvdbSearchResult } from '../types';
 import { KurojiClient } from 'src/lib/http';
 import { TvdbToken } from './tvdb.token';

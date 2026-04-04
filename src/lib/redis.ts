@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 
 let redis: Redis | null = null;
 

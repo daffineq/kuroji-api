@@ -1,4 +1,4 @@
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { ShikimoriAnime } from '../types';
 import { SHIKIMORI_INFO } from '../graphql';
 import { KurojiClient } from 'src/lib/http';

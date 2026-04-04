@@ -45,13 +45,14 @@ class ConfigModule {
 
   // API Base URLs
   readonly anilist = process.env.ANILIST ?? 'https://graphql.anilist.co';
-  readonly ani_zip = process.env.ANI_ZIP ?? 'https://api.ani.zip';
+  readonly myanimelist = process.env.MYANIMELIST ?? 'https://myanimelist.net';
   readonly shikimori = process.env.SHIKIMORI ?? 'https://shikimori.one';
   readonly kitsu = process.env.KITSU ?? 'https://kitsu.io/api/edge';
   readonly tmdb = process.env.TMDB ?? 'https://api.themoviedb.org/3';
   readonly tmdb_image = process.env.TMDB_IMAGE ?? 'https://image.tmdb.org/t/p/';
   readonly tvdb = process.env.TVDB ?? 'https://api4.thetvdb.com/v4';
   readonly zerochan = process.env.ZEROCHAN ?? 'https://www.zerochan.net';
+  readonly zerochan_image = process.env.TMDB_IMAGE ?? 'https://static.zerochan.net';
 
   // Zerochan
   readonly zerochan_user = process.env.ZEROCHAN_USER ?? 'kurojiq';
@@ -63,6 +64,14 @@ class ConfigModule {
 
   readonly has_tmdb_api_key = this.tmdb_api_key !== '';
   readonly has_tvdb_api_key = this.tvdb_api_key !== '';
+
+  // Providers
+  readonly use_myanimelist = parseBoolean(process.env.USE_MYANIMELIST) ?? true;
+  readonly use_shikimori = parseBoolean(process.env.USE_SHIKIMORI) ?? true;
+  readonly use_kitsu = parseBoolean(process.env.USE_KITSU) ?? true;
+  readonly use_tmdb = parseBoolean(process.env.USE_TMDB) ?? true;
+  readonly use_tvdb = parseBoolean(process.env.USE_TVDB) ?? true;
+  readonly use_zerochan = parseBoolean(process.env.USE_ZEROCHAN) ?? true;
 
   // Redis
   readonly caching_enabled = parseBoolean(process.env.CACHING_ENABLED) ?? true;

@@ -1,5 +1,5 @@
 import { ForbiddenError, RateLimitExceededError } from '../errors';
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { ApiKeys } from 'src/core';
 import Elysia from 'elysia';
 import { Redis } from '../redis.util';

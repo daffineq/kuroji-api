@@ -14,11 +14,16 @@ import { Module } from 'src/helpers/module';
 import { Anime } from 'src/core/anime/anime';
 import { AnimeEpisodePayload } from 'src/core/anime/types';
 import { TmdbUtils } from './tmdb.utils';
+import { Config } from 'src/config';
 
 class TmdbSeasonsModule extends Module {
   override readonly name = 'TmdbSeasons';
 
   async getEpisodes(id: number): Promise<TmdbEpisode[]> {
+    if (!Config.use_tmdb) {
+      throw new Error(`${this.name} disabled`);
+    }
+
     const key = getKey(this.name, 'episodes', id);
 
     const cached = await Redis.get<TmdbEpisode[]>(key);
@@ -82,7 +87,7 @@ class TmdbSeasonsModule extends Module {
     return matchResult.episodes;
   }
 
-  async getAllEpisodes(id: number): Promise<TmdbEpisode[]> {
+  private async getAllEpisodes(id: number): Promise<TmdbEpisode[]> {
     const tmdb = await Tmdb.getInfo(id);
 
     const seasonsPromise = tmdb.seasons!.map((s) => TmdbFetch.fetchSeason(tmdb.id, s.season_number));
@@ -104,7 +109,7 @@ class TmdbSeasonsModule extends Module {
       });
   }
 
-  async findBestEpisodeSequence(
+  private async findBestEpisodeSequence(
     anilist: AnilistMedia,
     allEpisodes: TmdbEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
@@ -151,7 +156,7 @@ class TmdbSeasonsModule extends Module {
     return bestMatch;
   }
 
-  groupEpisodesBySeasons = (episodes: TmdbEpisode[]): SeasonEpisodeGroup[] => {
+  private groupEpisodesBySeasons = (episodes: TmdbEpisode[]): SeasonEpisodeGroup[] => {
     const seasonMap = new Map<number, TmdbEpisode[]>();
 
     episodes.forEach((episode) => {

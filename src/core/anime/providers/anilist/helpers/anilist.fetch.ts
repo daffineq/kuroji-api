@@ -1,4 +1,4 @@
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { ANILIST_INFO } from '../graphql';
 import { AnilistMedia, AnilistMediaResponse } from '../types';
 import { KurojiClient } from 'src/lib/http';

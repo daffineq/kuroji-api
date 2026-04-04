@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { relations } from './relations';
 
 if (!Config.database_url) {

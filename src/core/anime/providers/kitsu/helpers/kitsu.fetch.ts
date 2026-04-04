@@ -1,4 +1,4 @@
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { KitsuAnime } from '../types';
 import { KurojiClient } from 'src/lib/http';
 import logger from 'src/helpers/logger';

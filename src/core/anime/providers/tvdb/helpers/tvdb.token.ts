@@ -1,4 +1,4 @@
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { LoginResponse } from '../types';
 import logger from 'src/helpers/logger';
 import { KurojiClient } from 'src/lib/http';

@@ -1,7 +1,7 @@
 import { KurojiClient } from 'src/lib/http';
 import { ClientModule } from './client';
 import { EnableSchedule, Schedule, Scheduled } from './schedule';
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 
 @EnableSchedule
 class SelfPollModule extends ClientModule {

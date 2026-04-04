@@ -1,4 +1,4 @@
-import { Config } from 'src/config/config';
+import { Config } from 'src/config';
 import { CLASS_SCHEDULES, GLOBAL_SCHEDULES } from './global';
 import logger from './logger';
 

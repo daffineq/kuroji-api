@@ -8,11 +8,16 @@ import { Anilist, AnilistUtils } from '../anilist';
 import { ProviderModule } from 'src/helpers/module';
 import { Anime } from '../../anime';
 import { AnimeUtils } from '../../helpers';
+import { Config } from 'src/config';
 
 class KitsuModule extends ProviderModule<KitsuAnime> {
   override readonly name = 'Kitsu';
 
   override async getInfo(id: number): Promise<KitsuAnime> {
+    if (!Config.use_kitsu) {
+      throw new Error(`${this.name} disabled`);
+    }
+
     const key = getKey(this.name, 'info', id);
 
     const cached = await Redis.get<KitsuAnime>(key);
