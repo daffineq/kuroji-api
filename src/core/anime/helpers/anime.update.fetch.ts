@@ -6,35 +6,9 @@ import { db } from 'src/db';
 class AnimeUpdateFetchModule extends Module {
   override readonly name = 'AnimeUpdateFetch';
 
-  validateOffset(offset: number): number {
-    if (offset < 0) {
-      console.warn(`Invalid offset: ${offset}, using default: 0`);
-      return 0;
-    }
-    return offset;
-  }
-
-  validateHoursBack(hoursBack: number): number {
-    if (hoursBack < 0 || hoursBack > 24) {
-      console.warn(`Invalid hoursBack: ${hoursBack}, using default: 2`);
-      return 2;
-    }
-    return hoursBack;
-  }
-
-  validateLimit(limit: number, defaultLimit: number, maxLimit: number = 1000): number {
-    if (limit < 1 || limit > maxLimit) {
-      console.warn(`Invalid limit: ${limit}, using default: ${defaultLimit}`);
-      return defaultLimit;
-    }
-    return limit;
-  }
-
   async getRecentAiredAnime(hoursBack: number = 2) {
-    const validatedHoursBack = this.validateHoursBack(hoursBack);
-
     try {
-      const { start: startTimestamp, end: endTimestamp } = DateUtils.getHourSpanRange(validatedHoursBack);
+      const { start: startTimestamp, end: endTimestamp } = DateUtils.getHourSpanRange(hoursBack);
 
       if (!DateUtils.isValidTimestamp(startTimestamp) || !DateUtils.isValidTimestamp(endTimestamp)) {
         throw new Error('Invalid timestamp range calculated');

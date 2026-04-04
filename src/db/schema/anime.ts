@@ -94,7 +94,12 @@ export const animeTitle = pgTable(
     english: text('english'),
     native: text('native')
   },
-  (t) => [index('idx_anime_title_anime_id').on(t.anime_id)]
+  (t) => [
+    index('idx_anime_title_anime_id').on(t.anime_id),
+    index('idx_anime_title_romaji').on(t.romaji),
+    index('idx_anime_title_english').on(t.english),
+    index('idx_anime_title_native').on(t.native)
+  ]
 );
 
 export const animeStartDate = pgTable(
@@ -131,12 +136,16 @@ export const animeEndDate = pgTable(
   (t) => [index('idx_anime_end_date_anime_id').on(t.anime_id), index('idx_anime_end_date_year').on(t.year)]
 );
 
-export const animeGenre = pgTable('anime_genre', {
-  id: varchar('id', { length: 255 })
-    .primaryKey()
-    .$defaultFn(() => cuid()),
-  name: varchar('name', { length: 255 }).notNull().unique()
-});
+export const animeGenre = pgTable(
+  'anime_genre',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    name: varchar('name', { length: 255 }).notNull().unique()
+  },
+  (t) => [index('idx_anime_genre_name').on(t.name)]
+);
 
 export const animeToGenre = pgTable(
   '_anime_to_genre',
@@ -345,10 +354,14 @@ export const animeVoiceImage = pgTable(
   (t) => [index('idx_anime_voice_image_voice_actor_id').on(t.voice_actor_id)]
 );
 
-export const animeStudio = pgTable('anime_studio', {
-  id: integer('id').primaryKey(),
-  name: text('name')
-});
+export const animeStudio = pgTable(
+  'anime_studio',
+  {
+    id: integer('id').primaryKey(),
+    name: text('name')
+  },
+  (t) => [index('idx_anime_studio_name').on(t.name)]
+);
 
 export const animeToStudio = pgTable(
   '_anime_to_studio',
@@ -377,7 +390,11 @@ export const animeTag = pgTable(
     category: varchar('category', { length: 255 }),
     is_adult: boolean('is_adult')
   },
-  (t) => [index('idx_anime_tag_category').on(t.category), index('idx_anime_tag_is_adult').on(t.is_adult)]
+  (t) => [
+    index('idx_anime_tag_category').on(t.category),
+    index('idx_anime_tag_is_adult').on(t.is_adult),
+    index('idx_anime_tag_name').on(t.name)
+  ]
 );
 
 export const animeToTag = pgTable(

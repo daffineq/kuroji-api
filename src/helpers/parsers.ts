@@ -4,7 +4,7 @@ import { ReleaseDate } from 'src/core/types';
 import { BadRequestError } from './errors';
 
 const parseString = (value: unknown): string | undefined => {
-  if (value == null) {
+  if (value == null || value === undefined) {
     return undefined;
   }
   const string_ = String(value);
@@ -12,7 +12,7 @@ const parseString = (value: unknown): string | undefined => {
 };
 
 const parseNumber = (value: unknown): number | undefined => {
-  if (value == null) {
+  if (value == null || value === undefined) {
     return undefined;
   }
   const number_ = Number(value);
