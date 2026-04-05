@@ -79,7 +79,7 @@ class TmdbSeasonsModule extends Module {
       };
     });
 
-    await Anime.upsert({
+    await Anime.save({
       id,
       episodes
     });

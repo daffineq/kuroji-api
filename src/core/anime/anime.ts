@@ -11,7 +11,7 @@ import {
 } from './providers';
 import { AnimeDb } from './helpers/anime.db';
 import { Module } from 'src/helpers/module';
-import { animeLink, animeToLink, db } from 'src/db';
+import { anime, animeLink, animeToLink, db } from 'src/db';
 import { AnimePayload } from './types';
 import { eq } from 'drizzle-orm';
 
@@ -31,39 +31,35 @@ class AnimeModule extends Module {
 
     const anilist = await Anilist.getInfo(id);
 
-    return this.save(AnilistUtils.anilistToAnimePayload(anilist));
+    await this.saveAndInit(AnilistUtils.anilistToAnimePayload(anilist));
+
+    return db.query.anime.findFirst({
+      where: {
+        id
+      }
+    });
   }
 
-  async updateOrCreate(id: number) {
-    return this.update(id);
+  async create(id: number) {
+    const anilist = await Anilist.getInfo(id);
+
+    await this.saveAndInit(AnilistUtils.anilistToAnimePayload(anilist));
   }
 
   async update(id: number) {
     const anilist = await Anilist.getInfo(id);
 
-    return this.save(AnilistUtils.anilistToAnimePayload(anilist));
+    await this.saveAndInit(AnilistUtils.anilistToAnimePayload(anilist));
   }
 
   async save(payload: AnimePayload) {
     await AnimeDb.upsert(payload);
-
-    await this.initProviders(payload.id, payload.id_mal ?? undefined);
-
-    return db.query.anime.findFirst({
-      where: {
-        id: payload.id
-      }
-    });
   }
 
-  async upsert(payload: AnimePayload) {
+  async saveAndInit(payload: AnimePayload) {
     await AnimeDb.upsert(payload);
 
-    return db.query.anime.findFirst({
-      where: {
-        id: payload.id
-      }
-    });
+    await this.initProviders(payload.id, payload.id_mal ?? undefined);
   }
 
   async initProviders(id: number, idMal?: number | undefined) {
@@ -86,6 +82,22 @@ class AnimeModule extends Module {
       .where(eq(animeToLink.A, id));
 
     return links.find((l) => l.link?.label.toLowerCase() === name.toLowerCase())?.link?.link ?? null;
+  }
+
+  async shouldAutoUpdate(id: number) {
+    const result = await db
+      .select({ auto_update: anime.auto_update })
+      .from(anime)
+      .where(eq(anime.id, id))
+      .limit(1);
+
+    return result[0]?.auto_update ?? true;
+  }
+
+  async exists(id: number) {
+    const result = await db.select({ id: anime.id }).from(anime).where(eq(anime.id, id)).limit(1);
+
+    return result.length > 0;
   }
 }
 

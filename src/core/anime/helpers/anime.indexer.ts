@@ -44,8 +44,20 @@ class AnimeIndexerModule extends Module {
           logger.log(`Indexing release ID: ${id}...`);
 
           try {
+            const task = async () => {
+              if (await Anime.exists(id)) {
+                if (await Anime.shouldAutoUpdate(id)) {
+                  await Anime.update(id);
+                } else {
+                  logger.log(`Wont update release ID: ${id}...`);
+                }
+              } else {
+                await Anime.create(id);
+              }
+            };
+
             await Promise.race([
-              Anime.updateOrCreate(id),
+              task(),
               sleep(120000).then(() => {
                 throw new Error('Timed out');
               })

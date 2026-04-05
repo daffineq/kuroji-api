@@ -38,7 +38,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
         } satisfies AnimeVideoPayload;
       });
 
-      await Anime.upsert({ id, videos });
+      await Anime.save({ id, videos });
     }
 
     if (info.screenshots) {
@@ -53,11 +53,11 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
         } satisfies AnimeScreenshotPayload;
       });
 
-      await Anime.upsert({ id, screenshots });
+      await Anime.save({ id, screenshots });
     }
 
     if (info.russian) {
-      await Anime.upsert({
+      await Anime.save({
         id,
         other_titles: {
           title: info.russian,
@@ -68,7 +68,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (info.description) {
-      await Anime.upsert({
+      await Anime.save({
         id,
         other_descriptions: {
           description: info.description,
@@ -79,7 +79,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (info.poster) {
-      await Anime.upsert({
+      await Anime.save({
         id,
         images: {
           url: info.poster.originalUrl!,
@@ -92,19 +92,19 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (info.franchise) {
-      await Anime.upsert({ id, franchise: info.franchise });
+      await Anime.save({ id, franchise: info.franchise });
     }
 
     if (info.rating) {
-      await Anime.upsert({ id, age_rating: info.rating });
+      await Anime.save({ id, age_rating: info.rating });
     }
 
     if (info.episodesAired) {
-      await Anime.upsert({ id, episodes_aired: info.episodesAired });
+      await Anime.save({ id, episodes_aired: info.episodesAired });
     }
 
     if (info.episodes) {
-      await Anime.upsert({ id, episodes_total: info.episodes });
+      await Anime.save({ id, episodes_total: info.episodes });
     }
 
     if (info.chronology) {
@@ -115,7 +115,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
           order: i
         } satisfies AnimeChronologyPayload;
       });
-      await Anime.upsert({ id, chronology: forced(chronology) });
+      await Anime.save({ id, chronology: forced(chronology) });
     }
 
     await Redis.set(key, info);
@@ -127,7 +127,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     if (idMal) {
       const info = await ShikimoriFetch.fetchInfo(parseString(idMal)!);
 
-      await Anime.upsert({
+      await Anime.save({
         id,
         links: {
           link: parseString(idMal)!,
@@ -151,7 +151,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
 
         const info = await ShikimoriFetch.fetchInfo(parseString(al.idMal)!);
 
-        await Anime.upsert({
+        await Anime.save({
           id,
           links: {
             link: parseString(al.idMal)!,

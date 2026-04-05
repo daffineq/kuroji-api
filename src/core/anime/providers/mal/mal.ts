@@ -38,11 +38,11 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
         };
       });
 
-      await Anime.upsert({ id, videos });
+      await Anime.save({ id, videos });
     }
 
     if (info.image) {
-      await Anime.upsert({
+      await Anime.save({
         id,
         images: {
           url: info.image,
@@ -54,11 +54,11 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
     }
 
     if (info.moreInfo) {
-      await Anime.upsert({ id, moreinfo: info.moreInfo });
+      await Anime.save({ id, moreinfo: info.moreInfo });
     }
 
     if (info.broadcast) {
-      await Anime.upsert({ id, broadcast: info.broadcast });
+      await Anime.save({ id, broadcast: info.broadcast });
     }
 
     await Redis.set(key, info);
@@ -70,7 +70,7 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
     if (idMal) {
       const info = await this.scrape(idMal);
 
-      await Anime.upsert({
+      await Anime.save({
         id,
         links: {
           link: parseString(idMal)!,
@@ -94,7 +94,7 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
 
         const info = await this.scrape(al.idMal);
 
-        await Anime.upsert({
+        await Anime.save({
           id,
           links: {
             link: parseString(al.idMal)!,

@@ -50,11 +50,11 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     });
 
     if (artworks) {
-      await Anime.upsert({ id, artworks });
+      await Anime.save({ id, artworks });
     }
 
     if (resolved.info.poster_path) {
-      await Anime.upsert({
+      await Anime.save({
         id,
         images: {
           url: resolved.info.poster_path,
@@ -68,7 +68,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     }
 
     if (resolved.info.backdrop_path) {
-      await Anime.upsert({
+      await Anime.save({
         id,
         images: {
           url: resolved.info.backdrop_path,
@@ -105,7 +105,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     } else {
       const info = await this.find(id);
 
-      await Anime.upsert({
+      await Anime.save({
         id,
         links: {
           link: parseString(info.id)!,

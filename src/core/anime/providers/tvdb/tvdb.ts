@@ -44,7 +44,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
         } satisfies AnimeArtworkPayload;
       });
 
-      await Anime.upsert({ id, artworks });
+      await Anime.save({ id, artworks });
     }
 
     await Redis.set(key, info);
@@ -76,7 +76,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
       const info =
         type === 'movie' ? await TvdbFetch.fetchMovie(search.id) : await TvdbFetch.fetchSeries(search.id);
 
-      await Anime.upsert({
+      await Anime.save({
         id,
         links: {
           link: parseString(info.id)!,

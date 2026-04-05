@@ -42,7 +42,7 @@ class ZerochanModule extends Module {
       };
     });
 
-    await Anime.upsert({
+    await Anime.save({
       id,
       artworks
     });
@@ -60,7 +60,7 @@ class ZerochanModule extends Module {
     } else {
       const result = await this.find(id);
 
-      await Anime.upsert({
+      await Anime.save({
         id,
         links: {
           link: result.q,
