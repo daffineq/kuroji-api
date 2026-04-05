@@ -165,8 +165,16 @@ class AnimeUpdateModule extends Module {
 
   private async processQueueItem(item: { anime_id: number }) {
     try {
+      const task = async () => {
+        if (await Anime.shouldAutoUpdate(item.anime_id)) {
+          await Anime.update(item.anime_id);
+        } else {
+          logger.log(`Wont update anime ${item.anime_id}`);
+        }
+      };
+
       await Promise.race([
-        Anime.update(item.anime_id),
+        task(),
         sleep(120000).then(() => {
           throw new Error('Timed out');
         })

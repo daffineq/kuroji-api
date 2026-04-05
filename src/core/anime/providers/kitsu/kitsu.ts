@@ -29,7 +29,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     const info = await this.resolveInfo(id);
 
     if (info.attributes.posterImage) {
-      await Anime.upsert({
+      await Anime.save({
         id,
         images: {
           url: info.attributes.posterImage.original,
@@ -43,7 +43,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     }
 
     if (info.attributes.coverImage) {
-      await Anime.upsert({
+      await Anime.save({
         id,
         images: {
           url: info.attributes.coverImage.original,
@@ -56,7 +56,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
       });
     }
 
-    await Anime.upsert({ id, nsfw: info.attributes.nsfw });
+    await Anime.save({ id, nsfw: info.attributes.nsfw });
 
     await Redis.set(key, info);
 
@@ -71,7 +71,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     } else {
       const info = await this.find(id);
 
-      await Anime.upsert({
+      await Anime.save({
         id,
         links: {
           link: info.id,

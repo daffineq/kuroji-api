@@ -1,6 +1,13 @@
 import { boolean, index, integer, pgTable, primaryKey, text, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
 import cuid from 'cuid';
 
+const timestamps = {
+  created_at: integer('created_at').$defaultFn(() => Math.floor(Date.now() / 1000)),
+  updated_at: integer('updated_at')
+    .$defaultFn(() => Math.floor(Date.now() / 1000))
+    .$onUpdateFn(() => Math.floor(Date.now() / 1000))
+};
+
 export const anime = pgTable(
   'anime',
   {
@@ -11,9 +18,6 @@ export const anime = pgTable(
     status: varchar('status', { length: 255 }),
     type: varchar('type', { length: 255 }),
     format: varchar('format', { length: 255 }),
-    updated_at: integer('updated_at')
-      .$defaultFn(() => Math.floor(Date.now() / 1000))
-      .$onUpdateFn(() => Math.floor(Date.now() / 1000)),
     season: varchar('season', { length: 255 }),
     season_year: integer('season_year'),
     duration: integer('duration'),
@@ -38,7 +42,8 @@ export const anime = pgTable(
     next_airing_episode: integer('next_airing_episode'),
     last_airing_episode: integer('last_airing_episode'),
     auto_update: boolean('auto_update').default(true),
-    disabled: boolean('disabled').default(false)
+    disabled: boolean('disabled').default(false),
+    ...timestamps
   },
   (t) => [
     index('idx_anime_id_mal').on(t.id_mal),
@@ -75,7 +80,8 @@ export const animePoster = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     small: text('small'),
     medium: text('medium'),
-    large: text('large')
+    large: text('large'),
+    ...timestamps
   },
   (t) => [index('idx_anime_poster_anime_id').on(t.anime_id)]
 );
@@ -92,7 +98,8 @@ export const animeTitle = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     romaji: text('romaji'),
     english: text('english'),
-    native: text('native')
+    native: text('native'),
+    ...timestamps
   },
   (t) => [
     index('idx_anime_title_anime_id').on(t.anime_id),
@@ -114,7 +121,8 @@ export const animeStartDate = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     day: integer('day'),
     month: integer('month'),
-    year: integer('year')
+    year: integer('year'),
+    ...timestamps
   },
   (t) => [index('idx_anime_start_date_anime_id').on(t.anime_id), index('idx_anime_start_date_year').on(t.year)]
 );
@@ -131,7 +139,8 @@ export const animeEndDate = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     day: integer('day'),
     month: integer('month'),
-    year: integer('year')
+    year: integer('year'),
+    ...timestamps
   },
   (t) => [index('idx_anime_end_date_anime_id').on(t.anime_id), index('idx_anime_end_date_year').on(t.year)]
 );
@@ -142,7 +151,8 @@ export const animeGenre = pgTable(
     id: varchar('id', { length: 255 })
       .primaryKey()
       .$defaultFn(() => cuid()),
-    name: varchar('name', { length: 255 }).notNull().unique()
+    name: varchar('name', { length: 255 }).notNull().unique(),
+    ...timestamps
   },
   (t) => [index('idx_anime_genre_name').on(t.name)]
 );
@@ -155,7 +165,8 @@ export const animeToGenre = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => animeGenre.id, { onDelete: 'cascade' })
+      .references(() => animeGenre.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [
     primaryKey({ columns: [t.A, t.B] }),
@@ -167,7 +178,8 @@ export const animeToGenre = pgTable(
 export const animeAiringSchedule = pgTable('anime_airing_schedule', {
   id: integer('id').primaryKey(),
   episode: integer('episode'),
-  airing_at: integer('airing_at')
+  airing_at: integer('airing_at'),
+  ...timestamps
 });
 
 export const animeToAiringSchedule = pgTable(
@@ -178,7 +190,8 @@ export const animeToAiringSchedule = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     B: integer('B')
       .notNull()
-      .references(() => animeAiringSchedule.id, { onDelete: 'cascade' })
+      .references(() => animeAiringSchedule.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [primaryKey({ columns: [t.A, t.B] }), index('idx_anime_to_airing_schedule_a').on(t.A)]
 );
@@ -188,7 +201,8 @@ export const animeCharacter = pgTable('anime_character', {
   age: varchar('age', { length: 255 }),
   blood_type: varchar('blood_type', { length: 255 }),
   description: text('description'),
-  gender: varchar('gender', { length: 255 })
+  gender: varchar('gender', { length: 255 }),
+  ...timestamps
 });
 
 export const animeToCharacter = pgTable(
@@ -202,7 +216,8 @@ export const animeToCharacter = pgTable(
       .notNull()
       .references(() => animeCharacter.id, { onDelete: 'cascade' }),
     role: varchar('role', { length: 255 }),
-    role_i: integer('role_i').default(2) // 0: Main, 1: Support, 2: Background
+    role_i: integer('role_i').default(2), // 0: Main, 1: Support, 2: Background
+    ...timestamps
   },
   (t) => [
     index('idx_anime_to_character_anime_id').on(t.anime_id),
@@ -217,7 +232,8 @@ export const animeVoiceActor = pgTable('anime_voice_actor', {
   blood_type: varchar('blood_type', { length: 255 }),
   description: text('description'),
   gender: varchar('gender', { length: 255 }),
-  home_town: text('home_town')
+  home_town: text('home_town'),
+  ...timestamps
 });
 
 export const characterToVoiceActor = pgTable(
@@ -228,7 +244,8 @@ export const characterToVoiceActor = pgTable(
       .references(() => animeToCharacter.id, { onDelete: 'cascade' }),
     B: integer('B')
       .notNull()
-      .references(() => animeVoiceActor.id, { onDelete: 'cascade' })
+      .references(() => animeVoiceActor.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [
     primaryKey({ columns: [t.A, t.B] }),
@@ -248,7 +265,8 @@ export const animeCharacterBirthDate = pgTable(
     year: integer('year'),
     character_id: integer('character_id')
       .unique()
-      .references(() => animeCharacter.id, { onDelete: 'cascade' })
+      .references(() => animeCharacter.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [index('idx_anime_character_birth_date_character_id').on(t.character_id)]
 );
@@ -268,7 +286,8 @@ export const animeCharacterName = pgTable(
     alternative_spoiler: text('alternative_spoiler').array(),
     character_id: integer('character_id')
       .unique()
-      .references(() => animeCharacter.id, { onDelete: 'cascade' })
+      .references(() => animeCharacter.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [index('idx_anime_character_name_character_id').on(t.character_id)]
 );
@@ -283,7 +302,8 @@ export const animeCharacterImage = pgTable(
     medium: text('medium'),
     character_id: integer('character_id')
       .unique()
-      .references(() => animeCharacter.id, { onDelete: 'cascade' })
+      .references(() => animeCharacter.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [index('idx_anime_character_image_character_id').on(t.character_id)]
 );
@@ -299,7 +319,8 @@ export const animeVoiceBirthDate = pgTable(
     year: integer('year'),
     voice_actor_id: integer('character_id')
       .unique()
-      .references(() => animeVoiceActor.id, { onDelete: 'cascade' })
+      .references(() => animeVoiceActor.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [index('idx_anime_voice_birth_date_voice_actor_id').on(t.voice_actor_id)]
 );
@@ -315,7 +336,8 @@ export const animeVoiceDeathDate = pgTable(
     year: integer('year'),
     voice_actor_id: integer('character_id')
       .unique()
-      .references(() => animeVoiceActor.id, { onDelete: 'cascade' })
+      .references(() => animeVoiceActor.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [index('idx_anime_voice_death_date_voice_actor_id').on(t.voice_actor_id)]
 );
@@ -334,7 +356,8 @@ export const animeVoiceName = pgTable(
     alternative: text('alternative').array(),
     voice_actor_id: integer('voice_actor_id')
       .unique()
-      .references(() => animeVoiceActor.id, { onDelete: 'cascade' })
+      .references(() => animeVoiceActor.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [index('idx_anime_voice_name_voice_actor_id').on(t.voice_actor_id)]
 );
@@ -349,7 +372,8 @@ export const animeVoiceImage = pgTable(
     medium: text('medium'),
     voice_actor_id: integer('voice_actor_id')
       .unique()
-      .references(() => animeVoiceActor.id, { onDelete: 'cascade' })
+      .references(() => animeVoiceActor.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [index('idx_anime_voice_image_voice_actor_id').on(t.voice_actor_id)]
 );
@@ -358,7 +382,8 @@ export const animeStudio = pgTable(
   'anime_studio',
   {
     id: integer('id').primaryKey(),
-    name: text('name')
+    name: text('name'),
+    ...timestamps
   },
   (t) => [index('idx_anime_studio_name').on(t.name)]
 );
@@ -373,7 +398,8 @@ export const animeToStudio = pgTable(
     studio_id: integer('studio_id')
       .notNull()
       .references(() => animeStudio.id, { onDelete: 'cascade' }),
-    is_main: boolean('is_main')
+    is_main: boolean('is_main'),
+    ...timestamps
   },
   (t) => [
     index('idx_anime_to_studio_anime_id').on(t.anime_id),
@@ -388,7 +414,8 @@ export const animeTag = pgTable(
     name: varchar('name', { length: 255 }).unique(),
     description: text('description'),
     category: varchar('category', { length: 255 }),
-    is_adult: boolean('is_adult')
+    is_adult: boolean('is_adult'),
+    ...timestamps
   },
   (t) => [
     index('idx_anime_tag_category').on(t.category),
@@ -410,7 +437,8 @@ export const animeToTag = pgTable(
       .notNull()
       .references(() => animeTag.id, { onDelete: 'cascade' }),
     rank: integer('rank'),
-    is_spoiler: boolean('is_spoiler')
+    is_spoiler: boolean('is_spoiler'),
+    ...timestamps
   },
   (t) => [
     uniqueIndex('anime_tag_unique').on(t.anime_id, t.tag_id),
@@ -429,7 +457,8 @@ export const animeScoreDistribution = pgTable(
     amount: integer('amount').notNull(),
     anime_id: integer('anime_id')
       .notNull()
-      .references(() => anime.id, { onDelete: 'cascade' })
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [
     uniqueIndex('score_distribution_unique').on(t.anime_id, t.score),
@@ -447,7 +476,8 @@ export const animeStatusDistribution = pgTable(
     amount: integer('amount').notNull(),
     anime_id: integer('anime_id')
       .notNull()
-      .references(() => anime.id, { onDelete: 'cascade' })
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [
     uniqueIndex('status_distribution_unique').on(t.anime_id, t.status),
@@ -463,7 +493,8 @@ export const animeLink = pgTable(
       .$defaultFn(() => cuid()),
     link: text('link').notNull(),
     label: text('label').notNull(),
-    type: varchar('type', { length: 255 })
+    type: varchar('type', { length: 255 }),
+    ...timestamps
   },
   (t) => [uniqueIndex('link_unique').on(t.link, t.label)]
 );
@@ -476,7 +507,8 @@ export const animeOtherTitle = pgTable(
       .$defaultFn(() => cuid()),
     title: text('title').notNull(),
     source: varchar('source', { length: 255 }).notNull(),
-    language: varchar('language', { length: 255 })
+    language: varchar('language', { length: 255 }),
+    ...timestamps
   },
   (t) => [uniqueIndex('other_title_unique').on(t.title, t.source)]
 );
@@ -489,7 +521,8 @@ export const animeOtherDescription = pgTable(
       .$defaultFn(() => cuid()),
     description: text('description').notNull(),
     source: varchar('source', { length: 255 }).notNull(),
-    language: varchar('language', { length: 255 })
+    language: varchar('language', { length: 255 }),
+    ...timestamps
   },
   (t) => [uniqueIndex('other_description_unique').on(t.description, t.source)]
 );
@@ -505,7 +538,8 @@ export const animeImage = pgTable(
     medium: text('medium'),
     large: text('large'),
     type: varchar('type', { length: 255 }),
-    source: varchar('source', { length: 255 }).notNull()
+    source: varchar('source', { length: 255 }).notNull(),
+    ...timestamps
   },
   (t) => [uniqueIndex('anime_image_unique').on(t.url, t.source)]
 );
@@ -521,7 +555,8 @@ export const animeVideo = pgTable(
     thumbnail: text('thumbnail'),
     artist: text('artist'),
     type: varchar('type', { length: 255 }),
-    source: varchar('source', { length: 255 }).notNull()
+    source: varchar('source', { length: 255 }).notNull(),
+    ...timestamps
   },
   (t) => [uniqueIndex('anime_video_unique').on(t.url, t.source)]
 );
@@ -537,7 +572,8 @@ export const animeScreenshot = pgTable(
     small: text('small'),
     medium: text('medium'),
     large: text('large'),
-    source: varchar('source', { length: 255 }).notNull()
+    source: varchar('source', { length: 255 }).notNull(),
+    ...timestamps
   },
   (t) => [uniqueIndex('anime_screenshot_unique').on(t.url, t.source)]
 );
@@ -556,7 +592,8 @@ export const animeArtwork = pgTable(
     iso_639_1: varchar('iso_639_1', { length: 255 }),
     is_adult: boolean('is_adult').default(false),
     type: varchar('type', { length: 255 }),
-    source: varchar('source', { length: 255 }).notNull()
+    source: varchar('source', { length: 255 }).notNull(),
+    ...timestamps
   },
   (t) => [uniqueIndex('anime_artwork_unique').on(t.url, t.source)]
 );
@@ -572,7 +609,8 @@ export const animeChronology = pgTable(
     order: integer('order').notNull(),
     anime_id: integer('anime_id')
       .notNull()
-      .references(() => anime.id, { onDelete: 'cascade' })
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [
     uniqueIndex('anime_chronology_unique').on(t.parent_id, t.related_id),
@@ -593,7 +631,8 @@ export const animeRecommendation = pgTable(
     order: integer('order').notNull(),
     anime_id: integer('anime_id')
       .notNull()
-      .references(() => anime.id, { onDelete: 'cascade' })
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [
     uniqueIndex('anime_recommendation_unique').on(t.parent_id, t.related_id),
@@ -616,7 +655,8 @@ export const animeEpisode = pgTable(
     overview: text('overview'),
     anime_id: integer('anime_id')
       .notNull()
-      .references(() => anime.id, { onDelete: 'cascade' })
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [
     uniqueIndex('anime_episode_unique').on(t.anime_id, t.number),
@@ -635,7 +675,8 @@ export const animeEpisodeImage = pgTable(
     large: text('large'),
     episode_id: varchar('episode_id', { length: 255 })
       .unique()
-      .references(() => animeEpisode.id, { onDelete: 'cascade' })
+      .references(() => animeEpisode.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [index('idx_anime_episode_image_episode_id').on(t.episode_id)]
 );
@@ -648,7 +689,8 @@ export const animeToLink = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => animeLink.id, { onDelete: 'cascade' })
+      .references(() => animeLink.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [primaryKey({ columns: [t.A, t.B] }), index('idx_anime_to_link_a').on(t.A)]
 );
@@ -661,7 +703,8 @@ export const animeToOtherTitle = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => animeOtherTitle.id, { onDelete: 'cascade' })
+      .references(() => animeOtherTitle.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [primaryKey({ columns: [t.A, t.B] }), index('idx_anime_to_other_title_a').on(t.A)]
 );
@@ -674,7 +717,8 @@ export const animeToOtherDescription = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => animeOtherDescription.id, { onDelete: 'cascade' })
+      .references(() => animeOtherDescription.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [primaryKey({ columns: [t.A, t.B] }), index('idx_anime_to_other_description_a').on(t.A)]
 );
@@ -687,7 +731,8 @@ export const animeToImage = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => animeImage.id, { onDelete: 'cascade' })
+      .references(() => animeImage.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [primaryKey({ columns: [t.A, t.B] }), index('idx_anime_to_image_a').on(t.A)]
 );
@@ -700,7 +745,8 @@ export const animeToVideo = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => animeVideo.id, { onDelete: 'cascade' })
+      .references(() => animeVideo.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [primaryKey({ columns: [t.A, t.B] }), index('idx_anime_to_video_a').on(t.A)]
 );
@@ -713,7 +759,8 @@ export const animeToScreenshot = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => animeScreenshot.id, { onDelete: 'cascade' })
+      .references(() => animeScreenshot.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [primaryKey({ columns: [t.A, t.B] }), index('idx_anime_to_screenshot_a').on(t.A)]
 );
@@ -726,7 +773,8 @@ export const animeToArtwork = pgTable(
       .references(() => anime.id, { onDelete: 'cascade' }),
     B: varchar('B', { length: 255 })
       .notNull()
-      .references(() => animeArtwork.id, { onDelete: 'cascade' })
+      .references(() => animeArtwork.id, { onDelete: 'cascade' }),
+    ...timestamps
   },
   (t) => [primaryKey({ columns: [t.A, t.B] }), index('idx_anime_to_artwork_a').on(t.A)]
 );
