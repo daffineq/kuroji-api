@@ -118,33 +118,18 @@ class AnimeIndexerModule extends Module {
     return 'Reseted indexer';
   }
 
-  @Scheduled(Schedule.everyOtherWeek())
+  @Scheduled(Schedule.everyOtherWeek(), Config.anime_reindexing_enabled)
   async scheduleIndex() {
-    if (!Config.anime_reindexing_enabled) {
-      logger.log('Anime re-indexing disabled. Skipping scheduled indexing.');
-      return;
-    }
-
     await this.index();
   }
 
-  @Scheduled(Schedule.everyOtherDay())
+  @Scheduled(Schedule.everyOtherDay(), Config.anime_reindexing_enabled)
   async scheduleIndexReleasing() {
-    if (!Config.anime_reindexing_enabled) {
-      logger.log('Anime re-indexing disabled. Skipping scheduled releasing indexing.');
-      return;
-    }
-
     await this.index({ status: 'RELEASING' });
   }
 
-  @Scheduled(Schedule.every12Hours())
+  @Scheduled(Schedule.every12Hours(), Config.anime_reindexing_enabled)
   async scheduleIndexUpcoming() {
-    if (!Config.anime_reindexing_enabled) {
-      logger.log('Anime re-indexing disabled. Skipping scheduled upcoming indexing.');
-      return;
-    }
-
     await this.index({
       status: 'NOT_YET_RELEASED',
       threshold: Config.anime_popularity_threshold_upcoming

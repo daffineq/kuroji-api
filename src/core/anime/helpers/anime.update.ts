@@ -188,22 +188,22 @@ class AnimeUpdateModule extends Module {
     await this.updateQueueItem(item.anime_id);
   }
 
-  @Scheduled(Schedule.every30Minutes())
+  @Scheduled(Schedule.every30Minutes(), Config.anime_update_enabled)
   async scheduleProcessQueue() {
     await this.processQueue();
   }
 
-  @Scheduled(Schedule.everyHour())
+  @Scheduled(Schedule.everyHour(), Config.anime_update_enabled)
   async scheduleRecentAnime() {
     await this.queueRecentAnime();
   }
 
-  @Scheduled(Schedule.every6Hours())
+  @Scheduled(Schedule.every6Hours(), Config.anime_update_enabled)
   async scheduleTodayAnime() {
     await this.queueTodayAnime();
   }
 
-  @Scheduled(Schedule.every12Hours())
+  @Scheduled(Schedule.every12Hours(), Config.anime_update_enabled)
   async scheduleTwoDaysAgoAnime() {
     await this.queueTwoDaysAgoAnime();
   }
