@@ -391,6 +391,10 @@
         height: 100%;
         object-fit: cover;
         display: block;
+        transition: transform 0.2s;
+      }
+      .screenshot img:hover {
+        transform: scale(1.04);
       }
 
       .char-card {
@@ -1166,7 +1170,7 @@
             : '';
 
           // screenshots
-          const shots = (a.screenshots ?? []).sort((x, y) => x.order - y.order);
+          const shots = (a.screenshots ?? []).slice(0, 8);
           const shotsHtml = shots.length
             ? `<div class="section-label">Screenshots</div>
                <div class="h-scroll">
