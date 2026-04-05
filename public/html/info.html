@@ -66,13 +66,13 @@
       }
       .hero-banner {
         width: 100%;
-        height: 300px;
+        aspect-ratio: calc(5 / 2);
         object-fit: cover;
         display: block;
       }
       .hero-banner-placeholder {
         width: 100%;
-        height: 300px;
+        aspect-ratio: calc(5 / 2);
         background: linear-gradient(135deg, #1a1a28 0%, #0d0d1a 100%);
       }
       .hero-body {
@@ -86,7 +86,7 @@
         width: 110px;
         flex-shrink: 0;
         border-radius: 10px;
-        aspect-ratio: 2/2.9;
+        aspect-ratio: calc(2 / 2.9);
         object-fit: cover;
         margin-top: -4.5rem;
         position: relative;
@@ -97,7 +97,7 @@
         width: 110px;
         flex-shrink: 0;
         border-radius: 10px;
-        aspect-ratio: 2/2.9;
+        aspect-ratio: calc(2 / 2.9);
         background: var(--input-bg);
         border: 1px solid var(--primary-border);
         display: flex;
@@ -353,13 +353,13 @@
       .anime-poster {
         border-radius: 12px;
         width: 100%;
-        aspect-ratio: 2/2.9;
+        aspect-ratio: calc(2 / 2.9);
         object-fit: cover;
       }
       .anime-poster-ph {
         border-radius: 12px;
         width: 100%;
-        aspect-ratio: 2/2.9;
+        aspect-ratio: calc(2 / 2.9);
         background: var(--input-bg);
         display: flex;
         align-items: center;
@@ -383,7 +383,7 @@
         border-radius: 8px;
         overflow: hidden;
         border: 1px solid var(--primary-border);
-        aspect-ratio: 16/9;
+        aspect-ratio: calc(16 / 9);
         cursor: zoom-in;
       }
       .screenshot img {
@@ -483,7 +483,7 @@
       }
       .video-thumb {
         width: 100%;
-        aspect-ratio: 16/9;
+        aspect-ratio: calc(16 / 9);
         object-fit: cover;
         display: block;
         border-radius: 12px;
@@ -666,13 +666,13 @@
         border: 1px solid var(--primary-border);
         background: var(--secondary-bg);
         cursor: zoom-in;
-        aspect-ratio: 16/9;
+        aspect-ratio: calc(16 / 9);
       }
       .artwork-item.portrait {
-        aspect-ratio: 2/3;
+        aspect-ratio: calc(2 / 3);
       }
       .artwork-item.square {
-        aspect-ratio: 1/1;
+        aspect-ratio: calc(1 / 1);
       }
 
       .artwork-item img {
@@ -816,12 +816,6 @@
         footer {
           margin-top: 2.5rem;
           line-height: 1.9;
-        }
-        .hero-banner {
-          height: 180px;
-        }
-        .hero-banner-placeholder {
-          height: 180px;
         }
         .artworks-grid {
           grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
