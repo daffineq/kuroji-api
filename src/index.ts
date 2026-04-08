@@ -6,7 +6,7 @@ import { HttpError } from './helpers/errors';
 import { Config } from './config/config';
 import rateLimit from './helpers/plugins/rate.limit';
 import protectRoute from './helpers/plugins/protect.route';
-import { animeRoute, apiRoute, proxyRoute, yoga } from './core';
+import { animeRoute, apiRoute, yoga } from './core';
 import logger from './helpers/logger';
 import Elysia, { file, NotFoundError, t } from 'elysia';
 import { cors } from '@elysiajs/cors';
@@ -116,7 +116,6 @@ const app = new Elysia()
 
 app.use(animeRoute());
 app.use(apiRoute());
-app.use(proxyRoute());
 
 app.get('/graphql', ({ request }) => yoga.handle(request), {
   tags: ['GraphQL'],
