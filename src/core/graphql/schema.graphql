@@ -371,7 +371,7 @@ type Anime {
   images(source: String, type: String): [AnimeImage!]!
   videos(source: String, type: String): [AnimeVideo!]!
   screenshots(source: String, order_greater: Int, order_lesser: Int): [AnimeScreenshot!]!
-  episodes: [Episode!]!
+  episodes(number_greater: Int, number_lesser: Int, air_date_greater: String, air_date_lesser: String): [Episode!]!
   artworks(iso_639_1: String, source: String, include_adult: Boolean, type: String): [AnimeArtwork!]!
   chronology: [Anime!]!
   recommendations: [Anime!]!
