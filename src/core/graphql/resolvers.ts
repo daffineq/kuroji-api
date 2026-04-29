@@ -1,5 +1,17 @@
 import { Anime } from '../anime';
-import { AnimeArgs, ArtworksArgs, ChronologyArgs, LinkArgs, RecommendationArgs, SourceArgs } from './types';
+import {
+  AnimeArgs,
+  ArtworksArgs,
+  ChronologyArgs,
+  EpisodeArgs,
+  ImageArgs,
+  LinkArgs,
+  OtherDescriptionArgs,
+  OtherTitleArgs,
+  RecommendationArgs,
+  ScreenshotArgs,
+  VideoArgs
+} from './types';
 import {
   db,
   anime,
@@ -775,55 +787,68 @@ export const resolvers = {
     },
 
     links: async (parent: any, args: LinkArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.links.load(parent.id).then((ll) => (args.type ? ll.filter((l) => l.type === args.type) : ll));
+      return loaders.links.load(parent.id).then((ll: any[]) => {
+        let filtered = ll;
+        if (args.type) filtered = filtered.filter((l) => l.type === args.type);
+        if (args.label)
+          filtered = filtered.filter((l) => l.label?.toLowerCase().includes(args.label!.toLowerCase()));
+        return filtered;
+      });
     },
 
-    other_titles: async (parent: any, args: SourceArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.otherTitles
-        .load(parent.id)
-        .then((tl) => (args.source ? tl.filter((t) => t.source === args.source) : tl));
+    other_titles: async (parent: any, args: OtherTitleArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.otherTitles.load(parent.id).then((tl: any[]) => {
+        let filtered = tl;
+        if (args.source) filtered = filtered.filter((t) => t.source === args.source);
+        if (args.language) filtered = filtered.filter((t) => t.language === args.language);
+        return filtered;
+      });
     },
 
-    other_descriptions: async (parent: any, args: SourceArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.otherDescriptions
-        .load(parent.id)
-        .then((dl) => (args.source ? dl.filter((d) => d.source === args.source) : dl));
+    other_descriptions: async (parent: any, args: OtherDescriptionArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.otherDescriptions.load(parent.id).then((dl: any[]) => {
+        let filtered = dl;
+        if (args.source) filtered = filtered.filter((d) => d.source === args.source);
+        if (args.language) filtered = filtered.filter((d) => d.language === args.language);
+        return filtered;
+      });
     },
 
-    images: async (parent: any, args: SourceArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.images
-        .load(parent.id)
-        .then((il) => (args.source ? il.filter((i) => i.source === args.source) : il));
+    images: async (parent: any, args: ImageArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.images.load(parent.id).then((il: any[]) => {
+        let filtered = il;
+        if (args.source) filtered = filtered.filter((i) => i.source === args.source);
+        if (args.type) filtered = filtered.filter((i) => i.type === args.type);
+        return filtered;
+      });
     },
 
-    videos: async (parent: any, args: SourceArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.videos
-        .load(parent.id)
-        .then((vl) => (args.source ? vl.filter((v) => v.source === args.source) : vl));
+    videos: async (parent: any, args: VideoArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.videos.load(parent.id).then((vl: any[]) => {
+        let filtered = vl;
+        if (args.source) filtered = filtered.filter((v) => v.source === args.source);
+        if (args.type) filtered = filtered.filter((v) => v.type === args.type);
+        return filtered;
+      });
     },
 
-    screenshots: async (parent: any, args: SourceArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.screenshots
-        .load(parent.id)
-        .then((sl) => (args.source ? sl.filter((s) => s.source === args.source) : sl));
+    screenshots: async (parent: any, args: ScreenshotArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.screenshots.load(parent.id).then((sl: any[]) => {
+        let filtered = sl;
+        if (args.source) filtered = filtered.filter((s) => s.source === args.source);
+        if (args.order_greater !== undefined) filtered = filtered.filter((s) => s.order >= args.order_greater!);
+        if (args.order_lesser !== undefined) filtered = filtered.filter((s) => s.order <= args.order_lesser!);
+        return filtered;
+      });
     },
 
     artworks: async (parent: any, args: ArtworksArgs, { loaders }: { loaders: Loaders }) => {
       return loaders.artworks.load(parent.id).then((al) => {
         let filtered = al;
-
-        if (args.iso_639_1) {
-          filtered = filtered.filter((a) => a.iso_639_1 === args.iso_639_1);
-        }
-
-        if (args.source) {
-          filtered = filtered.filter((a) => a.source === args.source);
-        }
-
-        if (args.include_adult === false) {
-          filtered = filtered.filter((a) => a.is_adult === false);
-        }
-
+        if (args.iso_639_1) filtered = filtered.filter((a) => a.iso_639_1 === args.iso_639_1);
+        if (args.source) filtered = filtered.filter((a) => a.source === args.source);
+        if (args.type) filtered = filtered.filter((a) => a.type === args.type);
+        if (args.include_adult === false) filtered = filtered.filter((a) => a.is_adult === false);
         return filtered;
       });
     },

@@ -53,8 +53,8 @@ export interface AnimeArgs {
   sort?: string[];
 }
 
-export interface SourceArgs {
-  source?: string;
+export interface TypeArgs {
+  type?: string;
 }
 
 export interface ChronologyArgs extends AnimeArgs {
@@ -76,11 +76,47 @@ export interface EpisodeArgs {
   number: number;
 }
 
-export interface ArtworksArgs extends SourceArgs {
+export interface ArtworksArgs {
+  source?: string;
+  type?: string;
   iso_639_1?: string;
   include_adult?: boolean;
 }
 
-export interface LinkArgs {
+export interface LinkArgs extends TypeArgs {
   type?: string;
+  label?: string;
+}
+
+export interface ImageArgs {
+  source?: string;
+  type?: string;
+}
+
+export interface VideoArgs {
+  source?: string;
+  type?: string;
+}
+
+export interface ScreenshotArgs {
+  source?: string;
+  order_greater?: number;
+  order_lesser?: number;
+}
+
+export interface EpisodeArgs {
+  number_greater?: number;
+  number_lesser?: number;
+  air_date_greater?: string;
+  air_date_lesser?: string;
+}
+
+export interface OtherTitleArgs {
+  source?: string;
+  language?: string;
+}
+
+export interface OtherDescriptionArgs {
+  source?: string;
+  language?: string;
 }
