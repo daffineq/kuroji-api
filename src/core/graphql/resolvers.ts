@@ -787,7 +787,7 @@ export const resolvers = {
     },
 
     links: async (parent: any, args: LinkArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.links.load(parent.id).then((ll: any[]) => {
+      return loaders.links.load(parent.id).then((ll) => {
         let filtered = ll;
         if (args.type) filtered = filtered.filter((l) => l.type === args.type);
         if (args.label)
@@ -797,7 +797,7 @@ export const resolvers = {
     },
 
     other_titles: async (parent: any, args: OtherTitleArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.otherTitles.load(parent.id).then((tl: any[]) => {
+      return loaders.otherTitles.load(parent.id).then((tl) => {
         let filtered = tl;
         if (args.source) filtered = filtered.filter((t) => t.source === args.source);
         if (args.language) filtered = filtered.filter((t) => t.language === args.language);
@@ -806,7 +806,7 @@ export const resolvers = {
     },
 
     other_descriptions: async (parent: any, args: OtherDescriptionArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.otherDescriptions.load(parent.id).then((dl: any[]) => {
+      return loaders.otherDescriptions.load(parent.id).then((dl) => {
         let filtered = dl;
         if (args.source) filtered = filtered.filter((d) => d.source === args.source);
         if (args.language) filtered = filtered.filter((d) => d.language === args.language);
@@ -815,7 +815,7 @@ export const resolvers = {
     },
 
     images: async (parent: any, args: ImageArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.images.load(parent.id).then((il: any[]) => {
+      return loaders.images.load(parent.id).then((il) => {
         let filtered = il;
         if (args.source) filtered = filtered.filter((i) => i.source === args.source);
         if (args.type) filtered = filtered.filter((i) => i.type === args.type);
@@ -824,7 +824,7 @@ export const resolvers = {
     },
 
     videos: async (parent: any, args: VideoArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.videos.load(parent.id).then((vl: any[]) => {
+      return loaders.videos.load(parent.id).then((vl) => {
         let filtered = vl;
         if (args.source) filtered = filtered.filter((v) => v.source === args.source);
         if (args.type) filtered = filtered.filter((v) => v.type === args.type);
@@ -833,7 +833,7 @@ export const resolvers = {
     },
 
     screenshots: async (parent: any, args: ScreenshotArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.screenshots.load(parent.id).then((sl: any[]) => {
+      return loaders.screenshots.load(parent.id).then((sl) => {
         let filtered = sl;
         if (args.source) filtered = filtered.filter((s) => s.source === args.source);
         if (args.order_greater !== undefined) filtered = filtered.filter((s) => s.order >= args.order_greater!);
@@ -869,8 +869,24 @@ export const resolvers = {
       return loaders.connected.load(parent.franchise);
     },
 
-    episodes: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
-      return loaders.episodes.load(parent.id);
+    episodes: async (parent: any, args: EpisodeArgs, { loaders }: { loaders: Loaders }) => {
+      return loaders.episodes.load(parent.id).then((el) => {
+        let filtered = el;
+
+        if (args.number_greater !== undefined) filtered = filtered.filter((e) => e.number >= args.number_greater!);
+        if (args.number_lesser !== undefined) filtered = filtered.filter((e) => e.number <= args.number_lesser!);
+
+        if (args.air_date_greater) {
+          const greater = new Date(args.air_date_greater).getTime();
+          filtered = filtered.filter((e) => e.air_date && new Date(e.air_date).getTime() >= greater);
+        }
+        if (args.air_date_lesser) {
+          const lesser = new Date(args.air_date_lesser).getTime();
+          filtered = filtered.filter((e) => e.air_date && new Date(e.air_date).getTime() <= lesser);
+        }
+
+        return filtered;
+      });
     }
   },
 
