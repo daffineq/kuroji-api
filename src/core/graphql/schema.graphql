@@ -363,19 +363,19 @@ type Anime {
   characters: [CharacterConnection!]!
   studios(only_main: Boolean): [StudioConnection!]!
   tags: [TagConnection!]!
-  links(type: String): [AnimeLink!]!
   score_distribution: [ScoreDistribution!]!
   status_distribution: [StatusDistribution!]!
-  other_titles(source: String): [OtherTitle!]!
-  other_descriptions(source: String): [OtherDescription!]!
-  images(source: String): [AnimeImage!]!
-  videos(source: String): [AnimeVideo!]!
-  screenshots(source: String): [AnimeScreenshot!]!
-  artworks(iso_639_1: String, source: String, include_adult: Boolean): [AnimeArtwork!]!
+  links(type: String, label: String): [AnimeLink!]!
+  other_titles(source: String, language: String): [OtherTitle!]!
+  other_descriptions(source: String, language: String): [OtherDescription!]!
+  images(source: String, type: String): [AnimeImage!]!
+  videos(source: String, type: String): [AnimeVideo!]!
+  screenshots(source: String, order_greater: Int, order_lesser: Int): [AnimeScreenshot!]!
+  episodes: [Episode!]!
+  artworks(iso_639_1: String, source: String, include_adult: Boolean, type: String): [AnimeArtwork!]!
   chronology: [Anime!]!
   recommendations: [Anime!]!
   connected: [Anime!]!
-  episodes: [Episode!]!
 }
 
 type AnimeTitle {
