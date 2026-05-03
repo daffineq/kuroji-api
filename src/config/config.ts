@@ -46,7 +46,7 @@ class ConfigModule {
   // API Base URLs
   readonly anilist = process.env.ANILIST ?? 'https://graphql.anilist.co';
   readonly myanimelist = process.env.MYANIMELIST ?? 'https://myanimelist.net';
-  readonly shikimori = process.env.SHIKIMORI ?? 'https://shikimori.one';
+  readonly shikimori = process.env.SHIKIMORI ?? 'https://shikimori.io';
   readonly kitsu = process.env.KITSU ?? 'https://kitsu.io/api/edge';
   readonly tmdb = process.env.TMDB ?? 'https://api.themoviedb.org/3';
   readonly tmdb_image = process.env.TMDB_IMAGE ?? 'https://image.tmdb.org/t/p/';
