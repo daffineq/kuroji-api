@@ -115,7 +115,7 @@ export class KurojiClient {
         if (this.rateLimitInfo.remaining <= 0) {
           const now = Math.floor(Date.now() / 1000);
           const waitTime = Math.max(this.rateLimitInfo.reset - now, 0);
-          logger.warn(`[rate-limit] sleeping ${waitTime}s due to 0 remaining [${this.baseUrl}${url}]`);
+          logger.warn(`[rate-limit] sleeping ${waitTime}s due to 0 remaining [${finalUrl}]`);
           await sleep(waitTime * 1000);
         }
 
@@ -134,7 +134,7 @@ export class KurojiClient {
         await this.handleRateLimit(apiResponse);
 
         if (apiResponse.status === 429) {
-          logger.warn(`[rate-limit] 429 sleeping ${this.rateLimitInfo.retryAfter}s`);
+          logger.warn(`[rate-limit] 429 sleeping ${this.rateLimitInfo.retryAfter}s [${finalUrl}]`);
 
           await sleep(this.rateLimitInfo.retryAfter * 1000);
 
