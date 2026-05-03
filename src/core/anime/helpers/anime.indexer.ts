@@ -23,7 +23,11 @@ class AnimeIndexerModule extends Module {
     try {
       let page = await this.getLastFetchedPage(status);
       let hasNextPage = true;
+      let failedCount = 0;
+
       const perPage = 50;
+      const maxFails = 3;
+      const maxTries = 3;
 
       logger.log(`Starting index from page ${page}...`);
 
@@ -43,28 +47,47 @@ class AnimeIndexerModule extends Module {
 
           logger.log(`Indexing release ID: ${id}...`);
 
-          try {
-            const task = async () => {
-              if (await Anime.exists(id)) {
-                if (await Anime.shouldAutoUpdate(id)) {
-                  await Anime.update(id);
-                } else {
-                  logger.log(`Wont update release ID: ${id}...`);
-                }
-              } else {
-                await Anime.create(id);
-              }
-            };
+          let currentTry = 0;
 
-            await Promise.race([
-              task(),
-              sleep(120000).then(() => {
-                throw new Error('Timed out');
-              })
-            ]);
-          } catch (err) {
-            logger.error(`Failed to index release ${id}:`, err);
-            return;
+          while (currentTry < maxTries) {
+            try {
+              const task = async () => {
+                if (await Anime.exists(id)) {
+                  if (await Anime.shouldAutoUpdate(id)) {
+                    await Anime.update(id);
+                  } else {
+                    logger.log(`Wont update release ID: ${id}...`);
+                  }
+                } else {
+                  await Anime.create(id);
+                }
+              };
+
+              await Promise.race([
+                task(),
+                sleep(120 * 1000).then(() => {
+                  throw new Error('Timed out');
+                })
+              ]);
+
+              break;
+            } catch (err) {
+              logger.error(`Failed to index release ${id}:`, err);
+              currentTry++;
+
+              if (currentTry < maxTries) {
+                await sleep(60 * 1000);
+              }
+            }
+          }
+
+          if (currentTry >= maxTries) {
+            failedCount++;
+
+            if (failedCount >= maxFails) {
+              logger.error('Too many failed, exiting');
+              return;
+            }
           }
 
           await sleep(delay * 1000);
