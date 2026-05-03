@@ -771,7 +771,7 @@ export const resolvers = {
     studios: async (parent: any, args: { only_main?: boolean }, { loaders }: { loaders: Loaders }) => {
       return loaders.studioConnections
         .load(parent.id)
-        .then((s) => (args.only_main ? s.filter((s: any) => s.is_main) : s));
+        .then((sl) => sl.filter((s) => !args.only_main || s.is_main));
     },
 
     tags: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
@@ -787,82 +787,67 @@ export const resolvers = {
     },
 
     links: async (parent: any, args: LinkArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.links.load(parent.id).then((ll) => {
-        let filtered = ll;
-        if (args.type) filtered = filtered.filter((l) => l.type === args.type);
-        if (args.label)
-          filtered = filtered.filter((l) => l.label?.toLowerCase().includes(args.label!.toLowerCase()));
-        return filtered;
-      });
+      const ll = await loaders.links.load(parent.id);
+
+      return ll.filter(
+        (l) =>
+          (!args.type || l.type === args.type) &&
+          (!args.label || l.label?.toLowerCase().includes(args.label!.toLowerCase()))
+      );
     },
 
     other_titles: async (parent: any, args: OtherTitleArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.otherTitles.load(parent.id).then((tl) => {
-        let filtered = tl;
-        if (args.source) filtered = filtered.filter((t) => t.source === args.source);
-        if (args.language) filtered = filtered.filter((t) => t.language === args.language);
-        return filtered;
-      });
+      const tl = await loaders.otherTitles.load(parent.id);
+
+      return tl.filter(
+        (t) => (!args.source || t.source === args.source) && (!args.language || t.language == args.language)
+      );
     },
 
     other_descriptions: async (parent: any, args: OtherDescriptionArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.otherDescriptions.load(parent.id).then((dl) => {
-        let filtered = dl;
-        if (args.source) filtered = filtered.filter((d) => d.source === args.source);
-        if (args.language) filtered = filtered.filter((d) => d.language === args.language);
-        return filtered;
-      });
+      const dl = await loaders.otherDescriptions.load(parent.id);
+
+      return dl.filter(
+        (d) => (!args.source || d.source === args.source) && (!args.language || d.language == args.language)
+      );
     },
 
     images: async (parent: any, args: ImageArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.images.load(parent.id).then((il) => {
-        let filtered = il;
-        if (args.source) filtered = filtered.filter((i) => i.source === args.source);
-        if (args.type) filtered = filtered.filter((i) => i.type === args.type);
+      const il = await loaders.images.load(parent.id);
 
-        filtered.sort((a, b) => b.created_at! - a.created_at!);
-
-        const imageMap = new Map();
-
-        filtered.forEach((i) => {
-          const key = `${i.source}-${i.type}`;
-          if (!imageMap.has(key)) {
-            imageMap.set(key, i);
-          }
-        });
-
-        return Array.from(imageMap.values());
-      });
+      return il
+        .filter((i) => (!args.source || i.source === args.source) && (!args.type || i.type === args.type))
+        .sort((a, b) => a.created_at! - b.created_at!)
+        .filter((i, index, self) => index === self.findIndex((t) => t.source === i.source && t.type === i.type));
     },
 
     videos: async (parent: any, args: VideoArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.videos.load(parent.id).then((vl) => {
-        let filtered = vl;
-        if (args.source) filtered = filtered.filter((v) => v.source === args.source);
-        if (args.type) filtered = filtered.filter((v) => v.type === args.type);
-        return filtered;
-      });
+      const vl = await loaders.videos.load(parent.id);
+
+      return vl.filter((v) => (!args.source || v.source === args.source) && (!args.type || v.type === args.type));
     },
 
     screenshots: async (parent: any, args: ScreenshotArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.screenshots.load(parent.id).then((sl) => {
-        let filtered = sl;
-        if (args.source) filtered = filtered.filter((s) => s.source === args.source);
-        if (args.order_greater !== undefined) filtered = filtered.filter((s) => s.order >= args.order_greater!);
-        if (args.order_lesser !== undefined) filtered = filtered.filter((s) => s.order <= args.order_lesser!);
-        return filtered;
-      });
+      const sl = await loaders.screenshots.load(parent.id);
+
+      return sl.filter(
+        (s) =>
+          (!args.source || s.source === args.source) &&
+          (args.order_greater === undefined || s.order >= args.order_greater!) &&
+          (args.order_lesser === undefined || s.order <= args.order_lesser!)
+      );
     },
 
     artworks: async (parent: any, args: ArtworksArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.artworks.load(parent.id).then((al) => {
-        let filtered = al;
-        if (args.iso_639_1) filtered = filtered.filter((a) => a.iso_639_1 === args.iso_639_1);
-        if (args.source) filtered = filtered.filter((a) => a.source === args.source);
-        if (args.type) filtered = filtered.filter((a) => a.type === args.type);
-        if (args.include_adult === false) filtered = filtered.filter((a) => a.is_adult === false);
-        return filtered;
-      });
+      const al = await loaders.artworks.load(parent.id);
+
+      return al.filter(
+        (a) =>
+          (!args.iso_639_1 || a.iso_639_1 === args.iso_639_1) &&
+          (!args.source || a.source === args.source) &&
+          (!args.type || a.type === args.type) &&
+          (!args.include_adult || a.is_adult === false)
+      );
     },
 
     chronology: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
@@ -882,23 +867,17 @@ export const resolvers = {
     },
 
     episodes: async (parent: any, args: EpisodeArgs, { loaders }: { loaders: Loaders }) => {
-      return loaders.episodes.load(parent.id).then((el) => {
-        let filtered = el;
+      const el = await loaders.episodes.load(parent.id);
 
-        if (args.number_greater !== undefined) filtered = filtered.filter((e) => e.number >= args.number_greater!);
-        if (args.number_lesser !== undefined) filtered = filtered.filter((e) => e.number <= args.number_lesser!);
-
-        if (args.air_date_greater) {
-          const greater = new Date(args.air_date_greater).getTime();
-          filtered = filtered.filter((e) => e.air_date && new Date(e.air_date).getTime() >= greater);
-        }
-        if (args.air_date_lesser) {
-          const lesser = new Date(args.air_date_lesser).getTime();
-          filtered = filtered.filter((e) => e.air_date && new Date(e.air_date).getTime() <= lesser);
-        }
-
-        return filtered;
-      });
+      return el.filter(
+        (e) =>
+          (args.number_greater === undefined || e.number >= args.number_greater!) &&
+          (args.number_lesser === undefined || e.number <= args.number_lesser!) &&
+          (!args.air_date_greater ||
+            (e.air_date && new Date(e.air_date).getTime() >= new Date(args.air_date_greater).getTime())) &&
+          (!args.air_date_lesser ||
+            (e.air_date && new Date(e.air_date).getTime() <= new Date(args.air_date_lesser).getTime()))
+      );
     }
   },
 
