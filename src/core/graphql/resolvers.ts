@@ -819,7 +819,19 @@ export const resolvers = {
         let filtered = il;
         if (args.source) filtered = filtered.filter((i) => i.source === args.source);
         if (args.type) filtered = filtered.filter((i) => i.type === args.type);
-        return filtered;
+
+        filtered.sort((a, b) => b.created_at! - a.created_at!);
+
+        const imageMap = new Map();
+
+        filtered.forEach((i) => {
+          const key = `${i.source}-${i.type}`;
+          if (!imageMap.has(key)) {
+            imageMap.set(key, i);
+          }
+        });
+
+        return Array.from(imageMap.values());
       });
     },
 
