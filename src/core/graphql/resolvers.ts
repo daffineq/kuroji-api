@@ -631,7 +631,7 @@ export const resolvers = {
         return release;
       }
 
-      return Anime.fetchOrCreate(id);
+      return null;
     },
 
     animes: async (_: any, args: AnimeArgs) => {
