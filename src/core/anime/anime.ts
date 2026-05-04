@@ -11,7 +11,7 @@ import {
 } from './providers';
 import { AnimeDb } from './helpers/anime.db';
 import { Module } from 'src/helpers/module';
-import { anime, animeLink, animeToLink, db } from 'src/db';
+import { anime, animeLink, animeTitle, animeToLink, db } from 'src/db';
 import { AnimePayload } from './types';
 import { eq } from 'drizzle-orm';
 
@@ -98,6 +98,21 @@ class AnimeModule extends Module {
     const result = await db.select({ id: anime.id }).from(anime).where(eq(anime.id, id)).limit(1);
 
     return result.length > 0;
+  }
+
+  async getBasicInfo(id: number) {
+    return db.query.anime.findFirst({
+      where: {
+        id
+      },
+      with: {
+        title: true,
+        airing_schedule: true,
+        other_titles: true,
+        start_date: true,
+        end_date: true
+      }
+    });
   }
 }
 

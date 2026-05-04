@@ -4,7 +4,6 @@ import { getSearchTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { parseNumber, parseString } from 'src/helpers/parsers';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { KitsuFetch } from './helpers/kitsu.fetch';
-import { Anilist, AnilistUtils } from '../anilist';
 import { ProviderModule } from 'src/helpers/module';
 import { Anime } from '../../anime';
 import { AnimeUtils } from '../../helpers';
@@ -85,13 +84,13 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
   }
 
   private async find(id: number): Promise<KitsuAnime> {
-    const al = await Anilist.getInfo(id);
+    const al = await Anime.getBasicInfo(id);
 
     if (!al) {
-      throw new NotFoundError('Anilist not found');
+      throw new NotFoundError('Anime not found');
     }
 
-    const title = AnimeUtils.pickBestTitle(al);
+    const title = AnimeUtils.pickBestTitle(al.title);
 
     if (!title) {
       throw new NotFoundError('no title?');
@@ -113,10 +112,10 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     });
 
     const searchCriteria: ExpectAnime = {
-      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.synonyms],
-      year: al.seasonYear ?? undefined,
-      type: al.format,
-      episodes: AnilistUtils.findEpisodeCount(al)
+      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.other_titles.map((t) => t.title)],
+      year: al.season_year ?? undefined,
+      type: al.format ?? 'TV',
+      episodes: AnimeUtils.findEpisodeCount(al)
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);

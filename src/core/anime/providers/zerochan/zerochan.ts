@@ -1,7 +1,6 @@
 import { Module } from 'src/helpers/module';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { ZerochanArtwork } from './types';
-import { Anilist } from '../anilist';
 import { AnimeUtils, ArtworkType } from '../../helpers';
 import { ZerochanFetch } from './helpers/zerochan.fetch';
 import { ExpectAnime, findBestMatch, getSearchTitle } from 'src/helpers/mapper';
@@ -77,13 +76,13 @@ class ZerochanModule extends Module {
     q: string;
     results: ZerochanArtwork[];
   }> {
-    const al = await Anilist.getInfo(id);
+    const al = await Anime.getBasicInfo(id);
 
     if (!al) {
-      throw new Error('Anilist not found');
+      throw new Error('Anime not found');
     }
 
-    const title = AnimeUtils.pickBestTitle(al);
+    const title = AnimeUtils.pickBestTitle(al.title);
 
     if (!title) {
       throw new Error('No title found');
@@ -101,7 +100,7 @@ class ZerochanModule extends Module {
       });
 
     const searchCriteria: ExpectAnime = {
-      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.synonyms]
+      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.other_titles.map((t) => t.title)]
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);

@@ -1,21 +1,21 @@
 import { DateUtils } from 'src/helpers/date';
-import { AnilistMedia } from '../providers/anilist/types';
 import { KitsuAnime } from '../providers/kitsu/types';
 import { ShikimoriAnime } from '../providers/shikimori/types';
-import { AnimeLinkPayload } from '../types';
+import { AnimeBasicData } from '../types';
+import { ReleaseDate } from 'src/core/types';
 
 const getEpisodesCount = (
-  anilist: AnilistMedia,
+  anime: AnimeBasicData | null,
   kitsu: KitsuAnime | null,
   shikimori: ShikimoriAnime | null
 ): number | undefined | null => {
   const airedSchedule =
-    anilist.airingSchedule?.edges
-      ?.filter((schedule) => schedule.node.airingAt != null && DateUtils.isPast(schedule.node.airingAt))
-      .sort((a, b) => (b.node.airingAt ?? 0) - (a.node.airingAt ?? 0)) ?? [];
+    anime?.airing_schedule
+      ?.filter((s) => s.airing_at != null && DateUtils.isPast(s.airing_at))
+      .sort((a, b) => (b.airing_at ?? 0) - (a.airing_at ?? 0)) ?? [];
 
   const totalEpisodes: (number | null | undefined)[] = [
-    anilist.episodes,
+    anime?.episodes_total,
     shikimori?.episodes,
     kitsu?.attributes.episodeCount
   ];
@@ -25,7 +25,7 @@ const getEpisodesCount = (
   const total = totalEpisodes.find((v) => typeof v === 'number' && v > 0);
   const aired = airedEpisodes.find((v) => typeof v === 'number' && v > 0);
 
-  const isAiring = anilist.status === 'RELEASING';
+  const isAiring = anime?.status === 'RELEASING';
 
   if (isAiring) {
     return aired;
@@ -34,8 +34,14 @@ const getEpisodesCount = (
   return total ?? aired ?? null;
 };
 
-const pickBestTitle = (a: AnilistMedia): string | null => {
-  return a.title.romaji ?? a.title.english ?? a.title.native ?? null;
+const pickBestTitle = (
+  title: {
+    romaji: string | null;
+    english: string | null;
+    native: string | null;
+  } | null
+): string | null => {
+  return title?.romaji ?? title?.english ?? title?.native ?? null;
 };
 
 const countryToLanguage: Record<string, string> = {
@@ -158,12 +164,53 @@ const unifyArtworkType = (type?: number | string): ArtworkType => {
   return ArtworkType.UNKOWN;
 };
 
+const findEpisodeCount = (
+  anime: AnimeBasicData | null,
+  options?: { preferAired?: boolean }
+): number | undefined => {
+  const airedSchedule =
+    anime?.airing_schedule
+      ?.filter((s) => s.airing_at != null && DateUtils.isPast(s.airing_at))
+      .sort((a, b) => (b.airing_at ?? 0) - (a.airing_at ?? 0)) ?? [];
+
+  const airedEpisodes: (number | null | undefined)[] = [airedSchedule?.length];
+
+  const aired = airedEpisodes.find((v) => typeof v === 'number' && v > 0);
+
+  const isAiring = anime?.status === 'RELEASING';
+
+  if (options?.preferAired ?? isAiring) {
+    if (aired) return aired;
+  }
+
+  if (anime?.episodes_total) return anime.episodes_total;
+  if (aired) return aired;
+
+  return undefined;
+};
+
+const getDate = (date: ReleaseDate): string | null => {
+  const { year, month, day } = date;
+
+  let anilistStartDateString: string | null = null;
+
+  if (year && month && day) {
+    anilistStartDateString = `${year.toString().padStart(4, '0')}-${month
+      .toString()
+      .padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+  }
+
+  return anilistStartDateString;
+};
+
 const AnimeUtils = {
   getEpisodesCount,
   pickBestTitle,
   getType,
   unifyArtworkType,
-  getLanguage
+  getLanguage,
+  findEpisodeCount,
+  getDate
 };
 
 export { AnimeUtils };

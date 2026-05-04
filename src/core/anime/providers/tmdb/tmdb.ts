@@ -3,7 +3,6 @@ import { TmdbImage, TmdbInfoResult, TmdbTranslation } from './types';
 import { getSearchTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { NotFoundError } from 'src/helpers/errors';
 import { getKey, Redis } from 'src/helpers/redis.util';
-import { Anilist } from '../anilist';
 import { TmdbUtils } from './helpers/tmdb.utils';
 import { TmdbFetch } from './helpers/tmdb.fetch';
 import { normalize_iso_639_1 } from 'src/helpers/languages';
@@ -92,7 +91,12 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
   }> {
     const idMap = parseNumber(await Anime.map(id, this.name));
 
-    const al = await Anilist.getInfo(id);
+    const al = await Anime.getBasicInfo(id);
+
+    if (!al) {
+      throw new Error('Anime not found');
+    }
+
     const type = AnimeUtils.getType(al.format);
 
     if (idMap) {
@@ -136,7 +140,12 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
 
     const tmdb = await this.getInfo(id);
 
-    const al = await Anilist.getInfo(id);
+    const al = await Anime.getBasicInfo(id);
+
+    if (!al) {
+      throw new Error('Anime not found');
+    }
+
     const type = AnimeUtils.getType(al.format);
 
     const translations =
@@ -198,15 +207,15 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
   }
 
   private async find(id: number): Promise<TmdbInfoResult> {
-    const al = await Anilist.getInfo(id);
+    const al = await Anime.getBasicInfo(id);
 
     if (!al) {
-      throw new Error('Anilist not found');
+      throw new Error('Anime not found');
     }
 
     const type = AnimeUtils.getType(al.format);
 
-    const title = AnimeUtils.pickBestTitle(al);
+    const title = AnimeUtils.pickBestTitle(al.title);
 
     if (!title) {
       throw new Error('No title found');
@@ -226,8 +235,8 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     });
 
     const searchCriteria: ExpectAnime = {
-      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.synonyms],
-      language: AnimeUtils.getLanguage(al.countryOfOrigin ?? 'JP') ?? 'jp'
+      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.other_titles.map((t) => t.title)],
+      language: AnimeUtils.getLanguage(al.country ?? 'JP') ?? 'jp'
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);

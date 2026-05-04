@@ -1,5 +1,5 @@
 import { Config } from 'src/config';
-import { ANILIST_INFO } from '../graphql';
+import { ANILIST_BULK_INFO, ANILIST_INFO, ANILIST_MEDIA_DETAILS } from '../graphql';
 import { AnilistMedia, AnilistMediaResponse } from '../types';
 import { KurojiClient } from 'src/lib/http';
 import { ClientModule } from 'src/helpers/client';
@@ -26,6 +26,57 @@ class AnilistFetchModule extends ClientModule {
     }
 
     return data?.data.Media;
+  }
+
+  async fetchInfoBulk(
+    page: number,
+    perPage: number,
+    options: { status?: string; threshold?: number } = {}
+  ): Promise<{
+    media: AnilistMedia[];
+    pageInfo: { hasNextPage: boolean };
+  }> {
+    const { status, threshold = Config.anime_popularity_threshold } = options;
+
+    const { data, error } = await this.client.post<{
+      media: AnilistMedia[];
+      pageInfo: { hasNextPage: boolean };
+    }>(``, {
+      body: JSON.stringify({
+        query: `
+          query ($page: Int, $perPage: Int) {
+            Page(page: $page, perPage: $perPage) {
+              pageInfo {
+                total
+                perPage
+                currentPage
+                lastPage
+                hasNextPage
+              }
+              media(type: ANIME, sort: [POPULARITY_DESC], popularity_greater: ${threshold} ${status ? `, status: ${status}` : ''}) {
+                ...mediaDetails
+              }
+            }
+          }
+          ${ANILIST_MEDIA_DETAILS}
+        `,
+        variables: {
+          page,
+          perPage
+        }
+      }),
+      jsonPath: 'data.Page'
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error(`AnilistFetch.fetchInfoBulk: No data found`);
+    }
+
+    return data;
   }
 
   async fetchIds(

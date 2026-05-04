@@ -1,26 +1,26 @@
 import { MatchStrategy, EpisodeMatchCandidate, SeasonEpisodeGroup, MatchResult, TmdbEpisode } from '../types';
-import { AnilistMedia } from 'src/core/anime/providers/anilist/types';
 import { DateUtils } from 'src/helpers/date';
-import { AnilistUtils } from '../../anilist';
 import { Module } from 'src/helpers/module';
+import { AnimeBasicData } from 'src/core/anime/types';
+import { AnimeUtils } from 'src/core/anime/helpers';
 
 class TmdbStrategiesModule extends Module {
   override readonly name = 'TmdbStrategies';
 
   async matchByDateRange(
-    anilist: AnilistMedia,
+    anime: AnimeBasicData,
     allEpisodes: TmdbEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
     episodeCount: number | undefined | null
   ): Promise<MatchResult> {
     const strategy = MatchStrategy.DATE_RANGE;
 
-    const startDate = anilist.startDate ? AnilistUtils.getDate(anilist.startDate) : null;
-    const endDate = anilist.endDate
-      ? AnilistUtils.getDate(anilist.endDate)
-      : AnilistUtils.getDate(DateUtils.getCurrentReleaseDate());
+    const startDate = anime?.start_date ? AnimeUtils.getDate(anime.start_date) : null;
+    const endDate = anime?.end_date
+      ? AnimeUtils.getDate(anime.end_date)
+      : AnimeUtils.getDate(DateUtils.getCurrentReleaseDate());
 
-    if (!startDate || !anilist.seasonYear) {
+    if (!startDate || !anime?.season_year) {
       return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
@@ -59,18 +59,18 @@ class TmdbStrategiesModule extends Module {
   }
 
   async matchByEpisodeCount(
-    anilist: AnilistMedia,
+    anime: AnimeBasicData,
     allEpisodes: TmdbEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
     episodeCount: number | undefined | null
   ): Promise<MatchResult> {
     const strategy = MatchStrategy.EPISODE_COUNT;
 
-    if (!episodeCount || !anilist.seasonYear) {
+    if (!episodeCount || !anime?.season_year) {
       return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
-    const anilistYear = anilist.seasonYear;
+    const anilistYear = anime.season_year;
 
     for (const seasonGroup of seasonGroups) {
       const seasonYearEpisodes = seasonGroup.episodes.filter((ep) => {
@@ -113,18 +113,18 @@ class TmdbStrategiesModule extends Module {
   }
 
   async matchBySeasonYear(
-    anilist: AnilistMedia,
+    anime: AnimeBasicData,
     allEpisodes: TmdbEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
     episodeCount: number | undefined | null
   ): Promise<MatchResult> {
     const strategy = MatchStrategy.SEASON_YEAR;
 
-    if (!anilist.seasonYear) {
+    if (!anime?.season_year) {
       return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
 
-    const anilistYear = anilist.seasonYear;
+    const anilistYear = anime.season_year;
 
     if (!episodeCount) {
       return { episodes: [], primarySeason: 1, confidence: 0, strategy };
@@ -190,13 +190,13 @@ class TmdbStrategiesModule extends Module {
   }
 
   async matchByAiringSchedule(
-    anilist: AnilistMedia,
+    anime: AnimeBasicData,
     allEpisodes: TmdbEpisode[],
     episodeCount: number | undefined | null
   ): Promise<MatchResult> {
     const strategy = MatchStrategy.AIRING_SCHEDULE;
 
-    const airingSchedule = anilist.airingSchedule?.edges || [];
+    const airingSchedule = anime?.airing_schedule || [];
     if (airingSchedule.length === 0) {
       return { episodes: [], primarySeason: 1, confidence: 0, strategy };
     }
@@ -205,12 +205,12 @@ class TmdbStrategiesModule extends Module {
 
     const airingMap = new Map<string, number>();
     airingSchedule.forEach((schedule) => {
-      if (schedule.node.airingAt && schedule.node.episode) {
-        const airDate = new Date(schedule.node.airingAt * 1000).toISOString().split('T')[0];
+      if (schedule.airing_at && schedule.episode) {
+        const airDate = new Date(schedule.airing_at * 1000).toISOString().split('T')[0];
 
         if (!airDate) return;
 
-        airingMap.set(airDate, schedule.node.episode);
+        airingMap.set(airDate, schedule.episode);
       }
     });
 
