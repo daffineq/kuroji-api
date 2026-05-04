@@ -132,7 +132,45 @@ class AnimeIndexerModule extends Module {
       while (hasNextPage) {
         logger.log(`Fetching anime from page ${page}...`);
 
-        const response = await AnilistFetch.fetchInfoBulk(page, perPage, options);
+        let response;
+        let currentTry = 0;
+
+        while (currentTry < maxTries) {
+          try {
+            response = await Promise.race([
+              AnilistFetch.fetchInfoBulk(page, perPage, options),
+              sleep(120 * 1000).then(() => {
+                throw new Error('Timed out');
+              })
+            ]);
+            break;
+          } catch (err) {
+            logger.error(`Failed to fetch page ${page}:`, err);
+            currentTry++;
+
+            if (currentTry < maxTries) {
+              await sleep(120 * 1000);
+            }
+          }
+        }
+
+        if (currentTry >= maxTries) {
+          failedCount++;
+
+          if (failedCount >= maxFails) {
+            logger.error('Too many failed, exiting');
+            return;
+          }
+
+          page++;
+          await this.setLastFetchedPage(page, status);
+          continue;
+        }
+
+        if (!response) {
+          logger.error('No response from anilist api');
+          return;
+        }
 
         hasNextPage = response.pageInfo.hasNextPage;
 
@@ -144,55 +182,22 @@ class AnimeIndexerModule extends Module {
 
           logger.log(`Indexing anime: ${anime.id}...`);
 
-          let currentTry = 0;
-
-          while (currentTry < maxTries) {
-            try {
-              const task = async () => {
-                if (await Anime.exists(anime.id)) {
-                  if (await Anime.shouldAutoUpdate(anime.id)) {
-                    await Anime.saveAndInit(AnilistUtils.anilistToAnimePayload(anime));
-                  } else {
-                    logger.log(`Wont update anime: ${anime.id}...`);
-                  }
-                } else {
-                  await Anime.saveAndInit(AnilistUtils.anilistToAnimePayload(anime));
-                }
-              };
-
-              await Promise.race([
-                task(),
-                sleep(120 * 1000).then(() => {
-                  throw new Error('Timed out');
-                })
-              ]);
-
-              break;
-            } catch (err) {
-              logger.error(`Failed to index anime ${anime.id}:`, err);
-              currentTry++;
-
-              if (currentTry < maxTries) {
-                await sleep(60 * 1000);
-              }
+          if (await Anime.exists(anime.id)) {
+            if (await Anime.shouldAutoUpdate(anime.id)) {
+              await Anime.saveAndInit(AnilistUtils.anilistToAnimePayload(anime));
+            } else {
+              logger.log(`Wont update anime: ${anime.id}...`);
             }
-          }
-
-          if (currentTry >= maxTries) {
-            failedCount++;
-
-            if (failedCount >= maxFails) {
-              logger.error('Too many failed, exiting');
-              return;
-            }
+          } else {
+            await Anime.saveAndInit(AnilistUtils.anilistToAnimePayload(anime));
           }
 
           await sleep(delay * 1000);
         }
 
-        await this.setLastFetchedPage(page, status);
-
         page++;
+
+        await this.setLastFetchedPage(page, status);
       }
 
       if (!hasNextPage) {
