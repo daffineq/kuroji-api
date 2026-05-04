@@ -1,216 +1,242 @@
-export const ANILIST_INFO = `
-  query Query($id: Int) {
-    Media(id: $id, type: ANIME) {
+export const ANILIST_MEDIA_DETAILS = `
+  fragment mediaDetails on Media {
+    id
+    idMal
+    title {
+      romaji
+      english
+      native
+      userPreferred
+    }
+    type
+    format
+    status
+    description
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    season
+    seasonYear
+    episodes
+    duration
+    countryOfOrigin
+    isLicensed
+    source
+    hashtag
+    trailer {
       id
-      idMal
-      title {
-        romaji
-        english
-        native
-        userPreferred
-      }
-      type
-      format
-      status
+      site
+      thumbnail
+    }
+    updatedAt
+    coverImage {
+      extraLarge
+      large
+      medium
+      color
+    }
+    bannerImage
+    genres
+    synonyms
+    averageScore
+    meanScore
+    popularity
+    isLocked
+    trending
+    favourites
+    tags {
+      id
+      name
       description
-      startDate {
-        year
-        month
-        day
-      }
-      endDate {
-        year
-        month
-        day
-      }
-      season
-      seasonYear
-      episodes
-      duration
-      countryOfOrigin
-      isLicensed
-      source
-      hashtag
-      trailer {
-        id
-        site
-        thumbnail
-      }
-      updatedAt
-      coverImage {
-        extraLarge
-        large
-        medium
-        color
-      }
-      bannerImage
-      genres
-      synonyms
-      averageScore
-      meanScore
-      popularity
-      isLocked
-      trending
-      favourites
-      tags {
+      category
+      rank
+      isGeneralSpoiler
+      isMediaSpoiler
+      isAdult
+    }
+    characters {
+      edges {
+        favouriteOrder
         id
         name
-        description
-        category
-        rank
-        isGeneralSpoiler
-        isMediaSpoiler
-        isAdult
-      }
-      characters {
-        edges {
-          favouriteOrder
+        node {
           id
+          name {
+            first
+            middle
+            last
+            full
+            native
+            alternative
+            alternativeSpoiler
+          }
+          image {
+            large
+            medium
+          }
+          description
+          gender
+          dateOfBirth {
+            year
+            month
+            day
+          }
+          age
+          bloodType
+        }
+        role
+        voiceActors {
+          age
+          bloodType
+          dateOfBirth {
+            year
+            month
+            day
+          }
+          dateOfDeath {
+            year
+            month
+            day
+          }
+          description
+          gender
+          homeTown
+          id
+          image {
+            large
+            medium
+          }
+          languageV2
+          name {
+            first
+            middle
+            last
+            full
+            native
+            alternative
+          }
+          siteUrl
+        }
+      }
+    }
+    studios {
+      edges {
+        favouriteOrder
+        id
+        isMain
+        node {
+          favourites
+          id
+          isAnimationStudio
           name
-          node {
-            id
-            name {
-              first
-              middle
-              last
-              full
-              native
-              alternative
-              alternativeSpoiler
-            }
-            image {
-              large
-              medium
-            }
-            description
-            gender
-            dateOfBirth {
-              year
-              month
-              day
-            }
-            age
-            bloodType
-          }
-          role
-          voiceActors {
-            age
-            bloodType
-            dateOfBirth {
-              year
-              month
-              day
-            }
-            dateOfDeath {
-              year
-              month
-              day
-            }
-            description
-            gender
-            homeTown
-            id
-            image {
-              large
-              medium
-            }
-            languageV2
-            name {
-              first
-              middle
-              last
-              full
-              native
-              alternative
-            }
-            siteUrl
-          }
+          siteUrl
         }
       }
-      studios {
-        edges {
-          favouriteOrder
+    }
+    isAdult
+    nextAiringEpisode {
+      airingAt
+      episode
+      id
+      mediaId
+      timeUntilAiring
+    }
+    airingSchedule {
+      edges {
+        id
+        node {
+          airingAt
+          episode
           id
-          isMain
-          node {
-            favourites
+          mediaId
+          timeUntilAiring
+        }
+      }
+    }
+    externalLinks {
+      id
+      url
+      site
+      siteId
+      type
+      language
+      color
+      icon
+      notes
+      isDisabled
+    }
+    streamingEpisodes {
+      title
+      thumbnail
+      url
+      site
+    }
+    rankings {
+      id
+      rank
+      type
+      format
+      year
+      season
+      allTime
+      context
+    }
+    stats {
+      scoreDistribution {
+        score
+        amount
+      }
+      statusDistribution {
+        status
+        amount
+      }
+    }
+    siteUrl
+    recommendations {
+      edges {
+        node {
+          media {
             id
-            isAnimationStudio
-            name
-            siteUrl
           }
-        }
-      }
-      isAdult
-      nextAiringEpisode {
-        airingAt
-        episode
-        id
-        mediaId
-        timeUntilAiring
-      }
-      airingSchedule {
-        edges {
-          id
-          node {
-            airingAt
-            episode
+          mediaRecommendation {
             id
-            mediaId
-            timeUntilAiring
-          }
-        }
-      }
-      externalLinks {
-        id
-        url
-        site
-        siteId
-        type
-        language
-        color
-        icon
-        notes
-        isDisabled
-      }
-      streamingEpisodes {
-        title
-        thumbnail
-        url
-        site
-      }
-      rankings {
-        id
-        rank
-        type
-        format
-        year
-        season
-        allTime
-        context
-      }
-      stats {
-        scoreDistribution {
-          score
-          amount
-        }
-        statusDistribution {
-          status
-          amount
-        }
-      }
-      siteUrl
-      recommendations {
-        edges {
-          node {
-            media {
-              id
-            }
-            mediaRecommendation {
-              id
-            }
           }
         }
       }
     }
-  }`;
+  }
+`;
+
+export const ANILIST_INFO = `
+  query ($id: Int) {
+    Media(id: $id, type: ANIME) {
+      ...mediaDetails
+    }
+  }
+  ${ANILIST_MEDIA_DETAILS}
+`;
+
+export const ANILIST_BULK_INFO = `
+  query ($ids: [Int], $page: Int = 1, $perPage: Int = 10) {
+    Page(page: $page, perPage: $perPage) {
+      pageInfo {
+        total
+        currentPage
+        lastPage
+        hasNextPage
+        perPage
+      }
+      media(id_in: $ids, type: ANIME) {
+        ...mediaDetails
+      }
+    }
+  }
+  ${ANILIST_MEDIA_DETAILS}
+`;

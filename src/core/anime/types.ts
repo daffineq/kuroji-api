@@ -1,4 +1,5 @@
 import { ForceOr } from 'src/helpers/forced';
+import { Anime } from './anime';
 
 export interface AnimePosterPayload {
   small?: string | null;
@@ -268,3 +269,5 @@ export interface AnimePayload {
   auto_update?: boolean | null;
   disabled?: boolean | null;
 }
+
+export type AnimeBasicData = Awaited<ReturnType<typeof Anime.getBasicInfo>>;

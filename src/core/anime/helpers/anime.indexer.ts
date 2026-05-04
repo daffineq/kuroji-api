@@ -3,7 +3,7 @@ import { sleep } from 'bun';
 import logger from 'src/helpers/logger';
 import { EnableSchedule, Scheduled, Schedule } from 'src/helpers/schedule';
 import { Config } from 'src/config';
-import { AnilistFetch } from '../providers';
+import { AnilistFetch, AnilistUtils } from '../providers';
 import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';
 import { db, indexerState } from 'src/db';
@@ -110,6 +110,103 @@ class AnimeIndexerModule extends Module {
     }
   }
 
+  private async index_v2(options: { delay?: number; status?: string; threshold?: number } = {}): Promise<void> {
+    if (!lock.acquire('indexer')) {
+      logger.log('Indexer already running, skipping new run.');
+      return;
+    }
+
+    const { delay = Config.anime_processing_delay, status } = options;
+
+    try {
+      let page = await this.getLastFetchedPage(status);
+      let hasNextPage = true;
+      let failedCount = 0;
+
+      const perPage = 50;
+      const maxFails = 3;
+      const maxTries = 3;
+
+      logger.log(`Starting index from page ${page}...`);
+
+      while (hasNextPage) {
+        logger.log(`Fetching anime from page ${page}...`);
+
+        const response = await AnilistFetch.fetchInfoBulk(page, perPage, options);
+
+        hasNextPage = response.pageInfo.hasNextPage;
+
+        for (const anime of response.media) {
+          if (!lock.isLocked('indexer')) {
+            logger.log('Indexing stopped.');
+            return;
+          }
+
+          logger.log(`Indexing anime: ${anime.id}...`);
+
+          let currentTry = 0;
+
+          while (currentTry < maxTries) {
+            try {
+              const task = async () => {
+                if (await Anime.exists(anime.id)) {
+                  if (await Anime.shouldAutoUpdate(anime.id)) {
+                    await Anime.saveAndInit(AnilistUtils.anilistToAnimePayload(anime));
+                  } else {
+                    logger.log(`Wont update anime: ${anime.id}...`);
+                  }
+                } else {
+                  await Anime.saveAndInit(AnilistUtils.anilistToAnimePayload(anime));
+                }
+              };
+
+              await Promise.race([
+                task(),
+                sleep(120 * 1000).then(() => {
+                  throw new Error('Timed out');
+                })
+              ]);
+
+              break;
+            } catch (err) {
+              logger.error(`Failed to index anime ${anime.id}:`, err);
+              currentTry++;
+
+              if (currentTry < maxTries) {
+                await sleep(60 * 1000);
+              }
+            }
+          }
+
+          if (currentTry >= maxTries) {
+            failedCount++;
+
+            if (failedCount >= maxFails) {
+              logger.error('Too many failed, exiting');
+              return;
+            }
+          }
+
+          await sleep(delay * 1000);
+        }
+
+        await this.setLastFetchedPage(page, status);
+
+        page++;
+      }
+
+      if (!hasNextPage) {
+        await this.setLastFetchedPage(1, status);
+      }
+
+      logger.log('Indexing complete. All done');
+    } catch (err) {
+      logger.error('Unexpected error during indexing:', err);
+    } finally {
+      lock.release('indexer');
+    }
+  }
+
   public async start(options: { delay?: number; status?: string; threshold?: number }): Promise<string> {
     if (lock.isLocked('indexer')) {
       logger.log('Indexer already running, skipping new run.');
@@ -117,7 +214,7 @@ class AnimeIndexerModule extends Module {
     }
 
     logger.log('Starting indexing...');
-    this.index(options).catch((err) => {
+    this.index_v2(options).catch((err) => {
       logger.error('Error during indexing:', err);
     });
 
@@ -143,17 +240,17 @@ class AnimeIndexerModule extends Module {
 
   @Scheduled(Schedule.everyOtherWeek(), Config.anime_reindexing_enabled)
   async scheduleIndex() {
-    await this.index();
+    await this.index_v2();
   }
 
   @Scheduled(Schedule.everyOtherDay(), Config.anime_reindexing_enabled)
   async scheduleIndexReleasing() {
-    await this.index({ status: 'RELEASING' });
+    await this.index_v2({ status: 'RELEASING' });
   }
 
   @Scheduled(Schedule.every12Hours(), Config.anime_reindexing_enabled)
   async scheduleIndexUpcoming() {
-    await this.index({
+    await this.index_v2({
       status: 'NOT_YET_RELEASED',
       threshold: Config.anime_popularity_threshold_upcoming
     });

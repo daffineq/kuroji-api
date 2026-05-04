@@ -2,7 +2,6 @@ import { NotFoundError } from 'src/helpers/errors';
 import { TvdbInfoResult } from './types';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { parseString } from 'src/helpers/parsers';
-import { Anilist } from '../anilist';
 import { TvdbFetch } from './helpers/tvdb.fetch';
 import { normalize_iso_639_1 } from 'src/helpers/languages';
 import { ProviderModule } from 'src/helpers/module';
@@ -53,10 +52,10 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
   }
 
   private async resolveInfo(id: number) {
-    const al = await Anilist.getInfo(id);
+    const al = await Anime.getBasicInfo(id);
 
     if (!al) {
-      throw new NotFoundError('Anilist not found');
+      throw new NotFoundError('Anime not found');
     }
 
     const type = AnimeUtils.getType(al.format);
@@ -67,11 +66,13 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
     if (tvdbId) {
       return type === 'movie' ? TvdbFetch.fetchMovie(tvdbId) : TvdbFetch.fetchSeries(tvdbId);
     } else if (tmdbId) {
-      const search = await TvdbFetch.searchByRemote(
-        tmdbId,
-        type,
-        al.title.romaji ?? al.title.native ?? al.title.english ?? ''
-      );
+      const title = AnimeUtils.pickBestTitle(al.title);
+
+      if (!title) {
+        throw new Error('No title found');
+      }
+
+      const search = await TvdbFetch.searchByRemote(tmdbId, type, title);
 
       const info =
         type === 'movie' ? await TvdbFetch.fetchMovie(search.id) : await TvdbFetch.fetchSeries(search.id);

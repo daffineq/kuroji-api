@@ -1,6 +1,5 @@
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { parseString } from 'src/helpers/parsers';
-import { Anilist } from '../anilist';
 import { ProviderModule } from 'src/helpers/module';
 import { Anime } from '../../anime';
 import { AnimeVideoPayload } from '../../types';
@@ -86,18 +85,18 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
       if (idMap) {
         return this.scrape(idMap);
       } else {
-        const al = await Anilist.getInfo(id);
+        const al = await Anime.getBasicInfo(id);
 
-        if (!al.idMal) {
+        if (!al?.id_mal) {
           throw new Error('No MAL ID found');
         }
 
-        const info = await this.scrape(al.idMal);
+        const info = await this.scrape(al.id_mal);
 
         await Anime.save({
           id,
           links: {
-            link: parseString(al.idMal)!,
+            link: parseString(al.id_mal)!,
             label: this.name,
             type: 'mapping'
           }

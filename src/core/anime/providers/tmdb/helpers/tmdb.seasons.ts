@@ -1,10 +1,8 @@
 import { NotFoundError } from 'src/helpers/errors';
 import { MatchResult, MatchStrategy, TmdbEpisode, SeasonEpisodeGroup } from '../types';
-import { AnilistMedia } from '../../anilist/types';
 import { TmdbStrategies } from './tmdb.strategies';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import logger from 'src/helpers/logger';
-import { Anilist } from '../../anilist';
 import { Tmdb } from '../tmdb';
 import { Shikimori } from '../../shikimori';
 import { Kitsu } from '../../kitsu';
@@ -12,7 +10,7 @@ import { TmdbFetch } from './tmdb.fetch';
 import { AnimeUtils } from 'src/core/anime/helpers';
 import { Module } from 'src/helpers/module';
 import { Anime } from 'src/core/anime/anime';
-import { AnimeEpisodePayload } from 'src/core/anime/types';
+import { AnimeBasicData, AnimeEpisodePayload } from 'src/core/anime/types';
 import { TmdbUtils } from './tmdb.utils';
 import { Config } from 'src/config';
 
@@ -32,10 +30,10 @@ class TmdbSeasonsModule extends Module {
       return cached;
     }
 
-    const al = await Anilist.getInfo(id);
+    const al = await Anime.getBasicInfo(id);
 
     if (!al) {
-      throw new NotFoundError('Anilist not found');
+      throw new NotFoundError('Anime not found');
     }
 
     if (AnimeUtils.getType(al.format) === 'movie') {
@@ -110,16 +108,16 @@ class TmdbSeasonsModule extends Module {
   }
 
   private async findBestEpisodeSequence(
-    anilist: AnilistMedia,
+    anime: AnimeBasicData,
     allEpisodes: TmdbEpisode[],
     seasonGroups: SeasonEpisodeGroup[],
     episodeCount: number | undefined | null
   ): Promise<MatchResult> {
     const strategies = [
-      () => TmdbStrategies.matchByDateRange(anilist, allEpisodes, seasonGroups, episodeCount),
-      () => TmdbStrategies.matchByEpisodeCount(anilist, allEpisodes, seasonGroups, episodeCount),
-      () => TmdbStrategies.matchByAiringSchedule(anilist, allEpisodes, episodeCount),
-      () => TmdbStrategies.matchBySeasonYear(anilist, allEpisodes, seasonGroups, episodeCount)
+      () => TmdbStrategies.matchByDateRange(anime, allEpisodes, seasonGroups, episodeCount),
+      () => TmdbStrategies.matchByEpisodeCount(anime, allEpisodes, seasonGroups, episodeCount),
+      () => TmdbStrategies.matchByAiringSchedule(anime, allEpisodes, episodeCount),
+      () => TmdbStrategies.matchBySeasonYear(anime, allEpisodes, seasonGroups, episodeCount)
     ];
 
     let bestMatch: MatchResult = {
