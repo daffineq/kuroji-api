@@ -83,6 +83,11 @@ export interface ArtworksArgs {
   include_adult?: boolean;
 }
 
+export interface TranslationsArgs {
+  source?: string;
+  iso_639_1?: string;
+}
+
 export interface LinkArgs extends TypeArgs {
   type?: string;
   label?: string;

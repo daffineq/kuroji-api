@@ -32,104 +32,6 @@ class AnimeIndexerModule extends Module {
       logger.log(`Starting index from page ${page}...`);
 
       while (hasNextPage) {
-        logger.log(`Fetching IDs from page ${page}...`);
-
-        const response = await AnilistFetch.fetchIds(page, perPage, options);
-
-        const ids = response.media.map((m) => m.id);
-        hasNextPage = response.pageInfo.hasNextPage;
-
-        for (const id of ids) {
-          if (!lock.isLocked('indexer')) {
-            logger.log('Indexing stopped.');
-            return;
-          }
-
-          logger.log(`Indexing release ID: ${id}...`);
-
-          let currentTry = 0;
-
-          while (currentTry < maxTries) {
-            try {
-              const task = async () => {
-                if (await Anime.exists(id)) {
-                  if (await Anime.shouldAutoUpdate(id)) {
-                    await Anime.update(id);
-                  } else {
-                    logger.log(`Wont update release ID: ${id}...`);
-                  }
-                } else {
-                  await Anime.create(id);
-                }
-              };
-
-              await Promise.race([
-                task(),
-                sleep(120 * 1000).then(() => {
-                  throw new Error('Timed out');
-                })
-              ]);
-
-              break;
-            } catch (err) {
-              logger.error(`Failed to index release ${id}:`, err);
-              currentTry++;
-
-              if (currentTry < maxTries) {
-                await sleep(60 * 1000);
-              }
-            }
-          }
-
-          if (currentTry >= maxTries) {
-            failedCount++;
-
-            if (failedCount >= maxFails) {
-              logger.error('Too many failed, exiting');
-              return;
-            }
-          }
-
-          await sleep(delay * 1000);
-        }
-
-        await this.setLastFetchedPage(page, status);
-
-        page++;
-      }
-
-      if (!hasNextPage) {
-        await this.setLastFetchedPage(1, status);
-      }
-
-      logger.log('Indexing complete. All done');
-    } catch (err) {
-      logger.error('Unexpected error during indexing:', err);
-    } finally {
-      lock.release('indexer');
-    }
-  }
-
-  private async index_v2(options: { delay?: number; status?: string; threshold?: number } = {}): Promise<void> {
-    if (!lock.acquire('indexer')) {
-      logger.log('Indexer already running, skipping new run.');
-      return;
-    }
-
-    const { delay = Config.anime_processing_delay, status } = options;
-
-    try {
-      let page = await this.getLastFetchedPage(status);
-      let hasNextPage = true;
-      let failedCount = 0;
-
-      const perPage = 50;
-      const maxFails = 3;
-      const maxTries = 3;
-
-      logger.log(`Starting index from page ${page}...`);
-
-      while (hasNextPage) {
         logger.log(`Fetching anime from page ${page}...`);
 
         let response;
@@ -219,7 +121,7 @@ class AnimeIndexerModule extends Module {
     }
 
     logger.log('Starting indexing...');
-    this.index_v2(options).catch((err) => {
+    this.index(options).catch((err) => {
       logger.error('Error during indexing:', err);
     });
 
@@ -245,17 +147,17 @@ class AnimeIndexerModule extends Module {
 
   @Scheduled(Schedule.everyOtherWeek(), Config.anime_reindexing_enabled)
   async scheduleIndex() {
-    await this.index_v2();
+    await this.index();
   }
 
   @Scheduled(Schedule.everyOtherDay(), Config.anime_reindexing_enabled)
   async scheduleIndexReleasing() {
-    await this.index_v2({ status: 'RELEASING' });
+    await this.index({ status: 'RELEASING' });
   }
 
   @Scheduled(Schedule.every12Hours(), Config.anime_reindexing_enabled)
   async scheduleIndexUpcoming() {
-    await this.index_v2({
+    await this.index({
       status: 'NOT_YET_RELEASED',
       threshold: Config.anime_popularity_threshold_upcoming
     });

@@ -5,11 +5,11 @@ import { parseString } from 'src/helpers/parsers';
 import { TvdbFetch } from './helpers/tvdb.fetch';
 import { normalize_iso_639_1 } from 'src/helpers/languages';
 import { ProviderModule } from 'src/helpers/module';
-import { Tmdb } from '../tmdb';
 import { AnimeUtils } from '../../helpers';
 import { Anime } from '../../anime';
 import { AnimeArtworkPayload } from '../../types';
 import { Config } from 'src/config';
+import { ExpectAnime, findBestMatch, getSearchTitle } from 'src/helpers/mapper';
 
 class TvdbModule extends ProviderModule<TvdbInfoResult> {
   override readonly name = 'TVDB';
@@ -60,22 +60,12 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
 
     const type = AnimeUtils.getType(al.format);
 
-    const tvdbId = await Anime.map(id, this.name);
-    const tmdbId = await Anime.map(id, Tmdb.name);
+    const idMap = await Anime.map(id, this.name);
 
-    if (tvdbId) {
-      return type === 'movie' ? TvdbFetch.fetchMovie(tvdbId) : TvdbFetch.fetchSeries(tvdbId);
-    } else if (tmdbId) {
-      const title = AnimeUtils.pickBestTitle(al.title);
-
-      if (!title) {
-        throw new Error('No title found');
-      }
-
-      const search = await TvdbFetch.searchByRemote(tmdbId, type, title);
-
-      const info =
-        type === 'movie' ? await TvdbFetch.fetchMovie(search.id) : await TvdbFetch.fetchSeries(search.id);
+    if (idMap) {
+      return type === 'movie' ? TvdbFetch.fetchMovie(idMap) : TvdbFetch.fetchSeries(idMap);
+    } else {
+      const info = await this.find(id);
 
       await Anime.save({
         id,
@@ -88,8 +78,51 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
 
       return info;
     }
+  }
 
-    throw new NotFoundError('TVDB not found');
+  async find(id: number): Promise<TvdbInfoResult> {
+    const al = await Anime.getBasicInfo(id);
+
+    if (!al) {
+      throw new Error('Anime not found');
+    }
+
+    const type = AnimeUtils.getType(al.format);
+
+    const title = AnimeUtils.pickBestTitle(al.title);
+
+    if (!title) {
+      throw new Error('No title found');
+    }
+
+    const search =
+      type === 'movie'
+        ? await TvdbFetch.search(getSearchTitle(title), type, AnimeUtils.getCountryA3(al.country ?? '') ?? 'jpn')
+        : await TvdbFetch.search(getSearchTitle(title), type, AnimeUtils.getCountryA3(al.country ?? '') ?? 'jpn');
+
+    const results: ExpectAnime[] = search.map((result) => {
+      return {
+        titles: [result.name, result.translations?.['eng']],
+        id: result.tvdb_id,
+        language: AnimeUtils.getLanguageA3(result.primary_language ?? 'jpn') ?? 'jp'
+      };
+    });
+
+    const searchCriteria: ExpectAnime = {
+      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.other_titles.map((t) => t.title)],
+      language: AnimeUtils.getLanguage(al.country ?? 'JP') ?? 'jp'
+    };
+
+    const bestMatch = findBestMatch(searchCriteria, results);
+    const bestMatchId = parseString(bestMatch?.id);
+
+    if (bestMatchId) {
+      const data =
+        type === 'movie' ? await TvdbFetch.fetchMovie(bestMatchId) : await TvdbFetch.fetchSeries(bestMatchId);
+      return data;
+    }
+
+    throw new NotFoundError('Tvdb not found');
   }
 }
 

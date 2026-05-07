@@ -172,6 +172,7 @@ export interface TmdbTranslation {
     overview: string;
     homepage?: string;
     biography?: string;
+    tagline?: string;
   };
 }
 

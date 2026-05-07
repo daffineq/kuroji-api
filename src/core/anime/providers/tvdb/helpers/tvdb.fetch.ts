@@ -72,6 +72,30 @@ class TvdbFetchModule extends ClientModule {
 
     return data[0];
   }
+
+  async search(title: string, type: 'movie' | 'series', country: string): Promise<TvdbSearchResult[]> {
+    const token = await TvdbToken.getToken();
+
+    const { data, error } = await this.client.get<TvdbSearchResult[]>(
+      `search?query=${encodeURIComponent(title)}&type=${type}&country=${country}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        jsonPath: 'data'
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('No data found');
+    }
+
+    return data;
+  }
 }
 
 const TvdbFetch = new TvdbFetchModule();

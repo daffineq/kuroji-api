@@ -48,21 +48,39 @@ const countryToLanguage: Record<string, string> = {
   JP: 'ja',
   KR: 'ko',
   CN: 'zh',
-  TW: 'zh',
-  HK: 'zh',
-  US: 'en',
-  GB: 'en',
-  CA: 'en',
-  FR: 'fr',
-  DE: 'de',
-  IT: 'it',
-  ES: 'es'
+  TW: 'zh'
+};
+
+const countryA3ToLanguage: Record<string, string> = {
+  JPN: 'ja',
+  KOR: 'ko',
+  CHN: 'zh',
+  TWN: 'zh'
+};
+
+const countryAlpha2ToAlpha3: Record<string, string> = {
+  JP: 'JPN',
+  KR: 'KOR',
+  CN: 'CHN',
+  TW: 'TWN'
 };
 
 const getLanguage = (country: string): string | null => {
   if (!country) return null;
 
-  return countryToLanguage[country] ?? null;
+  return countryToLanguage[country.toLocaleUpperCase()] ?? null;
+};
+
+const getLanguageA3 = (country: string): string | null => {
+  if (!country) return null;
+
+  return countryA3ToLanguage[country.toLocaleUpperCase()] ?? null;
+};
+
+const getCountryA3 = (country: string): string | null => {
+  if (!country) return null;
+
+  return countryAlpha2ToAlpha3[country.toLocaleUpperCase()] ?? null;
 };
 
 const getType = (format: string | null | undefined): 'movie' | 'series' => {
@@ -209,6 +227,8 @@ const AnimeUtils = {
   getType,
   unifyArtworkType,
   getLanguage,
+  getLanguageA3,
+  getCountryA3,
   findEpisodeCount,
   getDate
 };

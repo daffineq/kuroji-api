@@ -9,7 +9,7 @@ import { normalize_iso_639_1 } from 'src/helpers/languages';
 import { ProviderModule } from 'src/helpers/module';
 import { AnimeUtils } from '../../helpers';
 import { Anime } from '../../anime';
-import { AnimeArtworkPayload } from '../../types';
+import { AnimeArtworkPayload, AnimeTranslationPayload } from '../../types';
 import { Config } from 'src/config';
 
 class TmdbModule extends ProviderModule<TmdbInfoResult> {
@@ -30,10 +30,17 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
 
     const resolved = await this.resolveInfo(id);
 
-    const images =
+    const imagesPromise =
       resolved.type === 'movie'
-        ? await TmdbFetch.getMovieImages(resolved.info.id)
-        : await TmdbFetch.getSeriesImages(resolved.info.id);
+        ? TmdbFetch.fetchMovieImages(resolved.info.id)
+        : TmdbFetch.fetchSeriesImages(resolved.info.id);
+
+    const translationsPromise =
+      resolved.type === 'movie'
+        ? TmdbFetch.fetchMovieTranslations(resolved.info.id)
+        : TmdbFetch.fetchSeriesTranslations(resolved.info.id);
+
+    const [images, translationsData] = await Promise.all([imagesPromise, translationsPromise]);
 
     const artworks: AnimeArtworkPayload[] = images.map((i) => {
       return {
@@ -48,8 +55,25 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       } satisfies AnimeArtworkPayload;
     });
 
+    const translations: AnimeTranslationPayload[] = translationsData.map((t) => {
+      return {
+        iso_639_1: t.iso_639_1,
+        title: t.data.name ?? t.data.title,
+        description: t.data.overview,
+        tagline: t.data.tagline,
+        source: this.name
+      } satisfies AnimeTranslationPayload;
+    });
+
     if (artworks) {
       await Anime.save({ id, artworks });
+    }
+
+    if (translations) {
+      await Anime.save({
+        id,
+        translations
+      });
     }
 
     if (resolved.info.poster_path) {
@@ -123,87 +147,6 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
         type
       };
     }
-  }
-
-  async getTranslations(id: number): Promise<TmdbTranslation[]> {
-    if (!Config.use_tmdb) {
-      throw new Error(`${this.name} disabled`);
-    }
-
-    const key = getKey(this.name, 'info', 'translations', id);
-
-    const cached = await Redis.get<TmdbTranslation[]>(key);
-
-    if (cached) {
-      return cached;
-    }
-
-    const tmdb = await this.getInfo(id);
-
-    const al = await Anime.getBasicInfo(id);
-
-    if (!al) {
-      throw new Error('Anime not found');
-    }
-
-    const type = AnimeUtils.getType(al.format);
-
-    const translations =
-      type == 'movie'
-        ? await TmdbFetch.fetchMovieTranslations(tmdb.id)
-        : await TmdbFetch.fetchSeriesTranslations(tmdb.id);
-
-    await Redis.set(key, translations);
-
-    return translations;
-  }
-
-  async getEpisodeTranslations(show_id?: number, season?: number, episode?: number): Promise<TmdbTranslation[]> {
-    if (!Config.use_tmdb) {
-      throw new Error(`${this.name} disabled`);
-    }
-
-    if (!show_id || !season || !episode) {
-      return [];
-    }
-
-    const key = getKey(this.name, 'info', 'translations', show_id, season, episode);
-
-    const cached = await Redis.get<TmdbTranslation[]>(key);
-
-    if (cached) {
-      return cached;
-    }
-
-    const translations = await TmdbFetch.fetchEpisodeTranslations(show_id, season, episode);
-
-    await Redis.set(key, translations);
-
-    return translations;
-  }
-
-  async getEpisodeImages(show_id?: number, season?: number, episode?: number): Promise<TmdbImage[]> {
-    if (!Config.use_tmdb) {
-      throw new Error(`${this.name} disabled`);
-    }
-
-    if (!show_id || !season || !episode) {
-      return [];
-    }
-
-    const key = getKey(this.name, 'info', 'images', show_id, season, episode);
-
-    const cached = await Redis.get<TmdbImage[]>(key);
-
-    if (cached) {
-      return cached;
-    }
-
-    const images = await TmdbFetch.fetchEpisodeImages(show_id, season, episode);
-
-    await Redis.set(key, images);
-
-    return images;
   }
 
   private async find(id: number): Promise<TmdbInfoResult> {
