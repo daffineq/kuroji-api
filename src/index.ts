@@ -77,10 +77,6 @@ const app = new Elysia()
             description: 'System endpoints'
           },
           {
-            name: 'Proxy',
-            description: 'Proxy endpoints'
-          },
-          {
             name: 'GraphQL',
             description: 'GraphQL endpoints'
           }

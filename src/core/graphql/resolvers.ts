@@ -10,6 +10,7 @@ import {
   OtherTitleArgs,
   RecommendationArgs,
   ScreenshotArgs,
+  TranslationsArgs,
   VideoArgs
 } from './types';
 import {
@@ -638,21 +639,6 @@ export const resolvers = {
       return getAnimePage(args);
     },
 
-    character: async (_: any, { id }: { id: number }) => {
-      return await db.query.animeCharacter.findFirst({
-        where: { id },
-        with: { name: true, image: true }
-      });
-    },
-
-    studio: async (_: any, { id }: { id: number }) => {
-      return await db.query.animeStudio.findFirst({ where: { id } });
-    },
-
-    tag: async (_: any, { id }: { id: number }) => {
-      return await db.query.animeTag.findFirst({ where: { id } });
-    },
-
     genres: async () => {
       return await db.select().from(animeGenre).orderBy(asc(animeGenre.name));
     },
@@ -684,58 +670,6 @@ export const resolvers = {
         : undefined;
 
       return await db.select().from(animeStudio).where(where).orderBy(asc(animeStudio.name)).limit(50);
-    },
-
-    chronology: async (_: any, args: ChronologyArgs) => {
-      const chronologyEntries = await db
-        .select()
-        .from(animeChronology)
-        .where(eq(animeChronology.parent_id, args.parent_id))
-        .orderBy(asc(animeChronology.order));
-
-      const animeIds = chronologyEntries.map((c) => c.related_id);
-
-      if (animeIds.length === 0)
-        return {
-          data: [],
-          page_info: {
-            total: 0,
-            per_page: args.per_page ?? 20,
-            current_page: 1,
-            last_page: 1,
-            has_next_page: false
-          }
-        };
-
-      args.id_mal_in = animeIds;
-
-      return getAnimePage(args);
-    },
-
-    recommendations: async (_: any, args: RecommendationArgs) => {
-      const recommendationEntries = await db
-        .select()
-        .from(animeRecommendation)
-        .where(eq(animeRecommendation.parent_id, args.parent_id))
-        .orderBy(asc(animeRecommendation.order));
-
-      const animeIds = recommendationEntries.map((c) => c.related_id);
-
-      if (animeIds.length === 0)
-        return {
-          data: [],
-          page_info: {
-            total: 0,
-            per_page: args.per_page ?? 20,
-            current_page: 1,
-            last_page: 1,
-            has_next_page: false
-          }
-        };
-
-      args.id_in = animeIds;
-
-      return getAnimePage(args);
     }
   },
 
@@ -847,6 +781,14 @@ export const resolvers = {
           (!args.source || a.source === args.source) &&
           (!args.type || a.type === args.type) &&
           (!args.include_adult || a.is_adult === false)
+      );
+    },
+
+    translations: async (parent: any, args: TranslationsArgs, { loaders }: { loaders: Loaders }) => {
+      const tl = await loaders.translations.load(parent.id);
+
+      return tl.filter(
+        (t) => (!args.iso_639_1 || t.iso_639_1 === args.iso_639_1) && (!args.source || t.source === args.source)
       );
     },
 

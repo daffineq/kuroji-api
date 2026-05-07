@@ -183,6 +183,14 @@ export interface AnimeArtworkPayload {
   source: string;
 }
 
+export interface AnimeTranslationPayload {
+  iso_639_1?: string | null;
+  title?: string | null;
+  description?: string | null;
+  tagline?: string | null;
+  source: string;
+}
+
 export interface AnimeChronologyPayload {
   parent_id: number;
   related_id: number;
@@ -263,6 +271,7 @@ export interface AnimePayload {
   videos?: ForceOr<AnimeVideoPayload> | null;
   screenshots?: ForceOr<AnimeScreenshotPayload> | null;
   artworks?: ForceOr<AnimeArtworkPayload> | null;
+  translations?: ForceOr<AnimeTranslationPayload> | null;
 
   episodes?: ForceOr<AnimeEpisodePayload> | null;
 

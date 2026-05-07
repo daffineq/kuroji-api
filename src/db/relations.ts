@@ -83,6 +83,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.anime.id.through(r.animeToArtwork.A),
       to: r.animeArtwork.id.through(r.animeToArtwork.B)
     }),
+    translation: r.many.animeTranslation({
+      from: r.anime.id.through(r.animeToTranslation.A),
+      to: r.animeTranslation.id.through(r.animeToTranslation.B)
+    }),
     episodes: r.many.animeEpisode({
       from: r.anime.id,
       to: r.animeEpisode.anime_id
@@ -437,6 +441,24 @@ export const relations = defineRelations(schema, (r) => ({
     artwork: r.one.animeArtwork({
       from: r.animeToArtwork.B,
       to: r.animeArtwork.id
+    })
+  },
+
+  animeTranslation: {
+    anime: r.many.anime({
+      from: r.animeTranslation.id.through(r.animeToTranslation.B),
+      to: r.anime.id.through(r.animeToTranslation.A)
+    })
+  },
+
+  animeToTranslation: {
+    anime: r.one.anime({
+      from: r.animeToTranslation.A,
+      to: r.anime.id
+    }),
+    translation: r.one.animeTranslation({
+      from: r.animeToTranslation.B,
+      to: r.animeTranslation.id
     })
   },
 

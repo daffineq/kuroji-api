@@ -47,7 +47,9 @@ import {
   animeEpisodeImage,
   animeCharacterBirthDate,
   animeVoiceBirthDate,
-  animeVoiceDeathDate
+  animeVoiceDeathDate,
+  animeTranslation,
+  animeToTranslation
 } from 'src/db';
 import { eq, sql } from 'drizzle-orm';
 import { toArray, uniqueBy } from 'src/helpers/utils';
@@ -757,6 +759,50 @@ class AnimeDbModule extends Module {
             if (inserted.length) {
               await tx
                 .insert(animeToArtwork)
+                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
+                .onConflictDoNothing();
+            }
+          })
+        );
+      }
+
+      // Translations
+      if (toArray(payload.translations).length) {
+        ops.push(
+          Promise.resolve().then(async () => {
+            const translations = uniqueBy(toArray(payload.translations), (a) =>
+              getKey(a.iso_639_1, a.title, a.source)
+            )
+              .filter((a) => a.title && a.iso_639_1 && a.source)
+              .map((a) => ({
+                iso_639_1: a.iso_639_1,
+                title: a.title,
+                description: a.description,
+                tagline: a.tagline,
+                source: a.source.toLowerCase()
+              }));
+
+            if (!translations.length) return;
+
+            const inserted = await tx
+              .insert(animeTranslation)
+              .values(translations)
+              .onConflictDoUpdate({
+                target: [animeTranslation.iso_639_1, animeTranslation.title, animeTranslation.source],
+                set: {
+                  description: sql`excluded.description`,
+                  tagline: sql`excluded.tagline`
+                }
+              })
+              .returning({ id: animeTranslation.id });
+
+            if (isForced(payload.translations)) {
+              await tx.delete(animeToTranslation).where(eq(animeToTranslation.A, payload.id));
+            }
+
+            if (inserted.length) {
+              await tx
+                .insert(animeToTranslation)
                 .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
                 .onConflictDoNothing();
             }

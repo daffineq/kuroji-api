@@ -598,6 +598,22 @@ export const animeArtwork = pgTable(
   (t) => [uniqueIndex('anime_artwork_unique').on(t.url, t.source)]
 );
 
+export const animeTranslation = pgTable(
+  'anime_translation',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    iso_639_1: varchar('iso_639_1', { length: 255 }),
+    title: text('title'),
+    description: text('description'),
+    tagline: text('tagline'),
+    source: varchar('source', { length: 255 }).notNull(),
+    ...timestamps
+  },
+  (t) => [uniqueIndex('anime_translation_unique').on(t.iso_639_1, t.title, t.source)]
+);
+
 export const animeChronology = pgTable(
   'anime_chronology',
   {
@@ -777,4 +793,18 @@ export const animeToArtwork = pgTable(
     ...timestamps
   },
   (t) => [primaryKey({ columns: [t.A, t.B] }), index('idx_anime_to_artwork_a').on(t.A)]
+);
+
+export const animeToTranslation = pgTable(
+  '_anime_to_translation',
+  {
+    A: integer('A')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    B: varchar('B', { length: 255 })
+      .notNull()
+      .references(() => animeTranslation.id, { onDelete: 'cascade' }),
+    ...timestamps
+  },
+  (t) => [primaryKey({ columns: [t.A, t.B] }), index('idx_anime_to_translation_a').on(t.A)]
 );

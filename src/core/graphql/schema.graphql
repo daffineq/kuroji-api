@@ -54,122 +54,9 @@ type Query {
     franchise: String
     sort: [AnimeSort!]
   ): AnimePage!
-  character(id: Int!): AnimeCharacter
-  studio(id: Int!): AnimeStudio
-  tag(id: Int!): AnimeTag
   genres: [AnimeGenre!]!
   tags(search: String, category: String, is_adult: Boolean): [AnimeTag!]!
   studios(search: String): [AnimeStudio!]!
-  chronology(
-    page: Int = 1
-    per_page: Int = 20
-    search: String
-    parent_id: Int
-    id: Int
-    id_in: [Int!]
-    id_not: Int
-    id_not_in: [Int!]
-    id_mal: Int
-    id_mal_in: [Int!]
-    id_mal_not: Int
-    id_mal_not_in: [Int!]
-    season: MediaSeason
-    season_year: Int
-    season_year_greater: Int
-    season_year_lesser: Int
-    format: MediaFormat
-    format_in: [MediaFormat!]
-    format_not_in: [MediaFormat!]
-    status: MediaStatus
-    status_in: [MediaStatus!]
-    status_not_in: [MediaStatus!]
-    type: MediaType
-    source: MediaSource
-    source_in: [MediaSource!]
-    country: CountryCode
-    is_licensed: Boolean
-    is_adult: Boolean
-    genres: [String!]
-    genres_in: [String!]
-    genres_not_in: [String!]
-    tags: [String!]
-    tags_in: [String!]
-    tags_not_in: [String!]
-    studios: [String!]
-    studios_in: [String!]
-    score_greater: Int
-    score_lesser: Int
-    popularity_greater: Int
-    popularity_lesser: Int
-    episodes_greater: Int
-    episodes_lesser: Int
-    duration_greater: Int
-    duration_lesser: Int
-    start_date_greater: String
-    start_date_lesser: String
-    end_date_greater: String
-    end_date_lesser: String
-    start_date_like: String
-    end_date_like: String
-    has_next_episode: Boolean
-    franchise: String
-    sort: [AnimeSort!]
-  ): AnimePage!
-  recommendations(
-    page: Int = 1
-    per_page: Int = 20
-    search: String
-    parent_id: Int!
-    id: Int
-    id_in: [Int!]
-    id_not: Int
-    id_not_in: [Int!]
-    id_mal: Int
-    id_mal_in: [Int!]
-    id_mal_not: Int
-    id_mal_not_in: [Int!]
-    season: MediaSeason
-    season_year: Int
-    season_year_greater: Int
-    season_year_lesser: Int
-    format: MediaFormat
-    format_in: [MediaFormat!]
-    format_not_in: [MediaFormat!]
-    status: MediaStatus
-    status_in: [MediaStatus!]
-    status_not_in: [MediaStatus!]
-    type: MediaType
-    source: MediaSource
-    source_in: [MediaSource!]
-    country: CountryCode
-    is_licensed: Boolean
-    is_adult: Boolean
-    genres: [String!]
-    genres_in: [String!]
-    genres_not_in: [String!]
-    tags: [String!]
-    tags_in: [String!]
-    tags_not_in: [String!]
-    studios: [String!]
-    studios_in: [String!]
-    score_greater: Int
-    score_lesser: Int
-    popularity_greater: Int
-    popularity_lesser: Int
-    episodes_greater: Int
-    episodes_lesser: Int
-    duration_greater: Int
-    duration_lesser: Int
-    start_date_greater: String
-    start_date_lesser: String
-    end_date_greater: String
-    end_date_lesser: String
-    start_date_like: String
-    end_date_like: String
-    has_next_episode: Boolean
-    franchise: String
-    sort: [AnimeSort!]
-  ): AnimePage!
 }
 
 type AnimePage {
@@ -373,6 +260,7 @@ type Anime {
   screenshots(source: String, order_greater: Int, order_lesser: Int): [AnimeScreenshot!]!
   episodes(number_greater: Int, number_lesser: Int, air_date_greater: String, air_date_lesser: String): [Episode!]!
   artworks(iso_639_1: String, source: String, include_adult: Boolean, type: String): [AnimeArtwork!]!
+  translations(iso_639_1: String, source: String): [AnimeTranslation!]!
   chronology: [Anime!]!
   recommendations: [Anime!]!
   connected: [Anime!]!
@@ -563,6 +451,14 @@ type AnimeArtwork {
   source: String!
 }
 
+type AnimeTranslation {
+  iso_639_1: String
+  title: String
+  description: String
+  tagline: String
+  source: String!
+}
+
 enum VideoType {
   HLS
   DASH
@@ -623,18 +519,6 @@ type EpisodeImage {
   small: String
   medium: String
   large: String
-}
-
-type Translation {
-  iso_639_1: String
-  data: TranslationData
-}
-
-type TranslationData {
-  title: String
-  name: String
-  overview: String
-  homepage: String
 }
 
 type EpisodeImages {

@@ -44,7 +44,9 @@ import {
   animeEpisodeImage,
   animeCharacterBirthDate,
   animeVoiceDeathDate,
-  animeVoiceBirthDate
+  animeVoiceBirthDate,
+  animeTranslation,
+  animeToTranslation
 } from 'src/db';
 import { eq, inArray, asc, desc, sql } from 'drizzle-orm';
 
@@ -326,6 +328,20 @@ export function createLoaders() {
     { cache: true }
   );
 
+  const translations = new DataLoader<number, (typeof animeTranslation.$inferSelect)[]>(
+    async (ids) => {
+      const rows = await db
+        .select({ anime_id: animeToTranslation.A, translation: animeTranslation })
+        .from(animeToTranslation)
+        .innerJoin(animeTranslation, eq(animeToTranslation.B, animeTranslation.id))
+        .where(inArray(animeToTranslation.A, [...ids]))
+        .orderBy(asc(animeTranslation.iso_639_1), asc(animeTranslation.title));
+      const map = groupBy(rows, (r) => r.anime_id);
+      return ids.map((id) => (map.get(id) ?? []).map((r) => r.translation));
+    },
+    { cache: true }
+  );
+
   const chronology = new DataLoader<number, (typeof anime.$inferSelect)[]>(
     async (ids) => {
       const entries = await db
@@ -576,6 +592,7 @@ export function createLoaders() {
     videos,
     screenshots,
     artworks,
+    translations,
     chronology,
     recommendations,
     connected,

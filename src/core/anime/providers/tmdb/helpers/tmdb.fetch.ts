@@ -108,7 +108,7 @@ class TmdbFetchModule extends ClientModule {
     return data;
   }
 
-  async getMovieImages(id: number): Promise<TmdbImage[]> {
+  async fetchMovieImages(id: number): Promise<TmdbImage[]> {
     if (!Config.has_tmdb_api_key) {
       throw new Error('No tmdb api key provided');
     }
@@ -134,7 +134,7 @@ class TmdbFetchModule extends ClientModule {
     return [...data.backdrops, ...data.logos, ...data.posters];
   }
 
-  async getSeriesImages(id: number): Promise<TmdbImage[]> {
+  async fetchSeriesImages(id: number): Promise<TmdbImage[]> {
     if (!Config.has_tmdb_api_key) {
       throw new Error('No tmdb api key provided');
     }
