@@ -1,14 +1,11 @@
-import { Anime } from '../anime';
 import {
   AnimeArgs,
   ArtworksArgs,
-  ChronologyArgs,
   EpisodeArgs,
   ImageArgs,
   LinkArgs,
   OtherDescriptionArgs,
   OtherTitleArgs,
-  RecommendationArgs,
   ScreenshotArgs,
   TranslationsArgs,
   VideoArgs
@@ -88,6 +85,9 @@ const filterAnime = (
     country,
     is_licensed,
     is_adult,
+    air_week,
+    air_week_in,
+    air_week_not_in,
     genres,
     genres_in,
     genres_not_in,
@@ -170,6 +170,11 @@ const filterAnime = (
   if (status) conditions.push(eq(anime.status, status));
   if (status_in?.length) conditions.push(inArray(anime.status, status_in));
   if (status_not_in?.length) conditions.push(notInArray(anime.status, status_not_in));
+
+  // Air week filters
+  if (air_week) conditions.push(eq(anime.air_week, air_week));
+  if (air_week_in?.length) conditions.push(inArray(anime.air_week, air_week_in));
+  if (air_week_not_in?.length) conditions.push(notInArray(anime.air_week, air_week_not_in));
 
   // Type and source filters
   if (type) conditions.push(eq(anime.type, type));
@@ -517,6 +522,12 @@ const filterAnime = (
         break;
       case 'UPDATED_AT_ASC':
         orderBy.push(asc(anime.updated_at));
+        break;
+      case 'AIR_WEEK_DESC':
+        orderBy.push(sql`${anime.air_week} DESC NULLS LAST`);
+        break;
+      case 'AIR_WEEK_ASC':
+        orderBy.push(sql`${anime.air_week} ASC NULLS LAST`);
         break;
       case 'EPISODES_DESC':
         orderBy.push(sql`${anime.episodes_total} DESC NULLS LAST`);

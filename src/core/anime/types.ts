@@ -246,6 +246,7 @@ export interface AnimePayload {
   moreinfo?: string | null;
   broadcast?: string | null;
   nsfw?: boolean | null;
+  air_week?: number | null;
   latest_airing_episode?: number | null;
   next_airing_episode?: number | null;
   last_airing_episode?: number | null;
