@@ -26,6 +26,9 @@ export interface AnimeArgs {
   country?: string;
   is_licensed?: boolean;
   is_adult?: boolean;
+  air_week?: number;
+  air_week_in?: number[];
+  air_week_not_in?: number[];
   genres?: string;
   genres_in?: string[];
   genres_not_in?: string[];

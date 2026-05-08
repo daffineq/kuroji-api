@@ -38,6 +38,7 @@ export const anime = pgTable(
     moreinfo: text('moreinfo'),
     broadcast: varchar('broadcast', { length: 255 }),
     nsfw: boolean('nsfw').default(false),
+    air_week: integer('air_week'),
     latest_airing_episode: integer('latest_airing_episode'),
     next_airing_episode: integer('next_airing_episode'),
     last_airing_episode: integer('last_airing_episode'),

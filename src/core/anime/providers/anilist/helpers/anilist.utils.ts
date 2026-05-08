@@ -159,6 +159,11 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
     language: 'any'
   }));
 
+  const air_week =
+    media.startDate && media.startDate.year && media.startDate.month && media.startDate.day
+      ? new Date(media.startDate.year, media.startDate.month, media.startDate.day).getDay()
+      : null;
+
   return {
     id: media.id,
     id_mal: media.idMal ?? null,
@@ -181,6 +186,7 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
     favorites: media.favourites ?? null,
     color: media.coverImage?.color ?? null,
     episodes_total: media.episodes ?? null,
+    air_week,
 
     title: {
       romaji: media.title?.romaji ?? null,

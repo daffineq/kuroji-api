@@ -28,6 +28,9 @@ type Query {
     country: CountryCode
     is_licensed: Boolean
     is_adult: Boolean
+    air_week: Int
+    air_week_in: [Int!]
+    air_week_not_in: [Int!]
     genres: [String!]
     genres_in: [String!]
     genres_not_in: [String!]
@@ -102,6 +105,8 @@ enum AnimeSort {
   END_DATE_ASC
   UPDATED_AT_DESC
   UPDATED_AT_ASC
+  AIR_WEEK_DESC
+  AIR_WEEK_ASC
 
   # Episode Sorting
   EPISODES_DESC
@@ -245,6 +250,7 @@ type Anime {
   moreinfo: String
   broadcast: String
   nsfw: Boolean
+  air_week: Int
   genres: [AnimeGenre!]!
   airing_schedule: [AiringSchedule!]!
   characters: [CharacterConnection!]!
