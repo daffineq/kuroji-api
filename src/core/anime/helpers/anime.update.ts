@@ -8,6 +8,7 @@ import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';
 import { db, updateQueue } from 'src/db';
 import { count, eq, lt, sql } from 'drizzle-orm';
+import { AnilistFetch, AnilistUtils } from '../providers';
 
 @EnableSchedule
 class AnimeUpdateModule extends Module {
@@ -147,12 +148,24 @@ class AnimeUpdateModule extends Module {
         limit: 50
       });
 
-      for (const item of items) {
-        logger.log(`Processing anime ID ${item.anime_id}`);
+      const response = await AnilistFetch.fetchInfoBulkIds(items.map((i) => i.anime_id));
 
-        await this.processQueueItem(item);
+      for (const anime of response.media) {
+        logger.log(`Processing anime ${anime.id}`);
 
-        await sleep(Config.anime_processing_delay);
+        if (await Anime.exists(anime.id)) {
+          if (await Anime.shouldAutoUpdate(anime.id)) {
+            await Anime.saveAndInit(AnilistUtils.anilistToAnimePayload(anime));
+          } else {
+            logger.log(`Wont update anime: ${anime.id}...`);
+          }
+        } else {
+          await Anime.saveAndInit(AnilistUtils.anilistToAnimePayload(anime));
+        }
+
+        await this.removeFromQueue(anime.id);
+
+        await sleep(Config.anime_processing_delay * 1000);
       }
 
       logger.log(`Processed ${queueCount} anime from queue.`);
@@ -161,31 +174,6 @@ class AnimeUpdateModule extends Module {
     } finally {
       lock.release('update');
     }
-  }
-
-  private async processQueueItem(item: { anime_id: number }) {
-    try {
-      const task = async () => {
-        if (await Anime.shouldAutoUpdate(item.anime_id)) {
-          await Anime.update(item.anime_id);
-        } else {
-          logger.log(`Wont update anime ${item.anime_id}`);
-        }
-      };
-
-      await Promise.race([
-        task(),
-        sleep(120000).then(() => {
-          throw new Error('Timed out');
-        })
-      ]);
-      await this.removeFromQueue(item.anime_id);
-      logger.log(`Successfully updated anime ${item.anime_id}`);
-    } catch (error) {
-      logger.error(`Failed to update anime ${item.anime_id}`, error);
-    }
-
-    await this.updateQueueItem(item.anime_id);
   }
 
   @Scheduled(Schedule.every30Minutes(), Config.anime_update_enabled)

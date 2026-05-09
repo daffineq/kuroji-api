@@ -9,7 +9,6 @@ import {
   animeGenre,
   animeToGenre,
   animeAiringSchedule,
-  animeToAiringSchedule,
   animeCharacter,
   animeCharacterName,
   animeCharacterImage,
@@ -46,7 +45,10 @@ import {
   animeVoiceDeathDate,
   animeVoiceBirthDate,
   animeTranslation,
-  animeToTranslation
+  animeToTranslation,
+  animeLatestAiringEpisode,
+  animeNextAiringEpisode,
+  animeLastAiringEpisode
 } from 'src/db';
 import { eq, inArray, asc, desc, sql } from 'drizzle-orm';
 
@@ -133,13 +135,48 @@ export function createLoaders() {
   const airingSchedule = new DataLoader<number, (typeof animeAiringSchedule.$inferSelect)[]>(
     async (ids) => {
       const rows = await db
-        .select({ anime_id: animeToAiringSchedule.A, schedule: animeAiringSchedule })
-        .from(animeToAiringSchedule)
-        .innerJoin(animeAiringSchedule, eq(animeToAiringSchedule.B, animeAiringSchedule.id))
-        .where(inArray(animeToAiringSchedule.A, [...ids]))
+        .select()
+        .from(animeAiringSchedule)
+        .where(inArray(animeAiringSchedule.anime_id, [...ids]))
         .orderBy(asc(animeAiringSchedule.episode));
       const map = groupBy(rows, (r) => r.anime_id);
-      return ids.map((id) => (map.get(id) ?? []).map((r) => r.schedule));
+      return ids.map((id) => (map.get(id) ?? []).map((r) => r));
+    },
+    { cache: true }
+  );
+
+  const latestAiringEpisode = new DataLoader<number, typeof animeLatestAiringEpisode.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeLatestAiringEpisode)
+        .where(inArray(animeLatestAiringEpisode.anime_id, [...ids]));
+      const map = indexBy(rows, (r) => r.anime_id);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    { cache: true }
+  );
+
+  const nextAiringEpisode = new DataLoader<number, typeof animeNextAiringEpisode.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeNextAiringEpisode)
+        .where(inArray(animeNextAiringEpisode.anime_id, [...ids]));
+      const map = indexBy(rows, (r) => r.anime_id);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    { cache: true }
+  );
+
+  const lastAiringEpisode = new DataLoader<number, typeof animeLastAiringEpisode.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeLastAiringEpisode)
+        .where(inArray(animeLastAiringEpisode.anime_id, [...ids]));
+      const map = indexBy(rows, (r) => r.anime_id);
+      return ids.map((id) => map.get(id) ?? null);
     },
     { cache: true }
   );
@@ -579,6 +616,9 @@ export function createLoaders() {
     endDate,
     genres,
     airingSchedule,
+    latestAiringEpisode,
+    nextAiringEpisode,
+    lastAiringEpisode,
     studioConnections,
     studio,
     tagConnections,
