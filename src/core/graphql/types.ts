@@ -51,6 +51,8 @@ export interface AnimeArgs {
   end_date_lesser?: string;
   start_date_like?: string;
   end_date_like?: string;
+  airing_at_greater?: number;
+  airing_at_lesser?: number;
   has_next_episode?: boolean;
   franchise?: string;
   sort?: string[];

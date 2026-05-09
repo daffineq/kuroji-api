@@ -22,8 +22,10 @@ import {
   animeToStudio,
   animeTag,
   animeToTag,
-  animeChronology,
-  animeRecommendation
+  animeLatestAiringEpisode,
+  animeNextAiringEpisode,
+  animeLastAiringEpisode,
+  animeAiringSchedule
 } from 'src/db';
 import {
   eq,
@@ -43,8 +45,7 @@ import {
   exists,
   notInArray,
   not,
-  isNotNull,
-  isNull
+  notExists
 } from 'drizzle-orm';
 import { Loaders } from './loaders';
 
@@ -110,6 +111,8 @@ const filterAnime = (
     end_date_lesser,
     start_date_like,
     end_date_like,
+    airing_at_greater,
+    airing_at_lesser,
     has_next_episode,
     franchise,
     sort = ['ID_DESC']
@@ -185,12 +188,44 @@ const filterAnime = (
   // Boolean filters
   if (is_licensed !== undefined) conditions.push(eq(anime.is_licensed, is_licensed));
   if (is_adult !== undefined) conditions.push(eq(anime.is_adult, is_adult));
+
+  // Airing schedule
   if (has_next_episode !== undefined) {
     if (has_next_episode) {
-      conditions.push(isNotNull(anime.next_airing_episode));
+      conditions.push(
+        exists(db.select().from(animeNextAiringEpisode).where(eq(animeNextAiringEpisode.anime_id, anime.id)))
+      );
     } else {
-      conditions.push(isNull(anime.next_airing_episode));
+      conditions.push(
+        notExists(db.select().from(animeNextAiringEpisode).where(eq(animeNextAiringEpisode.anime_id, anime.id)))
+      );
     }
+  }
+
+  if (airing_at_greater !== undefined) {
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeAiringSchedule)
+          .where(
+            and(eq(animeAiringSchedule.anime_id, anime.id), gte(animeAiringSchedule.airing_at, airing_at_greater))
+          )
+      )
+    );
+  }
+
+  if (airing_at_lesser !== undefined) {
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeAiringSchedule)
+          .where(
+            and(eq(animeAiringSchedule.anime_id, anime.id), lte(animeAiringSchedule.airing_at, airing_at_lesser))
+          )
+      )
+    );
   }
 
   // Genre filters
@@ -542,22 +577,22 @@ const filterAnime = (
         orderBy.push(sql`${anime.duration} ASC NULLS LAST`);
         break;
       case 'LATEST_EPISODE_DESC':
-        orderBy.push(sql`${anime.latest_airing_episode} DESC NULLS LAST`);
+        orderBy.push(sql`${animeLatestAiringEpisode.airing_at} DESC NULLS LAST`);
         break;
       case 'LATEST_EPISODE_ASC':
-        orderBy.push(sql`${anime.latest_airing_episode} ASC NULLS LAST`);
+        orderBy.push(sql`${animeLatestAiringEpisode.airing_at} ASC NULLS LAST`);
         break;
       case 'NEXT_EPISODE_DESC':
-        orderBy.push(sql`${anime.next_airing_episode} DESC NULLS LAST`);
+        orderBy.push(sql`${animeNextAiringEpisode.airing_at} DESC NULLS LAST`);
         break;
       case 'NEXT_EPISODE_ASC':
-        orderBy.push(sql`${anime.next_airing_episode} ASC NULLS LAST`);
+        orderBy.push(sql`${animeNextAiringEpisode.airing_at} ASC NULLS LAST`);
         break;
       case 'LAST_EPISODE_DESC':
-        orderBy.push(sql`${anime.last_airing_episode} DESC NULLS LAST`);
+        orderBy.push(sql`${animeLastAiringEpisode.airing_at} DESC NULLS LAST`);
         break;
       case 'LAST_EPISODE_ASC':
-        orderBy.push(sql`${anime.last_airing_episode} ASC NULLS LAST`);
+        orderBy.push(sql`${animeLastAiringEpisode.airing_at} ASC NULLS LAST`);
         break;
       case 'SEASON_YEAR_DESC':
         orderBy.push(sql`${anime.season_year} DESC NULLS LAST`);
@@ -604,6 +639,9 @@ const getAnimePage = async (args: AnimeArgs) => {
     .leftJoin(animeTitle, eq(animeTitle.anime_id, anime.id))
     .leftJoin(animeStartDate, eq(animeStartDate.anime_id, anime.id))
     .leftJoin(animeEndDate, eq(animeEndDate.anime_id, anime.id))
+    .leftJoin(animeLatestAiringEpisode, eq(animeLatestAiringEpisode.anime_id, anime.id))
+    .leftJoin(animeNextAiringEpisode, eq(animeNextAiringEpisode.anime_id, anime.id))
+    .leftJoin(animeLastAiringEpisode, eq(animeLastAiringEpisode.anime_id, anime.id))
     .$dynamic();
 
   if (where) query.where(where);
@@ -707,6 +745,18 @@ export const resolvers = {
 
     airing_schedule: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
       return loaders.airingSchedule.load(parent.id);
+    },
+
+    latest_airing_episode: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.latestAiringEpisode.load(parent.id);
+    },
+
+    next_airing_episode: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.nextAiringEpisode.load(parent.id);
+    },
+
+    last_airing_episode: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.lastAiringEpisode.load(parent.id);
     },
 
     characters: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {

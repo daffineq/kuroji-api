@@ -53,6 +53,8 @@ type Query {
     end_date_lesser: String
     start_date_like: String
     end_date_like: String
+    airing_at_greater: Int
+    airing_at_lesser: Int
     has_next_episode: Boolean
     franchise: String
     sort: [AnimeSort!]
@@ -253,6 +255,9 @@ type Anime {
   air_week: Int
   genres: [AnimeGenre!]!
   airing_schedule: [AiringSchedule!]!
+  latest_airing_episode: AiringSchedule
+  next_airing_episode: AiringSchedule
+  last_airing_episode: AiringSchedule
   characters: [CharacterConnection!]!
   studios(only_main: Boolean): [StudioConnection!]!
   tags: [TagConnection!]!
@@ -296,7 +301,6 @@ type AnimeGenre {
 }
 
 type AiringSchedule {
-  id: Int!
   episode: Int
   airing_at: Int
 }

@@ -39,12 +39,7 @@ class AnimeIndexerModule extends Module {
 
         while (currentTry < maxTries) {
           try {
-            response = await Promise.race([
-              AnilistFetch.fetchInfoBulk(page, perPage, options),
-              sleep(120 * 1000).then(() => {
-                throw new Error('Timed out');
-              })
-            ]);
+            response = await AnilistFetch.fetchInfoBulk(page, perPage, options);
             break;
           } catch (err) {
             logger.error(`Failed to fetch page ${page}:`, err);

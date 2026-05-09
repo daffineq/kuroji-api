@@ -26,7 +26,6 @@ import {
   animeStatusDistribution,
   db,
   cleanPayload,
-  animeToAiringSchedule,
   animeLink,
   animeToLink,
   animeArtwork,
@@ -49,7 +48,10 @@ import {
   animeVoiceBirthDate,
   animeVoiceDeathDate,
   animeTranslation,
-  animeToTranslation
+  animeToTranslation,
+  animeLatestAiringEpisode,
+  animeNextAiringEpisode,
+  animeLastAiringEpisode
 } from 'src/db';
 import { eq, sql } from 'drizzle-orm';
 import { toArray, uniqueBy } from 'src/helpers/utils';
@@ -61,6 +63,8 @@ class AnimeDbModule extends Module {
   override readonly name = 'AnimeDB';
 
   async upsert(payload: AnimePayload) {
+    const hasSchedule = payload.airing_schedule !== undefined;
+
     const airedEpisodes = toArray(payload.airing_schedule)
       .filter((schedule) => DateUtils.isPast(schedule.airing_at ?? 0))
       .sort((a, b) => (b.airing_at ?? 0) - (a.airing_at ?? 0));
@@ -73,12 +77,17 @@ class AnimeDbModule extends Module {
     const nextEpisode = futureEpisodes?.[0];
     const lastEpisode = toArray(payload.airing_schedule).sort((a, b) => (b.episode ?? 0) - (a.episode ?? 0))[0];
 
+    const start_week =
+      payload.start_date && payload.start_date.year && payload.start_date.month && payload.start_date.day
+        ? new Date(payload.start_date.year, payload.start_date.month - 1, payload.start_date.day).getDay()
+        : null;
+
+    const air_week = nextEpisode?.airing_at ? new Date(nextEpisode.airing_at * 1000).getDay() : start_week;
+
     await db.transaction(async (tx) => {
       const { values, set } = cleanPayload({
         ...payload,
-        latest_airing_episode: latestEpisode?.airing_at,
-        next_airing_episode: nextEpisode?.airing_at,
-        last_airing_episode: lastEpisode?.airing_at
+        air_week: hasSchedule ? air_week : undefined
       });
 
       await tx.insert(anime).values(values).onConflictDoUpdate({
@@ -210,37 +219,91 @@ class AnimeDbModule extends Module {
       if (toArray(payload.airing_schedule).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const schedule = uniqueBy(toArray(payload.airing_schedule), (a) => a.id)
-              .filter((a) => a.id)
+            const schedule = uniqueBy(toArray(payload.airing_schedule), (a) => a.episode)
+              .filter((a) => a.episode)
               .map((a) => ({
-                id: a.id,
+                anime_id: payload.id,
                 episode: a.episode,
                 airing_at: a.airing_at
               }));
 
             if (!schedule.length) return;
 
-            const inserted = await tx
+            if (isForced(payload.airing_schedule)) {
+              await tx.delete(animeAiringSchedule).where(eq(animeAiringSchedule.anime_id, payload.id));
+            }
+
+            await tx
               .insert(animeAiringSchedule)
               .values(schedule)
               .onConflictDoUpdate({
-                target: animeAiringSchedule.id,
+                target: [animeAiringSchedule.anime_id, animeAiringSchedule.episode],
                 set: {
-                  episode: sql`excluded.episode`,
                   airing_at: sql`excluded.airing_at`
                 }
-              })
-              .returning({ id: animeAiringSchedule.id });
+              });
+          })
+        );
+      }
 
-            if (isForced(payload.airing_schedule)) {
-              await tx.delete(animeToAiringSchedule).where(eq(animeToAiringSchedule.A, payload.id));
+      if (hasSchedule) {
+        ops.push(
+          Promise.resolve().then(async () => {
+            if (latestEpisode) {
+              await tx
+                .insert(animeLatestAiringEpisode)
+                .values({
+                  anime_id: payload.id,
+                  episode: latestEpisode.episode,
+                  airing_at: latestEpisode.airing_at
+                })
+                .onConflictDoUpdate({
+                  target: animeLatestAiringEpisode.anime_id,
+                  set: {
+                    episode: sql`excluded.episode`,
+                    airing_at: sql`excluded.airing_at`
+                  }
+                });
+            } else {
+              await tx.delete(animeLatestAiringEpisode).where(eq(animeLatestAiringEpisode.anime_id, payload.id));
             }
 
-            if (inserted.length) {
+            if (nextEpisode) {
               await tx
-                .insert(animeToAiringSchedule)
-                .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
-                .onConflictDoNothing();
+                .insert(animeNextAiringEpisode)
+                .values({
+                  anime_id: payload.id,
+                  episode: nextEpisode.episode,
+                  airing_at: nextEpisode.airing_at
+                })
+                .onConflictDoUpdate({
+                  target: animeNextAiringEpisode.anime_id,
+                  set: {
+                    episode: sql`excluded.episode`,
+                    airing_at: sql`excluded.airing_at`
+                  }
+                });
+            } else {
+              await tx.delete(animeNextAiringEpisode).where(eq(animeNextAiringEpisode.anime_id, payload.id));
+            }
+
+            if (lastEpisode) {
+              await tx
+                .insert(animeLastAiringEpisode)
+                .values({
+                  anime_id: payload.id,
+                  episode: lastEpisode.episode,
+                  airing_at: lastEpisode.airing_at
+                })
+                .onConflictDoUpdate({
+                  target: animeLastAiringEpisode.anime_id,
+                  set: {
+                    episode: sql`excluded.episode`,
+                    airing_at: sql`excluded.airing_at`
+                  }
+                });
+            } else {
+              await tx.delete(animeLastAiringEpisode).where(eq(animeLastAiringEpisode.anime_id, payload.id));
             }
           })
         );

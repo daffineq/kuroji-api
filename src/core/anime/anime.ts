@@ -18,34 +18,6 @@ import { eq } from 'drizzle-orm';
 class AnimeModule extends Module {
   override readonly name = 'Anime';
 
-  async fetchOrCreate(id: number) {
-    const existing = await db.query.anime.findFirst({
-      where: {
-        id
-      }
-    });
-
-    if (existing) {
-      return existing;
-    }
-
-    const anilist = await Anilist.getInfo(id);
-
-    await this.saveAndInit(AnilistUtils.anilistToAnimePayload(anilist));
-
-    return db.query.anime.findFirst({
-      where: {
-        id
-      }
-    });
-  }
-
-  async create(id: number) {
-    const anilist = await Anilist.getInfo(id);
-
-    await this.saveAndInit(AnilistUtils.anilistToAnimePayload(anilist));
-  }
-
   async update(id: number) {
     const anilist = await Anilist.getInfo(id);
 

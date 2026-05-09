@@ -39,9 +39,6 @@ export const anime = pgTable(
     broadcast: varchar('broadcast', { length: 255 }),
     nsfw: boolean('nsfw').default(false),
     air_week: integer('air_week'),
-    latest_airing_episode: integer('latest_airing_episode'),
-    next_airing_episode: integer('next_airing_episode'),
-    last_airing_episode: integer('last_airing_episode'),
     auto_update: boolean('auto_update').default(true),
     disabled: boolean('disabled').default(false),
     ...timestamps
@@ -62,7 +59,6 @@ export const anime = pgTable(
     index('idx_anime_trending').on(t.trending),
     index('idx_anime_favorites').on(t.favorites),
     index('idx_anime_franchise').on(t.franchise),
-    index('idx_anime_next_airing_episode').on(t.next_airing_episode),
     index('idx_anime_updated_at').on(t.updated_at),
     index('idx_anime_season_season_year').on(t.season, t.season_year),
     index('idx_anime_season_year_format').on(t.season_year, t.format)
@@ -176,26 +172,63 @@ export const animeToGenre = pgTable(
   ]
 );
 
-export const animeAiringSchedule = pgTable('anime_airing_schedule', {
-  id: integer('id').primaryKey(),
+export const animeAiringSchedule = pgTable(
+  'anime_airing_schedule',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    anime_id: integer('anime_id')
+      .notNull()
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    episode: integer('episode'),
+    airing_at: integer('airing_at'),
+    ...timestamps
+  },
+  (t) => [
+    uniqueIndex('anime_airing_schedule_unique').on(t.anime_id, t.episode),
+    index('idx_anime_airing_schedule_anime_id').on(t.anime_id)
+  ]
+);
+
+export const animeLatestAiringEpisode = pgTable('anime_latest_airing_episode', {
+  id: varchar('id', { length: 255 })
+    .primaryKey()
+    .$defaultFn(() => cuid()),
+  anime_id: integer('anime_id')
+    .notNull()
+    .unique()
+    .references(() => anime.id, { onDelete: 'cascade' }),
   episode: integer('episode'),
   airing_at: integer('airing_at'),
   ...timestamps
 });
 
-export const animeToAiringSchedule = pgTable(
-  '_anime_to_airing_schedule',
-  {
-    A: integer('A')
-      .notNull()
-      .references(() => anime.id, { onDelete: 'cascade' }),
-    B: integer('B')
-      .notNull()
-      .references(() => animeAiringSchedule.id, { onDelete: 'cascade' }),
-    ...timestamps
-  },
-  (t) => [primaryKey({ columns: [t.A, t.B] }), index('idx_anime_to_airing_schedule_a').on(t.A)]
-);
+export const animeNextAiringEpisode = pgTable('anime_next_airing_episode', {
+  id: varchar('id', { length: 255 })
+    .primaryKey()
+    .$defaultFn(() => cuid()),
+  anime_id: integer('anime_id')
+    .notNull()
+    .unique()
+    .references(() => anime.id, { onDelete: 'cascade' }),
+  episode: integer('episode'),
+  airing_at: integer('airing_at'),
+  ...timestamps
+});
+
+export const animeLastAiringEpisode = pgTable('anime_last_airing_episode', {
+  id: varchar('id', { length: 255 })
+    .primaryKey()
+    .$defaultFn(() => cuid()),
+  anime_id: integer('anime_id')
+    .notNull()
+    .unique()
+    .references(() => anime.id, { onDelete: 'cascade' }),
+  episode: integer('episode'),
+  airing_at: integer('airing_at'),
+  ...timestamps
+});
 
 export const animeCharacter = pgTable('anime_character', {
   id: integer('id').primaryKey(),

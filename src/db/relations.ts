@@ -24,8 +24,20 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.animeGenre.id.through(r.animeToGenre.B)
     }),
     airing_schedule: r.many.animeAiringSchedule({
-      from: r.anime.id.through(r.animeToAiringSchedule.A),
-      to: r.animeAiringSchedule.id.through(r.animeToAiringSchedule.B)
+      from: r.anime.id,
+      to: r.animeAiringSchedule.anime_id
+    }),
+    latest_airing_episode: r.one.animeLatestAiringEpisode({
+      from: r.anime.id,
+      to: r.animeLatestAiringEpisode.anime_id
+    }),
+    next_airing_episode: r.one.animeNextAiringEpisode({
+      from: r.anime.id,
+      to: r.animeNextAiringEpisode.anime_id
+    }),
+    last_airing_episode: r.one.animeLastAiringEpisode({
+      from: r.anime.id,
+      to: r.animeLastAiringEpisode.anime_id
     }),
     characters: r.many.animeToCharacter({
       from: r.anime.id,
@@ -141,20 +153,29 @@ export const relations = defineRelations(schema, (r) => ({
 
   animeAiringSchedule: {
     anime: r.one.anime({
-      from: r.animeAiringSchedule.id.through(r.animeToAiringSchedule.B),
-      to: r.anime.id.through(r.animeToAiringSchedule.A)
+      from: r.animeAiringSchedule.anime_id,
+      to: r.anime.id
     })
   },
 
-  animeToAiringSchedule: {
+  animeLatestEpisode: {
     anime: r.one.anime({
-      from: r.animeToAiringSchedule.A,
+      from: r.animeLatestAiringEpisode.anime_id,
       to: r.anime.id
-    }),
+    })
+  },
 
-    schedule: r.one.animeAiringSchedule({
-      from: r.animeToAiringSchedule.B,
-      to: r.animeAiringSchedule.id
+  animeNextEpisode: {
+    anime: r.one.anime({
+      from: r.animeNextAiringEpisode.anime_id,
+      to: r.anime.id
+    })
+  },
+
+  animeLastEpisode: {
+    anime: r.one.anime({
+      from: r.animeLastAiringEpisode.anime_id,
+      to: r.anime.id
     })
   },
 
@@ -326,12 +347,20 @@ export const relations = defineRelations(schema, (r) => ({
     anime: r.one.anime({
       from: r.animeChronology.anime_id,
       to: r.anime.id
+    }),
+    chronology: r.one.anime({
+      from: r.animeChronology.related_id,
+      to: r.anime.id
     })
   },
 
   animeRecommendation: {
     anime: r.one.anime({
       from: r.animeRecommendation.anime_id,
+      to: r.anime.id
+    }),
+    recommendation: r.one.anime({
+      from: r.animeRecommendation.related_id,
       to: r.anime.id
     })
   },
