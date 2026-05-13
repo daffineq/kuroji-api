@@ -7,6 +7,7 @@ import { AnilistFetch, AnilistUtils } from '../providers';
 import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';
 import { db, indexerState } from 'src/db';
+import { sql } from 'drizzle-orm';
 
 @EnableSchedule
 class AnimeIndexerModule extends Module {
@@ -21,10 +22,11 @@ class AnimeIndexerModule extends Module {
     const { delay = Config.anime_processing_delay, status } = options;
 
     try {
-      let page = 1;
+      const state = await this.getState(status);
+      let page = state?.last_page ?? 1;
       let hasNextPage = true;
       let failedCount = 0;
-      let popularityLesser: number | undefined = undefined;
+      let popularityLesser: number | undefined = state?.last_pl ?? undefined;
 
       const perPage = 50;
       const maxFails = 3;
@@ -44,13 +46,14 @@ class AnimeIndexerModule extends Module {
               ...options,
               threshold_lesser: popularityLesser
             });
+            failedCount = 0;
             break;
           } catch (err) {
             logger.error(`Failed to fetch page ${page}:`, err);
             currentTry++;
 
             if (currentTry < maxTries) {
-              await sleep(120 * 1000);
+              await sleep(240 * 1000);
             }
           }
         }
@@ -64,7 +67,7 @@ class AnimeIndexerModule extends Module {
           }
 
           page++;
-          await this.setLastFetchedPage(page, status);
+          await this.setState(page, popularityLesser, status);
           continue;
         }
 
@@ -107,12 +110,12 @@ class AnimeIndexerModule extends Module {
           }
         }
 
-        // await this.setLastFetchedPage(page, status);
+        await this.setState(page, popularityLesser, status);
       }
 
-      // if (!hasNextPage) {
-      //   await this.setLastFetchedPage(1, status);
-      // }
+      if (!hasNextPage) {
+        await this.setState(1, undefined, status);
+      }
 
       logger.log('Indexing complete. All done');
     } catch (err) {
@@ -149,7 +152,7 @@ class AnimeIndexerModule extends Module {
   public reset(status?: string): string {
     logger.log('Indexer had been reseted');
     lock.release('indexer');
-    this.setLastFetchedPage(1, status);
+    this.setState(1, undefined, status);
     return 'Reseted indexer';
   }
 
@@ -178,7 +181,7 @@ class AnimeIndexerModule extends Module {
   }): Promise<string> {
     const { delay = Config.anime_processing_delay, status } = options;
 
-    const fetched = (await this.getLastFetchedPage(status)) * 50;
+    const fetched = ((await this.getState(status))?.last_page ?? 0) * 50;
 
     // Estimating count because anilist fixed the way i used to get count in anilist api
     const total = this.estimateCount(options);
@@ -240,26 +243,27 @@ class AnimeIndexerModule extends Module {
     return 0;
   }
 
-  async getLastFetchedPage(status?: string): Promise<number> {
-    const state = await db.query.indexerState.findFirst({
+  async getState(status?: string) {
+    return db.query.indexerState.findFirst({
       where: {
         id: `anime-${status ? status.toLowerCase() : 'all'}`
       }
     });
-    return state?.last_page ?? 1;
   }
 
-  async setLastFetchedPage(page: number, status?: string): Promise<void> {
+  async setState(page: number, pl?: number, status?: string): Promise<void> {
     await db
       .insert(indexerState)
       .values({
         id: `anime-${status ? status.toLowerCase() : 'all'}`,
+        last_pl: pl,
         last_page: page
       })
       .onConflictDoUpdate({
         target: indexerState.id,
         set: {
-          last_page: page
+          last_pl: sql`excluded.last_pl`,
+          last_page: sql`excluded.last_page`
         }
       });
   }
