@@ -218,6 +218,17 @@ export interface AnimeEpisodePayload {
   image?: AnimeEpisodeImagePayload | null;
 }
 
+export interface AnimeBroadcastPayload {
+  week?: number | null;
+  time?: string | null;
+  timezone?: string | null;
+}
+
+export interface AnimeAgeRatingPayload {
+  rating?: string | null;
+  description?: string | null;
+}
+
 export interface AnimePayload {
   id: number;
   id_mal?: number | null;
@@ -240,12 +251,9 @@ export interface AnimePayload {
   favorites?: number | null;
   color?: string | null;
   franchise?: string | null;
-  age_rating?: string | null;
   episodes_aired?: number | null;
   episodes_total?: number | null;
-  moreinfo?: string | null;
-  broadcast?: string | null;
-  nsfw?: boolean | null;
+  more_info?: string | null;
   latest_airing_episode?: number | null;
   next_airing_episode?: number | null;
   last_airing_episode?: number | null;
@@ -254,6 +262,8 @@ export interface AnimePayload {
   poster?: AnimePosterPayload | null;
   start_date?: AnimeFuzzyDatePayload | null;
   end_date?: AnimeFuzzyDatePayload | null;
+  broadcast?: AnimeBroadcastPayload | null;
+  age_rating?: AnimeAgeRatingPayload | null;
 
   genres?: ForceOr<AnimeGenrePayload> | null;
   airing_schedule?: ForceOr<AnimeAiringSchedulePayload> | null;

@@ -11,7 +11,7 @@ import {
 } from './providers';
 import { AnimeDb } from './helpers/anime.db';
 import { Module } from 'src/helpers/module';
-import { anime, animeLink, animeTitle, animeToLink, db } from 'src/db';
+import { anime, animeLink, animeToLink, db } from 'src/db';
 import { AnimePayload } from './types';
 import { eq } from 'drizzle-orm';
 

@@ -2,10 +2,11 @@ import { getKey, Redis } from 'src/helpers/redis.util';
 import { parseString } from 'src/helpers/parsers';
 import { ProviderModule } from 'src/helpers/module';
 import { Anime } from '../../anime';
-import { AnimeVideoPayload } from '../../types';
+import { AnimeAgeRatingPayload, AnimeBroadcastPayload, AnimeVideoPayload } from '../../types';
 import { load } from 'cheerio';
 import { MyAnimeListInfo, MyAnimeListVideo } from './types';
 import { Config } from 'src/config';
+import { MalUtils } from './helpers';
 
 class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
   override readonly name = 'MyAnimeList';
@@ -53,11 +54,26 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
     }
 
     if (info.moreInfo) {
-      await Anime.save({ id, moreinfo: info.moreInfo });
+      await Anime.save({ id, more_info: info.moreInfo });
     }
 
-    if (info.broadcast) {
-      await Anime.save({ id, broadcast: info.broadcast });
+    const broadcast: AnimeBroadcastPayload | null =
+      info.broadcast && info.broadcast !== '?' ? MalUtils.parseBroadcast(info.broadcast) : null;
+
+    const ageRating: AnimeAgeRatingPayload | null =
+      info.rating && info.rating !== '?'
+        ? {
+            rating: info.rating.split(' - ')[0]?.trim(),
+            description: info.rating.split(' - ')[1]?.trim()
+          }
+        : null;
+
+    if (broadcast) {
+      await Anime.save({ id, broadcast });
+    }
+
+    if (ageRating) {
+      await Anime.save({ id, age_rating: ageRating });
     }
 
     await Redis.set(key, info);
@@ -141,6 +157,7 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
       .trim();
 
     const broadcast = extractInfo('Broadcast:');
+    const rating = extractInfo('Rating:');
 
     const videos: MyAnimeListVideo[] = [];
 
@@ -186,6 +203,7 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
     return {
       image,
       broadcast,
+      rating,
       moreInfo,
       videos
     };

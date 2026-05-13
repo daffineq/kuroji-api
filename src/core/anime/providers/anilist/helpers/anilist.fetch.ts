@@ -1,5 +1,5 @@
 import { Config } from 'src/config';
-import { ANILIST_BULK_INFO, ANILIST_INFO, ANILIST_MEDIA_DETAILS } from '../graphql';
+import { ANILIST_INFO, ANILIST_MEDIA_DETAILS } from '../graphql';
 import { AnilistMedia, AnilistMediaResponse } from '../types';
 import { KurojiClient } from 'src/lib/http';
 import { ClientModule } from 'src/helpers/client';
@@ -31,12 +31,12 @@ class AnilistFetchModule extends ClientModule {
   async fetchInfoBulk(
     page: number,
     perPage: number,
-    options: { status?: string; threshold?: number } = {}
+    options: { status?: string; threshold?: number; threshold_lesser?: number } = {}
   ): Promise<{
     media: AnilistMedia[];
     pageInfo: { hasNextPage: boolean };
   }> {
-    const { status, threshold = Config.anime_popularity_threshold } = options;
+    const { status, threshold = Config.anime_popularity_threshold, threshold_lesser = undefined } = options;
 
     const { data, error } = await this.client.post<{
       media: AnilistMedia[];
@@ -53,7 +53,7 @@ class AnilistFetchModule extends ClientModule {
                 lastPage
                 hasNextPage
               }
-              media(type: ANIME, sort: [POPULARITY_DESC], popularity_greater: ${threshold} ${status ? `, status: ${status}` : ''}) {
+              media(type: ANIME, sort: [POPULARITY_DESC],  popularity_greater: ${threshold} ${threshold_lesser ? `, popularity_lesser: ${threshold_lesser}` : ''} ${status ? `, status: ${status}` : ''}) {
                 ...mediaDetails
               }
             }

@@ -248,11 +248,10 @@ type Anime {
   favorites: Int
   color: String
   franchise: String
-  age_rating: String
-  moreinfo: String
-  broadcast: String
-  nsfw: Boolean
+  more_info: String
   air_week: Int
+  broadcast: AnimeBroadcast
+  age_rating: AnimeAgeRating
   genres: [AnimeGenre!]!
   airing_schedule: [AiringSchedule!]!
   latest_airing_episode: AiringSchedule
@@ -293,6 +292,17 @@ type AnimeDate {
   day: Int
   month: Int
   year: Int
+}
+
+type AnimeBroadcast {
+  week: Int
+  time: String
+  timezone: String
+}
+
+type AnimeAgeRating {
+  rating: String
+  description: String
 }
 
 type AnimeGenre {

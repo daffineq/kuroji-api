@@ -94,10 +94,6 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
       await Anime.save({ id, franchise: info.franchise });
     }
 
-    if (info.rating) {
-      await Anime.save({ id, age_rating: info.rating });
-    }
-
     if (info.episodesAired) {
       await Anime.save({ id, episodes_aired: info.episodesAired });
     }

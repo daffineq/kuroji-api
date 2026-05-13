@@ -1,6 +1,7 @@
 export interface MyAnimeListInfo {
   image: string | undefined;
   broadcast: string;
+  rating: string;
   moreInfo: string;
   videos: MyAnimeListVideo[];
 }

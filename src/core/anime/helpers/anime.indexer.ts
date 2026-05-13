@@ -21,9 +21,10 @@ class AnimeIndexerModule extends Module {
     const { delay = Config.anime_processing_delay, status } = options;
 
     try {
-      let page = await this.getLastFetchedPage(status);
+      let page = 1;
       let hasNextPage = true;
       let failedCount = 0;
+      let popularityLesser: number | undefined = undefined;
 
       const perPage = 50;
       const maxFails = 3;
@@ -39,7 +40,10 @@ class AnimeIndexerModule extends Module {
 
         while (currentTry < maxTries) {
           try {
-            response = await AnilistFetch.fetchInfoBulk(page, perPage, options);
+            response = await AnilistFetch.fetchInfoBulk(page, perPage, {
+              ...options,
+              threshold_lesser: popularityLesser
+            });
             break;
           } catch (err) {
             logger.error(`Failed to fetch page ${page}:`, err);
@@ -94,12 +98,21 @@ class AnimeIndexerModule extends Module {
 
         page++;
 
-        await this.setLastFetchedPage(page, status);
+        if (page > 100) {
+          const popularity = response.media[response.media.length - 1]?.popularity;
+
+          if (popularity && popularity !== popularityLesser) {
+            popularityLesser = response.media[response.media.length - 1]?.popularity;
+            page = 1;
+          }
+        }
+
+        // await this.setLastFetchedPage(page, status);
       }
 
-      if (!hasNextPage) {
-        await this.setLastFetchedPage(1, status);
-      }
+      // if (!hasNextPage) {
+      //   await this.setLastFetchedPage(1, status);
+      // }
 
       logger.log('Indexing complete. All done');
     } catch (err) {
