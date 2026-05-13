@@ -55,8 +55,6 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
       });
     }
 
-    await Anime.save({ id, nsfw: info.attributes.nsfw });
-
     await Redis.set(key, info);
 
     return info;

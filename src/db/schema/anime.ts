@@ -32,12 +32,9 @@ export const anime = pgTable(
     favorites: integer('favorites'),
     color: varchar('color', { length: 255 }),
     franchise: varchar('franchise', { length: 255 }),
-    age_rating: varchar('age_rating', { length: 255 }),
     episodes_aired: integer('episodes_aired'),
     episodes_total: integer('episodes_total'),
-    moreinfo: text('moreinfo'),
-    broadcast: varchar('broadcast', { length: 255 }),
-    nsfw: boolean('nsfw').default(false),
+    more_info: text('more_info'),
     air_week: integer('air_week'),
     auto_update: boolean('auto_update').default(true),
     disabled: boolean('disabled').default(false),
@@ -140,6 +137,41 @@ export const animeEndDate = pgTable(
     ...timestamps
   },
   (t) => [index('idx_anime_end_date_anime_id').on(t.anime_id), index('idx_anime_end_date_year').on(t.year)]
+);
+
+export const animeBroadcast = pgTable(
+  'anime_broadcast',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    anime_id: integer('anime_id')
+      .notNull()
+      .unique()
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    week: integer('week'),
+    time: varchar('time', { length: 255 }),
+    timezone: varchar('timezone', { length: 255 }),
+    ...timestamps
+  },
+  (t) => [index('idx_anime_broadcast_anime_id').on(t.anime_id), index('idx_anime_broadcast_week').on(t.week)]
+);
+
+export const animeAgeRating = pgTable(
+  'anime_age_rating',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => cuid()),
+    anime_id: integer('anime_id')
+      .notNull()
+      .unique()
+      .references(() => anime.id, { onDelete: 'cascade' }),
+    rating: varchar('rating', { length: 255 }),
+    description: varchar('description', { length: 255 }),
+    ...timestamps
+  },
+  (t) => [index('idx_anime_age_rating_anime_id').on(t.anime_id), index('idx_anime_age_rating_rating').on(t.rating)]
 );
 
 export const animeGenre = pgTable(

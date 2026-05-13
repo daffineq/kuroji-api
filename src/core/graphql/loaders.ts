@@ -48,7 +48,9 @@ import {
   animeToTranslation,
   animeLatestAiringEpisode,
   animeNextAiringEpisode,
-  animeLastAiringEpisode
+  animeLastAiringEpisode,
+  animeBroadcast,
+  animeAgeRating
 } from 'src/db';
 import { eq, inArray, asc, desc, sql } from 'drizzle-orm';
 
@@ -112,6 +114,30 @@ export function createLoaders() {
         .select()
         .from(animeEndDate)
         .where(inArray(animeEndDate.anime_id, [...ids]));
+      const map = indexBy(rows, (r) => r.anime_id);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    { cache: true }
+  );
+
+  const broadcast = new DataLoader<number, typeof animeBroadcast.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeBroadcast)
+        .where(inArray(animeBroadcast.anime_id, [...ids]));
+      const map = indexBy(rows, (r) => r.anime_id);
+      return ids.map((id) => map.get(id) ?? null);
+    },
+    { cache: true }
+  );
+
+  const ageRating = new DataLoader<number, typeof animeAgeRating.$inferSelect | null>(
+    async (ids) => {
+      const rows = await db
+        .select()
+        .from(animeAgeRating)
+        .where(inArray(animeAgeRating.anime_id, [...ids]));
       const map = indexBy(rows, (r) => r.anime_id);
       return ids.map((id) => map.get(id) ?? null);
     },
@@ -614,6 +640,8 @@ export function createLoaders() {
     title,
     startDate,
     endDate,
+    broadcast,
+    ageRating,
     genres,
     airingSchedule,
     latestAiringEpisode,

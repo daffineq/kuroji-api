@@ -51,7 +51,9 @@ import {
   animeToTranslation,
   animeLatestAiringEpisode,
   animeNextAiringEpisode,
-  animeLastAiringEpisode
+  animeLastAiringEpisode,
+  animeBroadcast,
+  animeAgeRating
 } from 'src/db';
 import { eq, sql } from 'drizzle-orm';
 import { toArray, uniqueBy } from 'src/helpers/utils';
@@ -180,6 +182,48 @@ class AnimeDbModule extends Module {
                 year: sql`excluded.year`,
                 month: sql`excluded.month`,
                 day: sql`excluded.day`
+              }
+            })
+        );
+      }
+
+      // Broadcast
+      if (payload.broadcast) {
+        ops.push(
+          tx
+            .insert(animeBroadcast)
+            .values({
+              anime_id: payload.id,
+              week: payload.broadcast.week,
+              time: payload.broadcast.time,
+              timezone: payload.broadcast.timezone
+            })
+            .onConflictDoUpdate({
+              target: animeEndDate.anime_id,
+              set: {
+                week: sql`excluded.week`,
+                time: sql`excluded.time`,
+                timezone: sql`excluded.timezone`
+              }
+            })
+        );
+      }
+
+      // Age Rating
+      if (payload.age_rating) {
+        ops.push(
+          tx
+            .insert(animeAgeRating)
+            .values({
+              anime_id: payload.id,
+              rating: payload.age_rating.rating,
+              description: payload.age_rating.description
+            })
+            .onConflictDoUpdate({
+              target: animeEndDate.anime_id,
+              set: {
+                rating: sql`excluded.rating`,
+                description: sql`excluded.description`
               }
             })
         );

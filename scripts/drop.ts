@@ -9,11 +9,11 @@ async function drop() {
       r RECORD;
     BEGIN
       FOR r IN (
-        SELECT tablename
+        SELECT schemaname, tablename
         FROM pg_tables
-        WHERE schemaname = 'public'
+        WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
       ) LOOP
-        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE;';
+        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.schemaname) || '.' || quote_ident(r.tablename) || ' CASCADE';
       END LOOP;
     END $$;
   `);

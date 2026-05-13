@@ -739,6 +739,14 @@ export const resolvers = {
       return loaders.endDate.load(parent.id);
     },
 
+    broadcast: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.broadcast.load(parent.id);
+    },
+
+    age_rating: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
+      return loaders.ageRating.load(parent.id);
+    },
+
     genres: async (parent: any, _: any, { loaders }: { loaders: Loaders }) => {
       return loaders.genres.load(parent.id);
     },

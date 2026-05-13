@@ -19,6 +19,14 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.anime.id,
       to: r.animeEndDate.anime_id
     }),
+    broadcast: r.one.animeBroadcast({
+      from: r.anime.id,
+      to: r.animeBroadcast.anime_id
+    }),
+    age_rating: r.one.animeAgeRating({
+      from: r.anime.id,
+      to: r.animeAgeRating.anime_id
+    }),
     genres: r.many.animeGenre({
       from: r.anime.id.through(r.animeToGenre.A),
       to: r.animeGenre.id.through(r.animeToGenre.B)
@@ -129,6 +137,20 @@ export const relations = defineRelations(schema, (r) => ({
   animeEndDate: {
     anime: r.one.anime({
       from: r.animeEndDate.anime_id,
+      to: r.anime.id
+    })
+  },
+
+  animeBroadcast: {
+    anime: r.one.anime({
+      from: r.animeBroadcast.anime_id,
+      to: r.anime.id
+    })
+  },
+
+  animeAgeRating: {
+    anime: r.one.anime({
+      from: r.animeAgeRating.anime_id,
       to: r.anime.id
     })
   },
