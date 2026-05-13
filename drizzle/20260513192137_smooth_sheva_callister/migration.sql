@@ -1,0 +1,1 @@
+ALTER TABLE "indexer_state" ADD COLUMN "last_pl" integer;
