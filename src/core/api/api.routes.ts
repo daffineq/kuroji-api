@@ -7,7 +7,7 @@ import { getApiKey } from 'src/helpers/utils';
 
 const apiRoute = () => {
   return (app: Elysia) =>
-    app.group('/api', { tags: ['API'] }, (app) =>
+    app.group('', { tags: ['API'] }, (app) =>
       app
         .post(
           '/api-key/generate',

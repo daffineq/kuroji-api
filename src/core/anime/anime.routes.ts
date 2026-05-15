@@ -7,7 +7,7 @@ import { Anime } from './anime';
 
 const animeRoute = () => {
   return (app: Elysia) =>
-    app.group('/api/anime', { tags: ['Anime'] }, (app) =>
+    app.group('/anime', { tags: ['Anime'] }, (app) =>
       app
         .post(
           '/indexer/start',
