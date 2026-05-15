@@ -1,5 +1,16 @@
-import { boolean, index, integer, pgTable, primaryKey, text, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  customType,
+  index,
+  integer,
+  pgTable,
+  primaryKey,
+  text,
+  uniqueIndex,
+  varchar
+} from 'drizzle-orm/pg-core';
 import cuid from 'cuid';
+import { sql, SQL } from 'drizzle-orm';
 
 const timestamps = {
   created_at: integer('created_at').$defaultFn(() => Math.floor(Date.now() / 1000)),
@@ -80,6 +91,12 @@ export const animePoster = pgTable(
   (t) => [index('idx_anime_poster_anime_id').on(t.anime_id)]
 );
 
+const tsvector = customType<{ data: string }>({
+  dataType() {
+    return 'tsvector';
+  }
+});
+
 export const animeTitle = pgTable(
   'anime_title',
   {
@@ -93,13 +110,21 @@ export const animeTitle = pgTable(
     romaji: text('romaji'),
     english: text('english'),
     native: text('native'),
+    search_vector: tsvector('search_vector').generatedAlwaysAs(
+      (): SQL => sql`to_tsvector('english',
+          coalesce(${animeTitle.romaji}, '') || ' ' ||
+          coalesce(${animeTitle.english}, '') || ' ' ||
+          coalesce(${animeTitle.native}, '')
+        )`
+    ),
     ...timestamps
   },
   (t) => [
     index('idx_anime_title_anime_id').on(t.anime_id),
     index('idx_anime_title_romaji').on(t.romaji),
     index('idx_anime_title_english').on(t.english),
-    index('idx_anime_title_native').on(t.native)
+    index('idx_anime_title_native').on(t.native),
+    index('search_vector_idx').using('gin', t.search_vector)
   ]
 );
 
