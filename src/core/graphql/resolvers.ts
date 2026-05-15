@@ -39,15 +39,14 @@ import {
   sql,
   desc,
   asc,
-  count,
   SQL,
-  ilike,
   exists,
   notInArray,
   not,
   notExists
 } from 'drizzle-orm';
 import { Loaders } from './loaders';
+import { GraphQLError } from 'graphql';
 
 const filterAnime = (
   args: AnimeArgs
@@ -118,15 +117,19 @@ const filterAnime = (
     sort = ['ID_DESC']
   } = args;
 
+  if (per_page > 50) {
+    throw new GraphQLError('Page exceeds the limit of 50', {
+      extensions: { code: 'BAD_USER_INPUT' }
+    });
+  }
+
   const skip = (page - 1) * per_page;
   const conditions: SQL[] = [];
 
   // Search
   if (search) {
-    const tokens = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
-
-    if (tokens.length > 0) {
-      const searchConditions = tokens.map((token) =>
+    conditions.push(
+      and(
         exists(
           db
             .select()
@@ -134,17 +137,12 @@ const filterAnime = (
             .where(
               and(
                 eq(animeTitle.anime_id, anime.id),
-                or(
-                  ilike(animeTitle.romaji, `%${token}%`),
-                  ilike(animeTitle.english, `%${token}%`),
-                  ilike(animeTitle.native, `%${token}%`)
-                )
+                sql`${animeTitle.search_vector} @@ plainto_tsquery('english', ${search})`
               )
             )
         )
-      );
-      conditions.push(and(...searchConditions)!);
-    }
+      )!
+    );
   }
 
   // ID filters
@@ -634,7 +632,7 @@ const getAnimePage = async (args: AnimeArgs) => {
   const { where, orderBy, skip, take, page } = filterAnime(args);
 
   const query = db
-    .select()
+    .select({ anime: anime, total: sql<number>`count(*) OVER()` })
     .from(anime)
     .leftJoin(animeTitle, eq(animeTitle.anime_id, anime.id))
     .leftJoin(animeStartDate, eq(animeStartDate.anime_id, anime.id))
@@ -647,15 +645,9 @@ const getAnimePage = async (args: AnimeArgs) => {
   if (where) query.where(where);
   if (orderBy.length) query.orderBy(...orderBy);
 
-  const [data, totalResult] = await Promise.all([
-    query.limit(take).offset(skip),
-    db
-      .select({ count: count() })
-      .from(anime)
-      .where(where || sql`true`)
-  ]);
+  const data = await query.limit(take).offset(skip);
 
-  const total = totalResult[0]?.count || 0;
+  const total = data[0]?.total || 0;
   const last_page = Math.ceil(total / take);
 
   return {
