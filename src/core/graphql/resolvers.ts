@@ -118,7 +118,7 @@ const filterAnime = (
   } = args;
 
   if (per_page > 50) {
-    throw new GraphQLError('Page exceeds the limit of 50', {
+    throw new GraphQLError('per_page exceeds the limit of 50', {
       extensions: { code: 'BAD_USER_INPUT' }
     });
   }
