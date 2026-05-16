@@ -73,7 +73,7 @@ class AnimeDbModule extends Module {
 
     const futureEpisodes = toArray(payload.airing_schedule)
       .filter((schedule) => DateUtils.isFuture(schedule.airing_at ?? 0))
-      .sort((a, b) => (b.airing_at ?? 0) - (a.airing_at ?? 0));
+      .sort((a, b) => (a.airing_at ?? 0) - (b.airing_at ?? 0));
 
     const latestEpisode = airedEpisodes?.[0];
     const nextEpisode = futureEpisodes?.[0];
