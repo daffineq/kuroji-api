@@ -19,10 +19,6 @@ export const yoga = createYoga<GraphQLContext>({
   schema,
   graphqlEndpoint: '/graphql',
   landingPage: true,
-  cors: {
-    origin: '*',
-    credentials: true
-  },
   context: () => ({
     loaders: createLoaders()
   })

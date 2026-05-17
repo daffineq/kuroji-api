@@ -135,12 +135,12 @@ class AnimeUpdateModule extends Module {
       return;
     }
 
-    await this.cleanupOldQueueItems();
-
-    const queueCount = (await db.select({ count: count() }).from(updateQueue))[0]?.count ?? 0;
-    logger.log(`Processing queue with ${queueCount} items...`);
-
     try {
+      await this.cleanupOldQueueItems();
+
+      const queueCount = (await db.select({ count: count() }).from(updateQueue))[0]?.count ?? 0;
+      logger.log(`Processing queue with ${queueCount} items...`);
+
       const items = await db.query.updateQueue.findMany({
         orderBy: {
           updated_at: 'desc'
