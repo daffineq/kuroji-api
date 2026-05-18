@@ -222,6 +222,25 @@ app.get(
   }
 );
 
+app.get(
+  '/health',
+  async () => {
+    await db.execute(sql`SELECT 1`);
+
+    return createSuccessResponse({
+      message: 'Service is healthy',
+      data: { status: 'UP' }
+    });
+  },
+  {
+    tags: ['System'],
+    detail: {
+      summary: 'Health Check',
+      description: 'Returns the health status of the application and its dependencies'
+    }
+  }
+);
+
 app.listen({ port: Config.port });
 
 logger.log(`Server listening on port ${Config.port}, at ${Config.public_url}`);
