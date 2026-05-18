@@ -6,11 +6,15 @@ import Elysia, { t } from 'elysia';
 import { Anime } from './anime';
 
 const animeRoute = () => {
+  return (app: Elysia) => app.group('/anime', { tags: ['Anime'] }, (app) => app);
+};
+
+const animeIndexerRoute = () => {
   return (app: Elysia) =>
-    app.group('/anime', { tags: ['Anime'] }, (app) =>
+    app.group('/anime/indexer', { tags: ['Anime Indexer'] }, (app) =>
       app
         .post(
-          '/indexer/start',
+          '/start',
           async ({ query }) =>
             createSuccessResponse({
               message: await AnimeIndexer.start({
@@ -32,27 +36,29 @@ const animeRoute = () => {
           }
         )
 
-        .post('/indexer/stop', () => createSuccessResponse({ message: AnimeIndexer.stop() }), {
+        .post('/stop', () => createSuccessResponse({ message: AnimeIndexer.stop() }), {
           detail: {
             summary: 'Stop Indexer',
             description: 'Stops indexing'
           }
         })
 
-        .post(
-          '/indexer/reset',
-          ({ query }) => createSuccessResponse({ message: AnimeIndexer.reset(query.status) }),
-          {
-            query: t.Object({
-              status: t.Optional(t.String({ description: 'Anime status from anilist' }))
-            }),
-            detail: {
-              summary: 'Reset Indexer',
-              description: 'Resets the state of indexer, it will start from page 1 on next start'
-            }
+        .post('/reset', ({ query }) => createSuccessResponse({ message: AnimeIndexer.reset(query.status) }), {
+          query: t.Object({
+            status: t.Optional(t.String({ description: 'Anime status from anilist' }))
+          }),
+          detail: {
+            summary: 'Reset Indexer',
+            description: 'Resets the state of indexer, it will start from page 1 on next start'
           }
-        )
+        })
+    );
+};
 
+const animeUpdateRoute = () => {
+  return (app: Elysia) =>
+    app.group('/anime/update', { tags: ['Anime Update'] }, (app) =>
+      app
         .put(
           '/update',
           ({ query }) => {
@@ -157,4 +163,4 @@ const animeRoute = () => {
     );
 };
 
-export { animeRoute };
+export { animeRoute, animeIndexerRoute, animeUpdateRoute };

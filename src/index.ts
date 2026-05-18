@@ -14,6 +14,7 @@ import swagger from '@elysiajs/swagger';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 import staticPlugin from '@elysiajs/static';
+import { animeIndexerRoute, animeUpdateRoute } from './core/anime';
 
 const app = new Elysia()
   .use(
@@ -69,6 +70,14 @@ const app = new Elysia()
             description: 'Anime REST endpoints'
           },
           {
+            name: 'Anime Indexer',
+            description: 'Anime Indexer REST endpoints'
+          },
+          {
+            name: 'Anime Update',
+            description: 'Anime Update REST endpoints'
+          },
+          {
             name: 'API',
             description: 'Main REST endpoints'
           },
@@ -111,6 +120,8 @@ const app = new Elysia()
   });
 
 app.use(animeRoute());
+app.use(animeIndexerRoute());
+app.use(animeUpdateRoute());
 app.use(apiRoute());
 
 app.get('/graphql', ({ request }) => yoga.handle(request), {
