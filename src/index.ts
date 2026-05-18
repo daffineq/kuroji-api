@@ -6,7 +6,7 @@ import { HttpError } from './helpers/errors';
 import { Config } from './config/config';
 import rateLimit from './helpers/plugins/rate.limit';
 import protectRoute from './helpers/plugins/protect.route';
-import { animeRoute, apiRoute, yoga } from './core';
+import { animeIndexerRoute, animeRoute, animeUpdateRoute, apiRoute, yoga } from './core';
 import logger from './helpers/logger';
 import Elysia, { file, NotFoundError, t } from 'elysia';
 import { cors } from '@elysiajs/cors';
@@ -14,7 +14,6 @@ import swagger from '@elysiajs/swagger';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 import staticPlugin from '@elysiajs/static';
-import { animeIndexerRoute, animeUpdateRoute } from './core/anime';
 
 const app = new Elysia()
   .use(
