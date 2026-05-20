@@ -166,7 +166,7 @@ class AnimeIndexerModule extends Module {
     await this.index({ status: 'RELEASING' });
   }
 
-  @Scheduled(Schedule.every12Hours(), Config.anime_reindexing_enabled)
+  @Scheduled(Schedule.weeklyOn(6), Config.anime_reindexing_enabled)
   async scheduleIndexUpcoming() {
     await this.index({
       status: 'NOT_YET_RELEASED',

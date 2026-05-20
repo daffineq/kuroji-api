@@ -1,4 +1,3 @@
-import { DateUtils } from 'src/helpers/date';
 import logger from 'src/helpers/logger';
 import { Module } from 'src/helpers/module';
 import { db } from 'src/db';
@@ -6,20 +5,19 @@ import { db } from 'src/db';
 class AnimeUpdateFetchModule extends Module {
   override readonly name = 'AnimeUpdateFetch';
 
-  async getRecentAiredAnime(hoursBack: number = 2) {
+  async getRecentAiredAnime(hoursBack: number = 4) {
     try {
-      const { start: startTimestamp, end: endTimestamp } = DateUtils.getHourSpanRange(hoursBack);
+      const now = Math.floor(Date.now() / 1000);
 
-      if (!DateUtils.isValidTimestamp(startTimestamp) || !DateUtils.isValidTimestamp(endTimestamp)) {
-        throw new Error('Invalid timestamp range calculated');
-      }
+      const start = now - hoursBack * 60 * 60;
+      const end = now + hoursBack * 60 * 60;
 
-      const recentAired = await db.query.anime.findMany({
+      const aired = await db.query.anime.findMany({
         where: {
           airing_schedule: {
             airing_at: {
-              gte: startTimestamp,
-              lte: endTimestamp
+              gte: start,
+              lte: end
             }
           }
         },
@@ -28,28 +26,14 @@ class AnimeUpdateFetchModule extends Module {
           id_mal: true,
           popularity: true
         },
-        with: {
-          airing_schedule: {
-            where: {
-              airing_at: {
-                gte: startTimestamp,
-                lte: endTimestamp
-              }
-            },
-            columns: {
-              airing_at: true,
-              episode: true
-            }
-          }
-        },
         orderBy: (anime, { desc }) => [desc(anime.trending)]
       });
 
       logger.log(
-        `Found ${recentAired.length} anime aired (${DateUtils.formatTimestamp(startTimestamp)} - ${DateUtils.formatTimestamp(endTimestamp)})`
+        `Found ${aired.length} anime aired (${new Date(start).toISOString()} - ${new Date(end).toISOString()})`
       );
 
-      return recentAired;
+      return aired;
     } catch (error) {
       logger.error('Error fetching recent aired anime:', error);
       return [];
@@ -58,175 +42,57 @@ class AnimeUpdateFetchModule extends Module {
 
   async getTodayAiredAnime() {
     try {
-      const { start: startTimestamp, end: endTimestamp } = DateUtils.getTodayRange();
-      const { start: bufferedStart, end: bufferedEnd } = DateUtils.getBufferedTimeRange(
-        startTimestamp,
-        endTimestamp,
-        1
-      );
+      const today = new Date().getUTCDay();
 
-      if (!DateUtils.isValidTimestamp(bufferedStart) || !DateUtils.isValidTimestamp(bufferedEnd)) {
-        throw new Error('Invalid timestamp range for today');
-      }
-
-      const todayAired = await db.query.anime.findMany({
+      const aired = await db.query.anime.findMany({
         where: {
-          airing_schedule: {
-            airing_at: {
-              gte: bufferedStart,
-              lte: bufferedEnd
-            }
-          }
+          status: 'RELEASING',
+          air_week: today
         },
         columns: {
           id: true,
           id_mal: true,
           popularity: true
         },
-        with: {
-          airing_schedule: {
-            where: {
-              airing_at: {
-                gte: bufferedStart,
-                lte: bufferedEnd
-              }
-            },
-            columns: {
-              airing_at: true,
-              episode: true
-            }
-          }
-        },
         orderBy: {
           trending: 'desc'
         }
       });
 
-      logger.log(
-        `Found ${todayAired.length} anime aired today (${DateUtils.formatTimestamp(startTimestamp)} - ${DateUtils.formatTimestamp(endTimestamp)})`
-      );
+      logger.log(`Found ${aired.length} anime aired today`);
 
-      return todayAired;
+      return aired;
     } catch (error) {
       logger.error('Error fetching today aired anime:', error);
       return [];
     }
   }
 
-  async getLastWeekAiredAnime() {
+  async getYesterdayAiredAnime() {
     try {
-      const { start: startTimestamp, end: endTimestamp } = DateUtils.getSpanRange({
-        daysAgo: 7
-      });
-
-      const { start: bufferedStart, end: bufferedEnd } = DateUtils.getBufferedTimeRange(
-        startTimestamp,
-        endTimestamp,
-        2
-      );
-
-      if (!DateUtils.isValidTimestamp(bufferedStart) || !DateUtils.isValidTimestamp(bufferedEnd)) {
-        throw new Error('Invalid timestamp range for week ago');
-      }
-
-      const weekAgoAired = await db.query.anime.findMany({
-        where: {
-          airing_schedule: {
-            airing_at: {
-              gte: bufferedStart,
-              lte: bufferedEnd
-            }
-          }
-        },
-        columns: {
-          id: true,
-          id_mal: true,
-          popularity: true
-        },
-        with: {
-          airing_schedule: {
-            where: {
-              airing_at: {
-                gte: bufferedStart,
-                lte: bufferedEnd
-              }
-            },
-            columns: {
-              airing_at: true,
-              episode: true
-            }
-          }
-        },
-        orderBy: {
-          trending: 'desc'
-        }
-      });
-
-      logger.log(
-        `Found ${weekAgoAired.length} anime aired in the last 7 days (${DateUtils.formatTimestamp(startTimestamp)} - ${DateUtils.formatTimestamp(endTimestamp)})`
-      );
-
-      return weekAgoAired;
-    } catch (error) {
-      logger.error('Error fetching last week aired anime:', error);
-      return [];
-    }
-  }
-
-  async getDaysAgoAiredAnime(range: number) {
-    try {
-      const { start: startTimestamp, end: endTimestamp } = DateUtils.getDaysAgoRange(range);
-
-      const { start: bufferedStart, end: bufferedEnd } = DateUtils.getBufferedTimeRange(
-        startTimestamp,
-        endTimestamp,
-        2
-      );
-
-      if (!DateUtils.isValidTimestamp(bufferedStart) || !DateUtils.isValidTimestamp(bufferedEnd)) {
-        throw new Error('Invalid timestamp range');
-      }
+      const today = new Date().getUTCDay();
+      const yesterday = (today + 6) % 7;
 
       const aired = await db.query.anime.findMany({
         where: {
-          airing_schedule: {
-            airing_at: {
-              gte: bufferedStart,
-              lte: bufferedEnd
-            }
-          }
+          status: 'RELEASING',
+          air_week: yesterday
         },
         columns: {
           id: true,
           id_mal: true,
           popularity: true
         },
-        with: {
-          airing_schedule: {
-            where: {
-              airing_at: {
-                gte: bufferedStart,
-                lte: bufferedEnd
-              }
-            },
-            columns: {
-              airing_at: true,
-              episode: true
-            }
-          }
-        },
         orderBy: {
           trending: 'desc'
         }
       });
 
-      logger.log(
-        `Found ${aired.length} anime aired (${DateUtils.formatTimestamp(startTimestamp)} - ${DateUtils.formatTimestamp(endTimestamp)})`
-      );
+      logger.log(`Found ${aired.length} anime aired yesterday`);
 
       return aired;
     } catch (error) {
-      logger.error('Error fetching anime from days ago:', error);
+      logger.error('Error fetching yesterday aired anime:', error);
       return [];
     }
   }
