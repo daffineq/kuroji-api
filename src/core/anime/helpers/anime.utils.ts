@@ -1,4 +1,3 @@
-import { DateUtils } from 'src/helpers/date';
 import { KitsuAnime } from '../providers/kitsu/types';
 import { ShikimoriAnime } from '../providers/shikimori/types';
 import { AnimeBasicData } from '../types';
@@ -9,10 +8,12 @@ const getEpisodesCount = (
   kitsu: KitsuAnime | null,
   shikimori: ShikimoriAnime | null
 ): number | undefined | null => {
+  const now = Math.floor(Date.now() / 1000);
+
   const airedSchedule =
     anime?.airing_schedule
-      ?.filter((s) => s.airing_at != null && DateUtils.isPast(s.airing_at))
-      .sort((a, b) => (b.airing_at ?? 0) - (a.airing_at ?? 0)) ?? [];
+      ?.filter((s) => s.airing_at && s.airing_at < now)
+      .sort((a, b) => b.airing_at! - a.airing_at!) ?? [];
 
   const totalEpisodes: (number | null | undefined)[] = [
     anime?.episodes_total,
@@ -186,10 +187,12 @@ const findEpisodeCount = (
   anime: AnimeBasicData | null,
   options?: { preferAired?: boolean }
 ): number | undefined => {
+  const now = Math.floor(Date.now() / 1000);
+
   const airedSchedule =
     anime?.airing_schedule
-      ?.filter((s) => s.airing_at != null && DateUtils.isPast(s.airing_at))
-      .sort((a, b) => (b.airing_at ?? 0) - (a.airing_at ?? 0)) ?? [];
+      ?.filter((s) => s.airing_at && s.airing_at < now)
+      .sort((a, b) => b.airing_at! - a.airing_at!) ?? [];
 
   const airedEpisodes: (number | null | undefined)[] = [airedSchedule?.length];
 

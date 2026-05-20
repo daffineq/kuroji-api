@@ -44,19 +44,6 @@ class AnimeUpdateModule extends Module {
     }
   }
 
-  private async updateQueueItem(animeId: number) {
-    try {
-      await db
-        .update(updateQueue)
-        .set({
-          updated_at: new Date()
-        })
-        .where(eq(updateQueue.anime_id, animeId));
-    } catch (error) {
-      logger.error(`Failed to update queue item ${animeId} in database:`, error);
-    }
-  }
-
   private async removeFromQueue(animeId: number) {
     try {
       await db.delete(updateQueue).where(eq(updateQueue.anime_id, animeId));
@@ -75,51 +62,28 @@ class AnimeUpdateModule extends Module {
   }
 
   async queueRecentAnime() {
-    const recentAnime = await AnimeUpdateFetch.getRecentAiredAnime();
-    logger.log(`Adding ${recentAnime.length} recent aired anime to queue with HIGH priority`);
+    const data = await AnimeUpdateFetch.getRecentAiredAnime();
+    logger.log(`Adding ${data.length} recent aired anime to queue`);
 
-    if (recentAnime.length > 0) {
-      const animeWithEpisodes = recentAnime.filter((anime) => anime.airing_schedule.length > 0);
-      logger.log(`Recent anime with episodes: ${animeWithEpisodes.length}/${recentAnime.length}`);
-    }
-
-    for (const anime of recentAnime) {
+    for (const anime of data) {
       await this.addToQueue(anime);
     }
   }
 
   async queueTodayAnime() {
-    const todayAnime = await AnimeUpdateFetch.getTodayAiredAnime();
-    logger.log(`Adding ${todayAnime.length} today aired anime to queue`);
+    const data = await AnimeUpdateFetch.getTodayAiredAnime();
+    logger.log(`Adding ${data.length} today aired anime to queue`);
 
-    for (const anime of todayAnime) {
+    for (const anime of data) {
       await this.addToQueue(anime);
     }
   }
 
-  async queueWeekAgoAnime() {
-    const weekAgoAnime = await AnimeUpdateFetch.getLastWeekAiredAnime();
-    logger.log(`Adding ${weekAgoAnime.length} last week aired anime to queue`);
+  async queueYesterdayAnime() {
+    const data = await AnimeUpdateFetch.getYesterdayAiredAnime();
+    logger.log(`Adding ${data.length} yesterday aired anime to queue`);
 
-    for (const anime of weekAgoAnime) {
-      await this.addToQueue(anime);
-    }
-  }
-
-  async queueTwoDaysAgoAnime() {
-    const twoDaysAgoAnime = await AnimeUpdateFetch.getDaysAgoAiredAnime(2);
-    logger.log(`Adding ${twoDaysAgoAnime.length} two days ago aired anime to queue`);
-
-    for (const anime of twoDaysAgoAnime) {
-      await this.addToQueue(anime);
-    }
-  }
-
-  async queueThreeDaysAgoAnime() {
-    const threeDaysAgoAnime = await AnimeUpdateFetch.getDaysAgoAiredAnime(3);
-    logger.log(`Adding ${threeDaysAgoAnime.length} three days ago aired anime to queue`);
-
-    for (const anime of threeDaysAgoAnime) {
+    for (const anime of data) {
       await this.addToQueue(anime);
     }
   }
@@ -147,6 +111,22 @@ class AnimeUpdateModule extends Module {
         },
         limit: 50
       });
+
+      // for (const item of items) {
+      //   if (await Anime.exists(item.anime_id)) {
+      //     if (await Anime.shouldAutoUpdate(item.anime_id)) {
+      //       await Anime.initProviders(item.anime_id);
+      //     } else {
+      //       logger.log(`Wont update anime: ${item.anime_id}...`);
+      //     }
+      //   } else {
+      //     await Anime.initProviders(item.anime_id);
+      //   }
+
+      //   await this.removeFromQueue(item.anime_id);
+
+      //   await sleep(Config.anime_processing_delay * 1000);
+      // }
 
       const response = await AnilistFetch.fetchInfoBulkIds(items.map((i) => i.anime_id));
 
@@ -192,8 +172,8 @@ class AnimeUpdateModule extends Module {
   }
 
   @Scheduled(Schedule.every12Hours(), Config.anime_update_enabled)
-  async scheduleTwoDaysAgoAnime() {
-    await this.queueTwoDaysAgoAnime();
+  async scheduleYesterdayAnime() {
+    await this.queueYesterdayAnime();
   }
 }
 

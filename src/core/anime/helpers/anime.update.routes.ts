@@ -44,23 +44,6 @@ const animeUpdateRoute = () => {
         )
 
         .put(
-          '/update/recent',
-          () => {
-            AnimeUpdate.queueRecentAnime().catch((error) => {
-              logger.error('Error queuing:', error);
-            });
-
-            return createSuccessResponse({ message: 'Queuing' });
-          },
-          {
-            detail: {
-              summary: 'Update Recent',
-              description: 'Updates recent aired anime (2 hours +-)'
-            }
-          }
-        )
-
-        .put(
           '/update/today',
           () => {
             AnimeUpdate.queueTodayAnime().catch((error) => {
@@ -78,9 +61,9 @@ const animeUpdateRoute = () => {
         )
 
         .put(
-          '/update/two-days-ago',
+          '/update/yesterday',
           () => {
-            AnimeUpdate.queueTwoDaysAgoAnime().catch((error) => {
+            AnimeUpdate.queueYesterdayAnime().catch((error) => {
               logger.error('Error queuing:', error);
             });
 
@@ -88,8 +71,8 @@ const animeUpdateRoute = () => {
           },
           {
             detail: {
-              summary: 'Update Two Days Ago',
-              description: 'Updates 2 days ago aired anime'
+              summary: 'Update Yesterday',
+              description: 'Updates yesterday aired anime'
             }
           }
         )

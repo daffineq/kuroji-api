@@ -1,8 +1,8 @@
 import { MatchStrategy, EpisodeMatchCandidate, SeasonEpisodeGroup, MatchResult, TmdbEpisode } from '../types';
-import { DateUtils } from 'src/helpers/date';
 import { Module } from 'src/helpers/module';
 import { AnimeBasicData } from 'src/core/anime/types';
 import { AnimeUtils } from 'src/core/anime/helpers';
+import { parseReleaseDate } from 'src/helpers/parsers';
 
 class TmdbStrategiesModule extends Module {
   override readonly name = 'TmdbStrategies';
@@ -15,10 +15,14 @@ class TmdbStrategiesModule extends Module {
   ): Promise<MatchResult> {
     const strategy = MatchStrategy.DATE_RANGE;
 
+    const year = new Date().getUTCFullYear();
+    const month = new Date().getUTCMonth();
+    const day = new Date().getUTCDate();
+
     const startDate = anime?.start_date ? AnimeUtils.getDate(anime.start_date) : null;
     const endDate = anime?.end_date
       ? AnimeUtils.getDate(anime.end_date)
-      : AnimeUtils.getDate(DateUtils.getCurrentReleaseDate());
+      : AnimeUtils.getDate(parseReleaseDate({ year, month, day }));
 
     if (!startDate || !anime?.season_year) {
       return { episodes: [], primarySeason: 1, confidence: 0, strategy };

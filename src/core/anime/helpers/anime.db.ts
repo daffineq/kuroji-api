@@ -1,4 +1,3 @@
-import { DateUtils } from 'src/helpers/date';
 import { Module } from 'src/helpers/module';
 import { Config } from 'src/config';
 import {
@@ -65,15 +64,17 @@ class AnimeDbModule extends Module {
   override readonly name = 'AnimeDB';
 
   async upsert(payload: AnimePayload) {
+    const now = Math.floor(Date.now() / 1000);
+
     const hasSchedule = payload.airing_schedule !== undefined;
 
     const airedEpisodes = toArray(payload.airing_schedule)
-      .filter((schedule) => DateUtils.isPast(schedule.airing_at ?? 0))
-      .sort((a, b) => (b.airing_at ?? 0) - (a.airing_at ?? 0));
+      .filter((schedule) => schedule.airing_at && schedule.airing_at < now)
+      .sort((a, b) => b.airing_at! - a.airing_at!);
 
     const futureEpisodes = toArray(payload.airing_schedule)
-      .filter((schedule) => DateUtils.isFuture(schedule.airing_at ?? 0))
-      .sort((a, b) => (a.airing_at ?? 0) - (b.airing_at ?? 0));
+      .filter((schedule) => schedule.airing_at && schedule.airing_at > now)
+      .sort((a, b) => a.airing_at! - b.airing_at!);
 
     const latestEpisode = airedEpisodes?.[0];
     const nextEpisode = futureEpisodes?.[0];
