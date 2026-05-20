@@ -30,7 +30,7 @@ class AnimeUpdateFetchModule extends Module {
       });
 
       logger.log(
-        `Found ${aired.length} anime aired (${new Date(start).toISOString()} - ${new Date(end).toISOString()})`
+        `Found ${aired.length} anime aired (${new Date(start * 1000).toISOString()} - ${new Date(end * 1000).toISOString()})`
       );
 
       return aired;
