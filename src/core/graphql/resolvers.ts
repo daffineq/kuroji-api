@@ -25,7 +25,8 @@ import {
   animeLatestAiringEpisode,
   animeNextAiringEpisode,
   animeLastAiringEpisode,
-  animeAiringSchedule
+  animeAiringSchedule,
+  animeAgeRating
 } from 'src/db';
 import {
   eq,
@@ -88,6 +89,9 @@ const filterAnime = (
     air_week,
     air_week_in,
     air_week_not_in,
+    age_rating,
+    age_rating_in,
+    age_rating_not_in,
     genres,
     genres_in,
     genres_not_in,
@@ -176,6 +180,35 @@ const filterAnime = (
   if (air_week) conditions.push(eq(anime.air_week, air_week));
   if (air_week_in?.length) conditions.push(inArray(anime.air_week, air_week_in));
   if (air_week_not_in?.length) conditions.push(notInArray(anime.air_week, air_week_not_in));
+
+  // Age rating filters
+  if (age_rating)
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeAgeRating)
+          .where(and(eq(animeAgeRating.anime_id, anime.id), eq(animeAgeRating.rating, age_rating)))
+      )
+    );
+  if (age_rating_in?.length)
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeAgeRating)
+          .where(and(eq(animeAgeRating.anime_id, anime.id), inArray(animeAgeRating.rating, age_rating_in)))
+      )
+    );
+  if (age_rating_not_in?.length)
+    conditions.push(
+      exists(
+        db
+          .select()
+          .from(animeAgeRating)
+          .where(and(eq(animeAgeRating.anime_id, anime.id), notInArray(animeAgeRating.rating, age_rating_not_in)))
+      )
+    );
 
   // Type and source filters
   if (type) conditions.push(eq(anime.type, type));

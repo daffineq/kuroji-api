@@ -31,6 +31,9 @@ type Query {
     air_week: Int
     air_week_in: [Int!]
     air_week_not_in: [Int!]
+    age_rating: String
+    age_rating_in: [String!]
+    age_rating_not_in: [String!]
     genres: [String!]
     genres_in: [String!]
     genres_not_in: [String!]
