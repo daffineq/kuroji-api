@@ -29,6 +29,9 @@ export interface AnimeArgs {
   air_week?: number;
   air_week_in?: number[];
   air_week_not_in?: number[];
+  age_rating?: string;
+  age_rating_in?: string[];
+  age_rating_not_in?: string[];
   genres?: string;
   genres_in?: string[];
   genres_not_in?: string[];
