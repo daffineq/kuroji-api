@@ -65,6 +65,17 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       } satisfies AnimeTranslationPayload;
     });
 
+    const logo = artworks
+      .filter((a) => a.type === 'logo')
+      .sort((a, b) => {
+        if (a.iso_639_1 === 'en' && b.iso_639_1 !== 'en') return -1;
+        if (b.iso_639_1 === 'en' && a.iso_639_1 !== 'en') return 1;
+
+        const sizeB = (b.height ?? 0) ** 2 + (b.width ?? 0) ** 2;
+        const sizeA = (a.height ?? 0) ** 2 + (a.width ?? 0) ** 2;
+        return sizeB - sizeA;
+      })[0];
+
     if (artworks) {
       await Anime.save({ id, artworks });
     }
@@ -99,6 +110,20 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
           medium: TmdbUtils.getImage('w780', resolved.info.backdrop_path),
           large: TmdbUtils.getImage('original', resolved.info.backdrop_path),
           type: 'background',
+          source: this.name
+        }
+      });
+    }
+
+    if (logo) {
+      await Anime.save({
+        id,
+        images: {
+          url: logo.url,
+          small: TmdbUtils.getImage('w300', logo.url),
+          medium: TmdbUtils.getImage('w780', logo.url),
+          large: TmdbUtils.getImage('original', logo.url),
+          type: 'logo',
           source: this.name
         }
       });

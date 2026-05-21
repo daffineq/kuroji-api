@@ -43,6 +43,31 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
         } satisfies AnimeArtworkPayload;
       });
 
+      const logo = artworks
+        .filter((a) => a.type === 'logo')
+        .sort((a, b) => {
+          if (a.iso_639_1 === 'en' && b.iso_639_1 !== 'en') return -1;
+          if (b.iso_639_1 === 'en' && a.iso_639_1 !== 'en') return 1;
+
+          const sizeB = (b.height ?? 0) ** 2 + (b.width ?? 0) ** 2;
+          const sizeA = (a.height ?? 0) ** 2 + (a.width ?? 0) ** 2;
+          return sizeB - sizeA;
+        })[0];
+
+      if (logo) {
+        await Anime.save({
+          id,
+          images: {
+            url: logo.url,
+            small: null,
+            medium: logo.medium,
+            large: logo.large,
+            type: 'logo',
+            source: this.name
+          }
+        });
+      }
+
       await Anime.save({ id, artworks });
     }
 
