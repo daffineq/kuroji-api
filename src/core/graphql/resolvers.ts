@@ -182,7 +182,7 @@ const filterAnime = (
   if (air_week_not_in?.length) conditions.push(notInArray(anime.air_week, air_week_not_in));
 
   // Age rating filters
-  if (age_rating)
+  if (age_rating) {
     conditions.push(
       exists(
         db
@@ -191,7 +191,9 @@ const filterAnime = (
           .where(and(eq(animeAgeRating.anime_id, anime.id), eq(animeAgeRating.rating, age_rating)))
       )
     );
-  if (age_rating_in?.length)
+  }
+
+  if (age_rating_in?.length) {
     conditions.push(
       exists(
         db
@@ -200,15 +202,20 @@ const filterAnime = (
           .where(and(eq(animeAgeRating.anime_id, anime.id), inArray(animeAgeRating.rating, age_rating_in)))
       )
     );
-  if (age_rating_not_in?.length)
+  }
+
+  if (age_rating_not_in?.length) {
     conditions.push(
-      exists(
-        db
-          .select()
-          .from(animeAgeRating)
-          .where(and(eq(animeAgeRating.anime_id, anime.id), notInArray(animeAgeRating.rating, age_rating_not_in)))
+      not(
+        exists(
+          db
+            .select()
+            .from(animeAgeRating)
+            .where(and(eq(animeAgeRating.anime_id, anime.id), inArray(animeAgeRating.rating, age_rating_not_in)))
+        )
       )
     );
+  }
 
   // Type and source filters
   if (type) conditions.push(eq(anime.type, type));
