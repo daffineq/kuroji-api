@@ -100,6 +100,8 @@ const filterAnime = (
     tags_not_in,
     studios,
     studios_in,
+    studios_not_in,
+    studio_is_main,
     score_greater,
     score_lesser,
     popularity_greater,
@@ -352,7 +354,15 @@ const filterAnime = (
           .select()
           .from(animeToStudio)
           .innerJoin(animeStudio, eq(animeStudio.id, animeToStudio.studio_id))
-          .where(and(eq(animeToStudio.anime_id, anime.id), eq(animeStudio.name, studios)))
+          .where(
+            and(
+              eq(animeToStudio.anime_id, anime.id),
+              eq(animeStudio.name, studios),
+              studio_is_main !== undefined && studio_is_main !== null
+                ? eq(animeToStudio.is_main, studio_is_main)
+                : undefined
+            )
+          )
       )
     );
   }
@@ -364,7 +374,37 @@ const filterAnime = (
           .select()
           .from(animeToStudio)
           .innerJoin(animeStudio, eq(animeStudio.id, animeToStudio.studio_id))
-          .where(and(eq(animeToStudio.anime_id, anime.id), inArray(animeStudio.name, studios_in)))
+          .where(
+            and(
+              eq(animeToStudio.anime_id, anime.id),
+              inArray(animeStudio.name, studios_in),
+              studio_is_main !== undefined && studio_is_main !== null
+                ? eq(animeToStudio.is_main, studio_is_main)
+                : undefined
+            )
+          )
+      )
+    );
+  }
+
+  if (studios_not_in?.length) {
+    conditions.push(
+      not(
+        exists(
+          db
+            .select()
+            .from(animeToStudio)
+            .innerJoin(animeStudio, eq(animeStudio.id, animeToStudio.studio_id))
+            .where(
+              and(
+                eq(animeToStudio.anime_id, anime.id),
+                inArray(animeStudio.name, studios_not_in),
+                studio_is_main !== undefined && studio_is_main !== null
+                  ? eq(animeToStudio.is_main, studio_is_main)
+                  : undefined
+              )
+            )
+        )
       )
     );
   }

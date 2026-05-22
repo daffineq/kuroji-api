@@ -42,6 +42,8 @@ type Query {
     tags_not_in: [String!]
     studios: [String!]
     studios_in: [String!]
+    studios_not_in: [String!]
+    studio_is_main: Boolean
     score_greater: Int
     score_lesser: Int
     popularity_greater: Int

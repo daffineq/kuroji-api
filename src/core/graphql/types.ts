@@ -40,6 +40,8 @@ export interface AnimeArgs {
   tags_not_in?: string[];
   studios?: string;
   studios_in?: string[];
+  studios_not_in?: string[];
+  studio_is_main?: boolean;
   score_greater?: number;
   score_lesser?: number;
   popularity_greater?: number;
