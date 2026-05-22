@@ -42,12 +42,19 @@ class AnimeUpdateFetchModule extends Module {
 
   async getTodayAiredAnime() {
     try {
-      const today = new Date().getUTCDay();
+      const now = Math.floor(Date.now() / 1000);
+
+      const start = now - 24 * 60 * 60;
+      const end = now;
 
       const aired = await db.query.anime.findMany({
         where: {
-          status: 'RELEASING',
-          air_week: today
+          airing_schedule: {
+            airing_at: {
+              gte: start,
+              lte: end
+            }
+          }
         },
         columns: {
           id: true,
@@ -70,13 +77,19 @@ class AnimeUpdateFetchModule extends Module {
 
   async getYesterdayAiredAnime() {
     try {
-      const today = new Date().getUTCDay();
-      const yesterday = (today + 6) % 7;
+      const now = Math.floor(Date.now() / 1000);
+
+      const start = now - 48 * 60 * 60;
+      const end = now - 24 * 60 * 60;
 
       const aired = await db.query.anime.findMany({
         where: {
-          status: 'RELEASING',
-          air_week: yesterday
+          airing_schedule: {
+            airing_at: {
+              gte: start,
+              lte: end
+            }
+          }
         },
         columns: {
           id: true,
