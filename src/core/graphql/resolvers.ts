@@ -285,10 +285,12 @@ const filterAnime = (
     conditions.push(
       exists(
         db
-          .select()
+          .select({ id: animeToGenre.A })
           .from(animeToGenre)
           .innerJoin(animeGenre, eq(animeGenre.id, animeToGenre.B))
           .where(and(eq(animeToGenre.A, anime.id), inArray(animeGenre.name, genres_in)))
+          .groupBy(animeToGenre.A)
+          .having(sql`count(distinct ${animeGenre.name}) = ${genres_in.length}`)
       )
     );
   }
@@ -324,10 +326,12 @@ const filterAnime = (
     conditions.push(
       exists(
         db
-          .select()
+          .select({ id: animeToTag.id })
           .from(animeToTag)
           .innerJoin(animeTag, eq(animeTag.id, animeToTag.tag_id))
           .where(and(eq(animeToTag.anime_id, anime.id), inArray(animeTag.name, tags_in)))
+          .groupBy(animeToTag.id)
+          .having(sql`count(distinct ${animeTag.name}) = ${tags_in.length}`)
       )
     );
   }
@@ -371,7 +375,7 @@ const filterAnime = (
     conditions.push(
       exists(
         db
-          .select()
+          .select({ id: animeToStudio.id })
           .from(animeToStudio)
           .innerJoin(animeStudio, eq(animeStudio.id, animeToStudio.studio_id))
           .where(
@@ -383,6 +387,8 @@ const filterAnime = (
                 : undefined
             )
           )
+          .groupBy(animeToStudio.id)
+          .having(sql`count(distinct ${animeStudio.name}) = ${studios_in.length}`)
       )
     );
   }
