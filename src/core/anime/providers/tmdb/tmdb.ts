@@ -129,6 +129,39 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       });
     }
 
+    if (resolved.info.title || resolved.info.name) {
+      await Anime.save({
+        id,
+        other_titles: {
+          title: (resolved.info.title ?? resolved.info.name)!,
+          language: 'english',
+          source: this.name
+        }
+      });
+    }
+
+    if (resolved.info.original_title || resolved.info.original_name) {
+      await Anime.save({
+        id,
+        other_titles: {
+          title: (resolved.info.original_title ?? resolved.info.original_name)!,
+          language: resolved.info.original_language,
+          source: this.name
+        }
+      });
+    }
+
+    if (resolved.info.overview) {
+      await Anime.save({
+        id,
+        other_descriptions: {
+          description: resolved.info.overview,
+          language: 'english',
+          source: this.name
+        }
+      });
+    }
+
     await Redis.set(key, resolved.info);
 
     return resolved.info;
