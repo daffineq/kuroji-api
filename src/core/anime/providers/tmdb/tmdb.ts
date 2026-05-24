@@ -5,7 +5,7 @@ import { NotFoundError } from 'src/helpers/errors';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { TmdbUtils } from './helpers/tmdb.utils';
 import { TmdbFetch } from './helpers/tmdb.fetch';
-import { normalize_iso_639_1 } from 'src/helpers/languages';
+import { ISO_639_1, normalize_iso_639_1 } from 'src/helpers/languages';
 import { ProviderModule } from 'src/helpers/module';
 import { AnimeUtils } from '../../helpers';
 import { Anime } from '../../anime';
@@ -134,7 +134,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
         id,
         other_titles: {
           title: (resolved.info.title ?? resolved.info.name)!,
-          language: 'english',
+          language: ISO_639_1.EN,
           source: this.name
         }
       });
@@ -156,7 +156,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
         id,
         other_descriptions: {
           description: resolved.info.overview,
-          language: 'english',
+          language: ISO_639_1.EN,
           source: this.name
         }
       });

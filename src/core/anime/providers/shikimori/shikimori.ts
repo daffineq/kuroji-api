@@ -7,6 +7,7 @@ import { Anime } from '../../anime';
 import { AnimeChronologyPayload, AnimeScreenshotPayload, AnimeVideoPayload } from '../../types';
 import { forced } from 'src/helpers/forced';
 import { Config } from 'src/config';
+import { ISO_639_1 } from 'src/helpers/languages';
 
 class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
   override readonly name = 'Shikimori';
@@ -61,7 +62,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
         other_titles: {
           title: info.russian,
           source: this.name,
-          language: 'russian'
+          language: ISO_639_1.RU
         }
       });
     }
@@ -72,7 +73,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
         other_descriptions: {
           description: info.description,
           source: this.name,
-          language: 'russian'
+          language: ISO_639_1.RU
         }
       });
     }

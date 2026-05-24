@@ -1,3 +1,21 @@
+export enum ISO_639_1 {
+  EN = 'en', // English
+  ES = 'es', // Spanish
+  ZH = 'zh', // Chinese
+  HI = 'hi', // Hindi
+  AR = 'ar', // Arabic
+  FR = 'fr', // French
+  DE = 'de', // German
+  RU = 'ru', // Russian
+  PT = 'pt', // Portuguese
+  JA = 'ja', // Japanese
+  KO = 'ko', // Korean
+  IT = 'it', // Italian
+  NL = 'nl', // Dutch
+  TR = 'tr', // Turkish
+  UK = 'uk' // Ukrainian
+}
+
 const ISO_639_1_MAP: Record<string, string> = {
   // Afar
   aa: 'aa',
