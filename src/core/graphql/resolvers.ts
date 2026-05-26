@@ -123,8 +123,8 @@ const filterAnime = (
     sort = ['ID_DESC']
   } = args;
 
-  if (per_page > 50) {
-    throw new GraphQLError('per_page exceeds the limit of 50', {
+  if (per_page > 100) {
+    throw new GraphQLError('per_page exceeds the limit of 100', {
       extensions: { code: 'BAD_USER_INPUT' }
     });
   }
