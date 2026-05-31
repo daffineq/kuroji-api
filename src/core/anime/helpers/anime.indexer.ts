@@ -156,7 +156,7 @@ class AnimeIndexerModule extends Module {
     return 'Reseted indexer';
   }
 
-  @Scheduled(Schedule.everyOtherWeek(), Config.anime_reindexing_enabled)
+  @Scheduled(Schedule.everyOtherMonth(), Config.anime_reindexing_enabled)
   async scheduleIndex() {
     await this.index();
   }
