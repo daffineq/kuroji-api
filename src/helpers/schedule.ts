@@ -74,6 +74,23 @@ const Schedule = {
       hour: [hour],
       minute: [minute]
     };
+  },
+
+  everyMonth(hour = 0, minute = 0): ScheduleOptions {
+    return {
+      day: [1],
+      hour: [hour],
+      minute: [minute]
+    };
+  },
+
+  everyOtherMonth(hour = 0, minute = 0): ScheduleOptions {
+    return {
+      month: [1, 3, 5, 7, 9, 11],
+      day: [1],
+      hour: [hour],
+      minute: [minute]
+    };
   }
 };
 
