@@ -79,13 +79,13 @@ Server runs at `http://localhost:3000`
 
 ```bash
 # Start indexing (delay in seconds between requests)
-curl -X POST "http://localhost:3000/api/anime/indexer/start?delay=5"
+curl -X POST "http://localhost:3000/anime/indexer/start?delay=5"
 
 # Stop it
-curl -X POST "http://localhost:3000/api/anime/indexer/stop"
+curl -X POST "http://localhost:3000/anime/indexer/stop"
 
 # Reset to page 1
-curl -X POST "http://localhost:3000/api/anime/indexer/reset"
+curl -X POST "http://localhost:3000/anime/indexer/reset"
 ```
 
 ### 2. Query Your Data
@@ -98,7 +98,7 @@ Or check the REST docs at `http://localhost:3000/docs`
 
 ```bash
 # Generate key (needs admin key)
-curl -X POST "http://localhost:3000/api/api-key/generate" \
+curl -X POST "http://localhost:3000/api-key/generate" \
   -H "x-api-key: YOUR_ADMIN_KEY"
 ```
 
@@ -134,7 +134,7 @@ ANIME_POPULARITY_THRESHOLD=7500
 
 After deploy, start the indexer:
 ```bash
-curl -X POST "https://your-app.onrender.com/api/anime/indexer/start?delay=5"
+curl -X POST "https://your-app.onrender.com/anime/indexer/start?delay=5"
 ```
 
 **Free tier heads up:**
@@ -197,6 +197,19 @@ bun run db:studio        # Database GUI
 bun run db:truncate      # Clear data
 bun run db:drop          # Drop tables
 ```
+
+---
+
+## 💖 Support My Work
+
+If you find this project useful, consider supporting its development with a crypto tip! Your donations will help me get a proper VPS to host this project at 🙂
+
+* **Solana (SOL / USDC):** `8jcFeDS8MBjDisX1W1r2FoGKFconG9wkCvmVMyxNen6v`
+* **Ethereum (ETH / Layer-2s):** `0x9Fe278b3b17C7360004967D429e92C8F746728eA` *(Please use cheap L2 networks like Arbitrum, Optimism, or Base to save on gas)*
+* **Monero (XMR):** `48Bz6doZfKg53FoTE8xgpEjH81cNVA8KEcqpq8CMZccYj3R4BPNLp5J57PEGNtx3rRfRrpHAkAebM5oPW8pUB2kEK5Ff3Pn`
+* **TRON (USDT - TRC20):** `TZ9BP3YaBJgK2jqigGDNzC9YNVZgXjufA6`
+
+*Please ensure you are utilizing the correct network layout before sending tokens. Thank you so much for the support!*
 
 ---
 
