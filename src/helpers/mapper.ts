@@ -407,7 +407,7 @@ export const findBestMatch = <T extends ExpectAnime>(
       }
     }
 
-    if (similarity < 0.5) {
+    if (similarity < 0.8) {
       continue;
     }
 
