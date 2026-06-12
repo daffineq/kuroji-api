@@ -38,6 +38,14 @@ open https://kuroji-api-j4mh.onrender.com/graphql
 
 ---
 
+## Community
+
+Join our Discord community for support, updates, and discussions:
+
+[![Discord](https://img.shields.io/badge/Discord-5865F2?style=flat&logo=discord&logoColor=white)](https://discord.gg/fXhZ8ZQfJD)
+
+---
+
 ## What's This?
 
 Fast anime database API that pulls from multiple sources (AniList, Kitsu, Shikimori, TMDB, TVDB, MyAnimeList, Zerochan)
