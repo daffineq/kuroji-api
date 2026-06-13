@@ -3,16 +3,17 @@ import { sleep } from 'bun';
 import { Config } from 'src/config';
 import lock from 'src/helpers/lock';
 import { EnableSchedule, Scheduled, Schedule } from 'src/helpers/schedule';
-import { AnimeUpdateFetch } from './anime.update.fetch';
-import { Anime } from '../anime';
 import { Module } from 'src/helpers/module';
 import { db, updateQueue } from 'src/db';
 import { count, eq, lt, sql } from 'drizzle-orm';
 import { AnilistFetch, AnilistUtils } from '../providers';
+import { Anime } from 'src/core';
+import { MediaUpdateFetch } from './media.update.fetch';
+import { Media } from '../media';
 
 @EnableSchedule
-class AnimeUpdateModule extends Module {
-  override readonly name = 'AnimeUpdate';
+class MediaUpdateModule extends Module {
+  override readonly name = 'MediaUpdate';
 
   private async cleanupOldQueueItems() {
     try {
@@ -62,7 +63,7 @@ class AnimeUpdateModule extends Module {
   }
 
   async queueRecentAnime() {
-    const data = await AnimeUpdateFetch.getRecentAiredAnime();
+    const data = await MediaUpdateFetch.getRecentAiredAnime();
     logger.log(`Adding ${data.length} recent aired anime to queue`);
 
     for (const anime of data) {
@@ -71,7 +72,7 @@ class AnimeUpdateModule extends Module {
   }
 
   async queueTodayAnime() {
-    const data = await AnimeUpdateFetch.getTodayAiredAnime();
+    const data = await MediaUpdateFetch.getTodayAiredAnime();
     logger.log(`Adding ${data.length} today aired anime to queue`);
 
     for (const anime of data) {
@@ -80,7 +81,7 @@ class AnimeUpdateModule extends Module {
   }
 
   async queueYesterdayAnime() {
-    const data = await AnimeUpdateFetch.getYesterdayAiredAnime();
+    const data = await MediaUpdateFetch.getYesterdayAiredAnime();
     logger.log(`Adding ${data.length} yesterday aired anime to queue`);
 
     for (const anime of data) {
@@ -133,14 +134,14 @@ class AnimeUpdateModule extends Module {
       for (const anime of response.media) {
         logger.log(`Processing anime ${anime.id}`);
 
-        if (await Anime.exists(anime.id)) {
-          if (await Anime.shouldAutoUpdate(anime.id)) {
-            await Anime.saveAndInit(AnilistUtils.anilistToAnimePayload(anime));
+        if (await Media.exists(anime.id)) {
+          if (await Media.shouldAutoUpdate(anime.id)) {
+            await Anime.saveAndInit(AnilistUtils.anilistToMediaPayload(anime));
           } else {
             logger.log(`Wont update anime: ${anime.id}...`);
           }
         } else {
-          await Anime.saveAndInit(AnilistUtils.anilistToAnimePayload(anime));
+          await Anime.saveAndInit(AnilistUtils.anilistToMediaPayload(anime));
         }
 
         await this.removeFromQueue(anime.id);
@@ -177,6 +178,6 @@ class AnimeUpdateModule extends Module {
   }
 }
 
-const AnimeUpdate = new AnimeUpdateModule();
+const MediaUpdate = new MediaUpdateModule();
 
-export { AnimeUpdate, AnimeUpdateModule };
+export { MediaUpdate, MediaUpdateModule };

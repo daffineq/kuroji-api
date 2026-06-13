@@ -7,8 +7,9 @@ import { ExpectAnime, findBestMatch, getSearchTitle } from 'src/helpers/mapper';
 import { parseString } from 'src/helpers/parsers';
 import { NotFoundError } from 'src/helpers/errors';
 import { Anime } from '../../anime';
-import { AnimeArtworkPayload } from '../../types';
+import { MediaArtworkPayload } from '../../../media/types';
 import { Config } from 'src/config';
+import { Media } from 'src/core/media';
 
 class ZerochanModule extends Module {
   override readonly name = 'Zerochan';
@@ -28,7 +29,7 @@ class ZerochanModule extends Module {
 
     const images = await this.resolveImages(id);
 
-    const artworks: AnimeArtworkPayload[] = images.map((i) => {
+    const artworks: MediaArtworkPayload[] = images.map((i) => {
       return {
         url: i.md5,
         width: i.width,
@@ -41,7 +42,7 @@ class ZerochanModule extends Module {
       };
     });
 
-    await Anime.save({
+    await Media.save({
       id,
       artworks
     });
@@ -52,14 +53,14 @@ class ZerochanModule extends Module {
   }
 
   private async resolveImages(id: number) {
-    const idMap = await Anime.map(id, this.name);
+    const idMap = await Media.map(id, this.name);
 
     if (idMap) {
       return ZerochanFetch.searchImages(idMap);
     } else {
       const result = await this.find(id);
 
-      await Anime.save({
+      await Media.save({
         id,
         links: {
           link: result.q,
@@ -100,7 +101,7 @@ class ZerochanModule extends Module {
       });
 
     const searchCriteria: ExpectAnime = {
-      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.other_titles.map((t) => t.title)]
+      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.alt_titles.map((t) => t.title)]
     };
 
     const bestMatch = findBestMatch(searchCriteria, results);

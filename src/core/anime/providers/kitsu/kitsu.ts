@@ -5,9 +5,10 @@ import { parseNumber, parseString } from 'src/helpers/parsers';
 import { getKey, Redis } from 'src/helpers/redis.util';
 import { KitsuFetch } from './helpers/kitsu.fetch';
 import { ProviderModule } from 'src/helpers/module';
-import { Anime } from '../../anime';
 import { AnimeUtils } from '../../helpers';
 import { Config } from 'src/config';
+import { Anime } from '../../anime';
+import { Media } from 'src/core/media';
 
 class KitsuModule extends ProviderModule<KitsuAnime> {
   override readonly name = 'Kitsu';
@@ -28,7 +29,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     const info = await this.resolveInfo(id);
 
     if (info.attributes.posterImage) {
-      await Anime.save({
+      await Media.save({
         id,
         images: {
           url: info.attributes.posterImage.original,
@@ -42,7 +43,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     }
 
     if (info.attributes.coverImage) {
-      await Anime.save({
+      await Media.save({
         id,
         images: {
           url: info.attributes.coverImage.original,
@@ -61,14 +62,14 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
   }
 
   private async resolveInfo(id: number) {
-    const idMap = await Anime.map(id, this.name);
+    const idMap = await Media.map(id, this.name);
 
     if (idMap) {
       return KitsuFetch.fetchInfo(idMap);
     } else {
       const info = await this.find(id);
 
-      await Anime.save({
+      await Media.save({
         id,
         links: {
           link: info.id,
@@ -110,7 +111,7 @@ class KitsuModule extends ProviderModule<KitsuAnime> {
     });
 
     const searchCriteria: ExpectAnime = {
-      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.other_titles.map((t) => t.title)],
+      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.alt_titles.map((t) => t.title)],
       year: al.season_year ?? undefined,
       type: al.format ?? 'TV',
       episodes: AnimeUtils.findEpisodeCount(al)

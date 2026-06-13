@@ -43,6 +43,20 @@ class ConfigModule {
   readonly anime_processing_delay =
     parseNumber(process.env.ANIME_INDEXER_DEFAULT_DELAY) ?? parseNumber(process.env.ANIME_PROCESSING_DELAY) ?? 5;
 
+  readonly statistics_enabled = parseBoolean(process.env.STATISTICS_ENABLED) ?? true;
+
+  readonly anime_enabled = parseBoolean(process.env.ANIME_ENABLED) ?? true;
+  readonly manga_enabled = parseBoolean(process.env.MANGA_ENABLED) ?? true;
+
+  readonly fetch_type =
+    this.anime_enabled && this.manga_enabled
+      ? undefined
+      : this.anime_enabled
+        ? 'ANIME'
+        : this.manga_enabled
+          ? 'MANGA'
+          : undefined;
+
   // API Base URLs
   readonly anilist = process.env.ANILIST ?? 'https://graphql.anilist.co';
   readonly myanimelist = process.env.MYANIMELIST ?? 'https://myanimelist.net';
@@ -61,9 +75,11 @@ class ConfigModule {
   // Keys
   readonly tmdb_api_key = process.env.TMDB_API_KEY ?? '';
   readonly tvdb_api_key = process.env.TVDB_API_KEY ?? '';
+  readonly openai_api_key = process.env.OPENAI_API_KEY ?? '';
 
   readonly has_tmdb_api_key = this.tmdb_api_key !== '';
   readonly has_tvdb_api_key = this.tvdb_api_key !== '';
+  readonly has_openai_api_key = this.openai_api_key !== '';
 
   // Providers
   readonly use_myanimelist = parseBoolean(process.env.USE_MYANIMELIST) ?? true;

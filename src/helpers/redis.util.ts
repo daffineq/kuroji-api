@@ -1,35 +1,23 @@
 import { Config } from 'src/config';
 import redis from 'src/lib/redis';
-import { localStore } from './local.store';
 
 class RedisModule {
-  async set(key: string, value: any, ttlSeconds: number = Config.redis_ttl) {
-    if (!Config.caching_enabled) return;
+  async set(key: string, value: any, ttlSeconds: number | undefined = Config.redis_ttl) {
+    if (!Config.caching_enabled || !redis) return;
 
     const data = typeof value === 'string' ? value : JSON.stringify(value);
 
-    if (redis) {
-      if (ttlSeconds) {
-        await redis.set(key, data, 'EX', ttlSeconds);
-      } else {
-        await redis.set(key, data);
-      }
-      return;
+    if (ttlSeconds) {
+      await redis.set(key, data, 'EX', ttlSeconds);
+    } else {
+      await redis.set(key, data);
     }
-
-    await localStore.set(key, data, ttlSeconds);
   }
 
   async get<T = any>(key: string): Promise<T | null> {
-    if (!Config.caching_enabled) return null;
+    if (!Config.caching_enabled || !redis) return null;
 
-    let data: string | null = null;
-
-    if (redis) {
-      data = await redis.get(key);
-    } else {
-      data = await localStore.get(key);
-    }
+    const data = await redis.get(key);
 
     if (!data) return null;
 
@@ -40,44 +28,66 @@ class RedisModule {
     }
   }
 
-  async del(key: string) {
-    if (!Config.caching_enabled) return;
+  async getset<T = any>(key: string, value: any): Promise<T | null> {
+    if (!Config.caching_enabled || !redis) return null;
 
-    if (redis) {
-      await redis.del(key);
-    } else {
-      await localStore.del(key);
+    const data = await redis.getset(key, value);
+
+    if (!data) return null;
+
+    try {
+      return JSON.parse(data) as T;
+    } catch {
+      return data as unknown as T;
     }
+  }
+
+  async del(...key: string[]) {
+    if (!Config.caching_enabled || !redis) return;
+
+    await redis.del(key);
+  }
+
+  async sadd(key: string, ...members: (string | number)[]) {
+    if (!Config.caching_enabled || !redis) return;
+
+    await redis.sadd(key, members);
+  }
+
+  async smembers(key: string) {
+    if (!Config.caching_enabled || !redis) return;
+
+    return await redis.smembers(key);
   }
 
   async incr(key: string) {
-    if (!Config.caching_enabled) return;
+    if (!Config.caching_enabled || !redis) return;
 
-    if (redis) {
-      return await redis.incr(key);
-    } else {
-      return await localStore.incr(key);
-    }
+    return await redis.incr(key);
+  }
+
+  async decr(key: string) {
+    if (!Config.caching_enabled || !redis) return;
+
+    return await redis.decr(key);
   }
 
   async expire(key: string, ttlSeconds: number) {
-    if (!Config.caching_enabled) return;
+    if (!Config.caching_enabled || !redis) return;
 
-    if (redis) {
-      return await redis.expire(key, ttlSeconds);
-    } else {
-      return await localStore.expire(key, ttlSeconds);
-    }
+    return await redis.expire(key, ttlSeconds);
   }
 
   async ttl(key: string) {
-    if (!Config.caching_enabled) return;
+    if (!Config.caching_enabled || !redis) return;
 
-    if (redis) {
-      return await redis.ttl(key);
-    } else {
-      return await localStore.ttl(key);
-    }
+    return await redis.ttl(key);
+  }
+
+  async exists(key: string) {
+    if (!Config.caching_enabled || !redis) return;
+
+    return await redis.exists(key);
   }
 }
 

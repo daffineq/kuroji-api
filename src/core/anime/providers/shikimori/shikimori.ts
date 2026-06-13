@@ -4,10 +4,11 @@ import { getKey, Redis } from 'src/helpers/redis.util';
 import { ShikimoriFetch } from './helpers/shikimori.fetch';
 import { ProviderModule } from 'src/helpers/module';
 import { Anime } from '../../anime';
-import { AnimeChronologyPayload, AnimeScreenshotPayload, AnimeVideoPayload } from '../../types';
+import { MediaChronologyPayload, MediaScreenshotPayload, MediaVideoPayload } from '../../../media/types';
 import { forced } from 'src/helpers/forced';
 import { Config } from 'src/config';
 import { ISO_639_1 } from 'src/helpers/languages';
+import { Media } from 'src/core/media';
 
 class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
   override readonly name = 'Shikimori';
@@ -28,21 +29,21 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     const info = await this.resolveInfo(id, idMal);
 
     if (info.videos) {
-      const videos: AnimeVideoPayload[] = info.videos.map((v) => {
+      const videos: MediaVideoPayload[] = info.videos.map((v) => {
         return {
           url: v.url!,
           title: v.name,
           thumbnail: v.imageUrl,
           type: v.kind,
           source: this.name
-        } satisfies AnimeVideoPayload;
+        } satisfies MediaVideoPayload;
       });
 
-      await Anime.save({ id, videos });
+      await Media.save({ id, videos });
     }
 
     if (info.screenshots) {
-      const screenshots: AnimeScreenshotPayload[] = info.screenshots.map((s, i) => {
+      const screenshots: MediaScreenshotPayload[] = info.screenshots.map((s, i) => {
         return {
           url: s.originalUrl!!,
           order: i,
@@ -50,16 +51,16 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
           medium: s.x332Url,
           large: s.originalUrl,
           source: this.name
-        } satisfies AnimeScreenshotPayload;
+        } satisfies MediaScreenshotPayload;
       });
 
-      await Anime.save({ id, screenshots });
+      await Media.save({ id, screenshots });
     }
 
     if (info.russian) {
-      await Anime.save({
+      await Media.save({
         id,
-        other_titles: {
+        alt_titles: {
           title: info.russian,
           source: this.name,
           language: ISO_639_1.RU
@@ -68,9 +69,9 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (info.description) {
-      await Anime.save({
+      await Media.save({
         id,
-        other_descriptions: {
+        alt_descriptions: {
           description: info.description,
           source: this.name,
           language: ISO_639_1.RU
@@ -79,7 +80,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (info.poster) {
-      await Anime.save({
+      await Media.save({
         id,
         images: {
           url: info.poster.originalUrl!,
@@ -92,26 +93,26 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     }
 
     if (info.franchise) {
-      await Anime.save({ id, franchise: info.franchise });
+      await Media.save({ id, franchise: info.franchise });
     }
 
     if (info.episodesAired) {
-      await Anime.save({ id, episodes_aired: info.episodesAired });
+      await Media.save({ id, episodes_aired: info.episodesAired });
     }
 
     if (info.episodes) {
-      await Anime.save({ id, episodes_total: info.episodes });
+      await Media.save({ id, episodes_total: info.episodes });
     }
 
     if (info.chronology) {
-      const chronology: AnimeChronologyPayload[] = info.chronology.reverse().map((c, i) => {
+      const chronology: MediaChronologyPayload[] = info.chronology.reverse().map((c, i) => {
         return {
           parent_id: parseNumber(info.id)!,
           related_id: parseNumber(c.id)!,
           order: i
-        } satisfies AnimeChronologyPayload;
+        } satisfies MediaChronologyPayload;
       });
-      await Anime.save({ id, chronology: forced(chronology) });
+      await Media.save({ id, chronology: forced(chronology) });
     }
 
     await Redis.set(key, info);
@@ -123,7 +124,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
     if (idMal) {
       const info = await ShikimoriFetch.fetchInfo(parseString(idMal)!);
 
-      await Anime.save({
+      await Media.save({
         id,
         links: {
           link: parseString(idMal)!,
@@ -134,7 +135,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
 
       return info;
     } else {
-      const idMap = await Anime.map(id, this.name);
+      const idMap = await Media.map(id, this.name);
 
       if (idMap) {
         return ShikimoriFetch.fetchInfo(idMap);
@@ -147,7 +148,7 @@ class ShikimoriModule extends ProviderModule<ShikimoriAnime> {
 
         const info = await ShikimoriFetch.fetchInfo(parseString(al.id_mal)!);
 
-        await Anime.save({
+        await Media.save({
           id,
           links: {
             link: parseString(al.id_mal)!,

@@ -2,7 +2,7 @@ import logger from 'src/helpers/logger';
 import { Module } from 'src/helpers/module';
 import { db } from 'src/db';
 
-class AnimeUpdateFetchModule extends Module {
+class MediaUpdateFetchModule extends Module {
   override readonly name = 'AnimeUpdateFetch';
 
   async getRecentAiredAnime(hoursBack: number = 4) {
@@ -12,7 +12,7 @@ class AnimeUpdateFetchModule extends Module {
       const start = now - hoursBack * 60 * 60;
       const end = now + hoursBack * 60 * 60;
 
-      const aired = await db.query.anime.findMany({
+      const aired = await db.query.media.findMany({
         where: {
           airing_schedule: {
             airing_at: {
@@ -47,7 +47,7 @@ class AnimeUpdateFetchModule extends Module {
       const start = now - 24 * 60 * 60;
       const end = now;
 
-      const aired = await db.query.anime.findMany({
+      const aired = await db.query.media.findMany({
         where: {
           airing_schedule: {
             airing_at: {
@@ -82,7 +82,7 @@ class AnimeUpdateFetchModule extends Module {
       const start = now - 48 * 60 * 60;
       const end = now - 24 * 60 * 60;
 
-      const aired = await db.query.anime.findMany({
+      const aired = await db.query.media.findMany({
         where: {
           airing_schedule: {
             airing_at: {
@@ -111,6 +111,6 @@ class AnimeUpdateFetchModule extends Module {
   }
 }
 
-const AnimeUpdateFetch = new AnimeUpdateFetchModule();
+const MediaUpdateFetch = new MediaUpdateFetchModule();
 
-export { AnimeUpdateFetch, AnimeUpdateFetchModule };
+export { MediaUpdateFetch, MediaUpdateFetchModule };

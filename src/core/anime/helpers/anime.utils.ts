@@ -1,7 +1,7 @@
 import { KitsuAnime } from '../providers/kitsu/types';
 import { ShikimoriAnime } from '../providers/shikimori/types';
-import { AnimeBasicData } from '../types';
 import { ReleaseDate } from 'src/core/types';
+import { AnimeBasicData } from '../types';
 
 const getEpisodesCount = (
   anime: AnimeBasicData | null,

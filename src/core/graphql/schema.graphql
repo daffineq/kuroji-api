@@ -1,6 +1,6 @@
 type Query {
-  anime(id: Int!): Anime
-  animes(
+  media(id: Int!): Media
+  media_page(
     page: Int = 1
     per_page: Int = 20
     search: String
@@ -62,15 +62,25 @@ type Query {
     airing_at_lesser: Int
     has_next_episode: Boolean
     franchise: String
-    sort: [AnimeSort!]
-  ): AnimePage!
-  genres: [AnimeGenre!]!
-  tags(search: String, category: String, is_adult: Boolean): [AnimeTag!]!
-  studios(search: String): [AnimeStudio!]!
+    views_total_greater: Int
+    views_total_lesser: Int
+    views_hour_greater: Int
+    views_hour_lesser: Int
+    views_today_greater: Int
+    views_today_lesser: Int
+    views_week_greater: Int
+    views_week_lesser: Int
+    views_month_greater: Int
+    views_month_lesser: Int
+    sort: [MediaSort!]
+  ): MediaPage!
+  genres: [MediaGenre!]!
+  tags(search: String, category: String, is_adult: Boolean): [MediaTag!]!
+  studios(search: String): [MediaStudio!]!
 }
 
-type AnimePage {
-  data: [Anime!]!
+type MediaPage {
+  data: [Media!]!
   page_info: PageInfo!
 }
 
@@ -82,7 +92,7 @@ type PageInfo {
   has_next_page: Boolean!
 }
 
-enum AnimeSort {
+enum MediaSort {
   # ID Sorting
   ID_DESC
   ID_ASC
@@ -102,6 +112,7 @@ enum AnimeSort {
   POPULARITY_ASC
   TRENDING_DESC
   TRENDING_ASC
+  CONTAINER_DESC
   FAVORITES_DESC
   FAVORITES_ASC
 
@@ -140,6 +151,21 @@ enum AnimeSort {
   # Status
   STATUS_ASC
   STATUS_DESC
+
+  # Views
+  VIEWS_TOTAL_DESC
+  VIEWS_TOTAL_ASC
+  VIEWS_HOUR_DESC
+  VIEWS_HOUR_ASC
+  VIEWS_TODAY_DESC
+  VIEWS_TODAY_ASC
+  VIEWS_WEEK_DESC
+  VIEWS_WEEK_ASC
+  VIEWS_MONTH_DESC
+  VIEWS_MONTH_ASC
+
+  # Search
+  SEARCH_SIMILIARITY
 }
 
 enum MediaType {
@@ -153,7 +179,7 @@ enum MediaFormat {
   MOVIE
   SPECIAL
   OVA
-  ONA
+  ONAS
   MUSIC
   MANGA
   NOVEL
@@ -223,11 +249,11 @@ enum ExternalLinkType {
 
 scalar CountryCode
 
-type Anime {
+type Media {
   id: Int!
   id_mal: Int
-  title: AnimeTitle
-  poster: AnimePoster
+  title: MediaTitle
+  poster: MediaPoster
   background: String
   synonyms: [String!]!
   description: String
@@ -235,8 +261,8 @@ type Anime {
   type: MediaType
   format: MediaFormat
   updated_at: Int!
-  start_date: AnimeDate
-  end_date: AnimeDate
+  start_date: MediaDate
+  end_date: MediaDate
   season: MediaSeason
   season_year: Int
   episodes_aired: Int
@@ -251,13 +277,14 @@ type Anime {
   popularity: Int
   trending: Int
   favorites: Int
+  local_favorites: Int
   color: String
   franchise: String
   more_info: String
   air_week: Int
-  broadcast: AnimeBroadcast
-  age_rating: AnimeAgeRating
-  genres: [AnimeGenre!]!
+  broadcast: MediaBroadcast
+  age_rating: MediaAgeRating
+  genres: [MediaGenre!]!
   airing_schedule: [AiringSchedule!]!
   latest_airing_episode: AiringSchedule
   next_airing_episode: AiringSchedule
@@ -267,50 +294,54 @@ type Anime {
   tags: [TagConnection!]!
   score_distribution: [ScoreDistribution!]!
   status_distribution: [StatusDistribution!]!
-  links(type: String, label: String): [AnimeLink!]!
-  other_titles(source: String, language: String): [OtherTitle!]!
-  other_descriptions(source: String, language: String): [OtherDescription!]!
-  images(source: String, type: String): [AnimeImage!]!
-  videos(source: String, type: String): [AnimeVideo!]!
-  screenshots(source: String, order_greater: Int, order_lesser: Int): [AnimeScreenshot!]!
+  local_score_distribution: [LocalScoreDistribution!]!
+  local_status_distribution: [LocalStatusDistribution!]!
+  links(type: String, label: String): [MediaLink!]!
+  alt_titles(source: String, language: String): [AltTitle!]!
+  alt_descriptions(source: String, language: String): [AltDescription!]!
+  images(source: String, type: String): [MediaImage!]!
+  videos(source: String, type: String): [MediaVideo!]!
+  screenshots(source: String, order_greater: Int, order_lesser: Int): [MediaScreenshot!]!
   episodes(number_greater: Int, number_lesser: Int, air_date_greater: String, air_date_lesser: String): [Episode!]!
-  artworks(iso_639_1: String, source: String, include_adult: Boolean, type: String): [AnimeArtwork!]!
-  translations(iso_639_1: String, source: String): [AnimeTranslation!]!
-  chronology: [Anime!]!
-  recommendations: [Anime!]!
-  connected: [Anime!]!
+  artworks(iso_639_1: String, source: String, include_adult: Boolean, type: String): [MediaArtwork!]!
+  translations(iso_639_1: String, source: String): [MediaTranslation!]!
+  chronology: [Media!]!
+  recommendations: [Media!]!
+  recommendations_ai: [Media!]!
+  connected: [Media!]!
+  relations: [MediaRelation!]!
 }
 
-type AnimeTitle {
+type MediaTitle {
   romaji: String
   english: String
   native: String
 }
 
-type AnimePoster {
+type MediaPoster {
   small: String
   medium: String
   large: String
 }
 
-type AnimeDate {
+type MediaDate {
   day: Int
   month: Int
   year: Int
 }
 
-type AnimeBroadcast {
+type MediaBroadcast {
   week: Int
   time: String
   timezone: String
 }
 
-type AnimeAgeRating {
+type MediaAgeRating {
   rating: String
   description: String
 }
 
-type AnimeGenre {
+type MediaGenre {
   id: String!
   name: String!
 }
@@ -327,11 +358,11 @@ type CharacterPage {
 
 type CharacterConnection {
   role: CharacterRole
-  character: AnimeCharacter!
+  character: MediaCharacter!
   voice_actors: [VoiceActor!]!
 }
 
-type AnimeCharacter {
+type MediaCharacter {
   id: Int!
   age: String
   blood_type: String
@@ -339,7 +370,7 @@ type AnimeCharacter {
   description: String
   name: CharacterName
   image: CharacterImage
-  date_of_birth: AnimeDate
+  date_of_birth: MediaDate
 }
 
 type CharacterName {
@@ -367,8 +398,8 @@ type VoiceActor {
   home_town: String
   name: VoiceActorName
   image: VoiceActorImage
-  date_of_birth: AnimeDate
-  date_of_death: AnimeDate
+  date_of_birth: MediaDate
+  date_of_death: MediaDate
 }
 
 type VoiceActorName {
@@ -387,10 +418,10 @@ type VoiceActorImage {
 
 type StudioConnection {
   is_main: Boolean
-  studio: AnimeStudio!
+  studio: MediaStudio!
 }
 
-type AnimeStudio {
+type MediaStudio {
   id: Int!
   name: String
 }
@@ -398,10 +429,10 @@ type AnimeStudio {
 type TagConnection {
   rank: Int
   is_spoiler: Boolean
-  tag: AnimeTag!
+  tag: MediaTag!
 }
 
-type AnimeTag {
+type MediaTag {
   id: Int!
   name: String
   description: String
@@ -409,7 +440,7 @@ type AnimeTag {
   is_adult: Boolean
 }
 
-type AnimeLink {
+type MediaLink {
   link: String!
   label: String!
   type: String!
@@ -425,19 +456,29 @@ type StatusDistribution {
   amount: Int!
 }
 
-type OtherTitle {
+type LocalScoreDistribution {
+  score: Int!
+  amount: Int!
+}
+
+type LocalStatusDistribution {
+  status: Int!
+  amount: Int!
+}
+
+type AltTitle {
   title: String!
   source: String!
   language: String!
 }
 
-type OtherDescription {
+type AltDescription {
   description: String!
   source: String!
   language: String!
 }
 
-type AnimeImage {
+type MediaImage {
   url: String!
   small: String
   medium: String
@@ -446,7 +487,7 @@ type AnimeImage {
   source: String!
 }
 
-type AnimeVideo {
+type MediaVideo {
   url: String!
   title: String
   thumbnail: String
@@ -455,7 +496,7 @@ type AnimeVideo {
   source: String
 }
 
-type AnimeScreenshot {
+type MediaScreenshot {
   url: String!
   order: Int!
   small: String
@@ -464,7 +505,7 @@ type AnimeScreenshot {
   source: String!
 }
 
-type AnimeArtwork {
+type MediaArtwork {
   url: String!
   height: Int
   width: Int
@@ -476,7 +517,7 @@ type AnimeArtwork {
   source: String!
 }
 
-type AnimeTranslation {
+type MediaTranslation {
   iso_639_1: String
   title: String
   description: String
@@ -551,4 +592,9 @@ type EpisodeImages {
   width: Int
   iso_639_1: String
   image: EpisodeImage
+}
+
+type MediaRelation {
+  relation_type: String!
+  media: Media!
 }

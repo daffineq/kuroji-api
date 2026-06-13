@@ -6,7 +6,7 @@ import { HttpError } from './helpers/errors';
 import { Config } from './config/config';
 import rateLimit from './helpers/plugins/rate.limit';
 import protectRoute from './helpers/plugins/protect.route';
-import { animeIndexerRoute, animeRoute, animeUpdateRoute, apiRoute, yoga } from './core';
+import { mediaIndexerRoute, mediaRoute, mediaUpdateRoute, apiRoute, yoga } from './core';
 import logger from './helpers/logger';
 import Elysia, { file, NotFoundError, t } from 'elysia';
 import { cors } from '@elysiajs/cors';
@@ -65,16 +65,16 @@ const app = new Elysia()
         security: [{ apiKey: [] }],
         tags: [
           {
-            name: 'Anime',
-            description: 'Anime REST endpoints'
+            name: 'Media',
+            description: 'Media REST endpoints'
           },
           {
-            name: 'Anime Indexer',
-            description: 'Anime Indexer REST endpoints'
+            name: 'Media Indexer',
+            description: 'Media Indexer REST endpoints'
           },
           {
-            name: 'Anime Update',
-            description: 'Anime Update REST endpoints'
+            name: 'Media Update',
+            description: 'Media Update REST endpoints'
           },
           {
             name: 'API',
@@ -118,9 +118,9 @@ const app = new Elysia()
     return createErrorResponse({ error: { status: 500, message: 'Unknown error' } });
   });
 
-app.use(animeRoute());
-app.use(animeIndexerRoute());
-app.use(animeUpdateRoute());
+app.use(mediaRoute());
+app.use(mediaIndexerRoute());
+app.use(mediaUpdateRoute());
 app.use(apiRoute());
 
 app.get('/graphql', ({ request }) => yoga.handle(request), {

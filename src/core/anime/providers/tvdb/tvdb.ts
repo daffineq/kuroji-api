@@ -7,9 +7,10 @@ import { normalize_iso_639_1 } from 'src/helpers/languages';
 import { ProviderModule } from 'src/helpers/module';
 import { AnimeUtils } from '../../helpers';
 import { Anime } from '../../anime';
-import { AnimeArtworkPayload } from '../../types';
+import { MediaArtworkPayload } from '../../../media/types';
 import { Config } from 'src/config';
 import { ExpectAnime, findBestMatch, getSearchTitle } from 'src/helpers/mapper';
+import { Media } from 'src/core/media';
 
 class TvdbModule extends ProviderModule<TvdbInfoResult> {
   override readonly name = 'TVDB';
@@ -30,7 +31,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
     const info = await this.resolveInfo(id);
 
     if (info.artworks) {
-      const artworks: AnimeArtworkPayload[] = info.artworks.map((a) => {
+      const artworks: MediaArtworkPayload[] = info.artworks.map((a) => {
         return {
           url: a.image!,
           large: a.image,
@@ -40,7 +41,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
           medium: a.thumbnail,
           type: AnimeUtils.unifyArtworkType(a.type),
           source: this.name
-        } satisfies AnimeArtworkPayload;
+        } satisfies MediaArtworkPayload;
       });
 
       const logo = artworks
@@ -55,7 +56,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
         })[0];
 
       if (logo) {
-        await Anime.save({
+        await Media.save({
           id,
           images: {
             url: logo.url,
@@ -68,7 +69,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
         });
       }
 
-      await Anime.save({ id, artworks });
+      await Media.save({ id, artworks });
     }
 
     await Redis.set(key, info);
@@ -85,14 +86,14 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
 
     const type = AnimeUtils.getType(al.format);
 
-    const idMap = await Anime.map(id, this.name);
+    const idMap = await Media.map(id, this.name);
 
     if (idMap) {
       return type === 'movie' ? TvdbFetch.fetchMovie(idMap) : TvdbFetch.fetchSeries(idMap);
     } else {
       const info = await this.find(id);
 
-      await Anime.save({
+      await Media.save({
         id,
         links: {
           link: parseString(info.id)!,
@@ -134,7 +135,7 @@ class TvdbModule extends ProviderModule<TvdbInfoResult> {
     });
 
     const searchCriteria: ExpectAnime = {
-      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.other_titles.map((t) => t.title)],
+      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.alt_titles.map((t) => t.title)],
       language: AnimeUtils.getLanguage(al.country ?? 'JP') ?? 'jp'
     };
 

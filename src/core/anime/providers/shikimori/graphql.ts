@@ -1,4 +1,6 @@
-export const SHIKIMORI_INFO = `
+import { graphql } from 'src/helpers/graphql';
+
+export const SHIKIMORI_INFO = graphql`
   query ($ids: String) {
     animes(ids: $ids, page: 1, limit: 1) {
       id
@@ -17,19 +19,53 @@ export const SHIKIMORI_INFO = `
       franchise
       episodesAired
       duration
-      airedOn { year month day date }
-      releasedOn { year month day date }
+      airedOn {
+        year
+        month
+        day
+        date
+      }
+      releasedOn {
+        year
+        month
+        day
+        date
+      }
       url
       season
-      poster { id originalUrl mainUrl }
+      poster {
+        id
+        originalUrl
+        mainUrl
+      }
       createdAt
       updatedAt
       nextEpisodeAt
-      videos { id url name kind playerUrl imageUrl }
-      screenshots { id originalUrl x166Url x332Url }
-      scoresStats { score count }
-      statusesStats { status count }
-      chronology { id }
+      videos {
+        id
+        url
+        name
+        kind
+        playerUrl
+        imageUrl
+      }
+      screenshots {
+        id
+        originalUrl
+        x166Url
+        x332Url
+      }
+      scoresStats {
+        score
+        count
+      }
+      statusesStats {
+        status
+        count
+      }
+      chronology {
+        id
+      }
       description
       descriptionHtml
       descriptionSource
