@@ -22,26 +22,17 @@ class ConfigModule {
   readonly cors = (process.env.CORS ?? this.public_url).split(',');
 
   // Update Settings
-  readonly anime_update_enabled = parseBoolean(process.env.ANIME_UPDATE_ENABLED) ?? true;
+  readonly media_update_enabled = parseBoolean(process.env.MEDIA_UPDATE_ENABLED) ?? true;
 
-  readonly anime_reindexing_enabled =
-    parseBoolean(process.env.ANIME_INDEXER_UPDATE_ENABLED) ??
-    parseBoolean(process.env.ANIME_REINDEXING_ENABLED) ??
-    true;
+  readonly media_reindexing_enabled = parseBoolean(process.env.MEDIA_REINDEXING_ENABLED) ?? true;
 
   // Anime
-  readonly anime_popularity_threshold =
-    parseNumber(process.env.ANIME_INDEXER_DEFAULT_POPULARITY_THRESHOLD) ??
-    parseNumber(process.env.ANIME_POPULARITY_THRESHOLD) ??
-    1500;
+  readonly media_popularity_threshold = parseNumber(process.env.MEDIA_POPULARITY_THRESHOLD) ?? 1500;
 
-  readonly anime_popularity_threshold_upcoming =
-    parseNumber(process.env.ANIME_INDEXER_DEFAULT_UPCOMING_POPULARITY_THRESHOLD) ??
-    parseNumber(process.env.ANIME_POPULARITY_THRESHOLD_UPCOMING) ??
-    1500;
+  readonly media_popularity_threshold_upcoming =
+    parseNumber(process.env.MEDIA_POPULARITY_THRESHOLD_UPCOMING) ?? 1500;
 
-  readonly anime_processing_delay =
-    parseNumber(process.env.ANIME_INDEXER_DEFAULT_DELAY) ?? parseNumber(process.env.ANIME_PROCESSING_DELAY) ?? 5;
+  readonly media_processing_delay = parseNumber(process.env.MEDIA_PROCESSING_DELAY) ?? 5;
 
   readonly statistics_enabled = parseBoolean(process.env.STATISTICS_ENABLED) ?? true;
 
