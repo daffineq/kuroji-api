@@ -4,7 +4,7 @@
   </a>
 </p>
 
-<h1 align="center">Kuroji API v2</h1>
+<h1 align="center">Kuroji API v3</h1>
 
 <p align="center">
   <strong>A modern anime API</strong>

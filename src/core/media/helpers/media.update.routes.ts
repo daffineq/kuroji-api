@@ -1,12 +1,12 @@
 import { createSuccessResponse } from 'src/helpers/response';
-import { AnimeUpdate } from './anime.update';
 import Elysia, { t } from 'elysia';
 import logger from 'src/helpers/logger';
-import { Anime } from '../anime';
+import { Anime } from 'src/core';
+import { MediaUpdate } from './media.update';
 
-const animeUpdateRoute = () => {
+const mediaUpdateRoute = () => {
   return (app: Elysia) =>
-    app.group('/anime/update', { tags: ['Anime Update'] }, (app) =>
+    app.group('/media/update', { tags: ['Media Update'] }, (app) =>
       app
         .put(
           '/update',
@@ -15,13 +15,13 @@ const animeUpdateRoute = () => {
               logger.error('Error updating:', error);
             });
 
-            return createSuccessResponse({ message: 'Updating anime' });
+            return createSuccessResponse({ message: 'Updating media' });
           },
           {
             query: t.Object({ id: t.Number() }),
             detail: {
-              summary: 'Update Anime',
-              description: 'Updates anime with queried id'
+              summary: 'Update Media',
+              description: 'Updates media with queried id'
             }
           }
         )
@@ -29,7 +29,7 @@ const animeUpdateRoute = () => {
         .put(
           '/update/process',
           () => {
-            AnimeUpdate.processQueue().catch((error) => {
+            MediaUpdate.processQueue().catch((error) => {
               logger.error('Error processing update queue:', error);
             });
 
@@ -46,7 +46,7 @@ const animeUpdateRoute = () => {
         .put(
           '/update/today',
           () => {
-            AnimeUpdate.queueTodayAnime().catch((error) => {
+            MediaUpdate.queueTodayAnime().catch((error) => {
               logger.error('Error queuing:', error);
             });
 
@@ -55,7 +55,7 @@ const animeUpdateRoute = () => {
           {
             detail: {
               summary: 'Update Today',
-              description: 'Updates today aired anime'
+              description: 'Updates today aired media'
             }
           }
         )
@@ -63,7 +63,7 @@ const animeUpdateRoute = () => {
         .put(
           '/update/yesterday',
           () => {
-            AnimeUpdate.queueYesterdayAnime().catch((error) => {
+            MediaUpdate.queueYesterdayAnime().catch((error) => {
               logger.error('Error queuing:', error);
             });
 
@@ -72,7 +72,7 @@ const animeUpdateRoute = () => {
           {
             detail: {
               summary: 'Update Yesterday',
-              description: 'Updates yesterday aired anime'
+              description: 'Updates yesterday aired media'
             }
           }
         )
@@ -80,7 +80,7 @@ const animeUpdateRoute = () => {
         .delete(
           '/update/queue/clear',
           async () => {
-            await AnimeUpdate.clearQueue();
+            await MediaUpdate.clearQueue();
 
             return createSuccessResponse({ message: 'Cleared the queue' });
           },
@@ -95,4 +95,4 @@ const animeUpdateRoute = () => {
     );
 };
 
-export { animeUpdateRoute };
+export { mediaUpdateRoute };

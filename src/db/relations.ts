@@ -2,532 +2,532 @@ import { defineRelations } from 'drizzle-orm';
 import * as schema from './schema';
 
 export const relations = defineRelations(schema, (r) => ({
-  anime: {
-    title: r.one.animeTitle({
-      from: r.anime.id,
-      to: r.animeTitle.anime_id
+  media: {
+    title: r.one.mediaTitle({
+      from: r.media.id,
+      to: r.mediaTitle.media_id
     }),
-    poster: r.one.animePoster({
-      from: r.anime.id,
-      to: r.animePoster.anime_id
+    poster: r.one.mediaPoster({
+      from: r.media.id,
+      to: r.mediaPoster.media_id
     }),
-    start_date: r.one.animeStartDate({
-      from: r.anime.id,
-      to: r.animeStartDate.anime_id
+    start_date: r.one.mediaStartDate({
+      from: r.media.id,
+      to: r.mediaStartDate.media_id
     }),
-    end_date: r.one.animeEndDate({
-      from: r.anime.id,
-      to: r.animeEndDate.anime_id
+    end_date: r.one.mediaEndDate({
+      from: r.media.id,
+      to: r.mediaEndDate.media_id
     }),
-    broadcast: r.one.animeBroadcast({
-      from: r.anime.id,
-      to: r.animeBroadcast.anime_id
+    broadcast: r.one.mediaBroadcast({
+      from: r.media.id,
+      to: r.mediaBroadcast.media_id
     }),
-    age_rating: r.one.animeAgeRating({
-      from: r.anime.id,
-      to: r.animeAgeRating.anime_id
+    age_rating: r.one.mediaAgeRating({
+      from: r.media.id,
+      to: r.mediaAgeRating.media_id
     }),
-    genres: r.many.animeGenre({
-      from: r.anime.id.through(r.animeToGenre.A),
-      to: r.animeGenre.id.through(r.animeToGenre.B)
+    genres: r.many.mediaGenre({
+      from: r.media.id.through(r.mediaToGenre.A),
+      to: r.mediaGenre.id.through(r.mediaToGenre.B)
     }),
-    airing_schedule: r.many.animeAiringSchedule({
-      from: r.anime.id,
-      to: r.animeAiringSchedule.anime_id
+    airing_schedule: r.many.mediaAiringSchedule({
+      from: r.media.id,
+      to: r.mediaAiringSchedule.media_id
     }),
-    latest_airing_episode: r.one.animeLatestAiringEpisode({
-      from: r.anime.id,
-      to: r.animeLatestAiringEpisode.anime_id
+    latest_airing_episode: r.one.mediaLatestAiringEpisode({
+      from: r.media.id,
+      to: r.mediaLatestAiringEpisode.media_id
     }),
-    next_airing_episode: r.one.animeNextAiringEpisode({
-      from: r.anime.id,
-      to: r.animeNextAiringEpisode.anime_id
+    next_airing_episode: r.one.mediaNextAiringEpisode({
+      from: r.media.id,
+      to: r.mediaNextAiringEpisode.media_id
     }),
-    last_airing_episode: r.one.animeLastAiringEpisode({
-      from: r.anime.id,
-      to: r.animeLastAiringEpisode.anime_id
+    last_airing_episode: r.one.mediaLastAiringEpisode({
+      from: r.media.id,
+      to: r.mediaLastAiringEpisode.media_id
     }),
-    characters: r.many.animeToCharacter({
-      from: r.anime.id,
-      to: r.animeToCharacter.anime_id
+    characters: r.many.mediaToCharacter({
+      from: r.media.id,
+      to: r.mediaToCharacter.media_id
     }),
-    studios: r.many.animeToStudio({
-      from: r.anime.id,
-      to: r.animeToStudio.anime_id
+    studios: r.many.mediaToStudio({
+      from: r.media.id,
+      to: r.mediaToStudio.media_id
     }),
-    tags: r.many.animeToTag({
-      from: r.anime.id,
-      to: r.animeToTag.anime_id
+    tags: r.many.mediaToTag({
+      from: r.media.id,
+      to: r.mediaToTag.media_id
     }),
-    score_distribution: r.many.animeScoreDistribution({
-      from: r.anime.id,
-      to: r.animeScoreDistribution.anime_id
+    score_distribution: r.many.mediaScoreDistribution({
+      from: r.media.id,
+      to: r.mediaScoreDistribution.media_id
     }),
-    status_distribution: r.many.animeStatusDistribution({
-      from: r.anime.id,
-      to: r.animeStatusDistribution.anime_id
+    status_distribution: r.many.mediaStatusDistribution({
+      from: r.media.id,
+      to: r.mediaStatusDistribution.media_id
     }),
-    links: r.many.animeLink({
-      from: r.anime.id.through(r.animeToLink.A),
-      to: r.animeLink.id.through(r.animeToLink.B)
+    links: r.many.mediaLink({
+      from: r.media.id.through(r.mediaToLink.A),
+      to: r.mediaLink.id.through(r.mediaToLink.B)
     }),
-    chronology: r.many.animeChronology({
-      from: r.anime.id,
-      to: r.animeChronology.anime_id
+    chronology: r.many.mediaChronology({
+      from: r.media.id,
+      to: r.mediaChronology.media_id
     }),
-    recommendations: r.many.animeRecommendation({
-      from: r.anime.id,
-      to: r.animeRecommendation.anime_id
+    recommendations: r.many.mediaRecommendation({
+      from: r.media.id,
+      to: r.mediaRecommendation.media_id
     }),
-    other_titles: r.many.animeOtherTitle({
-      from: r.anime.id.through(r.animeToOtherTitle.A),
-      to: r.animeOtherTitle.id.through(r.animeToOtherTitle.B)
+    alt_titles: r.many.mediaAltTitle({
+      from: r.media.id.through(r.mediaToAltTitle.A),
+      to: r.mediaAltTitle.id.through(r.mediaToAltTitle.B)
     }),
-    other_descriptions: r.many.animeOtherDescription({
-      from: r.anime.id.through(r.animeToOtherDescription.A),
-      to: r.animeOtherDescription.id.through(r.animeToOtherDescription.B)
+    alt_descriptions: r.many.mediaAltDescription({
+      from: r.media.id.through(r.mediaToAltDescription.A),
+      to: r.mediaAltDescription.id.through(r.mediaToAltDescription.B)
     }),
-    images: r.many.animeImage({
-      from: r.anime.id.through(r.animeToImage.A),
-      to: r.animeImage.id.through(r.animeToImage.B)
+    images: r.many.mediaImage({
+      from: r.media.id.through(r.mediaToImage.A),
+      to: r.mediaImage.id.through(r.mediaToImage.B)
     }),
-    videos: r.many.animeVideo({
-      from: r.anime.id.through(r.animeToVideo.A),
-      to: r.animeVideo.id.through(r.animeToVideo.B)
+    videos: r.many.mediaVideo({
+      from: r.media.id.through(r.mediaToVideo.A),
+      to: r.mediaVideo.id.through(r.mediaToVideo.B)
     }),
-    screenshots: r.many.animeScreenshot({
-      from: r.anime.id.through(r.animeToScreenshot.A),
-      to: r.animeScreenshot.id.through(r.animeToScreenshot.B)
+    screenshots: r.many.mediaScreenshot({
+      from: r.media.id.through(r.mediaToScreenshot.A),
+      to: r.mediaScreenshot.id.through(r.mediaToScreenshot.B)
     }),
-    artworks: r.many.animeArtwork({
-      from: r.anime.id.through(r.animeToArtwork.A),
-      to: r.animeArtwork.id.through(r.animeToArtwork.B)
+    artworks: r.many.mediaArtwork({
+      from: r.media.id.through(r.mediaToArtwork.A),
+      to: r.mediaArtwork.id.through(r.mediaToArtwork.B)
     }),
-    translation: r.many.animeTranslation({
-      from: r.anime.id.through(r.animeToTranslation.A),
-      to: r.animeTranslation.id.through(r.animeToTranslation.B)
+    translation: r.many.mediaTranslation({
+      from: r.media.id.through(r.mediaToTranslation.A),
+      to: r.mediaTranslation.id.through(r.mediaToTranslation.B)
     }),
-    episodes: r.many.animeEpisode({
-      from: r.anime.id,
-      to: r.animeEpisode.anime_id
+    episodes: r.many.mediaEpisode({
+      from: r.media.id,
+      to: r.mediaEpisode.media_id
     })
   },
 
-  animeTitle: {
-    anime: r.one.anime({
-      from: r.animeTitle.anime_id,
-      to: r.anime.id
+  mediaTitle: {
+    media: r.one.media({
+      from: r.mediaTitle.media_id,
+      to: r.media.id
     })
   },
 
-  animePoster: {
-    anime: r.one.anime({
-      from: r.animePoster.anime_id,
-      to: r.anime.id
+  mediaPoster: {
+    media: r.one.media({
+      from: r.mediaPoster.media_id,
+      to: r.media.id
     })
   },
 
-  animeStartDate: {
-    anime: r.one.anime({
-      from: r.animeStartDate.anime_id,
-      to: r.anime.id
+  mediaStartDate: {
+    media: r.one.media({
+      from: r.mediaStartDate.media_id,
+      to: r.media.id
     })
   },
 
-  animeEndDate: {
-    anime: r.one.anime({
-      from: r.animeEndDate.anime_id,
-      to: r.anime.id
+  mediaEndDate: {
+    media: r.one.media({
+      from: r.mediaEndDate.media_id,
+      to: r.media.id
     })
   },
 
-  animeBroadcast: {
-    anime: r.one.anime({
-      from: r.animeBroadcast.anime_id,
-      to: r.anime.id
+  mediaBroadcast: {
+    media: r.one.media({
+      from: r.mediaBroadcast.media_id,
+      to: r.media.id
     })
   },
 
-  animeAgeRating: {
-    anime: r.one.anime({
-      from: r.animeAgeRating.anime_id,
-      to: r.anime.id
+  mediaAgeRating: {
+    media: r.one.media({
+      from: r.mediaAgeRating.media_id,
+      to: r.media.id
     })
   },
 
-  animeGenre: {
-    anime: r.many.anime({
-      from: r.animeGenre.id.through(r.animeToGenre.B),
-      to: r.anime.id.through(r.animeToGenre.A)
+  mediaGenre: {
+    media: r.many.media({
+      from: r.mediaGenre.id.through(r.mediaToGenre.B),
+      to: r.media.id.through(r.mediaToGenre.A)
     })
   },
 
-  animeToGenre: {
-    anime: r.one.anime({
-      from: r.animeToGenre.A,
-      to: r.anime.id
+  mediaToGenre: {
+    media: r.one.media({
+      from: r.mediaToGenre.A,
+      to: r.media.id
     }),
-    genre: r.one.animeGenre({
-      from: r.animeToGenre.B,
-      to: r.animeGenre.id
+    genre: r.one.mediaGenre({
+      from: r.mediaToGenre.B,
+      to: r.mediaGenre.id
     })
   },
 
-  animeAiringSchedule: {
-    anime: r.one.anime({
-      from: r.animeAiringSchedule.anime_id,
-      to: r.anime.id
+  mediaAiringSchedule: {
+    media: r.one.media({
+      from: r.mediaAiringSchedule.media_id,
+      to: r.media.id
     })
   },
 
-  animeLatestEpisode: {
-    anime: r.one.anime({
-      from: r.animeLatestAiringEpisode.anime_id,
-      to: r.anime.id
+  mediaLatestEpisode: {
+    media: r.one.media({
+      from: r.mediaLatestAiringEpisode.media_id,
+      to: r.media.id
     })
   },
 
-  animeNextEpisode: {
-    anime: r.one.anime({
-      from: r.animeNextAiringEpisode.anime_id,
-      to: r.anime.id
+  mediaNextEpisode: {
+    media: r.one.media({
+      from: r.mediaNextAiringEpisode.media_id,
+      to: r.media.id
     })
   },
 
-  animeLastEpisode: {
-    anime: r.one.anime({
-      from: r.animeLastAiringEpisode.anime_id,
-      to: r.anime.id
+  mediaLastEpisode: {
+    media: r.one.media({
+      from: r.mediaLastAiringEpisode.media_id,
+      to: r.media.id
     })
   },
 
-  animeCharacter: {
-    date_of_birth: r.one.animeCharacterBirthDate({
-      from: r.animeCharacter.id,
-      to: r.animeCharacterBirthDate.character_id
+  mediaCharacter: {
+    date_of_birth: r.one.mediaCharacterBirthDate({
+      from: r.mediaCharacter.id,
+      to: r.mediaCharacterBirthDate.character_id
     }),
-    name: r.one.animeCharacterName({
-      from: r.animeCharacter.id,
-      to: r.animeCharacterName.character_id
+    name: r.one.mediaCharacterName({
+      from: r.mediaCharacter.id,
+      to: r.mediaCharacterName.character_id
     }),
-    image: r.one.animeCharacterImage({
-      from: r.animeCharacter.id,
-      to: r.animeCharacterImage.character_id
+    image: r.one.mediaCharacterImage({
+      from: r.mediaCharacter.id,
+      to: r.mediaCharacterImage.character_id
     }),
-    connections: r.many.animeToCharacter({
-      from: r.animeCharacter.id,
-      to: r.animeToCharacter.character_id
+    connections: r.many.mediaToCharacter({
+      from: r.mediaCharacter.id,
+      to: r.mediaToCharacter.character_id
     })
   },
 
-  animeCharacterConnection: {
-    anime: r.one.anime({
-      from: r.animeToCharacter.anime_id,
-      to: r.anime.id
+  mediaCharacterConnection: {
+    media: r.one.media({
+      from: r.mediaToCharacter.media_id,
+      to: r.media.id
     }),
-    character: r.one.animeCharacter({
-      from: r.animeToCharacter.character_id,
-      to: r.animeCharacter.id
+    character: r.one.mediaCharacter({
+      from: r.mediaToCharacter.character_id,
+      to: r.mediaCharacter.id
     }),
-    voice_actors: r.many.animeVoiceActor({
-      from: r.animeToCharacter.id.through(r.characterToVoiceActor.A),
-      to: r.animeVoiceActor.id.through(r.characterToVoiceActor.B)
+    voice_actors: r.many.mediaVoiceActor({
+      from: r.mediaToCharacter.id.through(r.characterToVoiceActor.A),
+      to: r.mediaVoiceActor.id.through(r.characterToVoiceActor.B)
     })
   },
 
-  animeCharacterName: {
-    character: r.one.animeCharacter({
-      from: r.animeCharacterName.character_id,
-      to: r.animeCharacter.id
+  mediaCharacterName: {
+    character: r.one.mediaCharacter({
+      from: r.mediaCharacterName.character_id,
+      to: r.mediaCharacter.id
     })
   },
 
-  animeCharacterImage: {
-    character: r.one.animeCharacter({
-      from: r.animeCharacterImage.character_id,
-      to: r.animeCharacter.id
+  mediaCharacterImage: {
+    character: r.one.mediaCharacter({
+      from: r.mediaCharacterImage.character_id,
+      to: r.mediaCharacter.id
     })
   },
 
-  animeVoiceActor: {
-    date_of_birth: r.one.animeVoiceBirthDate({
-      from: r.animeVoiceActor.id,
-      to: r.animeVoiceBirthDate.voice_actor_id
+  mediaVoiceActor: {
+    date_of_birth: r.one.mediaVoiceBirthDate({
+      from: r.mediaVoiceActor.id,
+      to: r.mediaVoiceBirthDate.voice_actor_id
     }),
-    date_of_death: r.one.animeVoiceDeathDate({
-      from: r.animeVoiceActor.id,
-      to: r.animeVoiceDeathDate.voice_actor_id
+    date_of_death: r.one.mediaVoiceDeathDate({
+      from: r.mediaVoiceActor.id,
+      to: r.mediaVoiceDeathDate.voice_actor_id
     }),
-    name: r.one.animeVoiceName({
-      from: r.animeVoiceActor.id,
-      to: r.animeVoiceName.voice_actor_id
+    name: r.one.mediaVoiceName({
+      from: r.mediaVoiceActor.id,
+      to: r.mediaVoiceName.voice_actor_id
     }),
-    image: r.one.animeVoiceImage({
-      from: r.animeVoiceActor.id,
-      to: r.animeVoiceImage.voice_actor_id
+    image: r.one.mediaVoiceImage({
+      from: r.mediaVoiceActor.id,
+      to: r.mediaVoiceImage.voice_actor_id
     }),
-    connections: r.many.animeToCharacter({
-      from: r.animeVoiceActor.id.through(r.characterToVoiceActor.B),
-      to: r.animeToCharacter.id.through(r.characterToVoiceActor.A)
+    connections: r.many.mediaToCharacter({
+      from: r.mediaVoiceActor.id.through(r.characterToVoiceActor.B),
+      to: r.mediaToCharacter.id.through(r.characterToVoiceActor.A)
     })
   },
 
   characterToVoiceActor: {
-    connection: r.one.animeToCharacter({
+    connection: r.one.mediaToCharacter({
       from: r.characterToVoiceActor.A,
-      to: r.animeToCharacter.id
+      to: r.mediaToCharacter.id
     }),
-    voice_actor: r.one.animeVoiceActor({
+    voice_actor: r.one.mediaVoiceActor({
       from: r.characterToVoiceActor.B,
-      to: r.animeVoiceActor.id
+      to: r.mediaVoiceActor.id
     })
   },
 
-  animeVoiceName: {
-    voice_actor: r.one.animeVoiceActor({
-      from: r.animeVoiceName.voice_actor_id,
-      to: r.animeVoiceActor.id
+  mediaVoiceName: {
+    voice_actor: r.one.mediaVoiceActor({
+      from: r.mediaVoiceName.voice_actor_id,
+      to: r.mediaVoiceActor.id
     })
   },
 
-  animeVoiceImage: {
-    voice_actor: r.one.animeVoiceActor({
-      from: r.animeVoiceImage.voice_actor_id,
-      to: r.animeVoiceActor.id
+  mediaVoiceImage: {
+    voice_actor: r.one.mediaVoiceActor({
+      from: r.mediaVoiceImage.voice_actor_id,
+      to: r.mediaVoiceActor.id
     })
   },
 
-  animeStudio: {
-    connections: r.many.animeToStudio({
-      from: r.animeStudio.id,
-      to: r.animeToStudio.studio_id
+  mediaStudio: {
+    connections: r.many.mediaToStudio({
+      from: r.mediaStudio.id,
+      to: r.mediaToStudio.studio_id
     })
   },
 
-  animeStudioConnection: {
-    anime: r.one.anime({
-      from: r.animeToStudio.anime_id,
-      to: r.anime.id
+  mediaStudioConnection: {
+    media: r.one.media({
+      from: r.mediaToStudio.media_id,
+      to: r.media.id
     }),
-    studio: r.one.animeStudio({
-      from: r.animeToStudio.studio_id,
-      to: r.animeStudio.id
+    studio: r.one.mediaStudio({
+      from: r.mediaToStudio.studio_id,
+      to: r.mediaStudio.id
     })
   },
 
-  animeTag: {
-    connections: r.many.animeToTag({
-      from: r.animeTag.id,
-      to: r.animeToTag.tag_id
+  mediaTag: {
+    connections: r.many.mediaToTag({
+      from: r.mediaTag.id,
+      to: r.mediaToTag.tag_id
     })
   },
 
-  animeTagConnection: {
-    anime: r.one.anime({
-      from: r.animeToTag.anime_id,
-      to: r.anime.id
+  mediaTagConnection: {
+    media: r.one.media({
+      from: r.mediaToTag.media_id,
+      to: r.media.id
     }),
-    tag: r.one.animeTag({
-      from: r.animeToTag.tag_id,
-      to: r.animeTag.id
+    tag: r.one.mediaTag({
+      from: r.mediaToTag.tag_id,
+      to: r.mediaTag.id
     })
   },
 
-  animeScoreDistribution: {
-    anime: r.one.anime({
-      from: r.animeScoreDistribution.anime_id,
-      to: r.anime.id
+  mediaScoreDistribution: {
+    media: r.one.media({
+      from: r.mediaScoreDistribution.media_id,
+      to: r.media.id
     })
   },
 
-  animeStatusDistribution: {
-    anime: r.one.anime({
-      from: r.animeStatusDistribution.anime_id,
-      to: r.anime.id
+  mediaStatusDistribution: {
+    media: r.one.media({
+      from: r.mediaStatusDistribution.media_id,
+      to: r.media.id
     })
   },
 
-  animeLink: {
-    anime: r.one.anime({
-      from: r.animeLink.id.through(r.animeToLink.B),
-      to: r.anime.id.through(r.animeToLink.A)
+  mediaLink: {
+    media: r.one.media({
+      from: r.mediaLink.id.through(r.mediaToLink.B),
+      to: r.media.id.through(r.mediaToLink.A)
     })
   },
 
-  animeToLink: {
-    anime: r.one.anime({
-      from: r.animeToLink.A,
-      to: r.anime.id
+  mediaToLink: {
+    media: r.one.media({
+      from: r.mediaToLink.A,
+      to: r.media.id
     }),
-    link: r.one.animeLink({
-      from: r.animeToLink.B,
-      to: r.animeLink.id
+    link: r.one.mediaLink({
+      from: r.mediaToLink.B,
+      to: r.mediaLink.id
     })
   },
 
-  animeChronology: {
-    anime: r.one.anime({
-      from: r.animeChronology.anime_id,
-      to: r.anime.id
+  mediaChronology: {
+    media: r.one.media({
+      from: r.mediaChronology.media_id,
+      to: r.media.id
     }),
-    chronology: r.one.anime({
-      from: r.animeChronology.related_id,
-      to: r.anime.id
+    chronology: r.one.media({
+      from: r.mediaChronology.related_id,
+      to: r.media.id
     })
   },
 
-  animeRecommendation: {
-    anime: r.one.anime({
-      from: r.animeRecommendation.anime_id,
-      to: r.anime.id
+  mediaRecommendation: {
+    media: r.one.media({
+      from: r.mediaRecommendation.media_id,
+      to: r.media.id
     }),
-    recommendation: r.one.anime({
-      from: r.animeRecommendation.related_id,
-      to: r.anime.id
+    recommendation: r.one.media({
+      from: r.mediaRecommendation.related_id,
+      to: r.media.id
     })
   },
 
-  animeOtherTitle: {
-    anime: r.many.anime({
-      from: r.animeOtherTitle.id.through(r.animeToOtherTitle.B),
-      to: r.anime.id.through(r.animeToOtherTitle.A)
+  mediaAltTitle: {
+    media: r.many.media({
+      from: r.mediaAltTitle.id.through(r.mediaToAltTitle.B),
+      to: r.media.id.through(r.mediaToAltTitle.A)
     })
   },
 
-  animeToOtherTitle: {
-    anime: r.one.anime({
-      from: r.animeToOtherTitle.A,
-      to: r.anime.id
+  mediaToAltTitle: {
+    media: r.one.media({
+      from: r.mediaToAltTitle.A,
+      to: r.media.id
     }),
-    other_title: r.one.animeOtherTitle({
-      from: r.animeToOtherTitle.B,
-      to: r.animeOtherTitle.id
+    alt_title: r.one.mediaAltTitle({
+      from: r.mediaToAltTitle.B,
+      to: r.mediaAltTitle.id
     })
   },
 
-  animeOtherDescription: {
-    anime: r.many.anime({
-      from: r.animeOtherDescription.id.through(r.animeToOtherDescription.B),
-      to: r.anime.id.through(r.animeToOtherDescription.A)
+  mediaAltDescription: {
+    media: r.many.media({
+      from: r.mediaAltDescription.id.through(r.mediaToAltDescription.B),
+      to: r.media.id.through(r.mediaToAltDescription.A)
     })
   },
 
-  animeToOtherDescription: {
-    anime: r.one.anime({
-      from: r.animeToOtherDescription.A,
-      to: r.anime.id
+  mediaToAltDescription: {
+    media: r.one.media({
+      from: r.mediaToAltDescription.A,
+      to: r.media.id
     }),
-    other_description: r.one.animeOtherDescription({
-      from: r.animeToOtherDescription.B,
-      to: r.animeOtherDescription.id
+    alt_description: r.one.mediaAltDescription({
+      from: r.mediaToAltDescription.B,
+      to: r.mediaAltDescription.id
     })
   },
 
-  animeImage: {
-    anime: r.many.anime({
-      from: r.animeImage.id.through(r.animeToImage.B),
-      to: r.anime.id.through(r.animeToImage.A)
+  mediaImage: {
+    media: r.many.media({
+      from: r.mediaImage.id.through(r.mediaToImage.B),
+      to: r.media.id.through(r.mediaToImage.A)
     })
   },
 
-  animeToImage: {
-    anime: r.one.anime({
-      from: r.animeToImage.A,
-      to: r.anime.id
+  mediaToImage: {
+    media: r.one.media({
+      from: r.mediaToImage.A,
+      to: r.media.id
     }),
-    image: r.one.animeImage({
-      from: r.animeToImage.B,
-      to: r.animeImage.id
+    image: r.one.mediaImage({
+      from: r.mediaToImage.B,
+      to: r.mediaImage.id
     })
   },
 
-  animeVideo: {
-    anime: r.many.anime({
-      from: r.animeVideo.id.through(r.animeToVideo.B),
-      to: r.anime.id.through(r.animeToVideo.A)
+  mediaVideo: {
+    media: r.many.media({
+      from: r.mediaVideo.id.through(r.mediaToVideo.B),
+      to: r.media.id.through(r.mediaToVideo.A)
     })
   },
 
-  animeToVideo: {
-    anime: r.one.anime({
-      from: r.animeToVideo.A,
-      to: r.anime.id
+  mediaToVideo: {
+    media: r.one.media({
+      from: r.mediaToVideo.A,
+      to: r.media.id
     }),
-    video: r.one.animeVideo({
-      from: r.animeToVideo.B,
-      to: r.animeVideo.id
+    video: r.one.mediaVideo({
+      from: r.mediaToVideo.B,
+      to: r.mediaVideo.id
     })
   },
 
-  animeScreenshot: {
-    anime: r.many.anime({
-      from: r.animeScreenshot.id.through(r.animeToScreenshot.B),
-      to: r.anime.id.through(r.animeToScreenshot.A)
+  mediaScreenshot: {
+    media: r.many.media({
+      from: r.mediaScreenshot.id.through(r.mediaToScreenshot.B),
+      to: r.media.id.through(r.mediaToScreenshot.A)
     })
   },
 
-  animeToScreenshot: {
-    anime: r.one.anime({
-      from: r.animeToScreenshot.A,
-      to: r.anime.id
+  mediaToScreenshot: {
+    media: r.one.media({
+      from: r.mediaToScreenshot.A,
+      to: r.media.id
     }),
-    screenshot: r.one.animeScreenshot({
-      from: r.animeToScreenshot.B,
-      to: r.animeScreenshot.id
+    screenshot: r.one.mediaScreenshot({
+      from: r.mediaToScreenshot.B,
+      to: r.mediaScreenshot.id
     })
   },
 
-  animeArtwork: {
-    anime: r.many.anime({
-      from: r.animeArtwork.id.through(r.animeToArtwork.B),
-      to: r.anime.id.through(r.animeToArtwork.A)
+  mediaArtwork: {
+    media: r.many.media({
+      from: r.mediaArtwork.id.through(r.mediaToArtwork.B),
+      to: r.media.id.through(r.mediaToArtwork.A)
     })
   },
 
-  animeToArtwork: {
-    anime: r.one.anime({
-      from: r.animeToArtwork.A,
-      to: r.anime.id
+  mediaToArtwork: {
+    media: r.one.media({
+      from: r.mediaToArtwork.A,
+      to: r.media.id
     }),
-    artwork: r.one.animeArtwork({
-      from: r.animeToArtwork.B,
-      to: r.animeArtwork.id
+    artwork: r.one.mediaArtwork({
+      from: r.mediaToArtwork.B,
+      to: r.mediaArtwork.id
     })
   },
 
-  animeTranslation: {
-    anime: r.many.anime({
-      from: r.animeTranslation.id.through(r.animeToTranslation.B),
-      to: r.anime.id.through(r.animeToTranslation.A)
+  mediaTranslation: {
+    media: r.many.media({
+      from: r.mediaTranslation.id.through(r.mediaToTranslation.B),
+      to: r.media.id.through(r.mediaToTranslation.A)
     })
   },
 
-  animeToTranslation: {
-    anime: r.one.anime({
-      from: r.animeToTranslation.A,
-      to: r.anime.id
+  mediaToTranslation: {
+    media: r.one.media({
+      from: r.mediaToTranslation.A,
+      to: r.media.id
     }),
-    translation: r.one.animeTranslation({
-      from: r.animeToTranslation.B,
-      to: r.animeTranslation.id
+    translation: r.one.mediaTranslation({
+      from: r.mediaToTranslation.B,
+      to: r.mediaTranslation.id
     })
   },
 
-  animeEpisode: {
-    anime: r.one.anime({
-      from: r.animeEpisode.anime_id,
-      to: r.anime.id
+  mediaEpisode: {
+    media: r.one.media({
+      from: r.mediaEpisode.media_id,
+      to: r.media.id
     }),
-    image: r.one.animeEpisodeImage({
-      from: r.animeEpisode.id,
-      to: r.animeEpisodeImage.episode_id
+    image: r.one.mediaEpisodeImage({
+      from: r.mediaEpisode.id,
+      to: r.mediaEpisodeImage.episode_id
     })
   },
 
-  animeEpisodeImage: {
-    episode: r.one.animeEpisode({
-      from: r.animeEpisodeImage.episode_id,
-      to: r.animeEpisode.id
+  mediaEpisodeImage: {
+    episode: r.one.mediaEpisode({
+      from: r.mediaEpisodeImage.episode_id,
+      to: r.mediaEpisode.id
     })
   },
 

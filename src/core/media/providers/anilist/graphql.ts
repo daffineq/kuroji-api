@@ -1,4 +1,6 @@
-export const ANILIST_MEDIA_DETAILS = `
+import { graphql } from 'src/helpers/graphql';
+
+export const ANILIST_MEDIA_DETAILS = graphql`
   fragment mediaDetails on Media {
     id
     idMal
@@ -51,6 +53,8 @@ export const ANILIST_MEDIA_DETAILS = `
     isLocked
     trending
     favourites
+    volumes
+    chapters
     tags {
       id
       name
@@ -211,19 +215,18 @@ export const ANILIST_MEDIA_DETAILS = `
         }
       }
     }
-  }
-`;
-
-export const ANILIST_INFO = `
-  query ($id: Int) {
-    Media(id: $id, type: ANIME) {
-      ...mediaDetails
+    relations {
+      edges {
+        node {
+          id
+        }
+        relationType
+      }
     }
   }
-  ${ANILIST_MEDIA_DETAILS}
 `;
 
-export const ANILIST_BULK_INFO = `
+export const ANILIST_BULK_INFO = graphql`
   query ($ids: [Int], $page: Int = 1, $perPage: Int = 10) {
     Page(page: $page, perPage: $perPage) {
       pageInfo {

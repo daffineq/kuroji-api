@@ -3,23 +3,38 @@ import { sleep } from 'bun';
 import logger from 'src/helpers/logger';
 import { EnableSchedule, Scheduled, Schedule } from 'src/helpers/schedule';
 import { Config } from 'src/config';
-import { AnilistFetch, AnilistUtils } from '../providers';
-import { Anime } from '../anime';
+import { Anime } from '../../anime';
 import { Module } from 'src/helpers/module';
-import { db, indexerState } from 'src/db';
-import { sql } from 'drizzle-orm';
+import {
+  db,
+  indexerState,
+  media,
+  mediaEmbedding,
+  mediaGenre,
+  mediaTag,
+  mediaTitle,
+  mediaToGenre,
+  mediaToTag
+} from 'src/db';
+import { count, eq, inArray, sql } from 'drizzle-orm';
+import { Media } from '../media';
+import { AnilistFetch, AnilistUtils } from '../providers';
+import { groupBy } from 'src/helpers/utils';
+import { openai } from 'src/lib/openai';
 
 @EnableSchedule
-class AnimeIndexerModule extends Module {
-  override readonly name = 'AnimeIndexer';
+class MediaIndexerModule extends Module {
+  override readonly name = 'MediaIndexer';
 
-  private async index(options: { delay?: number; status?: string; threshold?: number } = {}): Promise<void> {
+  private async index(
+    options: { delay?: number; status?: string; threshold?: number; type?: string } = {}
+  ): Promise<void> {
     if (!lock.acquire('indexer')) {
       logger.log('Indexer already running, skipping new run.');
       return;
     }
 
-    const { delay = Config.anime_processing_delay, status } = options;
+    const { delay = Config.anime_processing_delay, status, type } = options;
 
     try {
       const state = await this.getState(status);
@@ -35,7 +50,7 @@ class AnimeIndexerModule extends Module {
       logger.log(`Starting index from page ${page}...`);
 
       while (hasNextPage) {
-        logger.log(`Fetching anime from page ${page}...`);
+        logger.log(`Fetching media from page ${page}...`);
 
         let response;
         let currentTry = 0;
@@ -78,22 +93,30 @@ class AnimeIndexerModule extends Module {
 
         hasNextPage = response.pageInfo.hasNextPage;
 
-        for (const anime of response.media) {
+        for (const media of response.media) {
           if (!lock.isLocked('indexer')) {
             logger.log('Indexing stopped.');
             return;
           }
 
-          logger.log(`Indexing anime: ${anime.id}...`);
+          logger.log(`Indexing media: ${media.id}...`);
 
-          if (await Anime.exists(anime.id)) {
-            if (await Anime.shouldAutoUpdate(anime.id)) {
-              await Anime.saveAndInit(AnilistUtils.anilistToAnimePayload(anime));
+          if (await Media.exists(media.id)) {
+            if (await Media.shouldAutoUpdate(media.id)) {
+              if (media.type === 'ANIME') {
+                await Anime.saveAndInit(AnilistUtils.anilistToMediaPayload(media));
+              } else {
+                await Media.save(AnilistUtils.anilistToMediaPayload(media));
+              }
             } else {
-              logger.log(`Wont update anime: ${anime.id}...`);
+              logger.log(`Wont update media: ${media.id}...`);
             }
           } else {
-            await Anime.saveAndInit(AnilistUtils.anilistToAnimePayload(anime));
+            if (media.type === 'ANIME') {
+              await Anime.saveAndInit(AnilistUtils.anilistToMediaPayload(media));
+            } else {
+              await Media.save(AnilistUtils.anilistToMediaPayload(media));
+            }
           }
 
           await sleep(delay * 1000);
@@ -125,7 +148,103 @@ class AnimeIndexerModule extends Module {
     }
   }
 
-  public async start(options: { delay?: number; status?: string; threshold?: number }): Promise<string> {
+  private async index_embeddings() {
+    if (!lock.acquire('embeddings')) {
+      logger.log('Embedding indexer already running, skipping new run.');
+      return;
+    }
+
+    if (!openai) {
+      return;
+    }
+
+    const perPage = 100;
+    const total = (await db.select({ count: count() }).from(media))[0]?.count ?? 0;
+
+    logger.log(`indexing embeddings for ${total} anime...`);
+
+    for (let i = 0; i < Math.ceil(total / perPage); i++) {
+      const data = await db.query.media.findMany({
+        columns: {
+          id: true,
+          description: true
+        },
+        with: {
+          title: true,
+          alt_descriptions: true
+        },
+        limit: perPage,
+        offset: perPage * i
+      });
+
+      const ids = data.map((d) => d.id);
+
+      const [genres, tags] = await Promise.all([
+        db
+          .select({ media_id: mediaToGenre.A, name: mediaGenre.name })
+          .from(mediaToGenre)
+          .innerJoin(mediaGenre, eq(mediaGenre.id, mediaToGenre.B))
+          .where(inArray(mediaToGenre.A, ids)),
+
+        db
+          .select({ media_id: mediaToTag.media_id, name: mediaTag.name })
+          .from(mediaToTag)
+          .innerJoin(mediaTag, eq(mediaTag.id, mediaToTag.tag_id))
+          .where(inArray(mediaToTag.media_id, ids))
+      ]);
+
+      const genresByMedia = groupBy(genres, (r) => r.media_id);
+      const tagsByMedia = groupBy(tags, (r) => r.media_id);
+
+      const texts = data.map((d) =>
+        [
+          d.title?.romaji,
+          d.title?.english,
+          d.title?.native,
+          d.alt_descriptions.find((d) => d.source === 'tmdb')?.description ?? d.description,
+          (genresByMedia.get(d.id) ?? [])
+            .map((g) => g.name)
+            .filter(Boolean)
+            .join(', '),
+          (tagsByMedia.get(d.id) ?? [])
+            .map((t) => t.name)
+            .filter(Boolean)
+            .join(', ')
+        ]
+          .filter(Boolean)
+          .join(' | ')
+      );
+
+      const response = await openai.embeddings.create({
+        model: 'text-embedding-3-small',
+        input: texts
+      });
+
+      await db
+        .insert(mediaEmbedding)
+        .values(
+          data.map((d, idx) => ({
+            media_id: d.id,
+            embedding: response.data[idx]?.embedding
+          }))
+        )
+        .onConflictDoUpdate({
+          target: mediaEmbedding.media_id,
+          set: { embedding: sql`excluded.embedding` }
+        });
+
+      console.log(`indexed ${Math.min((i + 1) * perPage, total)}/${total} embeddings`);
+    }
+
+    logger.log('embedding indexing done');
+  }
+
+  public async start(options: {
+    delay?: number;
+    status?: string;
+    threshold?: number;
+    type?: string;
+  }): Promise<string> {
     if (lock.isLocked('indexer')) {
       logger.log('Indexer already running, skipping new run.');
       return 'Indexer already running';
@@ -137,6 +256,24 @@ class AnimeIndexerModule extends Module {
     });
 
     return `Indexing started, estimated time: ${await this.calculateEstimatedTime(options)}`;
+  }
+
+  public async start_embeddings(): Promise<string> {
+    if (!Config.has_openai_api_key) {
+      return 'No OpenAI api key provided';
+    }
+
+    if (lock.isLocked('embeddings')) {
+      logger.log('Embedding indexer already running, skipping new run.');
+      return 'Embedding indexer already running';
+    }
+
+    logger.log('Starting embedding indexing...');
+    this.index_embeddings().catch((err) => {
+      logger.error('Error during embedding indexing:', err);
+    });
+
+    return 'Embedding indexer started';
   }
 
   public stop(): string {
@@ -269,6 +406,6 @@ class AnimeIndexerModule extends Module {
   }
 }
 
-const AnimeIndexer = new AnimeIndexerModule();
+const MediaIndexer = new MediaIndexerModule();
 
-export { AnimeIndexer, AnimeIndexerModule };
+export { MediaIndexer, MediaIndexerModule };

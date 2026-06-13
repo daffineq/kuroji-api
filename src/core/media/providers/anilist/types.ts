@@ -56,6 +56,8 @@ export interface AnilistMedia {
   isLocked?: boolean;
   trending?: number;
   favourites?: number;
+  volumes?: number;
+  chapters?: number;
   tags: {
     id: number;
     name: string;
@@ -219,6 +221,14 @@ export interface AnilistMedia {
         mediaRecommendation?: {
           id: number;
         };
+      };
+    }[];
+  };
+  relations?: {
+    edges: {
+      relationType: string;
+      node: {
+        id: number;
       };
     }[];
   };

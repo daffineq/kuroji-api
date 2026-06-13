@@ -1,8 +1,8 @@
 import { MatchStrategy, EpisodeMatchCandidate, SeasonEpisodeGroup, MatchResult, TmdbEpisode } from '../types';
 import { Module } from 'src/helpers/module';
-import { AnimeBasicData } from 'src/core/anime/types';
 import { AnimeUtils } from 'src/core/anime/helpers';
 import { parseReleaseDate } from 'src/helpers/parsers';
+import { AnimeBasicData } from 'src/core/anime/types';
 
 class TmdbStrategiesModule extends Module {
   override readonly name = 'TmdbStrategies';

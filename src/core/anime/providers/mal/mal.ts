@@ -2,11 +2,12 @@ import { getKey, Redis } from 'src/helpers/redis.util';
 import { parseString } from 'src/helpers/parsers';
 import { ProviderModule } from 'src/helpers/module';
 import { Anime } from '../../anime';
-import { AnimeAgeRatingPayload, AnimeBroadcastPayload, AnimeVideoPayload } from '../../types';
+import { MediaAgeRatingPayload, MediaBroadcastPayload, MediaVideoPayload } from '../../../media/types';
 import { load } from 'cheerio';
 import { MyAnimeListInfo, MyAnimeListVideo } from './types';
 import { Config } from 'src/config';
 import { MalUtils } from './helpers';
+import { Media } from 'src/core/media';
 
 class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
   override readonly name = 'MyAnimeList';
@@ -27,7 +28,7 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
     const info = await this.resolveInfo(id, idMal);
 
     if (info.videos) {
-      const videos: AnimeVideoPayload[] = info.videos.map((v) => {
+      const videos: MediaVideoPayload[] = info.videos.map((v) => {
         return {
           url: v.url,
           title: v.title,
@@ -38,11 +39,11 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
         };
       });
 
-      await Anime.save({ id, videos });
+      await Media.save({ id, videos });
     }
 
     if (info.image) {
-      await Anime.save({
+      await Media.save({
         id,
         images: {
           url: info.image,
@@ -54,13 +55,13 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
     }
 
     if (info.moreInfo) {
-      await Anime.save({ id, more_info: info.moreInfo });
+      await Media.save({ id, more_info: info.moreInfo });
     }
 
-    const broadcast: AnimeBroadcastPayload | null =
+    const broadcast: MediaBroadcastPayload | null =
       info.broadcast && info.broadcast !== '?' ? MalUtils.parseBroadcast(info.broadcast) : null;
 
-    const ageRating: AnimeAgeRatingPayload | null =
+    const ageRating: MediaAgeRatingPayload | null =
       info.rating && info.rating !== '?'
         ? {
             rating: info.rating.split(' - ')[0]?.trim(),
@@ -69,11 +70,11 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
         : null;
 
     if (broadcast) {
-      await Anime.save({ id, broadcast });
+      await Media.save({ id, broadcast });
     }
 
     if (ageRating) {
-      await Anime.save({ id, age_rating: ageRating });
+      await Media.save({ id, age_rating: ageRating });
     }
 
     await Redis.set(key, info);
@@ -85,7 +86,7 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
     if (idMal) {
       const info = await this.scrape(idMal);
 
-      await Anime.save({
+      await Media.save({
         id,
         links: {
           link: parseString(idMal)!,
@@ -96,7 +97,7 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
 
       return info;
     } else {
-      const idMap = await Anime.map(id, this.name);
+      const idMap = await Media.map(id, this.name);
 
       if (idMap) {
         return this.scrape(idMap);
@@ -109,7 +110,7 @@ class MyAnimeListModule extends ProviderModule<MyAnimeListInfo> {
 
         const info = await this.scrape(al.id_mal);
 
-        await Anime.save({
+        await Media.save({
           id,
           links: {
             link: parseString(al.id_mal)!,

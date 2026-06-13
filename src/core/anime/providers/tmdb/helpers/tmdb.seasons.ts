@@ -10,9 +10,11 @@ import { TmdbFetch } from './tmdb.fetch';
 import { AnimeUtils } from 'src/core/anime/helpers';
 import { Module } from 'src/helpers/module';
 import { Anime } from 'src/core/anime/anime';
-import { AnimeBasicData, AnimeEpisodePayload } from 'src/core/anime/types';
+import { MediaEpisodePayload } from 'src/core/media/types';
 import { TmdbUtils } from './tmdb.utils';
 import { Config } from 'src/config';
+import { Media } from 'src/core/media';
+import { AnimeBasicData } from 'src/core/anime/types';
 
 class TmdbSeasonsModule extends Module {
   override readonly name = 'TmdbSeasons';
@@ -62,7 +64,7 @@ class TmdbSeasonsModule extends Module {
 
     await Redis.set(key, matchResult.episodes);
 
-    const episodes: AnimeEpisodePayload[] = matchResult.episodes.map((e) => {
+    const episodes: MediaEpisodePayload[] = matchResult.episodes.map((e) => {
       return {
         title: e.name,
         number: e.episode_number,
@@ -77,7 +79,7 @@ class TmdbSeasonsModule extends Module {
       };
     });
 
-    await Anime.save({
+    await Media.save({
       id,
       episodes
     });

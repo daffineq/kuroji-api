@@ -1,4 +1,4 @@
-export * from './anime';
+export * from './media';
 export * from './api';
 export * from './indexer';
 export * from './tvdb';

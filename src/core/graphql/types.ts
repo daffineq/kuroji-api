@@ -1,4 +1,4 @@
-export interface AnimeArgs {
+export interface MediaArgs {
   page?: number;
   per_page?: number;
   search?: string;
@@ -60,6 +60,16 @@ export interface AnimeArgs {
   airing_at_lesser?: number;
   has_next_episode?: boolean;
   franchise?: string;
+  views_total_greater?: number;
+  views_total_lesser?: number;
+  views_hour_greater?: number;
+  views_hour_lesser?: number;
+  views_today_greater?: number;
+  views_today_lesser?: number;
+  views_week_greater?: number;
+  views_week_lesser?: number;
+  views_month_greater?: number;
+  views_month_lesser?: number;
   sort?: string[];
 }
 
@@ -67,11 +77,11 @@ export interface TypeArgs {
   type?: string;
 }
 
-export interface ChronologyArgs extends AnimeArgs {
+export interface ChronologyArgs extends MediaArgs {
   parent_id: number;
 }
 
-export interface RecommendationArgs extends AnimeArgs {
+export interface RecommendationArgs extends MediaArgs {
   parent_id: number;
 }
 
@@ -126,12 +136,12 @@ export interface EpisodeArgs {
   air_date_lesser?: string;
 }
 
-export interface OtherTitleArgs {
+export interface AltTitleArgs {
   source?: string;
   language?: string;
 }
 
-export interface OtherDescriptionArgs {
+export interface AltDescriptionArgs {
   source?: string;
   language?: string;
 }

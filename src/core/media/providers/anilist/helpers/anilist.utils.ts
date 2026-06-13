@@ -1,20 +1,21 @@
 import { AnilistMedia } from '../types';
 import {
-  AnimeAiringSchedulePayload,
-  AnimeCharacterConnectionPayload,
-  AnimeLinkPayload,
-  AnimeOtherTitlePayload,
-  AnimePayload,
-  AnimeRecommendationPayload,
-  AnimeScoreDistributionPayload,
-  AnimeStatusDistributionPayload,
-  AnimeStudioConnectionPayload,
-  AnimeTagConnectionPayload
-} from 'src/core/anime';
+  MediaAiringSchedulePayload,
+  MediaCharacterConnectionPayload,
+  MediaLinkPayload,
+  MediaAltTitlePayload,
+  MediaPayload,
+  MediaRecommendationPayload,
+  MediaScoreDistributionPayload,
+  MediaStatusDistributionPayload,
+  MediaStudioConnectionPayload,
+  MediaTagConnectionPayload,
+  MediaRelationPayload
+} from 'src/core/media';
 import { forced } from 'src/helpers/forced';
 
-const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
-  const characters: AnimeCharacterConnectionPayload[] = (media.characters?.edges ?? [])
+const anilistToMediaPayload = (media: AnilistMedia): MediaPayload => {
+  const characters: MediaCharacterConnectionPayload[] = (media.characters?.edges ?? [])
     .filter((edge) => edge?.node?.id)
     .map((edge) => ({
       id: edge.id,
@@ -88,7 +89,7 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
       }))
     }));
 
-  const studios: AnimeStudioConnectionPayload[] = (media.studios?.edges ?? [])
+  const studios: MediaStudioConnectionPayload[] = (media.studios?.edges ?? [])
     .filter((edge) => edge?.node?.id)
     .map((edge) => ({
       id: edge.id,
@@ -99,7 +100,7 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
       }
     }));
 
-  const tags: AnimeTagConnectionPayload[] = (media.tags ?? [])
+  const tags: MediaTagConnectionPayload[] = (media.tags ?? [])
     .filter((tag) => tag?.id)
     .map((tag) => ({
       rank: tag.rank ?? null,
@@ -113,7 +114,7 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
       }
     }));
 
-  const airing_schedule: AnimeAiringSchedulePayload[] = (media.airingSchedule?.edges ?? [])
+  const airing_schedule: MediaAiringSchedulePayload[] = (media.airingSchedule?.edges ?? [])
     .filter((edge) => edge?.node?.id)
     .map((edge) => ({
       id: edge.node.id,
@@ -121,7 +122,7 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
       airing_at: edge.node.airingAt ?? null
     }));
 
-  const links: AnimeLinkPayload[] = (media.externalLinks ?? [])
+  const links: MediaLinkPayload[] = (media.externalLinks ?? [])
     .filter((link) => link?.url && link?.site)
     .map((link) => ({
       link: link.url,
@@ -129,14 +130,14 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
       type: 'website'
     }));
 
-  const score_distribution: AnimeScoreDistributionPayload[] = (media.stats?.scoreDistribution ?? [])
+  const score_distribution: MediaScoreDistributionPayload[] = (media.stats?.scoreDistribution ?? [])
     .filter((d) => d?.score != null && d?.amount != null)
     .map((d) => ({
       score: d.score,
       amount: d.amount
     }));
 
-  const status_distribution: AnimeStatusDistributionPayload[] = (media.stats?.statusDistribution ?? [])
+  const status_distribution: MediaStatusDistributionPayload[] = (media.stats?.statusDistribution ?? [])
     .filter((d) => d?.status && d?.amount != null)
     .map((d) => ({
       status: d.status,
@@ -145,7 +146,7 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
 
   const genres = (media.genres ?? []).filter(Boolean).map((name) => ({ name }));
 
-  const recommendations: AnimeRecommendationPayload[] = (media.recommendations?.edges ?? [])
+  const recommendations: MediaRecommendationPayload[] = (media.recommendations?.edges ?? [])
     .filter((r) => r.node.media?.id && r.node.mediaRecommendation?.id)
     .map((r, i) => ({
       parent_id: r.node.media?.id!,
@@ -153,7 +154,15 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
       order: i
     }));
 
-  const other_titles: AnimeOtherTitlePayload[] = (media.synonyms ?? []).map((s) => ({
+  const related: MediaRelationPayload[] = (media.relations?.edges ?? [])
+    .filter((r) => r.node?.id)
+    .map((r, i) => ({
+      parent_id: media.id,
+      related_id: r.node.id!,
+      relation_type: r.relationType
+    }));
+
+  const alt_titles: MediaAltTitlePayload[] = (media.synonyms ?? []).map((s) => ({
     title: s,
     source: 'anilist',
     language: 'any'
@@ -181,6 +190,8 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
     favorites: media.favourites ?? null,
     color: media.coverImage?.color ?? null,
     episodes_total: media.episodes ?? null,
+    volumes: media.volumes ?? null,
+    chapters: media.chapters ?? null,
 
     title: {
       romaji: media.title?.romaji ?? null,
@@ -210,7 +221,7 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
         }
       : null,
 
-    other_titles,
+    alt_titles: alt_titles,
 
     genres: genres.length ? forced(genres) : null,
     airing_schedule: airing_schedule.length ? forced(airing_schedule) : null,
@@ -220,12 +231,13 @@ const anilistToAnimePayload = (media: AnilistMedia): AnimePayload => {
     score_distribution: score_distribution.length ? forced(score_distribution) : null,
     status_distribution: status_distribution.length ? forced(status_distribution) : null,
     links,
-    recommendations: recommendations.length ? forced(recommendations) : null
+    recommendations: recommendations.length ? forced(recommendations) : null,
+    related: related.length ? forced(related) : null
   };
 };
 
 const AnilistUtils = {
-  anilistToAnimePayload
+  anilistToMediaPayload
 };
 
 export { AnilistUtils };

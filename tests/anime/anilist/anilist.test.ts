@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { Anilist } from 'src/core/anime';
+import { Anilist } from 'src/core/media';
 
 describe('Anilist Test', () => {
   const id = 162804;

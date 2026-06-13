@@ -1,69 +1,70 @@
 import { Module } from 'src/helpers/module';
 import { Config } from 'src/config';
 import {
-  anime,
-  animeTitle,
-  animePoster,
-  animeStartDate,
-  animeEndDate,
-  animeGenre,
-  animeToGenre,
-  animeAiringSchedule,
-  animeCharacter,
-  animeCharacterName,
-  animeCharacterImage,
-  animeVoiceActor,
-  animeVoiceName,
-  animeVoiceImage,
-  animeToCharacter,
+  media,
+  mediaTitle,
+  mediaPoster,
+  mediaStartDate,
+  mediaEndDate,
+  mediaGenre,
+  mediaToGenre,
+  mediaAiringSchedule,
+  mediaCharacter,
+  mediaCharacterName,
+  mediaCharacterImage,
+  mediaVoiceActor,
+  mediaVoiceName,
+  mediaVoiceImage,
+  mediaToCharacter,
   characterToVoiceActor,
-  animeStudio,
-  animeToStudio,
-  animeTag,
-  animeToTag,
-  animeScoreDistribution,
-  animeStatusDistribution,
+  mediaStudio,
+  mediaToStudio,
+  mediaTag,
+  mediaToTag,
+  mediaScoreDistribution,
+  mediaStatusDistribution,
   db,
   cleanPayload,
-  animeLink,
-  animeToLink,
-  animeArtwork,
-  animeToArtwork,
-  animeImage,
-  animeToImage,
-  animeScreenshot,
-  animeToScreenshot,
-  animeVideo,
-  animeToVideo,
-  animeOtherTitle,
-  animeToOtherTitle,
-  animeOtherDescription,
-  animeToOtherDescription,
-  animeChronology,
-  animeRecommendation,
-  animeEpisode,
-  animeEpisodeImage,
-  animeCharacterBirthDate,
-  animeVoiceBirthDate,
-  animeVoiceDeathDate,
-  animeTranslation,
-  animeToTranslation,
-  animeLatestAiringEpisode,
-  animeNextAiringEpisode,
-  animeLastAiringEpisode,
-  animeBroadcast,
-  animeAgeRating
+  mediaLink,
+  mediaToLink,
+  mediaArtwork,
+  mediaToArtwork,
+  mediaImage,
+  mediaToImage,
+  mediaScreenshot,
+  mediaToScreenshot,
+  mediaVideo,
+  mediaToVideo,
+  mediaAltTitle,
+  mediaToAltTitle,
+  mediaAltDescription,
+  mediaToAltDescription,
+  mediaChronology,
+  mediaRecommendation,
+  mediaEpisode,
+  mediaEpisodeImage,
+  mediaCharacterBirthDate,
+  mediaVoiceBirthDate,
+  mediaVoiceDeathDate,
+  mediaTranslation,
+  mediaToTranslation,
+  mediaLatestAiringEpisode,
+  mediaNextAiringEpisode,
+  mediaLastAiringEpisode,
+  mediaBroadcast,
+  mediaAgeRating,
+  mediaRelation
 } from 'src/db';
 import { eq, sql } from 'drizzle-orm';
 import { toArray, uniqueBy } from 'src/helpers/utils';
-import { AnimePayload } from '../types';
+import { MediaPayload } from '../types';
 import { isForced } from 'src/helpers/forced';
 import { getKey } from 'src/helpers/redis.util';
 
-class AnimeDbModule extends Module {
-  override readonly name = 'AnimeDB';
+class MediaDbModule extends Module {
+  override readonly name = 'MediaDB';
 
-  async upsert(payload: AnimePayload) {
+  async upsert(payload: MediaPayload) {
     const now = Math.floor(Date.now() / 1000);
 
     const hasSchedule = payload.airing_schedule !== undefined;
@@ -93,8 +94,8 @@ class AnimeDbModule extends Module {
         air_week: hasSchedule ? air_week : undefined
       });
 
-      await tx.insert(anime).values(values).onConflictDoUpdate({
-        target: anime.id,
+      await tx.insert(media).values(values).onConflictDoUpdate({
+        target: media.id,
         set
       });
 
@@ -104,15 +105,15 @@ class AnimeDbModule extends Module {
       if (payload.title) {
         ops.push(
           tx
-            .insert(animeTitle)
+            .insert(mediaTitle)
             .values({
-              anime_id: payload.id,
+              media_id: payload.id,
               romaji: payload.title.romaji,
               english: payload.title.english,
               native: payload.title.native
             })
             .onConflictDoUpdate({
-              target: animeTitle.anime_id,
+              target: mediaTitle.media_id,
               set: {
                 romaji: sql`excluded.romaji`,
                 english: sql`excluded.english`,
@@ -126,15 +127,15 @@ class AnimeDbModule extends Module {
       if (payload.poster) {
         ops.push(
           tx
-            .insert(animePoster)
+            .insert(mediaPoster)
             .values({
-              anime_id: payload.id,
+              media_id: payload.id,
               small: payload.poster.small,
               medium: payload.poster.medium,
               large: payload.poster.large
             })
             .onConflictDoUpdate({
-              target: animePoster.anime_id,
+              target: mediaPoster.media_id,
               set: {
                 small: sql`excluded.small`,
                 medium: sql`excluded.medium`,
@@ -148,15 +149,15 @@ class AnimeDbModule extends Module {
       if (payload.start_date) {
         ops.push(
           tx
-            .insert(animeStartDate)
+            .insert(mediaStartDate)
             .values({
-              anime_id: payload.id,
+              media_id: payload.id,
               year: payload.start_date.year,
               month: payload.start_date.month,
               day: payload.start_date.day
             })
             .onConflictDoUpdate({
-              target: animeStartDate.anime_id,
+              target: mediaStartDate.media_id,
               set: {
                 year: sql`excluded.year`,
                 month: sql`excluded.month`,
@@ -170,15 +171,15 @@ class AnimeDbModule extends Module {
       if (payload.end_date) {
         ops.push(
           tx
-            .insert(animeEndDate)
+            .insert(mediaEndDate)
             .values({
-              anime_id: payload.id,
+              media_id: payload.id,
               year: payload.end_date.year,
               month: payload.end_date.month,
               day: payload.end_date.day
             })
             .onConflictDoUpdate({
-              target: animeEndDate.anime_id,
+              target: mediaEndDate.media_id,
               set: {
                 year: sql`excluded.year`,
                 month: sql`excluded.month`,
@@ -192,15 +193,15 @@ class AnimeDbModule extends Module {
       if (payload.broadcast) {
         ops.push(
           tx
-            .insert(animeBroadcast)
+            .insert(mediaBroadcast)
             .values({
-              anime_id: payload.id,
+              media_id: payload.id,
               week: payload.broadcast.week,
               time: payload.broadcast.time,
               timezone: payload.broadcast.timezone
             })
             .onConflictDoUpdate({
-              target: animeEndDate.anime_id,
+              target: mediaEndDate.media_id,
               set: {
                 week: sql`excluded.week`,
                 time: sql`excluded.time`,
@@ -214,14 +215,14 @@ class AnimeDbModule extends Module {
       if (payload.age_rating) {
         ops.push(
           tx
-            .insert(animeAgeRating)
+            .insert(mediaAgeRating)
             .values({
-              anime_id: payload.id,
+              media_id: payload.id,
               rating: payload.age_rating.rating,
               description: payload.age_rating.description
             })
             .onConflictDoUpdate({
-              target: animeEndDate.anime_id,
+              target: mediaEndDate.media_id,
               set: {
                 rating: sql`excluded.rating`,
                 description: sql`excluded.description`
@@ -241,18 +242,18 @@ class AnimeDbModule extends Module {
             if (!genres.length) return;
 
             const inserted = await tx
-              .insert(animeGenre)
+              .insert(mediaGenre)
               .values(genres)
-              .onConflictDoUpdate({ target: animeGenre.name, set: { name: sql`excluded.name` } })
-              .returning({ id: animeGenre.id });
+              .onConflictDoUpdate({ target: mediaGenre.name, set: { name: sql`excluded.name` } })
+              .returning({ id: mediaGenre.id });
 
             if (isForced(payload.genres)) {
-              await tx.delete(animeToGenre).where(eq(animeToGenre.A, payload.id));
+              await tx.delete(mediaToGenre).where(eq(mediaToGenre.A, payload.id));
             }
 
             if (inserted.length) {
               await tx
-                .insert(animeToGenre)
+                .insert(mediaToGenre)
                 .values(inserted.map((genre) => ({ A: payload.id, B: genre.id })))
                 .onConflictDoNothing();
             }
@@ -267,7 +268,7 @@ class AnimeDbModule extends Module {
             const schedule = uniqueBy(toArray(payload.airing_schedule), (a) => a.episode)
               .filter((a) => a.episode)
               .map((a) => ({
-                anime_id: payload.id,
+                media_id: payload.id,
                 episode: a.episode,
                 airing_at: a.airing_at
               }));
@@ -275,14 +276,14 @@ class AnimeDbModule extends Module {
             if (!schedule.length) return;
 
             if (isForced(payload.airing_schedule)) {
-              await tx.delete(animeAiringSchedule).where(eq(animeAiringSchedule.anime_id, payload.id));
+              await tx.delete(mediaAiringSchedule).where(eq(mediaAiringSchedule.media_id, payload.id));
             }
 
             await tx
-              .insert(animeAiringSchedule)
+              .insert(mediaAiringSchedule)
               .values(schedule)
               .onConflictDoUpdate({
-                target: [animeAiringSchedule.anime_id, animeAiringSchedule.episode],
+                target: [mediaAiringSchedule.media_id, mediaAiringSchedule.episode],
                 set: {
                   airing_at: sql`excluded.airing_at`
                 }
@@ -296,59 +297,59 @@ class AnimeDbModule extends Module {
           Promise.resolve().then(async () => {
             if (latestEpisode) {
               await tx
-                .insert(animeLatestAiringEpisode)
+                .insert(mediaLatestAiringEpisode)
                 .values({
-                  anime_id: payload.id,
+                  media_id: payload.id,
                   episode: latestEpisode.episode,
                   airing_at: latestEpisode.airing_at
                 })
                 .onConflictDoUpdate({
-                  target: animeLatestAiringEpisode.anime_id,
+                  target: mediaLatestAiringEpisode.media_id,
                   set: {
                     episode: sql`excluded.episode`,
                     airing_at: sql`excluded.airing_at`
                   }
                 });
             } else {
-              await tx.delete(animeLatestAiringEpisode).where(eq(animeLatestAiringEpisode.anime_id, payload.id));
+              await tx.delete(mediaLatestAiringEpisode).where(eq(mediaLatestAiringEpisode.media_id, payload.id));
             }
 
             if (nextEpisode) {
               await tx
-                .insert(animeNextAiringEpisode)
+                .insert(mediaNextAiringEpisode)
                 .values({
-                  anime_id: payload.id,
+                  media_id: payload.id,
                   episode: nextEpisode.episode,
                   airing_at: nextEpisode.airing_at
                 })
                 .onConflictDoUpdate({
-                  target: animeNextAiringEpisode.anime_id,
+                  target: mediaNextAiringEpisode.media_id,
                   set: {
                     episode: sql`excluded.episode`,
                     airing_at: sql`excluded.airing_at`
                   }
                 });
             } else {
-              await tx.delete(animeNextAiringEpisode).where(eq(animeNextAiringEpisode.anime_id, payload.id));
+              await tx.delete(mediaNextAiringEpisode).where(eq(mediaNextAiringEpisode.media_id, payload.id));
             }
 
             if (lastEpisode) {
               await tx
-                .insert(animeLastAiringEpisode)
+                .insert(mediaLastAiringEpisode)
                 .values({
-                  anime_id: payload.id,
+                  media_id: payload.id,
                   episode: lastEpisode.episode,
                   airing_at: lastEpisode.airing_at
                 })
                 .onConflictDoUpdate({
-                  target: animeLastAiringEpisode.anime_id,
+                  target: mediaLastAiringEpisode.media_id,
                   set: {
                     episode: sql`excluded.episode`,
                     airing_at: sql`excluded.airing_at`
                   }
                 });
             } else {
-              await tx.delete(animeLastAiringEpisode).where(eq(animeLastAiringEpisode.anime_id, payload.id));
+              await tx.delete(mediaLastAiringEpisode).where(eq(mediaLastAiringEpisode.media_id, payload.id));
             }
           })
         );
@@ -359,7 +360,7 @@ class AnimeDbModule extends Module {
         ops.push(
           Promise.resolve().then(async () => {
             if (isForced(payload.characters)) {
-              await tx.delete(animeToCharacter).where(eq(animeToCharacter.anime_id, payload.id));
+              await tx.delete(mediaToCharacter).where(eq(mediaToCharacter.media_id, payload.id));
             }
 
             const characters = uniqueBy(toArray(payload.characters), (e) => e.character?.id)
@@ -375,10 +376,10 @@ class AnimeDbModule extends Module {
             if (!characters.length) return;
 
             await tx
-              .insert(animeCharacter)
+              .insert(mediaCharacter)
               .values(characters)
               .onConflictDoUpdate({
-                target: animeCharacter.id,
+                target: mediaCharacter.id,
                 set: {
                   age: sql`excluded.age`,
                   blood_type: sql`excluded.blood_type`,
@@ -398,10 +399,10 @@ class AnimeDbModule extends Module {
 
             if (characterBirthDates.length) {
               await tx
-                .insert(animeCharacterBirthDate)
+                .insert(mediaCharacterBirthDate)
                 .values(characterBirthDates)
                 .onConflictDoUpdate({
-                  target: animeCharacterBirthDate.character_id,
+                  target: mediaCharacterBirthDate.character_id,
                   set: {
                     day: sql`excluded.day`,
                     month: sql`excluded.month`,
@@ -425,10 +426,10 @@ class AnimeDbModule extends Module {
 
             if (characterNames.length) {
               await tx
-                .insert(animeCharacterName)
+                .insert(mediaCharacterName)
                 .values(characterNames)
                 .onConflictDoUpdate({
-                  target: animeCharacterName.character_id,
+                  target: mediaCharacterName.character_id,
                   set: {
                     first: sql`excluded.first`,
                     middle: sql`excluded.middle`,
@@ -451,10 +452,10 @@ class AnimeDbModule extends Module {
 
             if (characterImages.length) {
               await tx
-                .insert(animeCharacterImage)
+                .insert(mediaCharacterImage)
                 .values(characterImages)
                 .onConflictDoUpdate({
-                  target: animeCharacterImage.character_id,
+                  target: mediaCharacterImage.character_id,
                   set: {
                     large: sql`excluded.large`,
                     medium: sql`excluded.medium`
@@ -479,10 +480,10 @@ class AnimeDbModule extends Module {
             if (allVoiceActors.length) {
               if (voiceActors.length) {
                 await tx
-                  .insert(animeVoiceActor)
+                  .insert(mediaVoiceActor)
                   .values(voiceActors)
                   .onConflictDoUpdate({
-                    target: animeVoiceActor.id,
+                    target: mediaVoiceActor.id,
                     set: {
                       language: sql`excluded.language`,
                       age: sql`excluded.age`,
@@ -505,10 +506,10 @@ class AnimeDbModule extends Module {
 
               if (voiceBirthDates.length) {
                 await tx
-                  .insert(animeVoiceBirthDate)
+                  .insert(mediaVoiceBirthDate)
                   .values(voiceBirthDates)
                   .onConflictDoUpdate({
-                    target: animeVoiceBirthDate.voice_actor_id,
+                    target: mediaVoiceBirthDate.voice_actor_id,
                     set: { day: sql`excluded.day`, month: sql`excluded.month`, year: sql`excluded.year` }
                   });
               }
@@ -524,10 +525,10 @@ class AnimeDbModule extends Module {
 
               if (voiceDeathDates.length) {
                 await tx
-                  .insert(animeVoiceDeathDate)
+                  .insert(mediaVoiceDeathDate)
                   .values(voiceDeathDates)
                   .onConflictDoUpdate({
-                    target: animeVoiceDeathDate.voice_actor_id,
+                    target: mediaVoiceDeathDate.voice_actor_id,
                     set: { day: sql`excluded.day`, month: sql`excluded.month`, year: sql`excluded.year` }
                   });
               }
@@ -546,10 +547,10 @@ class AnimeDbModule extends Module {
 
               if (voiceNames.length) {
                 await tx
-                  .insert(animeVoiceName)
+                  .insert(mediaVoiceName)
                   .values(voiceNames)
                   .onConflictDoUpdate({
-                    target: animeVoiceName.voice_actor_id,
+                    target: mediaVoiceName.voice_actor_id,
                     set: {
                       first: sql`excluded.first`,
                       middle: sql`excluded.middle`,
@@ -571,10 +572,10 @@ class AnimeDbModule extends Module {
 
               if (voiceImages.length) {
                 await tx
-                  .insert(animeVoiceImage)
+                  .insert(mediaVoiceImage)
                   .values(voiceImages)
                   .onConflictDoUpdate({
-                    target: animeVoiceImage.voice_actor_id,
+                    target: mediaVoiceImage.voice_actor_id,
                     set: {
                       large: sql`excluded.large`,
                       medium: sql`excluded.medium`
@@ -589,16 +590,16 @@ class AnimeDbModule extends Module {
                 id: c.id,
                 role: c.role,
                 role_i: c.role_i,
-                anime_id: payload.id,
+                media_id: payload.id,
                 character_id: c.character?.id!
               }));
 
             if (characterConnections.length) {
               await tx
-                .insert(animeToCharacter)
+                .insert(mediaToCharacter)
                 .values(characterConnections)
                 .onConflictDoUpdate({
-                  target: animeToCharacter.id,
+                  target: mediaToCharacter.id,
                   set: { role: sql`excluded.role` }
                 });
             }
@@ -636,15 +637,15 @@ class AnimeDbModule extends Module {
             if (!studios.length) return;
 
             await tx
-              .insert(animeStudio)
+              .insert(mediaStudio)
               .values(studios)
               .onConflictDoUpdate({
-                target: animeStudio.id,
+                target: mediaStudio.id,
                 set: { name: sql`excluded.name` }
               });
 
             if (isForced(payload.studios)) {
-              await tx.delete(animeToStudio).where(eq(animeToStudio.anime_id, payload.id));
+              await tx.delete(mediaToStudio).where(eq(mediaToStudio.media_id, payload.id));
             }
 
             const studioConnections = uniqueBy(toArray(payload.studios), (c) => c.id)
@@ -652,16 +653,16 @@ class AnimeDbModule extends Module {
               .map((c) => ({
                 id: c.id,
                 is_main: c.is_main,
-                anime_id: payload.id,
+                media_id: payload.id,
                 studio_id: c.studio?.id!
               }));
 
             if (studioConnections.length) {
               await tx
-                .insert(animeToStudio)
+                .insert(mediaToStudio)
                 .values(studioConnections)
                 .onConflictDoUpdate({
-                  target: animeToStudio.id,
+                  target: mediaToStudio.id,
                   set: {
                     is_main: sql`excluded.is_main`
                   }
@@ -688,10 +689,10 @@ class AnimeDbModule extends Module {
             if (!tags.length) return;
 
             await tx
-              .insert(animeTag)
+              .insert(mediaTag)
               .values(tags)
               .onConflictDoUpdate({
-                target: animeTag.id,
+                target: mediaTag.id,
                 set: {
                   name: sql`excluded.name`,
                   description: sql`excluded.description`,
@@ -701,13 +702,13 @@ class AnimeDbModule extends Module {
               });
 
             if (isForced(payload.tags)) {
-              await tx.delete(animeToTag).where(eq(animeToTag.anime_id, payload.id));
+              await tx.delete(mediaToTag).where(eq(mediaToTag.media_id, payload.id));
             }
 
             const tagConnections = uniqueBy(toArray(payload.tags), (c) => c.tag?.id)
               .filter((c) => c.tag?.id)
               .map((c) => ({
-                anime_id: payload.id,
+                media_id: payload.id,
                 tag_id: c.tag?.id!,
                 rank: c.rank,
                 is_spoiler: c.is_spoiler
@@ -715,10 +716,10 @@ class AnimeDbModule extends Module {
 
             if (tagConnections.length) {
               await tx
-                .insert(animeToTag)
+                .insert(mediaToTag)
                 .values(tagConnections)
                 .onConflictDoUpdate({
-                  target: [animeToTag.anime_id, animeToTag.tag_id],
+                  target: [mediaToTag.media_id, mediaToTag.tag_id],
                   set: {
                     rank: sql`excluded.rank`,
                     is_spoiler: sql`excluded.is_spoiler`
@@ -744,25 +745,25 @@ class AnimeDbModule extends Module {
             if (!links.length) return;
 
             const inserted = await tx
-              .insert(animeLink)
+              .insert(mediaLink)
               .values(links)
               .onConflictDoUpdate({
-                target: [animeLink.link, animeLink.label],
+                target: [mediaLink.link, mediaLink.label],
                 set: {
                   link: sql`excluded.link`,
                   label: sql`excluded.label`,
                   type: sql`excluded.type`
                 }
               })
-              .returning({ id: animeLink.id });
+              .returning({ id: mediaLink.id });
 
             if (isForced(payload.links)) {
-              await tx.delete(animeToLink).where(eq(animeToLink.A, payload.id));
+              await tx.delete(mediaToLink).where(eq(mediaToLink.A, payload.id));
             }
 
             if (inserted.length) {
               await tx
-                .insert(animeToLink)
+                .insert(mediaToLink)
                 .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
                 .onConflictDoNothing();
             }
@@ -773,13 +774,13 @@ class AnimeDbModule extends Module {
       // Score Distribution
       if (toArray(payload.score_distribution).length) {
         if (isForced(payload.score_distribution)) {
-          await tx.delete(animeScoreDistribution).where(eq(animeScoreDistribution.anime_id, payload.id));
+          await tx.delete(mediaScoreDistribution).where(eq(mediaScoreDistribution.media_id, payload.id));
         }
 
         const scoreDist = uniqueBy(toArray(payload.score_distribution), (dist) => dist.score)
           .filter((dist) => dist.score)
           .map((dist) => ({
-            anime_id: payload.id,
+            media_id: payload.id,
             score: dist.score,
             amount: dist.amount
           }));
@@ -787,10 +788,10 @@ class AnimeDbModule extends Module {
         if (scoreDist.length) {
           ops.push(
             tx
-              .insert(animeScoreDistribution)
+              .insert(mediaScoreDistribution)
               .values(scoreDist)
               .onConflictDoUpdate({
-                target: [animeScoreDistribution.anime_id, animeScoreDistribution.score],
+                target: [mediaScoreDistribution.media_id, mediaScoreDistribution.score],
                 set: { amount: sql`excluded.amount` }
               })
           );
@@ -800,13 +801,13 @@ class AnimeDbModule extends Module {
       // Status Distribution
       if (toArray(payload.status_distribution).length) {
         if (isForced(payload.status_distribution)) {
-          await tx.delete(animeStatusDistribution).where(eq(animeStatusDistribution.anime_id, payload.id));
+          await tx.delete(mediaStatusDistribution).where(eq(mediaStatusDistribution.media_id, payload.id));
         }
 
         const statusDist = uniqueBy(toArray(payload.status_distribution), (dist) => dist.status)
           .filter((dist) => dist.status)
           .map((dist) => ({
-            anime_id: payload.id,
+            media_id: payload.id,
             status: dist.status,
             amount: dist.amount
           }));
@@ -814,10 +815,10 @@ class AnimeDbModule extends Module {
         if (statusDist.length) {
           ops.push(
             tx
-              .insert(animeStatusDistribution)
+              .insert(mediaStatusDistribution)
               .values(statusDist)
               .onConflictDoUpdate({
-                target: [animeStatusDistribution.anime_id, animeStatusDistribution.status],
+                target: [mediaStatusDistribution.media_id, mediaStatusDistribution.status],
                 set: { amount: sql`excluded.amount` }
               })
           );
@@ -845,10 +846,10 @@ class AnimeDbModule extends Module {
             if (!artworks.length) return;
 
             const inserted = await tx
-              .insert(animeArtwork)
+              .insert(mediaArtwork)
               .values(artworks)
               .onConflictDoUpdate({
-                target: [animeArtwork.url, animeArtwork.source],
+                target: [mediaArtwork.url, mediaArtwork.source],
                 set: {
                   height: sql`excluded.height`,
                   width: sql`excluded.width`,
@@ -858,15 +859,15 @@ class AnimeDbModule extends Module {
                   iso_639_1: sql`excluded.iso_639_1`
                 }
               })
-              .returning({ id: animeArtwork.id });
+              .returning({ id: mediaArtwork.id });
 
             if (isForced(payload.artworks)) {
-              await tx.delete(animeToArtwork).where(eq(animeToArtwork.A, payload.id));
+              await tx.delete(mediaToArtwork).where(eq(mediaToArtwork.A, payload.id));
             }
 
             if (inserted.length) {
               await tx
-                .insert(animeToArtwork)
+                .insert(mediaToArtwork)
                 .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
                 .onConflictDoNothing();
             }
@@ -893,24 +894,24 @@ class AnimeDbModule extends Module {
             if (!translations.length) return;
 
             const inserted = await tx
-              .insert(animeTranslation)
+              .insert(mediaTranslation)
               .values(translations)
               .onConflictDoUpdate({
-                target: [animeTranslation.iso_639_1, animeTranslation.title, animeTranslation.source],
+                target: [mediaTranslation.iso_639_1, mediaTranslation.title, mediaTranslation.source],
                 set: {
                   description: sql`excluded.description`,
                   tagline: sql`excluded.tagline`
                 }
               })
-              .returning({ id: animeTranslation.id });
+              .returning({ id: mediaTranslation.id });
 
             if (isForced(payload.translations)) {
-              await tx.delete(animeToTranslation).where(eq(animeToTranslation.A, payload.id));
+              await tx.delete(mediaToTranslation).where(eq(mediaToTranslation.A, payload.id));
             }
 
             if (inserted.length) {
               await tx
-                .insert(animeToTranslation)
+                .insert(mediaToTranslation)
                 .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
                 .onConflictDoNothing();
             }
@@ -936,25 +937,25 @@ class AnimeDbModule extends Module {
             if (!images.length) return;
 
             const inserted = await tx
-              .insert(animeImage)
+              .insert(mediaImage)
               .values(images)
               .onConflictDoUpdate({
-                target: [animeImage.url, animeImage.source],
+                target: [mediaImage.url, mediaImage.source],
                 set: {
                   small: sql`excluded.small`,
                   medium: sql`excluded.medium`,
                   large: sql`excluded.large`
                 }
               })
-              .returning({ id: animeImage.id });
+              .returning({ id: mediaImage.id });
 
             if (isForced(payload.images)) {
-              await tx.delete(animeToImage).where(eq(animeToImage.A, payload.id));
+              await tx.delete(mediaToImage).where(eq(mediaToImage.A, payload.id));
             }
 
             if (inserted.length) {
               await tx
-                .insert(animeToImage)
+                .insert(mediaToImage)
                 .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
                 .onConflictDoNothing();
             }
@@ -980,10 +981,10 @@ class AnimeDbModule extends Module {
             if (!screenshots.length) return;
 
             const inserted = await tx
-              .insert(animeScreenshot)
+              .insert(mediaScreenshot)
               .values(screenshots)
               .onConflictDoUpdate({
-                target: [animeScreenshot.url, animeScreenshot.source],
+                target: [mediaScreenshot.url, mediaScreenshot.source],
                 set: {
                   order: sql`excluded.order`,
                   small: sql`excluded.small`,
@@ -991,15 +992,15 @@ class AnimeDbModule extends Module {
                   large: sql`excluded.large`
                 }
               })
-              .returning({ id: animeScreenshot.id });
+              .returning({ id: mediaScreenshot.id });
 
             if (isForced(payload.screenshots)) {
-              await tx.delete(animeToScreenshot).where(eq(animeToScreenshot.A, payload.id));
+              await tx.delete(mediaToScreenshot).where(eq(mediaToScreenshot.A, payload.id));
             }
 
             if (inserted.length) {
               await tx
-                .insert(animeToScreenshot)
+                .insert(mediaToScreenshot)
                 .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
                 .onConflictDoNothing();
             }
@@ -1025,10 +1026,10 @@ class AnimeDbModule extends Module {
             if (!videos.length) return;
 
             const inserted = await tx
-              .insert(animeVideo)
+              .insert(mediaVideo)
               .values(videos)
               .onConflictDoUpdate({
-                target: [animeVideo.url, animeVideo.source],
+                target: [mediaVideo.url, mediaVideo.source],
                 set: {
                   title: sql`excluded.title`,
                   thumbnail: sql`excluded.thumbnail`,
@@ -1036,15 +1037,15 @@ class AnimeDbModule extends Module {
                   type: sql`excluded.type`
                 }
               })
-              .returning({ id: animeVideo.id });
+              .returning({ id: mediaVideo.id });
 
             if (isForced(payload.videos)) {
-              await tx.delete(animeToVideo).where(eq(animeToVideo.A, payload.id));
+              await tx.delete(mediaToVideo).where(eq(mediaToVideo.A, payload.id));
             }
 
             if (inserted.length) {
               await tx
-                .insert(animeToVideo)
+                .insert(mediaToVideo)
                 .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
                 .onConflictDoNothing();
             }
@@ -1053,10 +1054,10 @@ class AnimeDbModule extends Module {
       }
 
       // Other Titles
-      if (toArray(payload.other_titles).length) {
+      if (toArray(payload.alt_titles).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const titles = uniqueBy(toArray(payload.other_titles), (t) => getKey(t.title, t.source))
+            const titles = uniqueBy(toArray(payload.alt_titles), (t) => getKey(t.title, t.source))
               .filter((t) => t.title && t.source)
               .map((t) => ({
                 title: t.title,
@@ -1067,20 +1068,20 @@ class AnimeDbModule extends Module {
             if (!titles.length) return;
 
             const inserted = await tx
-              .insert(animeOtherTitle)
+              .insert(mediaAltTitle)
               .values(titles)
               .onConflictDoNothing({
-                target: [animeOtherTitle.title, animeOtherTitle.source]
+                target: [mediaAltTitle.title, mediaAltTitle.source]
               })
-              .returning({ id: animeOtherTitle.id });
+              .returning({ id: mediaAltTitle.id });
 
-            if (isForced(payload.other_titles)) {
-              await tx.delete(animeToOtherTitle).where(eq(animeToOtherTitle.A, payload.id));
+            if (isForced(payload.alt_titles)) {
+              await tx.delete(mediaToAltTitle).where(eq(mediaToAltTitle.A, payload.id));
             }
 
             if (inserted.length) {
               await tx
-                .insert(animeToOtherTitle)
+                .insert(mediaToAltTitle)
                 .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
                 .onConflictDoNothing();
             }
@@ -1089,10 +1090,10 @@ class AnimeDbModule extends Module {
       }
 
       // Other Descriptions
-      if (toArray(payload.other_descriptions).length) {
+      if (toArray(payload.alt_descriptions).length) {
         ops.push(
           Promise.resolve().then(async () => {
-            const descriptions = uniqueBy(toArray(payload.other_descriptions), (d) =>
+            const descriptions = uniqueBy(toArray(payload.alt_descriptions), (d) =>
               getKey(d.description, d.source)
             )
               .filter((d) => d.description && d.source)
@@ -1105,20 +1106,20 @@ class AnimeDbModule extends Module {
             if (!descriptions.length) return;
 
             const inserted = await tx
-              .insert(animeOtherDescription)
+              .insert(mediaAltDescription)
               .values(descriptions)
               .onConflictDoNothing({
-                target: [animeOtherDescription.description, animeOtherDescription.source]
+                target: [mediaAltDescription.description, mediaAltDescription.source]
               })
-              .returning({ id: animeOtherDescription.id });
+              .returning({ id: mediaAltDescription.id });
 
-            if (isForced(payload.other_descriptions)) {
-              await tx.delete(animeToOtherDescription).where(eq(animeToOtherDescription.A, payload.id));
+            if (isForced(payload.alt_descriptions)) {
+              await tx.delete(mediaToAltDescription).where(eq(mediaToAltDescription.A, payload.id));
             }
 
             if (inserted.length) {
               await tx
-                .insert(animeToOtherDescription)
+                .insert(mediaToAltDescription)
                 .values(inserted.map((i) => ({ A: payload.id, B: i.id })))
                 .onConflictDoNothing();
             }
@@ -1133,7 +1134,7 @@ class AnimeDbModule extends Module {
             const chronology = uniqueBy(toArray(payload.chronology), (c) => getKey(c.parent_id, c.related_id))
               .filter((c) => c.parent_id && c.related_id)
               .map((c) => ({
-                anime_id: payload.id,
+                media_id: payload.id,
                 parent_id: c.parent_id,
                 related_id: c.related_id,
                 order: c.order
@@ -1142,14 +1143,14 @@ class AnimeDbModule extends Module {
             if (!chronology.length) return;
 
             if (isForced(payload.chronology)) {
-              await tx.delete(animeChronology).where(eq(animeChronology.anime_id, payload.id));
+              await tx.delete(mediaChronology).where(eq(mediaChronology.media_id, payload.id));
             }
 
             await tx
-              .insert(animeChronology)
+              .insert(mediaChronology)
               .values(chronology)
               .onConflictDoUpdate({
-                target: [animeChronology.parent_id, animeChronology.related_id],
+                target: [mediaChronology.parent_id, mediaChronology.related_id],
                 set: { order: sql`excluded.order` }
               });
           })
@@ -1165,7 +1166,7 @@ class AnimeDbModule extends Module {
             )
               .filter((c) => c.parent_id && c.related_id)
               .map((c) => ({
-                anime_id: payload.id,
+                media_id: payload.id,
                 parent_id: c.parent_id,
                 related_id: c.related_id,
                 order: c.order
@@ -1174,15 +1175,45 @@ class AnimeDbModule extends Module {
             if (!recommendations.length) return;
 
             if (isForced(payload.recommendations)) {
-              await tx.delete(animeRecommendation).where(eq(animeRecommendation.anime_id, payload.id));
+              await tx.delete(mediaRecommendation).where(eq(mediaRecommendation.media_id, payload.id));
             }
 
             await tx
-              .insert(animeRecommendation)
+              .insert(mediaRecommendation)
               .values(recommendations)
               .onConflictDoUpdate({
-                target: [animeRecommendation.parent_id, animeRecommendation.related_id],
+                target: [mediaRecommendation.parent_id, mediaRecommendation.related_id],
                 set: { order: sql`excluded.order` }
+              });
+          })
+        );
+      }
+
+      // Related
+      if (toArray(payload.related).length) {
+        ops.push(
+          Promise.resolve().then(async () => {
+            const related = uniqueBy(toArray(payload.related), (c) => getKey(c.parent_id, c.related_id))
+              .filter((c) => c.parent_id && c.related_id)
+              .map((c) => ({
+                media_id: payload.id,
+                parent_id: c.parent_id,
+                related_id: c.related_id,
+                relation_type: c.relation_type
+              }));
+
+            if (!related.length) return;
+
+            if (isForced(payload.related)) {
+              await tx.delete(mediaRelation).where(eq(mediaRelation.media_id, payload.id));
+            }
+
+            await tx
+              .insert(mediaRelation)
+              .values(related)
+              .onConflictDoUpdate({
+                target: [mediaRelation.parent_id, mediaRelation.related_id],
+                set: { relation_type: sql`excluded.relation_type` }
               });
           })
         );
@@ -1198,20 +1229,20 @@ class AnimeDbModule extends Module {
               air_date: e.air_date,
               runtime: e.runtime,
               overview: e.overview,
-              anime_id: payload.id
+              media_id: payload.id
             }));
 
             if (!episodes.length) return;
 
             if (isForced(payload.episodes)) {
-              await tx.delete(animeEpisode).where(eq(animeEpisode.anime_id, payload.id));
+              await tx.delete(mediaEpisode).where(eq(mediaEpisode.media_id, payload.id));
             }
 
             const inserted = await tx
-              .insert(animeEpisode)
+              .insert(mediaEpisode)
               .values(episodes)
               .onConflictDoUpdate({
-                target: [animeEpisode.anime_id, animeEpisode.number],
+                target: [mediaEpisode.media_id, mediaEpisode.number],
                 set: {
                   title: sql`excluded.title`,
                   number: sql`excluded.number`,
@@ -1220,7 +1251,7 @@ class AnimeDbModule extends Module {
                   overview: sql`excluded.overview`
                 }
               })
-              .returning({ id: animeEpisode.id, number: animeEpisode.number });
+              .returning({ id: mediaEpisode.id, number: mediaEpisode.number });
 
             const episodeImages = uniqueBy(toArray(payload.episodes), (e) => e.number)
               .filter((e) => e.image)
@@ -1234,10 +1265,10 @@ class AnimeDbModule extends Module {
 
             if (episodeImages.length) {
               await tx
-                .insert(animeEpisodeImage)
+                .insert(mediaEpisodeImage)
                 .values(episodeImages)
                 .onConflictDoUpdate({
-                  target: animeEpisodeImage.episode_id,
+                  target: mediaEpisodeImage.episode_id,
                   set: {
                     small: sql`excluded.small`,
                     medium: sql`excluded.medium`,
@@ -1256,6 +1287,6 @@ class AnimeDbModule extends Module {
   }
 }
 
-const AnimeDb = new AnimeDbModule();
+const MediaDb = new MediaDbModule();
 
-export { AnimeDb, AnimeDbModule };
+export { MediaDb, MediaDbModule };

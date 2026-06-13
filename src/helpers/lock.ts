@@ -1,17 +1,19 @@
+type LockType = 'indexer' | 'update' | 'embeddings';
+
 class Lock {
   private locks: Set<string> = new Set();
 
-  acquire(name: 'indexer' | 'update'): boolean {
+  acquire(name: LockType): boolean {
     if (this.locks.has(name)) return false;
     this.locks.add(name);
     return true;
   }
 
-  release(name: 'indexer' | 'update'): void {
+  release(name: LockType): void {
     this.locks.delete(name);
   }
 
-  isLocked(name: 'indexer' | 'update'): boolean {
+  isLocked(name: LockType): boolean {
     return this.locks.has(name);
   }
 }

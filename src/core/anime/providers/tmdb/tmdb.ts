@@ -1,5 +1,5 @@
 import { parseNumber, parseString } from 'src/helpers/parsers';
-import { TmdbImage, TmdbInfoResult, TmdbTranslation } from './types';
+import { TmdbInfoResult } from './types';
 import { getSearchTitle, ExpectAnime, findBestMatch } from 'src/helpers/mapper';
 import { NotFoundError } from 'src/helpers/errors';
 import { getKey, Redis } from 'src/helpers/redis.util';
@@ -9,8 +9,9 @@ import { ISO_639_1, normalize_iso_639_1 } from 'src/helpers/languages';
 import { ProviderModule } from 'src/helpers/module';
 import { AnimeUtils } from '../../helpers';
 import { Anime } from '../../anime';
-import { AnimeArtworkPayload, AnimeTranslationPayload } from '../../types';
+import { MediaArtworkPayload, MediaTranslationPayload } from '../../../media/types';
 import { Config } from 'src/config';
+import { Media } from 'src/core/media';
 
 class TmdbModule extends ProviderModule<TmdbInfoResult> {
   override readonly name = 'TMDB';
@@ -42,7 +43,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
 
     const [images, translationsData] = await Promise.all([imagesPromise, translationsPromise]);
 
-    const artworks: AnimeArtworkPayload[] = images.map((i) => {
+    const artworks: MediaArtworkPayload[] = images.map((i) => {
       return {
         url: i.file_path,
         large: TmdbUtils.getImage('original', i.file_path) ?? undefined,
@@ -52,17 +53,17 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
         medium: TmdbUtils.getImage('w780', i.file_path) ?? undefined,
         type: AnimeUtils.unifyArtworkType(i.type),
         source: this.name
-      } satisfies AnimeArtworkPayload;
+      } satisfies MediaArtworkPayload;
     });
 
-    const translations: AnimeTranslationPayload[] = translationsData.map((t) => {
+    const translations: MediaTranslationPayload[] = translationsData.map((t) => {
       return {
         iso_639_1: t.iso_639_1,
         title: t.data.name ?? t.data.title,
         description: t.data.overview,
         tagline: t.data.tagline,
         source: this.name
-      } satisfies AnimeTranslationPayload;
+      } satisfies MediaTranslationPayload;
     });
 
     const logo = artworks
@@ -77,18 +78,18 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
       })[0];
 
     if (artworks) {
-      await Anime.save({ id, artworks });
+      await Media.save({ id, artworks });
     }
 
     if (translations) {
-      await Anime.save({
+      await Media.save({
         id,
         translations
       });
     }
 
     if (resolved.info.poster_path) {
-      await Anime.save({
+      await Media.save({
         id,
         images: {
           url: resolved.info.poster_path,
@@ -102,7 +103,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     }
 
     if (resolved.info.backdrop_path) {
-      await Anime.save({
+      await Media.save({
         id,
         images: {
           url: resolved.info.backdrop_path,
@@ -116,7 +117,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     }
 
     if (logo) {
-      await Anime.save({
+      await Media.save({
         id,
         images: {
           url: logo.url,
@@ -130,9 +131,9 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     }
 
     if (resolved.info.title || resolved.info.name) {
-      await Anime.save({
+      await Media.save({
         id,
-        other_titles: {
+        alt_titles: {
           title: (resolved.info.title ?? resolved.info.name)!,
           language: ISO_639_1.EN,
           source: this.name
@@ -141,9 +142,9 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     }
 
     if (resolved.info.original_title || resolved.info.original_name) {
-      await Anime.save({
+      await Media.save({
         id,
-        other_titles: {
+        alt_titles: {
           title: (resolved.info.original_title ?? resolved.info.original_name)!,
           language: resolved.info.original_language,
           source: this.name
@@ -152,9 +153,9 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     }
 
     if (resolved.info.overview) {
-      await Anime.save({
+      await Media.save({
         id,
-        other_descriptions: {
+        alt_descriptions: {
           description: resolved.info.overview,
           language: ISO_639_1.EN,
           source: this.name
@@ -171,7 +172,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     info: TmdbInfoResult;
     type: string;
   }> {
-    const idMap = parseNumber(await Anime.map(id, this.name));
+    const idMap = parseNumber(await Media.map(id, this.name));
 
     const al = await Anime.getBasicInfo(id);
 
@@ -191,7 +192,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     } else {
       const info = await this.find(id);
 
-      await Anime.save({
+      await Media.save({
         id,
         links: {
           link: parseString(info.id)!,
@@ -236,7 +237,7 @@ class TmdbModule extends ProviderModule<TmdbInfoResult> {
     });
 
     const searchCriteria: ExpectAnime = {
-      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.other_titles.map((t) => t.title)],
+      titles: [al.title?.romaji, al.title?.english, al.title?.native, ...al.alt_titles.map((t) => t.title)],
       language: AnimeUtils.getLanguage(al.country ?? 'JP') ?? 'jp'
     };
 

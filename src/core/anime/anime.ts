@@ -1,19 +1,8 @@
-import {
-  Anilist,
-  AnilistUtils,
-  Kitsu,
-  MyAnimeList,
-  Shikimori,
-  Tmdb,
-  TmdbSeasons,
-  Tvdb,
-  Zerochan
-} from './providers';
-import { AnimeDb } from './helpers/anime.db';
+import { Kitsu, MyAnimeList, Shikimori, Tmdb, TmdbSeasons, Tvdb, Zerochan } from './providers';
+import { Anilist, AnilistUtils, MediaDb } from '../media';
 import { Module } from 'src/helpers/module';
-import { anime, animeLink, animeToLink, db } from 'src/db';
-import { AnimePayload } from './types';
-import { eq } from 'drizzle-orm';
+import { db } from 'src/db';
+import { MediaPayload } from '../media';
 
 class AnimeModule extends Module {
   override readonly name = 'Anime';
@@ -21,15 +10,11 @@ class AnimeModule extends Module {
   async update(id: number) {
     const anilist = await Anilist.getInfo(id);
 
-    await this.saveAndInit(AnilistUtils.anilistToAnimePayload(anilist));
+    await this.saveAndInit(AnilistUtils.anilistToMediaPayload(anilist));
   }
 
-  async save(payload: AnimePayload) {
-    await AnimeDb.upsert(payload);
-  }
-
-  async saveAndInit(payload: AnimePayload) {
-    await AnimeDb.upsert(payload);
+  async saveAndInit(payload: MediaPayload) {
+    await MediaDb.upsert(payload);
 
     await this.initProviders(payload.id, payload.id_mal ?? undefined);
   }
@@ -47,41 +32,15 @@ class AnimeModule extends Module {
     await TmdbSeasons.getEpisodes(id).catch(() => null);
   }
 
-  async map(id: number, name: string) {
-    const links = await db
-      .select({ link: animeLink })
-      .from(animeToLink)
-      .innerJoin(animeLink, eq(animeLink.id, animeToLink.B))
-      .where(eq(animeToLink.A, id));
-
-    return links.find((l) => l.link?.label.toLowerCase() === name.toLowerCase())?.link?.link ?? null;
-  }
-
-  async shouldAutoUpdate(id: number) {
-    const result = await db
-      .select({ auto_update: anime.auto_update })
-      .from(anime)
-      .where(eq(anime.id, id))
-      .limit(1);
-
-    return result[0]?.auto_update ?? true;
-  }
-
-  async exists(id: number) {
-    const result = await db.select({ id: anime.id }).from(anime).where(eq(anime.id, id)).limit(1);
-
-    return result.length > 0;
-  }
-
   async getBasicInfo(id: number) {
-    return db.query.anime.findFirst({
+    return db.query.media.findFirst({
       where: {
         id
       },
       with: {
         title: true,
         airing_schedule: true,
-        other_titles: true,
+        alt_titles: true,
         start_date: true,
         end_date: true
       }
