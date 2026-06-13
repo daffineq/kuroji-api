@@ -7,7 +7,7 @@
 <h1 align="center">Kuroji API v3</h1>
 
 <p align="center">
-  <strong>A modern anime API</strong>
+  <strong>A modern anime and manga API</strong>
 </p>
 
 <p align="center">
@@ -48,9 +48,9 @@ Join our Discord community for support, updates, and discussions:
 
 ## What's This?
 
-Fast anime database API that pulls from multiple sources (AniList, Kitsu, Shikimori, TMDB, TVDB, MyAnimeList, Zerochan)
+Fast anime and manga database API that pulls from multiple sources (AniList, Kitsu, Shikimori, TMDB, TVDB, MyAnimeList, Zerochan)
 
-**Important:** You gotta index anime data before querying.
+**Important:** You gotta index data before querying.
 
 ---
 
@@ -87,13 +87,13 @@ Server runs at `http://localhost:3000`
 
 ```bash
 # Start indexing (delay in seconds between requests)
-curl -X POST "http://localhost:3000/anime/indexer/start?delay=5"
+curl -X POST "http://localhost:3000/media/indexer/start?delay=5"
 
 # Stop it
-curl -X POST "http://localhost:3000/anime/indexer/stop"
+curl -X POST "http://localhost:3000/media/indexer/stop"
 
 # Reset to page 1
-curl -X POST "http://localhost:3000/anime/indexer/reset"
+curl -X POST "http://localhost:3000/media/indexer/reset"
 ```
 
 ### 2. Query Your Data
@@ -137,17 +137,17 @@ curl -X POST "http://localhost:3000/api-key/generate" \
 ```
 DATABASE_URL=your_neon_url
 RENDER=true
-ANIME_POPULARITY_THRESHOLD=7500
+MEDIA_POPULARITY_THRESHOLD=7500
 ```
 
 After deploy, start the indexer:
 ```bash
-curl -X POST "https://your-app.onrender.com/anime/indexer/start?delay=5"
+curl -X POST "https://your-app.onrender.com/media/indexer/start?delay=5"
 ```
 
 **Free tier heads up:**
 - Spins down after 15min inactivity, unless you set RENDER to true
-- 512MB RAM - adjust `ANIME_POPULARITY_THRESHOLD` accordingly
+- 512MB RAM - adjust `MEDIA_POPULARITY_THRESHOLD` accordingly
 - Neon free tier = 500MB storage
 
 **Btw, the demo is being hosted using the same method as above!**
@@ -161,7 +161,37 @@ Check **[.env.example](.env.example)** - it's already documented with everything
 **Memory Requirements:**
 - Recommended-Minimum: 200MB-500MB
 - Recommended: 2GB-4GB
-- Depends on your `ANIME_POPULARITY_THRESHOLD` setting
+- Depends on your `MEDIA_POPULARITY_THRESHOLD` setting
+
+---
+
+## OpenAI Embeddings (Semantic Search)
+
+Kuroji supports semantic search via OpenAI embeddings using `text-embedding-3-small`
+
+### Setup
+
+Add to your `.env`:
+
+```
+OPENAI_API_KEY=your_openai_api_key
+```
+
+### Index Embeddings
+
+Run this whenever you want to embed your database:
+
+```bash
+curl -X POST "http://localhost:3000/media/indexer/embeddings/start"
+```
+
+Sends batch requests to OpenAI and indexes your whole database fast.
+
+### Why `text-embedding-3-small`?
+
+- ~$0.02 per 1M tokens — almost free
+- Batch requests = even cheaper
+- Fast and accurate enough for anime search
 
 ---
 
@@ -184,9 +214,9 @@ Kuroji keeps your data fresh automatically through a background scheduler. Here'
 | Every other day | Re-indexes all currently airing anime (`RELEASING`) |
 | Every other week | Full re-index of all anime in the database |
 
-> Re-indexing respects your `ANIME_POPULARITY_THRESHOLD` settings — upcoming anime uses `ANIME_POPULARITY_THRESHOLD_UPCOMING` specifically.
-> You can disable all re-indexing by setting `ANIME_REINDEXING_ENABLED=false` while keeping the update queue running.
-> To disable the update queue entirely, set `ANIME_UPDATE_ENABLED=false`.
+> Re-indexing respects your `MEDIA_POPULARITY_THRESHOLD` settings — upcoming anime uses `MEDIA_POPULARITY_THRESHOLD_UPCOMING` specifically.
+> You can disable all re-indexing by setting `MEDIA_REINDEXING_ENABLED=false` while keeping the update queue running.
+> To disable the update queue entirely, set `MEDIA_UPDATE_ENABLED=false`.
 > Set both to `false` to run Kuroji as a fully static database with no background updates.
 
 ---

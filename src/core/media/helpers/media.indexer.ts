@@ -34,7 +34,7 @@ class MediaIndexerModule extends Module {
       return;
     }
 
-    const { delay = Config.anime_processing_delay, status, type } = options;
+    const { delay = Config.media_processing_delay, status, type } = options;
 
     try {
       const state = await this.getState(status);
@@ -293,21 +293,21 @@ class MediaIndexerModule extends Module {
     return 'Reseted indexer';
   }
 
-  @Scheduled(Schedule.everyOtherMonth(), Config.anime_reindexing_enabled)
+  @Scheduled(Schedule.everyOtherMonth(), Config.media_reindexing_enabled)
   async scheduleIndex() {
     await this.index();
   }
 
-  @Scheduled(Schedule.everyOtherDay(), Config.anime_reindexing_enabled)
+  @Scheduled(Schedule.everyOtherDay(), Config.media_reindexing_enabled)
   async scheduleIndexReleasing() {
     await this.index({ status: 'RELEASING' });
   }
 
-  @Scheduled(Schedule.weeklyOn(6), Config.anime_reindexing_enabled)
+  @Scheduled(Schedule.weeklyOn(6), Config.media_reindexing_enabled)
   async scheduleIndexUpcoming() {
     await this.index({
       status: 'NOT_YET_RELEASED',
-      threshold: Config.anime_popularity_threshold_upcoming
+      threshold: Config.media_popularity_threshold_upcoming
     });
   }
 
@@ -316,7 +316,7 @@ class MediaIndexerModule extends Module {
     status?: string;
     threshold?: number;
   }): Promise<string> {
-    const { delay = Config.anime_processing_delay, status } = options;
+    const { delay = Config.media_processing_delay, status } = options;
 
     const fetched = ((await this.getState(status))?.last_page ?? 0) * 50;
 
@@ -334,7 +334,7 @@ class MediaIndexerModule extends Module {
   }
 
   private estimateCount(options: { status?: string; threshold?: number } = {}): number {
-    const { status, threshold = Config.anime_popularity_threshold } = options;
+    const { status, threshold = Config.media_popularity_threshold } = options;
 
     const buckets: [number, number][] = [
       [50_000, 300],

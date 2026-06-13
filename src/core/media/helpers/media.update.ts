@@ -90,7 +90,7 @@ class MediaUpdateModule extends Module {
   }
 
   async processQueue() {
-    if (!Config.anime_update_enabled) {
+    if (!Config.media_update_enabled) {
       logger.log('Updates disabled. Skipping queue processing.');
       return;
     }
@@ -146,7 +146,7 @@ class MediaUpdateModule extends Module {
 
         await this.removeFromQueue(anime.id);
 
-        await sleep(Config.anime_processing_delay * 1000);
+        await sleep(Config.media_processing_delay * 1000);
       }
 
       logger.log(`Processed ${queueCount} anime from queue.`);
@@ -157,22 +157,22 @@ class MediaUpdateModule extends Module {
     }
   }
 
-  @Scheduled(Schedule.every30Minutes(), Config.anime_update_enabled)
+  @Scheduled(Schedule.every30Minutes(), Config.media_update_enabled)
   async scheduleProcessQueue() {
     await this.processQueue();
   }
 
-  @Scheduled(Schedule.everyHour(), Config.anime_update_enabled)
+  @Scheduled(Schedule.everyHour(), Config.media_update_enabled)
   async scheduleRecentAnime() {
     await this.queueRecentAnime();
   }
 
-  @Scheduled(Schedule.every6Hours(), Config.anime_update_enabled)
+  @Scheduled(Schedule.every6Hours(), Config.media_update_enabled)
   async scheduleTodayAnime() {
     await this.queueTodayAnime();
   }
 
-  @Scheduled(Schedule.every12Hours(), Config.anime_update_enabled)
+  @Scheduled(Schedule.every12Hours(), Config.media_update_enabled)
   async scheduleYesterdayAnime() {
     await this.queueYesterdayAnime();
   }
