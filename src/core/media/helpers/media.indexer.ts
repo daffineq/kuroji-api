@@ -288,7 +288,7 @@ class MediaIndexerModule extends Module {
           set: { embedding: sql`excluded.embedding` }
         });
 
-      console.log(`Indexed ${Math.min((i + 1) * perPage, total)}/${total} embeddings`);
+      logger.log(`Indexed ${Math.min((i + 1) * perPage, total)}/${total} embeddings`);
     }
 
     logger.log('Embedding indexing done');
