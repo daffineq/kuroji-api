@@ -67,6 +67,18 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.media.id,
       to: r.mediaStatusDistribution.media_id
     }),
+    local_score_distribution: r.many.mediaLocalScoreDistribution({
+      from: r.media.id,
+      to: r.mediaLocalScoreDistribution.media_id
+    }),
+    local_status_distribution: r.many.mediaLocalStatusDistribution({
+      from: r.media.id,
+      to: r.mediaLocalStatusDistribution.media_id
+    }),
+    statistics: r.many.mediaStatistic({
+      from: r.media.id,
+      to: r.mediaStatistic.media_id
+    }),
     links: r.many.mediaLink({
       from: r.media.id.through(r.mediaToLink.A),
       to: r.mediaLink.id.through(r.mediaToLink.B)
@@ -78,6 +90,10 @@ export const relations = defineRelations(schema, (r) => ({
     recommendations: r.many.mediaRecommendation({
       from: r.media.id,
       to: r.mediaRecommendation.media_id
+    }),
+    relations: r.many.mediaRelation({
+      from: r.media.id,
+      to: r.mediaRelation.media_id
     }),
     alt_titles: r.many.mediaAltTitle({
       from: r.media.id.through(r.mediaToAltTitle.A),
@@ -110,6 +126,17 @@ export const relations = defineRelations(schema, (r) => ({
     episodes: r.many.mediaEpisode({
       from: r.media.id,
       to: r.mediaEpisode.media_id
+    }),
+    embedding: r.one.mediaEmbedding({
+      from: r.media.id,
+      to: r.mediaEmbedding.media_id
+    })
+  },
+
+  mediaEmbedding: {
+    media: r.one.media({
+      from: r.mediaEmbedding.media_id,
+      to: r.media.id
     })
   },
 
@@ -201,6 +228,13 @@ export const relations = defineRelations(schema, (r) => ({
     })
   },
 
+  mediaStatistic: {
+    media: r.one.media({
+      from: r.mediaStatistic.media_id,
+      to: r.media.id
+    })
+  },
+
   mediaCharacter: {
     date_of_birth: r.one.mediaCharacterBirthDate({
       from: r.mediaCharacter.id,
@@ -220,7 +254,14 @@ export const relations = defineRelations(schema, (r) => ({
     })
   },
 
-  mediaCharacterConnection: {
+  mediaCharacterBirthDate: {
+    character: r.one.mediaCharacter({
+      from: r.mediaCharacterBirthDate.character_id,
+      to: r.mediaCharacter.id
+    })
+  },
+
+  mediaToCharacter: {
     media: r.one.media({
       from: r.mediaToCharacter.media_id,
       to: r.media.id
@@ -272,6 +313,20 @@ export const relations = defineRelations(schema, (r) => ({
     })
   },
 
+  mediaVoiceBirthDate: {
+    voice_actor: r.one.mediaVoiceActor({
+      from: r.mediaVoiceBirthDate.voice_actor_id,
+      to: r.mediaVoiceActor.id
+    })
+  },
+
+  mediaVoiceDeathDate: {
+    voice_actor: r.one.mediaVoiceActor({
+      from: r.mediaVoiceDeathDate.voice_actor_id,
+      to: r.mediaVoiceActor.id
+    })
+  },
+
   characterToVoiceActor: {
     connection: r.one.mediaToCharacter({
       from: r.characterToVoiceActor.A,
@@ -304,7 +359,7 @@ export const relations = defineRelations(schema, (r) => ({
     })
   },
 
-  mediaStudioConnection: {
+  mediaToStudio: {
     media: r.one.media({
       from: r.mediaToStudio.media_id,
       to: r.media.id
@@ -322,7 +377,7 @@ export const relations = defineRelations(schema, (r) => ({
     })
   },
 
-  mediaTagConnection: {
+  mediaToTag: {
     media: r.one.media({
       from: r.mediaToTag.media_id,
       to: r.media.id
@@ -343,6 +398,20 @@ export const relations = defineRelations(schema, (r) => ({
   mediaStatusDistribution: {
     media: r.one.media({
       from: r.mediaStatusDistribution.media_id,
+      to: r.media.id
+    })
+  },
+
+  mediaLocalScoreDistribution: {
+    media: r.one.media({
+      from: r.mediaLocalScoreDistribution.media_id,
+      to: r.media.id
+    })
+  },
+
+  mediaLocalStatusDistribution: {
+    media: r.one.media({
+      from: r.mediaLocalStatusDistribution.media_id,
       to: r.media.id
     })
   },
@@ -383,6 +452,17 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     recommendation: r.one.media({
       from: r.mediaRecommendation.related_id,
+      to: r.media.id
+    })
+  },
+
+  mediaRelation: {
+    media: r.one.media({
+      from: r.mediaRelation.media_id,
+      to: r.media.id
+    }),
+    related: r.one.media({
+      from: r.mediaRelation.related_id,
       to: r.media.id
     })
   },
