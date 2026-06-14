@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+
 CREATE TABLE "media_relation" (
 	"id" varchar(255) PRIMARY KEY,
 	"parent_id" integer NOT NULL,
