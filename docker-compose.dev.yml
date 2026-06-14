@@ -1,7 +1,7 @@
 services:
   postgres:
     image: pgvector/pgvector:pg17
-    container_name: postgres
+    container_name: postgres_kuroji
     restart: always
     environment:
       POSTGRES_USER: drizzle
@@ -14,7 +14,7 @@ services:
 
   redis:
     image: redis:latest
-    container_name: redis
+    container_name: redis_kuroji
     restart: always
     ports:
       - '6379:6379'
