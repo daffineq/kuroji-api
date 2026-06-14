@@ -289,6 +289,8 @@ class MediaIndexerModule extends Module {
         });
 
       logger.log(`Indexed ${Math.min((i + 1) * perPage, total)}/${total} embeddings`);
+
+      await sleep(10 * 1000);
     }
 
     logger.log('Embedding indexing done');
