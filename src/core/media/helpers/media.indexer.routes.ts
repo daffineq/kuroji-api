@@ -50,8 +50,19 @@ const mediaIndexerRoute = () => {
 
         .post(
           '/embeddings/start',
-          async () => createSuccessResponse({ message: await MediaIndexer.start_embeddings() }),
+          async ({ query }) =>
+            createSuccessResponse({
+              message: await MediaIndexer.start_embeddings({ update_all: query.update_all })
+            }),
           {
+            query: t.Object({
+              update_all: t.Optional(
+                t.Boolean({
+                  description: 'Whether it should update those that already have embedding',
+                  default: false
+                })
+              )
+            }),
             detail: {
               summary: 'Start Embeddings',
               description: 'Starts an embedding indexing, requires openai api key'

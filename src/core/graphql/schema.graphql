@@ -526,53 +526,6 @@ type MediaTranslation {
   source: String!
 }
 
-enum VideoType {
-  HLS
-  DASH
-  MP4
-}
-
-type IntroOutro {
-  start: Float
-  end: Float
-}
-
-type Download {
-  url: String
-  quality: String
-}
-
-type VideoSource {
-  url: String
-  isM3U8: Boolean
-  type: VideoType
-  quality: String
-  isDub: Boolean
-}
-
-type Subtitle {
-  id: String
-  url: String
-  label: String
-  srcLang: String
-}
-
-type Header {
-  key: String!
-  value: String
-}
-
-type Source {
-  headers: [Header!]
-  intro: IntroOutro
-  outro: IntroOutro
-  sources: [VideoSource!]!
-  subtitles: [Subtitle!]
-  download: [Download!]
-  chapters: String
-  thumbnails: String
-}
-
 type Episode {
   number: Int!
   title: String

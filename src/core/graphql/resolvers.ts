@@ -169,7 +169,7 @@ const filterMedia = async (
                 .where(
                   and(
                     eq(mediaEmbedding.media_id, media.id),
-                    sql`${mediaEmbedding.embedding} <=> ${JSON.stringify(embedding)}::vector < 0.8`
+                    sql`${mediaEmbedding.embedding} <=> ${JSON.stringify(embedding)}::vector < 0.7`
                   )
                 )
             )

@@ -16,7 +16,7 @@ import {
   mediaToGenre,
   mediaToTag
 } from 'src/db';
-import { count, eq, inArray, sql } from 'drizzle-orm';
+import { count, eq, inArray, notExists, sql } from 'drizzle-orm';
 import { Media } from '../media';
 import { AnilistFetch, AnilistUtils } from '../providers';
 import { groupBy } from 'src/helpers/utils';
@@ -148,7 +148,7 @@ class MediaIndexerModule extends Module {
     }
   }
 
-  private async index_embeddings() {
+  private async index_embeddings(options: { update_all?: boolean } = {}) {
     if (!lock.acquire('embeddings')) {
       logger.log('Embedding indexer already running, skipping new run.');
       return;
@@ -158,62 +158,117 @@ class MediaIndexerModule extends Module {
       return;
     }
 
-    const perPage = 100;
-    const total = (await db.select({ count: count() }).from(media))[0]?.count ?? 0;
+    const { update_all = false } = options;
 
-    logger.log(`indexing embeddings for ${total} anime...`);
+    const perPage = 100;
+    const total =
+      (
+        await db
+          .select({ count: count() })
+          .from(media)
+          .where(
+            !update_all
+              ? notExists(db.select().from(mediaEmbedding).where(eq(mediaEmbedding.media_id, media.id)))
+              : undefined
+          )
+      )[0]?.count ?? 0;
+
+    logger.log(`Indexing embeddings for ${total} anime...`);
 
     for (let i = 0; i < Math.ceil(total / perPage); i++) {
       const data = await db.query.media.findMany({
+        where: !update_all
+          ? {
+              embedding: false
+            }
+          : {},
         columns: {
           id: true,
-          description: true
+          description: true,
+          country: true,
+          format: true,
+          season: true,
+          season_year: true,
+          source: true
         },
         with: {
           title: true,
-          alt_descriptions: true
+          alt_titles: true,
+          alt_descriptions: true,
+          genres: true,
+          tags: {
+            with: {
+              tag: true
+            }
+          },
+          characters: {
+            where: {
+              role_i: 0
+            },
+            with: {
+              character: {
+                with: {
+                  name: true
+                }
+              }
+            }
+          },
+          studios: {
+            where: {
+              is_main: true
+            },
+            with: {
+              studio: true
+            }
+          }
         },
         limit: perPage,
         offset: perPage * i
       });
 
-      const ids = data.map((d) => d.id);
+      if (data.length === 0) continue;
 
-      const [genres, tags] = await Promise.all([
-        db
-          .select({ media_id: mediaToGenre.A, name: mediaGenre.name })
-          .from(mediaToGenre)
-          .innerJoin(mediaGenre, eq(mediaGenre.id, mediaToGenre.B))
-          .where(inArray(mediaToGenre.A, ids)),
+      const texts = data.map((d) => {
+        const description = d.alt_descriptions.find((d) => d.source === 'tmdb')?.description ?? d.description;
+        const altTitles = d.alt_titles
+          .map((t) => t.title)
+          .filter(Boolean)
+          .join(', ');
+        const genres = d.genres
+          .map((g) => g.name)
+          .filter(Boolean)
+          .join(', ');
+        const tags = d.tags
+          .map((t) => t.tag?.name)
+          .filter(Boolean)
+          .join(', ');
+        const studios = d.studios
+          .map((s) => s.studio?.name)
+          .filter(Boolean)
+          .join(', ');
+        const characters = d.characters
+          .map((c) => c.character?.name?.full)
+          .filter(Boolean)
+          .join(', ');
 
-        db
-          .select({ media_id: mediaToTag.media_id, name: mediaTag.name })
-          .from(mediaToTag)
-          .innerJoin(mediaTag, eq(mediaTag.id, mediaToTag.tag_id))
-          .where(inArray(mediaToTag.media_id, ids))
-      ]);
-
-      const genresByMedia = groupBy(genres, (r) => r.media_id);
-      const tagsByMedia = groupBy(tags, (r) => r.media_id);
-
-      const texts = data.map((d) =>
-        [
-          d.title?.romaji,
-          d.title?.english,
-          d.title?.native,
-          d.alt_descriptions.find((d) => d.source === 'tmdb')?.description ?? d.description,
-          (genresByMedia.get(d.id) ?? [])
-            .map((g) => g.name)
-            .filter(Boolean)
-            .join(', '),
-          (tagsByMedia.get(d.id) ?? [])
-            .map((t) => t.name)
-            .filter(Boolean)
-            .join(', ')
+        return [
+          d.title?.romaji && `Title: ${d.title.romaji}`,
+          d.title?.english && `English Title: ${d.title.english}`,
+          d.title?.native && `Native Title: ${d.title.native}`,
+          altTitles && `Alternative Titles: ${altTitles}`,
+          description && `Description: ${description}`,
+          d.format && `Format: ${d.format}`,
+          d.season && d.season_year && `Season: ${d.season} ${d.season_year}`,
+          d.source && `Source: ${d.source}`,
+          d.country && `Country: ${d.country}`,
+          genres && `Genres: ${genres}`,
+          tags && `Tags: ${tags}`,
+          studios && `Studios: ${studios}`,
+          characters && `Main Characters: ${characters}`
         ]
           .filter(Boolean)
-          .join(' | ')
-      );
+          .join(' | ');
+      });
 
       const response = await openai.embeddings.create({
         model: 'text-embedding-3-small',
@@ -233,10 +288,10 @@ class MediaIndexerModule extends Module {
           set: { embedding: sql`excluded.embedding` }
         });
 
-      console.log(`indexed ${Math.min((i + 1) * perPage, total)}/${total} embeddings`);
+      console.log(`Indexed ${Math.min((i + 1) * perPage, total)}/${total} embeddings`);
     }
 
-    logger.log('embedding indexing done');
+    logger.log('Embedding indexing done');
   }
 
   public async start(options: {
@@ -258,7 +313,7 @@ class MediaIndexerModule extends Module {
     return `Indexing started, estimated time: ${await this.calculateEstimatedTime(options)}`;
   }
 
-  public async start_embeddings(): Promise<string> {
+  public async start_embeddings(options: { update_all?: boolean } = {}): Promise<string> {
     if (!Config.has_openai_api_key) {
       return 'No OpenAI api key provided';
     }
@@ -269,7 +324,7 @@ class MediaIndexerModule extends Module {
     }
 
     logger.log('Starting embedding indexing...');
-    this.index_embeddings().catch((err) => {
+    this.index_embeddings(options).catch((err) => {
       logger.error('Error during embedding indexing:', err);
     });
 
