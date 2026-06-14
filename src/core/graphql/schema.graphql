@@ -165,7 +165,8 @@ enum MediaSort {
   VIEWS_MONTH_ASC
 
   # Search
-  SEARCH_SIMILIARITY
+  SEARCH_DESC
+  SEARCH_ASC
 }
 
 enum MediaType {

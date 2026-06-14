@@ -775,9 +775,16 @@ const filterMedia = async (
       case 'VIEWS_MONTH_ASC':
         orderBy.push(sql`${media.views_month} ASC NULLS LAST`);
         break;
-      case 'SEARCH_SIMILIARITY':
+      case 'SEARCH_DESC':
         if (embedding) {
           orderBy.push(sql`${mediaEmbedding.embedding} <=> ${JSON.stringify(embedding)}::vector ASC NULLS LAST`);
+        } else {
+          orderBy.push(asc(media.id));
+        }
+        break;
+      case 'SEARCH_ASC':
+        if (embedding) {
+          orderBy.push(sql`${mediaEmbedding.embedding} <=> ${JSON.stringify(embedding)}::vector DESC NULLS LAST`);
         } else {
           orderBy.push(asc(media.id));
         }

@@ -691,17 +691,12 @@ export function createLoaders() {
         .where(inArray(mediaEmbedding.media_id, [...ids]));
 
       const results = await Promise.all(
-        embeddings.map(async ({ media_id, embedding }) => {
+        embeddings.map(async ({ embedding }) => {
           const similar = await db
             .select({ media: media })
             .from(media)
             .innerJoin(mediaEmbedding, eq(mediaEmbedding.media_id, media.id))
-            .where(
-              and(
-                not(eq(media.id, media_id)),
-                sql`${mediaEmbedding.embedding} <=> ${JSON.stringify(embedding)}::vector BETWEEN 0.1 AND 0.5`
-              )
-            )
+            .where(sql`${mediaEmbedding.embedding} <=> ${JSON.stringify(embedding)}::vector BETWEEN 0.1 AND 0.5`)
             .orderBy(sql`${mediaEmbedding.embedding} <=> ${JSON.stringify(embedding)}::vector ASC`)
             .limit(10);
 
