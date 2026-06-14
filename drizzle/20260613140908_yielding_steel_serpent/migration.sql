@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+
 CREATE TABLE "media_embedding" (
 	"id" varchar(255) PRIMARY KEY,
 	"media_id" integer NOT NULL UNIQUE,
