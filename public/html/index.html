@@ -507,13 +507,31 @@
               <option value="STATUS_ASC">Status ↑</option>
               <option value="STATUS_DESC">Status ↓</option>
             </optgroup>
+
+            <optgroup label="Views">
+              <option value="VIEWS_TOTAL_DESC">Views Total ↓</option>
+              <option value="VIEWS_TOTAL_ASC">Views Total ↑</option>
+              <option value="VIEWS_HOUR_DESC">Views Hour ↓</option>
+              <option value="VIEWS_HOUR_ASC">Views Hour ↑</option>
+              <option value="VIEWS_TODAY_DESC">Views Today ↓</option>
+              <option value="VIEWS_TODAY_ASC">Views Today ↑</option>
+              <option value="VIEWS_WEEK_DESC">Views Week ↓</option>
+              <option value="VIEWS_WEEK_ASC">Views Week ↑</option>
+              <option value="VIEWS_MONTH_DESC">Views Month ↓</option>
+              <option value="VIEWS_MONTH_ASC">Views Month ↑</option>
+            </optgroup>
+
+            <optgroup label="Search">
+              <option value="SEARCH_DESC">Search ↓</option>
+              <option value="SEARCH_ASC">Search ↑</option>
+            </optgroup>
           </select>
         </div>
       </div>
 
       <div class="section-label">Example Query</div>
-      <pre><span class="k">query</span> Query($search: String, $sort: [AnimeSort!]) {
-  <span class="f">animes</span>(<span class="p">per_page</span>: <span class="s">8</span>, <span class="p">search</span>: <span class="s">$search</span>, <span class="p">sort</span>: <span class="s">$sort</span>) {
+      <pre><span class="k">query</span> Query($search: String, $sort: [MediaSort!]) {
+  <span class="f">media_page</span>(<span class="p">per_page</span>: <span class="s">8</span>, <span class="p">search</span>: <span class="s">$search</span>, <span class="p">sort</span>: <span class="s">$sort</span>) {
     data {
       <span class="p">id</span>
       poster { <span class="p">large</span> }
@@ -559,8 +577,8 @@
         box.textContent = 'Fetching...';
         items.replaceChildren('');
 
-        const query = `query Query($search: String, $sort: [AnimeSort!]) {
-        animes(per_page: 8, search: $search, sort: $sort) {
+        const query = `query Query($search: String, $sort: [MediaSort!]) {
+        media_page(per_page: 8, search: $search, sort: $sort) {
           data {
             id
             poster { large }
@@ -588,7 +606,7 @@
           box.textContent = JSON.stringify(data, null, 2);
 
           const newContent = document.createElement('div');
-          newContent.innerHTML = `<div class="anime-section">${data.data.animes.data
+          newContent.innerHTML = `<div class="anime-section">${data.data.media_page.data
             .map((a) => {
               return `<a class="anime-card" data-id=${a.id} href="/info?id=${a.id}"}>
                   <img src=${a.poster.large} class="anime-poster" />

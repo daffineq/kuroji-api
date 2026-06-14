@@ -883,7 +883,7 @@
         if (e.key === 'Escape') closeLightbox();
       });
 
-      function animeCard(a, c) {
+      function animeCard(a, c, label) {
         const title = a.title?.romaji ?? a.title?.english ?? '—';
         const img = a.poster?.large;
         return `<a class="anime-card ${c === a.id ? 'current' : ''}" href="/info?id=${a.id}">
@@ -893,6 +893,7 @@
               : `<div class="anime-poster-ph">no img</div>`
           }
           <span class="anime-title">${title}</span>
+          ${label ? `<span class="char-role char-role-supporting" style="font-size:9px">${String(label).replace(/_/g, ' ')}</span>` : ''}
         </a>`;
       }
 
@@ -1039,25 +1040,29 @@
         const app = document.getElementById('app');
 
         const query = `query Query($id: Int!) {
-          anime(id: $id) {
+          media(id: $id) {
             id id_mal
             title { romaji english native }
             poster { large }
             description status type format source
             season season_year
             episodes_aired episodes_total duration
-            score popularity favorites trending
-            country is_adult hashtag
+            score popularity favorites trending local_favorites
+            country is_adult hashtag color franchise more_info
+            alt_titles { title source language }
             start_date { day month year }
             end_date { day month year }
+            broadcast { week time timezone }
+            age_rating { rating description }
             genres { name }
-            studios(only_main: true) { studio { name } }
+            studios(only_main: true) { is_main studio { name } }
             tags { rank is_spoiler tag { name category } }
             links(type: "website") { link label type }
             images { large type source }
             characters {
               role
               character { id name { full } image { large } }
+              voice_actors { id name { full } image { large } language }
             }
             screenshots { large order }
             videos(source: "myanimelist") { url title thumbnail type source }
@@ -1077,7 +1082,10 @@
               is_adult
               iso_639_1
             }
+            translations { iso_639_1 title description tagline source }
+            relations { relation_type media { id title { romaji english } poster { large } } }
             recommendations { id title { romaji english } poster { large } }
+            recommendations_ai { id title { romaji english } poster { large } }
             connected { id title { romaji english } poster { large } }
           }
         }`;
@@ -1090,7 +1098,7 @@
           });
 
           const json = await res.json();
-          const a = json?.data?.anime;
+          const a = json?.data?.media;
 
           if (!a) {
             app.innerHTML = `<div class="state">No anime found for id <code>${id}</code></div>`;
@@ -1249,10 +1257,22 @@
                <div class="h-scroll">${conn.map((c) => animeCard(c, a.id)).join('')}</div>`
             : '';
 
+          const rels = a.relations ?? [];
+          const relsHtml = rels.length
+            ? `<div class="section-label">Relations</div>
+               <div class="h-scroll">${rels.map((r) => animeCard(r.media, a.id, r.relation_type)).join('')}</div>`
+            : '';
+
           const recs = a.recommendations ?? [];
           const recsHtml = recs.length
             ? `<div class="section-label">Recommendations</div>
-               <div class="h-scroll">${recs.map(animeCard).join('')}</div>`
+               <div class="h-scroll">${recs.map((r) => animeCard(r, a.id)).join('')}</div>`
+            : '';
+
+          const recsAi = a.recommendations_ai ?? [];
+          const recsAiHtml = recsAi.length
+            ? `<div class="section-label">AI Recommendations</div>
+               <div class="h-scroll">${recsAi.map((r) => animeCard(r, a.id)).join('')}</div>`
             : '';
 
           app.innerHTML = `
@@ -1292,6 +1312,7 @@
               <div class="stat-card"><div class="stat-card-label">Season Year</div><div class="stat-card-value">${fmt(a.season_year)}</div></div>
               <div class="stat-card"><div class="stat-card-label">Popularity</div><div class="stat-card-value">${fmt(a.popularity)}</div></div>
               <div class="stat-card"><div class="stat-card-label">Favorites</div><div class="stat-card-value">${fmt(a.favorites)}</div></div>
+              <div class="stat-card"><div class="stat-card-label">Local Favorites</div><div class="stat-card-value">${fmt(a.local_favorites)}</div></div>
               <div class="stat-card"><div class="stat-card-label">Trending</div><div class="stat-card-value">${fmt(a.trending)}</div></div>
             </div>
 
@@ -1303,6 +1324,10 @@
               <div class="row-item"><span class="row-key">Start Date</span><span class="row-val">${fmtDate(a.start_date)}</span></div>
               <div class="row-item"><span class="row-key">End Date</span><span class="row-val">${fmtDate(a.end_date)}</span></div>
               <div class="row-item"><span class="row-key">MAL ID</span><span class="row-val">${fmt(a.id_mal)}</span></div>
+              ${a.broadcast?.time ? `<div class="row-item"><span class="row-key">Broadcast</span><span class="row-val">${fmt(a.broadcast.time)} (${fmt(a.broadcast.timezone)})</span></div>` : ''}
+              ${a.age_rating?.rating ? `<div class="row-item"><span class="row-key">Age Rating</span><span class="row-val">${fmt(a.age_rating.rating)}</span></div>` : ''}
+              ${a.franchise ? `<div class="row-item"><span class="row-key">Franchise</span><span class="row-val">${a.franchise}</span></div>` : ''}
+              ${a.color ? `<div class="row-item"><span class="row-key">Color</span><span class="row-val"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${a.color};margin-right:0.4rem"></span>${a.color}</span></div>` : ''}
               ${a.hashtag ? `<div class="row-item"><span class="row-key">Hashtag</span><span class="row-val">${a.hashtag}</span></div>` : ''}
             </div>
 
@@ -1312,8 +1337,10 @@
             ${linksHtml}
             ${epsHtml}
             ${artworksHtml}
+            ${relsHtml}
             ${connHtml}
             ${recsHtml}
+            ${recsAiHtml}
           `;
 
           initScrollButtons();

@@ -256,7 +256,6 @@ type Media {
   title: MediaTitle
   poster: MediaPoster
   background: String
-  synonyms: [String!]!
   description: String
   status: MediaStatus
   type: MediaType

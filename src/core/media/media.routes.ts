@@ -23,8 +23,8 @@ const mediaRoute = () => {
               tag: t.Optional(t.String())
             }),
             detail: {
-              summary: 'Media Statistics',
-              description: 'Handles the media statistics'
+              summary: 'Patch Media Statistics',
+              description: `Tracks and updates statistics for a media entry. Supported types:\n- **view**: Increments the view counter, synced to hourly/daily/weekly/monthly aggregates\n- **score**: Updates the local score distribution (1–5 star system). Requires \`tag\` (score value) and \`action\` (add/remove)\n- **favorite**: Increments or decrements local favorites count. Requires \`action\` (add/remove)\n- **status**: Updates local status distribution. Requires \`tag\` (0=Current, 1=Planning, 2=Paused, 3=Dropped, 4=Completed) and \`action\` (add/remove)`
             }
           }
         )
@@ -47,8 +47,8 @@ const mediaRoute = () => {
               tag: t.Optional(t.String())
             }),
             detail: {
-              summary: 'Episode Statistics',
-              description: 'Handles the episode statistics'
+              summary: 'Patch Episode Statistics',
+              description: `Tracks and updates view statistics for a specific episode of a media entry. Supported types:\n- **view**: Increments the episode view counter, batched and synced on a scheduled flush`
             }
           }
         )
