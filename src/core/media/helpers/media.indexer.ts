@@ -160,138 +160,144 @@ class MediaIndexerModule extends Module {
 
     const { update_all = false } = options;
 
-    const perPage = 100;
-    const total =
-      (
-        await db
-          .select({ count: count() })
-          .from(media)
-          .where(
-            !update_all
-              ? notExists(db.select().from(mediaEmbedding).where(eq(mediaEmbedding.media_id, media.id)))
-              : undefined
-          )
-      )[0]?.count ?? 0;
+    try {
+      const perPage = 100;
+      const total =
+        (
+          await db
+            .select({ count: count() })
+            .from(media)
+            .where(
+              !update_all
+                ? notExists(db.select().from(mediaEmbedding).where(eq(mediaEmbedding.media_id, media.id)))
+                : undefined
+            )
+        )[0]?.count ?? 0;
 
-    logger.log(`Indexing embeddings for ${total} anime...`);
+      logger.log(`Indexing embeddings for ${total} anime...`);
 
-    for (let i = 0; i < Math.ceil(total / perPage); i++) {
-      const data = await db.query.media.findMany({
-        where: !update_all
-          ? {
-              embedding: false
-            }
-          : {},
-        columns: {
-          id: true,
-          description: true,
-          country: true,
-          format: true,
-          season: true,
-          season_year: true,
-          source: true
-        },
-        with: {
-          title: true,
-          alt_titles: true,
-          alt_descriptions: true,
-          genres: true,
-          tags: {
-            with: {
-              tag: true
-            }
+      for (let i = 0; i < Math.ceil(total / perPage); i++) {
+        const data = await db.query.media.findMany({
+          where: !update_all
+            ? {
+                embedding: false
+              }
+            : {},
+          columns: {
+            id: true,
+            description: true,
+            country: true,
+            format: true,
+            season: true,
+            season_year: true,
+            source: true
           },
-          characters: {
-            where: {
-              role_i: 0
+          with: {
+            title: true,
+            alt_titles: true,
+            alt_descriptions: true,
+            genres: true,
+            tags: {
+              with: {
+                tag: true
+              }
             },
-            with: {
-              character: {
-                with: {
-                  name: true
+            characters: {
+              where: {
+                role_i: 0
+              },
+              with: {
+                character: {
+                  with: {
+                    name: true
+                  }
                 }
+              }
+            },
+            studios: {
+              where: {
+                is_main: true
+              },
+              with: {
+                studio: true
               }
             }
           },
-          studios: {
-            where: {
-              is_main: true
-            },
-            with: {
-              studio: true
-            }
-          }
-        },
-        limit: perPage,
-        offset: perPage * i
-      });
-
-      if (data.length === 0) continue;
-
-      const texts = data.map((d) => {
-        const description = d.alt_descriptions.find((d) => d.source === 'tmdb')?.description ?? d.description;
-        const altTitles = d.alt_titles
-          .map((t) => t.title)
-          .filter(Boolean)
-          .join(', ');
-        const genres = d.genres
-          .map((g) => g.name)
-          .filter(Boolean)
-          .join(', ');
-        const tags = d.tags
-          .map((t) => t.tag?.name)
-          .filter(Boolean)
-          .join(', ');
-        const studios = d.studios
-          .map((s) => s.studio?.name)
-          .filter(Boolean)
-          .join(', ');
-        const characters = d.characters
-          .map((c) => c.character?.name?.full)
-          .filter(Boolean)
-          .join(', ');
-
-        return [
-          d.title?.romaji && `Title: ${d.title.romaji}`,
-          d.title?.english && `English Title: ${d.title.english}`,
-          d.title?.native && `Native Title: ${d.title.native}`,
-          altTitles && `Alternative Titles: ${altTitles}`,
-          description && `Description: ${description}`,
-          d.format && `Format: ${d.format}`,
-          d.season && d.season_year && `Season: ${d.season} ${d.season_year}`,
-          d.source && `Source: ${d.source}`,
-          d.country && `Country: ${d.country}`,
-          genres && `Genres: ${genres}`,
-          tags && `Tags: ${tags}`,
-          studios && `Studios: ${studios}`,
-          characters && `Main Characters: ${characters}`
-        ]
-          .filter(Boolean)
-          .join(' | ');
-      });
-
-      const response = await openai.embeddings.create({
-        model: 'text-embedding-3-small',
-        input: texts
-      });
-
-      await db
-        .insert(mediaEmbedding)
-        .values(
-          data.map((d, idx) => ({
-            media_id: d.id,
-            embedding: response.data[idx]?.embedding
-          }))
-        )
-        .onConflictDoUpdate({
-          target: mediaEmbedding.media_id,
-          set: { embedding: sql`excluded.embedding` }
+          limit: perPage,
+          offset: perPage * i
         });
 
-      logger.log(`Indexed ${Math.min((i + 1) * perPage, total)}/${total} embeddings`);
-    }
+        if (data.length === 0) continue;
 
-    logger.log('Embedding indexing done');
+        const texts = data.map((d) => {
+          const description = d.alt_descriptions.find((d) => d.source === 'tmdb')?.description ?? d.description;
+          const altTitles = d.alt_titles
+            .map((t) => t.title)
+            .filter(Boolean)
+            .join(', ');
+          const genres = d.genres
+            .map((g) => g.name)
+            .filter(Boolean)
+            .join(', ');
+          const tags = d.tags
+            .map((t) => t.tag?.name)
+            .filter(Boolean)
+            .join(', ');
+          const studios = d.studios
+            .map((s) => s.studio?.name)
+            .filter(Boolean)
+            .join(', ');
+          const characters = d.characters
+            .map((c) => c.character?.name?.full)
+            .filter(Boolean)
+            .join(', ');
+
+          return [
+            d.title?.romaji && `Title: ${d.title.romaji}`,
+            d.title?.english && `English Title: ${d.title.english}`,
+            d.title?.native && `Native Title: ${d.title.native}`,
+            altTitles && `Alternative Titles: ${altTitles}`,
+            description && `Description: ${description}`,
+            d.format && `Format: ${d.format}`,
+            d.season && d.season_year && `Season: ${d.season} ${d.season_year}`,
+            d.source && `Source: ${d.source}`,
+            d.country && `Country: ${d.country}`,
+            genres && `Genres: ${genres}`,
+            tags && `Tags: ${tags}`,
+            studios && `Studios: ${studios}`,
+            characters && `Main Characters: ${characters}`
+          ]
+            .filter(Boolean)
+            .join(' | ');
+        });
+
+        const response = await openai.embeddings.create({
+          model: 'text-embedding-3-small',
+          input: texts
+        });
+
+        await db
+          .insert(mediaEmbedding)
+          .values(
+            data.map((d, idx) => ({
+              media_id: d.id,
+              embedding: response.data[idx]?.embedding
+            }))
+          )
+          .onConflictDoUpdate({
+            target: mediaEmbedding.media_id,
+            set: { embedding: sql`excluded.embedding` }
+          });
+
+        logger.log(`Indexed ${Math.min((i + 1) * perPage, total)}/${total} embeddings`);
+      }
+
+      logger.log('Embedding indexing done');
+    } catch (err) {
+      logger.error('Embedding indexer failed:', err);
+    } finally {
+      lock.release('embeddings');
+    }
   }
 
   public async start(options: {
