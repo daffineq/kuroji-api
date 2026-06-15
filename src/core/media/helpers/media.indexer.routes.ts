@@ -52,7 +52,10 @@ const mediaIndexerRoute = () => {
           '/embeddings/start',
           async ({ query }) =>
             createSuccessResponse({
-              message: await MediaIndexer.start_embeddings({ update_all: query.update_all })
+              message: await MediaIndexer.start_embeddings({
+                update_all: query.update_all,
+                popularity_greater: query.popularity_greater
+              })
             }),
           {
             query: t.Object({
@@ -60,6 +63,12 @@ const mediaIndexerRoute = () => {
                 t.Boolean({
                   description: 'Whether it should update those that already have embedding',
                   default: false
+                })
+              ),
+              popularity_greater: t.Optional(
+                t.Number({
+                  description: 'Will index embeddings only for media with popularity greater than the value',
+                  default: 0
                 })
               )
             }),

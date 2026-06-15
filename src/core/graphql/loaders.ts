@@ -56,7 +56,7 @@ import {
   mediaRelation,
   mediaEmbedding
 } from 'src/db';
-import { eq, inArray, asc, desc, sql, and, exists, not } from 'drizzle-orm';
+import { eq, inArray, asc, desc, sql, and, exists, not, aliasedTable } from 'drizzle-orm';
 import { groupBy, indexBy } from 'src/helpers/utils';
 
 export function createLoaders() {
@@ -691,14 +691,22 @@ export function createLoaders() {
         .where(inArray(mediaEmbedding.media_id, [...ids]));
 
       const results = await Promise.all(
-        embeddings.map(async ({ embedding }) => {
+        embeddings.map(async ({ media_id, embedding }) => {
+          const sourceMedia = aliasedTable(media, 'source_media');
+
           const similar = await db
             .select({ media: media })
             .from(media)
             .innerJoin(mediaEmbedding, eq(mediaEmbedding.media_id, media.id))
-            .where(sql`${mediaEmbedding.embedding} <=> ${JSON.stringify(embedding)}::vector BETWEEN 0.1 AND 0.5`)
+            .innerJoin(sourceMedia, eq(sourceMedia.id, media_id))
+            .where(
+              and(
+                sql`${media.type} IS NOT DISTINCT FROM ${sourceMedia.type}`,
+                sql`${mediaEmbedding.embedding} <=> ${JSON.stringify(embedding)}::vector BETWEEN 0.2 AND 0.5`
+              )
+            )
             .orderBy(sql`${mediaEmbedding.embedding} <=> ${JSON.stringify(embedding)}::vector ASC`)
-            .limit(10);
+            .limit(20);
 
           return similar.map((s) => s.media);
         })

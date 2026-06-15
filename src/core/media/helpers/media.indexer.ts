@@ -16,7 +16,7 @@ import {
   mediaToGenre,
   mediaToTag
 } from 'src/db';
-import { count, eq, inArray, notExists, sql } from 'drizzle-orm';
+import { and, count, eq, gte, inArray, notExists, sql } from 'drizzle-orm';
 import { Media } from '../media';
 import { AnilistFetch, AnilistUtils } from '../providers';
 import { groupBy } from 'src/helpers/utils';
@@ -148,7 +148,7 @@ class MediaIndexerModule extends Module {
     }
   }
 
-  private async index_embeddings(options: { update_all?: boolean } = {}) {
+  private async index_embeddings(options: { update_all?: boolean; popularity_greater?: number } = {}) {
     if (!lock.acquire('embeddings')) {
       logger.log('Embedding indexer already running, skipping new run.');
       return;
@@ -158,7 +158,7 @@ class MediaIndexerModule extends Module {
       return;
     }
 
-    const { update_all = false } = options;
+    const { update_all = false, popularity_greater = 0 } = options;
 
     try {
       const perPage = 100;
@@ -168,9 +168,12 @@ class MediaIndexerModule extends Module {
             .select({ count: count() })
             .from(media)
             .where(
-              !update_all
-                ? notExists(db.select().from(mediaEmbedding).where(eq(mediaEmbedding.media_id, media.id)))
-                : undefined
+              and(
+                gte(media.popularity, popularity_greater),
+                !update_all
+                  ? notExists(db.select().from(mediaEmbedding).where(eq(mediaEmbedding.media_id, media.id)))
+                  : undefined
+              )
             )
         )[0]?.count ?? 0;
 
@@ -178,11 +181,16 @@ class MediaIndexerModule extends Module {
 
       for (let i = 0; i < Math.ceil(total / perPage); i++) {
         const data = await db.query.media.findMany({
-          where: !update_all
-            ? {
-                embedding: false
-              }
-            : {},
+          where: {
+            popularity: {
+              gte: popularity_greater
+            },
+            ...(!update_all
+              ? {
+                  embedding: false
+                }
+              : undefined)
+          },
           columns: {
             id: true,
             description: true,
@@ -319,7 +327,9 @@ class MediaIndexerModule extends Module {
     return `Indexing started, estimated time: ${await this.calculateEstimatedTime(options)}`;
   }
 
-  public async start_embeddings(options: { update_all?: boolean } = {}): Promise<string> {
+  public async start_embeddings(
+    options: { update_all?: boolean; popularity_greater?: number } = {}
+  ): Promise<string> {
     if (!Config.has_openai_api_key) {
       return 'No OpenAI api key provided';
     }
