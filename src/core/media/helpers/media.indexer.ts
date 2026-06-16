@@ -235,7 +235,7 @@ class MediaIndexerModule extends Module {
           offset: perPage * i
         });
 
-        if (data.length === 0) continue;
+        if (data.length === 0) break;
 
         const texts = data.map((d) => {
           const description = d.alt_descriptions.find((d) => d.source === 'tmdb')?.description ?? d.description;
