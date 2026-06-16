@@ -12,9 +12,8 @@ class MigrationsModule extends Module {
 
     try {
       const perPage = 100;
-      const total = (await db.select({ count: count() }).from(media).where(isNull(media.slug)))[0]?.count ?? 0;
 
-      for (let i = 0; i < Math.ceil(total / perPage); i++) {
+      while (true) {
         const data = await db.query.media.findMany({
           where: {
             slug: {
