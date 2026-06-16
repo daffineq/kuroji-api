@@ -141,6 +141,12 @@ const filterMedia = async (
     });
   }
 
+  if (search && search.length > 100) {
+    throw new GraphQLError('search exceeds the limit of 100 characters', {
+      extensions: { code: 'BAD_USER_INPUT' }
+    });
+  }
+
   const skip = (page - 1) * per_page;
   const conditions: SQL[] = [];
 
