@@ -31,7 +31,7 @@ class MigrationsModule extends Module {
           offset: perPage * i
         });
 
-        if (data.length === 0) continue;
+        if (data.length === 0) break;
 
         await db
           .insert(media)
