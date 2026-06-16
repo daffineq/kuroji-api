@@ -26,7 +26,9 @@ class MigrationsModule extends Module {
           },
           with: {
             title: true
-          }
+          },
+          limit: perPage,
+          offset: perPage * i
         });
 
         if (data.length === 0) continue;
