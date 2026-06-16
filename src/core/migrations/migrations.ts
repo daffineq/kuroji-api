@@ -27,8 +27,7 @@ class MigrationsModule extends Module {
           with: {
             title: true
           },
-          limit: perPage,
-          offset: perPage * i
+          limit: perPage
         });
 
         if (data.length === 0) break;
