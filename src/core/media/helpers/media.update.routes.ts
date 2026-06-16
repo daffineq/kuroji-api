@@ -4,7 +4,7 @@ import logger from 'src/helpers/logger';
 import { Anime } from 'src/core';
 import { MediaUpdate } from './media.update';
 
-const mediaUpdateRoute = () => {
+export const mediaUpdateRoute = () => {
   return (app: Elysia) =>
     app.group('/media/update', { tags: ['Media Update'] }, (app) =>
       app
@@ -94,5 +94,3 @@ const mediaUpdateRoute = () => {
         )
     );
 };
-
-export { mediaUpdateRoute };

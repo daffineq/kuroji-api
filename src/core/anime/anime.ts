@@ -10,7 +10,7 @@ class AnimeModule extends Module {
   async update(id: number) {
     const anilist = await Anilist.getInfo(id);
 
-    await this.saveAndInit(AnilistUtils.anilistToMediaPayload(anilist));
+    await this.saveAndInit(await AnilistUtils.anilistToMediaPayload(anilist));
   }
 
   async saveAndInit(payload: MediaPayload) {

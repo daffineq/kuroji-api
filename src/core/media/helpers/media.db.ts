@@ -56,7 +56,7 @@ import {
   mediaRelation
 } from 'src/db';
 import { eq, sql } from 'drizzle-orm';
-import { toArray, uniqueBy } from 'src/helpers/utils';
+import { getSlug, toArray, uniqueBy } from 'src/helpers/utils';
 import { MediaPayload } from '../types';
 import { isForced } from 'src/helpers/forced';
 import { getKey } from 'src/helpers/redis.util';

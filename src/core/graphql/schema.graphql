@@ -1,5 +1,5 @@
 type Query {
-  media(id: Int!): Media
+  media(id: Int, slug: String): Media
   media_page(
     page: Int = 1
     per_page: Int = 20
@@ -226,7 +226,7 @@ enum CharacterRole {
   BACKGROUND
 }
 
-enum MediaRelation {
+enum Relation {
   ADAPTATION
   PREQUEL
   SEQUEL
@@ -253,24 +253,27 @@ scalar CountryCode
 type Media {
   id: Int!
   id_mal: Int
+  slug: String
   title: MediaTitle
   poster: MediaPoster
   background: String
   description: String
-  status: MediaStatus
-  type: MediaType
-  format: MediaFormat
+  status: String
+  type: String
+  format: String
   updated_at: Int!
   start_date: MediaDate
   end_date: MediaDate
-  season: MediaSeason
+  season: String
   season_year: Int
   episodes_aired: Int
   episodes_total: Int
+  volumes: Int
+  chapters: Int
   duration: Int
-  country: CountryCode
+  country: String
   is_licensed: Boolean
-  source: MediaSource
+  source: String
   hashtag: String
   is_adult: Boolean
   score: Int

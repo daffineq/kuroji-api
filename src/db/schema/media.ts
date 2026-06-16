@@ -26,6 +26,7 @@ export const media = pgTable(
   {
     id: integer('id').primaryKey(),
     id_mal: integer('id_mal'),
+    slug: text('slug'),
     background: text('background'),
     description: text('description'),
     status: varchar('status', { length: 255 }),
@@ -63,6 +64,7 @@ export const media = pgTable(
   },
   (t) => [
     index('idx_media_id_mal').on(t.id_mal),
+    index('idx_media_slug').on(t.slug),
     index('idx_media_status').on(t.status),
     index('idx_media_type').on(t.type),
     index('idx_media_format').on(t.format),

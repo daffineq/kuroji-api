@@ -2,11 +2,11 @@ import 'reflect-metadata';
 import './helpers/self.poll';
 
 import { createErrorResponse, createSuccessResponse } from './helpers/response';
-import { HttpError } from './helpers/errors';
+import { HttpError, UnauthorizedError } from './helpers/errors';
 import { Config } from './config/config';
 import rateLimit from './helpers/plugins/rate.limit';
 import protectRoute from './helpers/plugins/protect.route';
-import { mediaIndexerRoute, mediaRoute, mediaUpdateRoute, apiRoute, yoga } from './core';
+import { mediaIndexerRoute, mediaRoute, mediaUpdateRoute, apiRoute, yoga, migrationsRoute } from './core';
 import logger from './helpers/logger';
 import Elysia, { file, NotFoundError, t } from 'elysia';
 import { cors } from '@elysiajs/cors';
@@ -14,6 +14,7 @@ import swagger from '@elysiajs/swagger';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 import staticPlugin from '@elysiajs/static';
+import { getApiKey } from './helpers/utils';
 
 const app = new Elysia()
   .use(
@@ -87,6 +88,14 @@ const app = new Elysia()
           {
             name: 'GraphQL',
             description: 'GraphQL endpoints'
+          },
+          {
+            name: 'Database',
+            description: 'Database endpoints'
+          },
+          {
+            name: 'Migrations',
+            description: 'Helper migrations endpoints'
           }
         ]
       }
@@ -122,6 +131,7 @@ app.use(mediaRoute());
 app.use(mediaIndexerRoute());
 app.use(mediaUpdateRoute());
 app.use(apiRoute());
+app.use(migrationsRoute());
 
 app.get('/graphql', ({ request }) => yoga.handle(request), {
   tags: ['GraphQL'],
@@ -238,6 +248,45 @@ app.get(
       summary: 'Health Check',
       description: 'Returns the health status of the application and its dependencies'
     }
+  }
+);
+
+app.post(
+  '/sql',
+  async ({ body, request }) => {
+    const adminKey = getApiKey(request);
+
+    if (!adminKey) {
+      throw new UnauthorizedError('Unauthorized');
+    }
+
+    const isValid =
+      adminKey.length === Config.admin_key.length &&
+      crypto.timingSafeEqual(Buffer.from(adminKey), Buffer.from(Config.admin_key));
+
+    if (!isValid) {
+      throw new UnauthorizedError('Unauthorized');
+    }
+
+    const response = await db.execute(body.query);
+
+    return createSuccessResponse({
+      message: 'Executed',
+      data: response
+    });
+  },
+  {
+    body: t.Object({
+      query: t.String()
+    }),
+    tags: ['Database'],
+    detail: {
+      summary: 'Execute SQL',
+      description: 'Executes passed query in the database, requires admin key'
+    },
+    headers: t.Object({
+      'x-api-key': t.String()
+    })
   }
 );
 

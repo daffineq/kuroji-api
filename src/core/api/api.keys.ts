@@ -1,4 +1,5 @@
 import crypto, { createHash } from 'crypto';
+import { eq } from 'drizzle-orm';
 import { apiKey, apiKeyUsage, db } from 'src/db';
 import { Module } from 'src/helpers/module';
 
@@ -70,6 +71,12 @@ class ApiKeysModule extends Module {
         usage: true
       }
     });
+  }
+
+  async delete(key: string) {
+    const hashed = createHash('sha256').update(key).digest('hex');
+
+    await db.delete(apiKey).where(eq(apiKey.key, hashed));
   }
 }
 
