@@ -39,3 +39,12 @@ export const getApiKey = (request: Request) => {
   const url = new URL(request.url);
   return url.searchParams.get('api_key');
 };
+
+export function getSlug(title: string) {
+  return `${title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '')}-${Math.random().toString(36).substring(2, 7)}`;
+}

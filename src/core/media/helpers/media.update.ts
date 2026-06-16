@@ -136,12 +136,12 @@ class MediaUpdateModule extends Module {
 
         if (await Media.exists(anime.id)) {
           if (await Media.shouldAutoUpdate(anime.id)) {
-            await Anime.saveAndInit(AnilistUtils.anilistToMediaPayload(anime));
+            await Anime.saveAndInit(await AnilistUtils.anilistToMediaPayload(anime));
           } else {
             logger.log(`Wont update anime: ${anime.id}...`);
           }
         } else {
-          await Anime.saveAndInit(AnilistUtils.anilistToMediaPayload(anime));
+          await Anime.saveAndInit(await AnilistUtils.anilistToMediaPayload(anime));
         }
 
         await this.removeFromQueue(anime.id);

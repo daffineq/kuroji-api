@@ -841,9 +841,18 @@ const getMediaPage = async (args: MediaArgs) => {
 
 export const resolvers = {
   Query: {
-    media: async (_: any, { id }: { id: number }) => {
+    media: async (_: any, { id, slug }: { id?: number; slug?: string }) => {
       const release = await db.query.media.findFirst({
-        where: { id }
+        where: {
+          OR: [
+            {
+              id
+            },
+            {
+              slug
+            }
+          ]
+        }
       });
 
       if (release) {

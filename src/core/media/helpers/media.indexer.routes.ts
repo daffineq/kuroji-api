@@ -2,7 +2,7 @@ import Elysia, { t } from 'elysia';
 import { createSuccessResponse } from 'src/helpers/response';
 import { MediaIndexer } from './media.indexer';
 
-const mediaIndexerRoute = () => {
+export const mediaIndexerRoute = () => {
   return (app: Elysia) =>
     app.group('/media/indexer', { tags: ['Media Indexer'] }, (app) =>
       app
@@ -80,5 +80,3 @@ const mediaIndexerRoute = () => {
         )
     );
 };
-
-export { mediaIndexerRoute };

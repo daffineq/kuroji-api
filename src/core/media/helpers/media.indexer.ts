@@ -104,18 +104,18 @@ class MediaIndexerModule extends Module {
           if (await Media.exists(media.id)) {
             if (await Media.shouldAutoUpdate(media.id)) {
               if (media.type === 'ANIME') {
-                await Anime.saveAndInit(AnilistUtils.anilistToMediaPayload(media));
+                await Anime.saveAndInit(await AnilistUtils.anilistToMediaPayload(media));
               } else {
-                await Media.save(AnilistUtils.anilistToMediaPayload(media));
+                await Media.save(await AnilistUtils.anilistToMediaPayload(media));
               }
             } else {
               logger.log(`Wont update media: ${media.id}...`);
             }
           } else {
             if (media.type === 'ANIME') {
-              await Anime.saveAndInit(AnilistUtils.anilistToMediaPayload(media));
+              await Anime.saveAndInit(await AnilistUtils.anilistToMediaPayload(media));
             } else {
-              await Media.save(AnilistUtils.anilistToMediaPayload(media));
+              await Media.save(await AnilistUtils.anilistToMediaPayload(media));
             }
           }
 

@@ -12,9 +12,35 @@ import {
   MediaTagConnectionPayload,
   MediaRelationPayload
 } from 'src/core/media';
+import { db } from 'src/db';
 import { forced } from 'src/helpers/forced';
+import { getSlug } from 'src/helpers/utils';
 
-const anilistToMediaPayload = (media: AnilistMedia): MediaPayload => {
+const anilistToMediaPayload = async (media: AnilistMedia): Promise<MediaPayload> => {
+  const existing = await db.query.media.findFirst({
+    where: {
+      id: media.id
+    },
+    columns: {
+      slug: true
+    },
+    with: {
+      title: true
+    }
+  });
+
+  let slug;
+
+  if (existing?.slug && media.title.romaji && existing?.title?.romaji !== media.title.romaji) {
+    slug = getSlug(media.title.romaji);
+  } else if (existing?.slug) {
+    slug = existing.slug;
+  } else if (media.title.romaji) {
+    slug = getSlug(media.title.romaji);
+  } else {
+    slug = getSlug('No Title');
+  }
+
   const characters: MediaCharacterConnectionPayload[] = (media.characters?.edges ?? [])
     .filter((edge) => edge?.node?.id)
     .map((edge) => ({
@@ -171,6 +197,7 @@ const anilistToMediaPayload = (media: AnilistMedia): MediaPayload => {
   return {
     id: media.id,
     id_mal: media.idMal ?? null,
+    slug,
     background: media.bannerImage ?? null,
     description: media.description ?? null,
     status: media.status ?? null,

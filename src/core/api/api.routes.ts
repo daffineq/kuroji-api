@@ -5,7 +5,7 @@ import { createSuccessResponse } from 'src/helpers/response';
 import Elysia, { t } from 'elysia';
 import { getApiKey } from 'src/helpers/utils';
 
-const apiRoute = () => {
+export const apiRoute = () => {
   return (app: Elysia) =>
     app.group('', { tags: ['API'] }, (app) =>
       app
@@ -70,7 +70,31 @@ const apiRoute = () => {
             })
           }
         )
+
+        .delete(
+          '/api-key',
+          async ({ request }) => {
+            const apiKey = getApiKey(request);
+
+            if (!apiKey) {
+              throw new UnauthorizedError('Unauthorized');
+            }
+
+            await ApiKeys.delete(apiKey);
+
+            return createSuccessResponse({
+              message: 'Deleted api key'
+            });
+          },
+          {
+            detail: {
+              summary: 'Delete Api Key',
+              description: 'Deletes an api key'
+            },
+            headers: t.Object({
+              'x-api-key': t.String()
+            })
+          }
+        )
     );
 };
-
-export { apiRoute };

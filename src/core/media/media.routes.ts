@@ -2,7 +2,7 @@ import Elysia, { t } from 'elysia';
 import { Media } from './media';
 import { createSuccessResponse } from 'src/helpers/response';
 
-const mediaRoute = () => {
+export const mediaRoute = () => {
   return (app: Elysia) =>
     app.group('/media', { tags: ['Media'] }, (app) =>
       app
@@ -54,5 +54,3 @@ const mediaRoute = () => {
         )
     );
 };
-
-export { mediaRoute };

@@ -243,6 +243,7 @@ export interface MediaAgeRatingPayload {
 export interface MediaPayload {
   id: number;
   id_mal?: number | null;
+  slug?: string | null;
   background?: string | null;
   description?: string | null;
   status?: string | null;
