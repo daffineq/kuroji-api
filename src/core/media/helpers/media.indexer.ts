@@ -232,7 +232,7 @@ class MediaIndexerModule extends Module {
             }
           },
           limit: perPage,
-          offset: perPage * i
+          ...(update_all ? { offset: perPage * i } : undefined)
         });
 
         if (data.length === 0) break;
