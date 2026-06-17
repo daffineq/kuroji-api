@@ -27,7 +27,7 @@
     "dataloader": "^2.2.3",
     "drizzle-orm": "^1.0.0-beta.22",
     "elysia": "^1.4.19",
-    "graphql": "^16.12.0",
+    "graphql": "^17.0.1",
     "graphql-yoga": "^5.18.0",
     "ioredis": "^5.8.2",
     "postgres": "^3.4.8",
