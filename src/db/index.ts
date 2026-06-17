@@ -6,7 +6,7 @@ if (!Config.database_url) {
   throw new Error('no database?');
 }
 
-const db = drizzle({ connection: Config.database_url, relations, casing: 'snake_case' });
+const db = drizzle({ connection: Config.database_url, relations });
 
 export { db };
 
