@@ -1,10 +1,10 @@
-import cuid from 'cuid';
+import { createId } from '@paralleldrive/cuid2';
 import { boolean, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 export const apiKey = pgTable('api_key', {
   id: varchar('id', { length: 255 })
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => createId()),
   key: varchar('key', { length: 255 }).notNull().unique(),
   active: boolean('active').notNull().default(true),
   created_at: timestamp('created_at').notNull().defaultNow(),
@@ -14,7 +14,7 @@ export const apiKey = pgTable('api_key', {
 export const apiKeyUsage = pgTable('api_key_usage', {
   id: varchar('id', { length: 255 })
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => createId()),
   api_key_id: varchar('api_key_id', { length: 255 })
     .notNull()
     .references(() => apiKey.id, { onDelete: 'cascade' }),
