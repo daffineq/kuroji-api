@@ -1,8 +1,8 @@
 import { createId } from '@paralleldrive/cuid2';
-import { boolean, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { boolean, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const tvdbLogin = pgTable('tvdb_login', {
-  id: varchar('id', { length: 255 })
+  id: text('id')
     .primaryKey()
     .$defaultFn(() => createId()),
   token: text('token').notNull(),

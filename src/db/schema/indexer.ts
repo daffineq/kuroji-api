@@ -1,7 +1,7 @@
-import { integer, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { integer, pgTable, timestamp, text } from 'drizzle-orm/pg-core';
 
 export const indexerState = pgTable('indexer_state', {
-  id: varchar('id', { length: 255 }).primaryKey(),
+  id: text('id').primaryKey(),
   last_page: integer('last_page').notNull(),
   last_pl: integer('last_pl'),
   updated_at: timestamp('updated_at').notNull().defaultNow()

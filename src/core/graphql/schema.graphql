@@ -280,6 +280,7 @@ type Media {
   popularity: Int
   trending: Int
   favorites: Int
+  local_score: Float
   local_favorites: Int
   color: String
   franchise: String

@@ -1,10 +1,10 @@
 import { createId } from '@paralleldrive/cuid2';
-import { index, integer, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { index, integer, pgTable, timestamp, text } from 'drizzle-orm/pg-core';
 
 export const updateQueue = pgTable(
   'update_queue',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     anime_id: integer('anime_id').notNull().unique(),
