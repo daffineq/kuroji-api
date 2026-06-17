@@ -6,9 +6,9 @@ import {
   integer,
   pgTable,
   primaryKey,
+  real,
   text,
   uniqueIndex,
-  varchar,
   vector
 } from 'drizzle-orm/pg-core';
 import { createId } from '@paralleldrive/cuid2';
@@ -29,24 +29,25 @@ export const media = pgTable(
     slug: text('slug'),
     background: text('background'),
     description: text('description'),
-    status: varchar('status', { length: 255 }),
-    type: varchar('type', { length: 255 }),
-    format: varchar('format', { length: 255 }),
-    season: varchar('season', { length: 255 }),
+    status: text('status'),
+    type: text('type'),
+    format: text('format'),
+    season: text('season'),
     season_year: integer('season_year'),
     duration: integer('duration'),
-    country: varchar('country', { length: 255 }),
+    country: text('country'),
     is_licensed: boolean('is_licensed').default(false),
-    source: varchar('source', { length: 255 }),
-    hashtag: varchar('hashtag', { length: 255 }),
+    source: text('source'),
+    hashtag: text('hashtag'),
     is_adult: boolean('is_adult').default(false),
     score: integer('score'),
     popularity: integer('popularity'),
     trending: integer('trending'),
     favorites: integer('favorites'),
-    local_favorites: integer('local_favorites'),
-    color: varchar('color', { length: 255 }),
-    franchise: varchar('franchise', { length: 255 }),
+    local_score: real('local_score').default(0),
+    local_favorites: integer('local_favorites').default(0),
+    color: text('color'),
+    franchise: text('franchise'),
     episodes_aired: integer('episodes_aired'),
     episodes_total: integer('episodes_total'),
     volumes: integer('volumes'),
@@ -86,7 +87,7 @@ export const media = pgTable(
 );
 
 export const mediaEmbedding = pgTable('media_embedding', {
-  id: varchar('id', { length: 255 })
+  id: text('id')
     .primaryKey()
     .$defaultFn(() => createId()),
   media_id: integer('media_id')
@@ -100,7 +101,7 @@ export const mediaEmbedding = pgTable('media_embedding', {
 export const mediaPoster = pgTable(
   'media_poster',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     media_id: integer('media_id')
@@ -124,7 +125,7 @@ const tsvector = customType<{ data: string }>({
 export const mediaTitle = pgTable(
   'media_title',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     media_id: integer('media_id')
@@ -155,7 +156,7 @@ export const mediaTitle = pgTable(
 export const mediaStartDate = pgTable(
   'media_start_date',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     media_id: integer('media_id')
@@ -173,7 +174,7 @@ export const mediaStartDate = pgTable(
 export const mediaEndDate = pgTable(
   'media_end_date',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     media_id: integer('media_id')
@@ -191,7 +192,7 @@ export const mediaEndDate = pgTable(
 export const mediaBroadcast = pgTable(
   'media_broadcast',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     media_id: integer('media_id')
@@ -199,8 +200,8 @@ export const mediaBroadcast = pgTable(
       .unique()
       .references(() => media.id, { onDelete: 'cascade' }),
     week: integer('week'),
-    time: varchar('time', { length: 255 }),
-    timezone: varchar('timezone', { length: 255 }),
+    time: text('time'),
+    timezone: text('timezone'),
     ...timestamps
   },
   (t) => [index('idx_media_broadcast_media_id').on(t.media_id), index('idx_media_broadcast_week').on(t.week)]
@@ -209,15 +210,15 @@ export const mediaBroadcast = pgTable(
 export const mediaAgeRating = pgTable(
   'media_age_rating',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     media_id: integer('media_id')
       .notNull()
       .unique()
       .references(() => media.id, { onDelete: 'cascade' }),
-    rating: varchar('rating', { length: 255 }),
-    description: varchar('description', { length: 255 }),
+    rating: text('rating'),
+    description: text('description'),
     ...timestamps
   },
   (t) => [index('idx_media_age_rating_media_id').on(t.media_id), index('idx_media_age_rating_rating').on(t.rating)]
@@ -226,7 +227,7 @@ export const mediaAgeRating = pgTable(
 export const mediaStatistic = pgTable(
   'media_statistic',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     media_id: integer('media_id')
@@ -241,10 +242,10 @@ export const mediaStatistic = pgTable(
 export const mediaGenre = pgTable(
   'media_genre',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
-    name: varchar('name', { length: 255 }).notNull().unique(),
+    name: text('name').notNull().unique(),
     ...timestamps
   },
   (t) => [index('idx_media_genre_name').on(t.name)]
@@ -256,7 +257,7 @@ export const mediaToGenre = pgTable(
     A: integer('A')
       .notNull()
       .references(() => media.id, { onDelete: 'cascade' }),
-    B: varchar('B', { length: 255 })
+    B: text('B')
       .notNull()
       .references(() => mediaGenre.id, { onDelete: 'cascade' }),
     ...timestamps
@@ -271,7 +272,7 @@ export const mediaToGenre = pgTable(
 export const mediaAiringSchedule = pgTable(
   'media_airing_schedule',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     media_id: integer('media_id')
@@ -288,7 +289,7 @@ export const mediaAiringSchedule = pgTable(
 );
 
 export const mediaLatestAiringEpisode = pgTable('media_latest_airing_episode', {
-  id: varchar('id', { length: 255 })
+  id: text('id')
     .primaryKey()
     .$defaultFn(() => createId()),
   media_id: integer('media_id')
@@ -301,7 +302,7 @@ export const mediaLatestAiringEpisode = pgTable('media_latest_airing_episode', {
 });
 
 export const mediaNextAiringEpisode = pgTable('media_next_airing_episode', {
-  id: varchar('id', { length: 255 })
+  id: text('id')
     .primaryKey()
     .$defaultFn(() => createId()),
   media_id: integer('media_id')
@@ -314,7 +315,7 @@ export const mediaNextAiringEpisode = pgTable('media_next_airing_episode', {
 });
 
 export const mediaLastAiringEpisode = pgTable('media_last_airing_episode', {
-  id: varchar('id', { length: 255 })
+  id: text('id')
     .primaryKey()
     .$defaultFn(() => createId()),
   media_id: integer('media_id')
@@ -328,10 +329,10 @@ export const mediaLastAiringEpisode = pgTable('media_last_airing_episode', {
 
 export const mediaCharacter = pgTable('media_character', {
   id: integer('id').primaryKey(),
-  age: varchar('age', { length: 255 }),
-  blood_type: varchar('blood_type', { length: 255 }),
+  age: text('age'),
+  blood_type: text('blood_type'),
   description: text('description'),
-  gender: varchar('gender', { length: 255 }),
+  gender: text('gender'),
   ...timestamps
 });
 
@@ -345,7 +346,7 @@ export const mediaToCharacter = pgTable(
     character_id: integer('character_id')
       .notNull()
       .references(() => mediaCharacter.id, { onDelete: 'cascade' }),
-    role: varchar('role', { length: 255 }),
+    role: text('role'),
     role_i: integer('role_i').default(2), // 0: Main, 1: Support, 2: Background
     ...timestamps
   },
@@ -357,11 +358,11 @@ export const mediaToCharacter = pgTable(
 
 export const mediaVoiceActor = pgTable('media_voice_actor', {
   id: integer('id').primaryKey(),
-  language: varchar('language', { length: 255 }),
+  language: text('language'),
   age: integer('age'),
-  blood_type: varchar('blood_type', { length: 255 }),
+  blood_type: text('blood_type'),
   description: text('description'),
-  gender: varchar('gender', { length: 255 }),
+  gender: text('gender'),
   home_town: text('home_town'),
   ...timestamps
 });
@@ -387,7 +388,7 @@ export const characterToVoiceActor = pgTable(
 export const mediaCharacterBirthDate = pgTable(
   'media_character_birth_date',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     day: integer('day'),
@@ -404,7 +405,7 @@ export const mediaCharacterBirthDate = pgTable(
 export const mediaCharacterName = pgTable(
   'media_character_name',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     first: text('first'),
@@ -425,7 +426,7 @@ export const mediaCharacterName = pgTable(
 export const mediaCharacterImage = pgTable(
   'media_character_image',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     large: text('large'),
@@ -441,7 +442,7 @@ export const mediaCharacterImage = pgTable(
 export const mediaVoiceBirthDate = pgTable(
   'media_voice_birth_date',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     day: integer('day'),
@@ -458,7 +459,7 @@ export const mediaVoiceBirthDate = pgTable(
 export const mediaVoiceDeathDate = pgTable(
   'media_voice_death_date',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     day: integer('day'),
@@ -475,7 +476,7 @@ export const mediaVoiceDeathDate = pgTable(
 export const mediaVoiceName = pgTable(
   'media_voice_name',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     first: text('first'),
@@ -495,7 +496,7 @@ export const mediaVoiceName = pgTable(
 export const mediaVoiceImage = pgTable(
   'media_voice_image',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     large: text('large'),
@@ -541,9 +542,9 @@ export const mediaTag = pgTable(
   'media_tag',
   {
     id: integer('id').primaryKey(),
-    name: varchar('name', { length: 255 }).unique(),
+    name: text('name').unique(),
     description: text('description'),
-    category: varchar('category', { length: 255 }),
+    category: text('category'),
     is_adult: boolean('is_adult'),
     ...timestamps
   },
@@ -557,7 +558,7 @@ export const mediaTag = pgTable(
 export const mediaToTag = pgTable(
   '_media_to_tag',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     media_id: integer('media_id')
@@ -580,7 +581,7 @@ export const mediaToTag = pgTable(
 export const mediaScoreDistribution = pgTable(
   'media_score_distribution',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     score: integer('score').notNull(),
@@ -599,10 +600,10 @@ export const mediaScoreDistribution = pgTable(
 export const mediaStatusDistribution = pgTable(
   'media_status_distribution',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
-    status: varchar('status', { length: 255 }).notNull(),
+    status: text('status').notNull(),
     amount: integer('amount').notNull(),
     media_id: integer('media_id')
       .notNull()
@@ -618,7 +619,7 @@ export const mediaStatusDistribution = pgTable(
 export const mediaLocalScoreDistribution = pgTable(
   'media_local_score_distribution',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     score: integer('score').notNull(),
@@ -637,7 +638,7 @@ export const mediaLocalScoreDistribution = pgTable(
 export const mediaLocalStatusDistribution = pgTable(
   'media_local_status_distribution',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     status: integer('status').notNull(),
@@ -656,12 +657,12 @@ export const mediaLocalStatusDistribution = pgTable(
 export const mediaLink = pgTable(
   'media_link',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     link: text('link').notNull(),
     label: text('label').notNull(),
-    type: varchar('type', { length: 255 }),
+    type: text('type'),
     ...timestamps
   },
   (t) => [uniqueIndex('link_unique').on(t.link, t.label)]
@@ -670,12 +671,12 @@ export const mediaLink = pgTable(
 export const mediaAltTitle = pgTable(
   'media_alt_title',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     title: text('title').notNull(),
-    source: varchar('source', { length: 255 }).notNull(),
-    language: varchar('language', { length: 255 }),
+    source: text('source').notNull(),
+    language: text('language'),
     ...timestamps
   },
   (t) => [uniqueIndex('alt_title_unique').on(t.title, t.source)]
@@ -684,12 +685,12 @@ export const mediaAltTitle = pgTable(
 export const mediaAltDescription = pgTable(
   'media_alt_description',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     description: text('description').notNull(),
-    source: varchar('source', { length: 255 }).notNull(),
-    language: varchar('language', { length: 255 }),
+    source: text('source').notNull(),
+    language: text('language'),
     ...timestamps
   },
   (t) => [uniqueIndex('alt_description_unique').on(t.description, t.source)]
@@ -698,15 +699,15 @@ export const mediaAltDescription = pgTable(
 export const mediaImage = pgTable(
   'media_image',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     url: text('url').notNull(),
     small: text('small'),
     medium: text('medium'),
     large: text('large'),
-    type: varchar('type', { length: 255 }),
-    source: varchar('source', { length: 255 }).notNull(),
+    type: text('type'),
+    source: text('source').notNull(),
     ...timestamps
   },
   (t) => [uniqueIndex('media_image_unique').on(t.url, t.source)]
@@ -715,15 +716,15 @@ export const mediaImage = pgTable(
 export const mediaVideo = pgTable(
   'media_video',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     url: text('url').notNull(),
     title: text('title'),
     thumbnail: text('thumbnail'),
     artist: text('artist'),
-    type: varchar('type', { length: 255 }),
-    source: varchar('source', { length: 255 }).notNull(),
+    type: text('type'),
+    source: text('source').notNull(),
     ...timestamps
   },
   (t) => [uniqueIndex('media_video_unique').on(t.url, t.source)]
@@ -732,7 +733,7 @@ export const mediaVideo = pgTable(
 export const mediaScreenshot = pgTable(
   'media_screenshot',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     url: text('url').notNull(),
@@ -740,7 +741,7 @@ export const mediaScreenshot = pgTable(
     small: text('small'),
     medium: text('medium'),
     large: text('large'),
-    source: varchar('source', { length: 255 }).notNull(),
+    source: text('source').notNull(),
     ...timestamps
   },
   (t) => [uniqueIndex('media_screenshot_unique').on(t.url, t.source)]
@@ -749,7 +750,7 @@ export const mediaScreenshot = pgTable(
 export const mediaArtwork = pgTable(
   'media_artwork',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     url: text('url').notNull(),
@@ -757,10 +758,10 @@ export const mediaArtwork = pgTable(
     width: integer('width'),
     large: text('large'),
     medium: text('medium'),
-    iso_639_1: varchar('iso_639_1', { length: 255 }),
+    iso_639_1: text('iso_639_1'),
     is_adult: boolean('is_adult').default(false),
-    type: varchar('type', { length: 255 }),
-    source: varchar('source', { length: 255 }).notNull(),
+    type: text('type'),
+    source: text('source').notNull(),
     ...timestamps
   },
   (t) => [uniqueIndex('media_artwork_unique').on(t.url, t.source)]
@@ -769,14 +770,14 @@ export const mediaArtwork = pgTable(
 export const mediaTranslation = pgTable(
   'media_translation',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
-    iso_639_1: varchar('iso_639_1', { length: 255 }),
+    iso_639_1: text('iso_639_1'),
     title: text('title'),
     description: text('description'),
     tagline: text('tagline'),
-    source: varchar('source', { length: 255 }).notNull(),
+    source: text('source').notNull(),
     ...timestamps
   },
   (t) => [uniqueIndex('media_translation_unique').on(t.iso_639_1, t.title, t.source)]
@@ -785,7 +786,7 @@ export const mediaTranslation = pgTable(
 export const mediaChronology = pgTable(
   'media_chronology',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     parent_id: integer('parent_id').notNull(),
@@ -807,7 +808,7 @@ export const mediaChronology = pgTable(
 export const mediaRecommendation = pgTable(
   'media_recommendation',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     parent_id: integer('parent_id').notNull(),
@@ -829,12 +830,12 @@ export const mediaRecommendation = pgTable(
 export const mediaRelation = pgTable(
   'media_relation',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     parent_id: integer('parent_id').notNull(),
     related_id: integer('related_id').notNull(),
-    relation_type: varchar('relation_type', { length: 255 }).notNull(),
+    relation_type: text('relation_type').notNull(),
     media_id: integer('media_id')
       .notNull()
       .references(() => media.id, { onDelete: 'cascade' }),
@@ -851,12 +852,12 @@ export const mediaRelation = pgTable(
 export const mediaEpisode = pgTable(
   'media_episode',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     title: text('title'),
     number: integer('number').notNull(),
-    air_date: varchar('air_date', { length: 255 }),
+    air_date: text('air_date'),
     runtime: integer('runtime'),
     overview: text('overview'),
     views: integer('views').default(0),
@@ -874,13 +875,13 @@ export const mediaEpisode = pgTable(
 export const mediaEpisodeImage = pgTable(
   'media_episode_image',
   {
-    id: varchar('id', { length: 255 })
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => createId()),
     small: text('small'),
     medium: text('medium'),
     large: text('large'),
-    episode_id: varchar('episode_id', { length: 255 })
+    episode_id: text('episode_id')
       .unique()
       .references(() => mediaEpisode.id, { onDelete: 'cascade' }),
     ...timestamps
@@ -894,7 +895,7 @@ export const mediaToLink = pgTable(
     A: integer('A')
       .notNull()
       .references(() => media.id, { onDelete: 'cascade' }),
-    B: varchar('B', { length: 255 })
+    B: text('B')
       .notNull()
       .references(() => mediaLink.id, { onDelete: 'cascade' }),
     ...timestamps
@@ -908,7 +909,7 @@ export const mediaToAltTitle = pgTable(
     A: integer('A')
       .notNull()
       .references(() => media.id, { onDelete: 'cascade' }),
-    B: varchar('B', { length: 255 })
+    B: text('B')
       .notNull()
       .references(() => mediaAltTitle.id, { onDelete: 'cascade' }),
     ...timestamps
@@ -922,7 +923,7 @@ export const mediaToAltDescription = pgTable(
     A: integer('A')
       .notNull()
       .references(() => media.id, { onDelete: 'cascade' }),
-    B: varchar('B', { length: 255 })
+    B: text('B')
       .notNull()
       .references(() => mediaAltDescription.id, { onDelete: 'cascade' }),
     ...timestamps
@@ -936,7 +937,7 @@ export const mediaToImage = pgTable(
     A: integer('A')
       .notNull()
       .references(() => media.id, { onDelete: 'cascade' }),
-    B: varchar('B', { length: 255 })
+    B: text('B')
       .notNull()
       .references(() => mediaImage.id, { onDelete: 'cascade' }),
     ...timestamps
@@ -950,7 +951,7 @@ export const mediaToVideo = pgTable(
     A: integer('A')
       .notNull()
       .references(() => media.id, { onDelete: 'cascade' }),
-    B: varchar('B', { length: 255 })
+    B: text('B')
       .notNull()
       .references(() => mediaVideo.id, { onDelete: 'cascade' }),
     ...timestamps
@@ -964,7 +965,7 @@ export const mediaToScreenshot = pgTable(
     A: integer('A')
       .notNull()
       .references(() => media.id, { onDelete: 'cascade' }),
-    B: varchar('B', { length: 255 })
+    B: text('B')
       .notNull()
       .references(() => mediaScreenshot.id, { onDelete: 'cascade' }),
     ...timestamps
@@ -978,7 +979,7 @@ export const mediaToArtwork = pgTable(
     A: integer('A')
       .notNull()
       .references(() => media.id, { onDelete: 'cascade' }),
-    B: varchar('B', { length: 255 })
+    B: text('B')
       .notNull()
       .references(() => mediaArtwork.id, { onDelete: 'cascade' }),
     ...timestamps
@@ -992,7 +993,7 @@ export const mediaToTranslation = pgTable(
     A: integer('A')
       .notNull()
       .references(() => media.id, { onDelete: 'cascade' }),
-    B: varchar('B', { length: 255 })
+    B: text('B')
       .notNull()
       .references(() => mediaTranslation.id, { onDelete: 'cascade' }),
     ...timestamps

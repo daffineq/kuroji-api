@@ -337,7 +337,7 @@ class MediaModule extends Module {
         await tx
           .update(media)
           .set({
-            score: result?.average_score ? Math.round(result.average_score * 100) / 100 : 0
+            local_score: result?.average_score ? Math.round(result.average_score * 100) / 100 : 0
           })
           .where(eq(media.id, update.id));
       }
