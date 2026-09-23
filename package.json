@@ -38,7 +38,7 @@
     "@types/node": "^25.4.0",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
-    "dotenv": "^17.2.3",
+    "dotenv": "^18.0.1",
     "drizzle-kit": "^1.0.0-beta.22",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
